@@ -100,11 +100,9 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-BASE_DIR = "C:/Dropbox/Dropbox"
-FILE_DEPART = os.path.join(BASE_DIR, "LIVE_Temps_DEPART.xlsm")
-FILE_ARRIVEE = os.path.join(BASE_DIR, "LIVE_Temps_ARRIVEE.xlsm")
-# CONSERVATION DU FICHIER DES ENGAGÉS D'ORIGINE :
-FILE_ENGAGES = os.path.join(BASE_DIR, "LIVE_Liste_ENGAGES.xlsm")
+FILE_DEPART = "https://dropbox.com"
+FILE_ARRIVEE = "https://dropbox.com"
+FILE_ENGAGES = "https://dropbox.com"
 def convertir_en_secondes(valeur):
     if pd.isna(valeur) or valeur is None: return None
     if isinstance(valeur, (datetime.time, datetime.datetime)):
