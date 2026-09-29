@@ -87,10 +87,11 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# CONNECTEURS DIRECTS DROPBOX EN LIGNE (AVEC RAW=1 POUR ACCÈS BRUT)
-FILE_DEPART = "https://dropbox.com"
-FILE_ARRIVEE = "https://dropbox.com"
-FILE_ENGAGES = "https://dropbox.com"
+# Remplacement des variables pour que le reste du script fonctionne sans erreur
+# Remplacez les liens ci-dessous par VOS liens Dropbox modifiés avec "://dropboxusercontent.com"
+URL_ENGAGES = "https://://dropboxusercontent.com/scl/fi/ol1gmdxfxwmsto2kbyk59/LIVE_Liste_ENGAGES.xlsm?rlkey=b31bvaibeccpn9h4qlv9x12t7&dl=0
+URL_DEPART = "https://://dropboxusercontent.com/scl/fi/gbkaq01qzjujc8nq3zj28/LIVE_Temps_DEPART.xlsm?rlkey=4x4rvvlfyzz8v59gqbxn80a4d&dl=0
+URL_ARRIVEE = "https://://dropboxusercontent.com/scl/fi/7uu9cmlpzglx0ngvbklpt/LIVE_Temps_ARRIVEE.xlsm?rlkey=dfj4gehkffjcqnyinmot007ml&dl=0
 
 def convertir_en_secondes(valeur):
     if pd.isna(valeur) or valeur is None: return None
@@ -151,8 +152,10 @@ while True:
     df_racb = pd.DataFrame(columns=["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"])
     df_asaf123 = pd.DataFrame(columns=["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"])
     df_asaf4 = pd.DataFrame(columns=["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"])
-
-    try:
+    # ELLE EST JUSTE ICI :
+    fichiers_prets = True
+    if fichiers_prets:
+        try::
         df_eng_raw = pd.read_excel(FILE_ENGAGES, engine='openpyxl')
         df_dep_raw = pd.read_excel(FILE_DEPART, skiprows=2, engine='openpyxl')
         df_arr_raw = pd.read_excel(FILE_ARRIVEE, skiprows=2, engine='openpyxl')
