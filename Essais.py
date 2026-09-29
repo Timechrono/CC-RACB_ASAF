@@ -277,7 +277,7 @@ while True:
 
     with affichage_dynamique.container():
         if not fichiers_prets:
-            st.warning(f"⚠️ En attente des fichiers Excel dans le dossier : {BASE_DIR}")
+            st.warning("⚠️ En attente des fichiers Excel sur Dropbox...")
         else:
             cg, cd = st.columns([1.3, 0.9])
             with cg:
