@@ -1,5 +1,5 @@
 import streamlit as st
-import pandas as pd  # CORRECTION : Ajout de l'importation manquante pour éviter la NameError
+import pandas as pd
 import time
 import Essais
 
@@ -18,7 +18,7 @@ st.markdown("""
 <style>
 [data-testid="stHeader"] { display: none !important; }
 
-/* REJET DU ROUGE AND CONTOURS */
+/* REJET DU ROUGE ET DES CONTOURS */
 button:focus, div:focus, input:focus, select:focus {
     outline: none !important;
     border-color: transparent !important;
@@ -66,14 +66,12 @@ div[data-testid="stFragment"] {
 .table-live th:nth-child(4), .table-live td:nth-child(4) { width: 12% !important; }
 .table-live th:nth-child(5), .table-live td:nth-child(5) { width: 13% !important; }
 .table-live th:nth-child(6), .table-live td:nth-child(6) { width: 25% !important; }
-.table-hist th:nth-child(1), .table-hist td:nth-child(1) { width: 7% !important; }
-.table-hist th:nth-child(2), .table-hist td:nth-child(2) { width: 23% !important; }
-.table-hist th:nth-child(3), .table-hist td:nth-child(3) { width: 22% !important; }
-.table-hist th:nth-child(4), .table-hist td:nth-child(4) { width: 7% !important; }
-.table-hist th:nth-child(5), .table-hist td:nth-child(5) { width: 7% !important; }
-.table-hist th:nth-child(6), .table-hist td:nth-child(6) { width: 10% !important; }
-.table-hist th:nth-child(7), .table-hist td:nth-child(7) { width: 10% !important; }
-.table-hist th:nth-child(8), .table-hist td:nth-child(8) { width: 14% !important; }
+.table-hist th:nth-child(1), .table-hist td:nth-child(1) { width: 8% !important; }
+.table-hist th:nth-child(2), .table-hist td:nth-child(2) { width: 30% !important; }
+.table-hist th:nth-child(3), .table-hist td:nth-child(3) { width: 26% !important; }
+.table-hist th:nth-child(4), .table-hist td:nth-child(4) { width: 11% !important; }
+.table-hist th:nth-child(5), .table-hist td:nth-child(5) { width: 8% !important; }
+.table-hist th:nth-child(6), .table-hist td:nth-child(6) { width: 17% !important; }
 
 .table-class-robuste th:nth-child(1), .table-class-robuste td:nth-child(1) { width: 9% !important; }
 .table-class-robuste th:nth-child(2), .table-class-robuste td:nth-child(2) { width: 11% !important; }
@@ -92,7 +90,7 @@ def gen_html(df, cl):
         return f"<table class='table-compacte {cl}'><tr><td style='text-align: center; padding: 10px;'>Aucune donnée disponible</td></tr></table>"
     return df.to_html(index=False, classes=f"table-compacte {cl}", escape=False, border=0)
 
-# --- SÉLECTEUR CENTRAL ALIGNÉ ---
+# --- SÉLECTEUR CENTRAL ---
 col_vide, col_texte, col_select = st.columns([0.6, 1.5, 1.3])
 
 with col_texte:
@@ -103,7 +101,7 @@ with col_select:
 
 st.markdown("<div style='height:12px;'></div>", unsafe_allow_html=True)
 
-# --- REFRESH AUTOMATIQUE INTERNET ---
+# --- ZONE D'AFFICHAGE ET REFRESH ---
 @st.fragment(run_every=30)
 def afficher_tableaux():
     st.cache_data.clear()
@@ -118,18 +116,20 @@ def afficher_tableaux():
     with cg:
         st.markdown("<span class='titre-live'>🏎️ EN DIRECT / Derniers concurrents partis</span>", unsafe_allow_html=True)
         st.markdown(gen_html(d_liv, "table-live"), unsafe_allow_html=True)
-        st.markdown("<div style='height:35px;'></div>", unsafe_allow_html=True)
-        st.markdown("<span class='titre-hist'>🕒 HISTORIQUE DES TEMPS</span>", unsafe_allow_html=True)
+        st.markdown("<div style='height: 35px;'></div>", unsafe_allow_html=True)
+        
+        # RESTAURATION DU TITRE EXACT DE VOTRE SCRIPT LOCAL
+        st.markdown("<span class='titre-hist'>🕒 HISTORIQUE DES TEMPS / 1er COURSE / Concurrents ASAF</span>", unsafe_allow_html=True)
         st.markdown(gen_html(d_his, "table-hist"), unsafe_allow_html=True)
     with cd:
         st.markdown("<span class='titre-classement'>🏆 CLASSEMENT GENERAL OFFICIEUX Division 123 (Top 25)</span>", unsafe_allow_html=True)
         st.markdown(gen_html(d_as123, "table-class-robuste"), unsafe_allow_html=True)
-        st.markdown("<div style='height:55px;'></div>", unsafe_allow_html=True)
+        st.markdown("<div style='height: 55px;'></div>", unsafe_allow_html=True)
         st.markdown("<span class='titre-classement'>🏆 CLASSEMENT GENERAL OFFICIEUX Division 4 (Top 10)</span>", unsafe_allow_html=True)
         st.markdown(gen_html(d_as4, "table-class-robuste"), unsafe_allow_html=True)
         
         if choix_course == "Course 1 ASAF":
-            st.markdown("<div style='height:55px;'></div>", unsafe_allow_html=True)
+            st.markdown("<div style='height: 55px;'></div>", unsafe_allow_html=True)
             st.markdown("<span class='titre-classement'>📊 CLASSEMENT OFFICIEUX PAR Division / Classe (Top 3)</span>", unsafe_allow_html=True)
             st.markdown(gen_html(d_div, "table-class-robuste"), unsafe_allow_html=True)
 
