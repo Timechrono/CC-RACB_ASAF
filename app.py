@@ -3,9 +3,12 @@ import pandas as pd
 import time
 import Essais
 
-# LOGIQUE DE LIEN AVEC LES SCRIPTS DE COURSE
+# SÉCURISATION INTÉGRALE DES IMPORTS DE COURSE
 try:
     import Course_1_ASAF
+except Exception:
+    pass
+try:
     import Course_1_RACB
 except Exception:
     pass
@@ -67,8 +70,7 @@ div[data-testid="stFragment"] {
 .table-live th:nth-child(3), .table-live td:nth-child(3) { width: 17% !important; }
 .table-live th:nth-child(4), .table-live td:nth-child(4) { width: 12% !important; }
 .table-live th:nth-child(5), .table-live td:nth-child(5) { width: 13% !important; }
-.table-live th:nth-child(6), .table-live td:nth-child(6) { width: 25% !important; }
-.table-hist th:nth-child(1), .table-hist td:nth-child(1) { width: 8% !important; }
+.table-live th:nth-child(6), .table-live td:nth-child(6) { width: 25% !important; .table-hist th:nth-child(1), .table-hist td:nth-child(1) { width: 8% !important; }
 .table-hist th:nth-child(2), .table-hist td:nth-child(2) { width: 30% !important; }
 .table-hist th:nth-child(3), .table-hist td:nth-child(3) { width: 26% !important; }
 .table-hist th:nth-child(4), .table-hist td:nth-child(4) { width: 11% !important; }
@@ -92,7 +94,7 @@ def gen_html(df, cl):
         return f"<table class='table-compacte {cl}'><tr><td style='text-align: center; padding: 10px;'>Aucune donnée disponible</td></tr></table>"
     return df.to_html(index=False, classes=f"table-compacte {cl}", escape=False, border=0)
 
-# --- SÉLECTEUR CENTRAL ---
+# --- SÉLECTEUR CENTRAL HORIZONTAL ---
 col_vide, col_texte, col_select = st.columns([0.6, 1.5, 1.3])
 
 with col_texte:
@@ -103,7 +105,7 @@ with col_select:
 
 st.markdown("<div style='height:12px;'></div>", unsafe_allow_html=True)
 
-# --- ZONE DE CHARGEMENT DYNAMIQUE (30 SECONDES) ---
+# --- ZONE D'AFFICHAGE ET REFRESH (30 SECONDES) ---
 @st.fragment(run_every=30)
 def afficher_tableaux():
     st.cache_data.clear()
