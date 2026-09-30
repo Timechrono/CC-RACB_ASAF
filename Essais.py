@@ -9,7 +9,7 @@ C = [100, 108, 46, 100, 114, 111, 112, 98, 111, 120, 117, 115, 101, 114]
 D = [99, 111, 110, 116, 101, 110, 116, 46, 99, 111, 109]
 HOTE_PROT = "".join(chr(x) for x in (C + D))
 
-# Nettoyage des adresses : Utilisation du bon fichier Engages et retrait des clés &st
+# Restauration stricte de vos adresses d'origine avec le bon fichier ENGAGES des Essais
 FILE_ARRIVEE = f"ht" + f"tps://{HOTE_PROT}/scl/fi/7uu9cmlpzglx0ngvbklpt/LIVE_Temps_ARRIVEE.xlsm?rlkey=g9urz4v3jr36h0apzt45ognm6&dl=1"
 FILE_DEPART  = f"ht" + f"tps://{HOTE_PROT}/scl/fi/gbkaq01qzjujc8nq3zj28/LIVE_Temps_DEPART.xlsm?rlkey=4x4rvvlfyzz8v59gqbxn80a4d&dl=1"
 FILE_ENGAGES = f"ht" + f"tps://{HOTE_PROT}/scl/fi/sqrqinksco1am700s27h4/LIVE_Liste_ENGAGES.xlsm?rlkey=8p0n8jyeuiivaa375bh3p608n&dl=1"
@@ -30,13 +30,17 @@ def convertir_en_secondes(valeur):
     if ":" in s:
         try:
             parts = s.split(":")
-            return (int(parts) * 60) + float(parts.replace(",", "."))
+            return (int(parts[0]) * 60) + float(parts[1].replace(",", "."))
         except Exception: pass
     if s.endswith(".0"): s = s[:-2]
     s_clean = "".join([c for c in s if c.isdigit()])
     if not s_clean: return None
     num = int(s_clean)
-    return (num // 10000 * 60) + ((num // 100) % 100) + ((num % 100) / 100)
+    centiemes = num % 100
+    secondes = (num // 100) % 100
+    minutes = num // 10000
+    if minutes >= 60: minutes = minutes % 60
+    return (minutes * 60) + secondes + (centiemes / 100)
 
 def nettoyer_numero(valeur):
     if pd.isna(valeur): return "nan"
@@ -74,16 +78,17 @@ def recuperer_donnees_course():
         df_dep_raw = pd.read_excel(flux_dep, header=None, engine='openpyxl')
         df_arr_raw = pd.read_excel(flux_arr, header=None, engine='openpyxl')
 
-        # Lecture extractive d'origine par index de colonne
-        df_dep = pd.DataFrame({
-            "N°": df_dep_raw.iloc[2:, 0].apply(nettoyer_numero), 
-            "Heure_Depart": df_dep_raw.iloc[2:, 1]
-        })
-        df_arr = pd.DataFrame({
-            "N°": df_arr_raw.iloc[2:, 0].apply(nettoyer_numero), 
-            "Heure_Arrivee": df_arr_raw.iloc[2:, 2], 
-            "Chrono_Excel": df_arr_raw.iloc[2:, 3]
-        })
+        # Restauration de la recherche dynamique par le mot-clé ESSAIS qui fonctionnait
+        idx_dep, idx_arr = None, None
+        for c_idx in range(len(df_dep_raw.columns)):
+            val = str(df_dep_raw.iloc[1, c_idx]).strip().upper()
+            if "ESSAIS" in val or "ENTRAINEMENT" in val: idx_dep = c_idx
+        for c_idx in range(len(df_arr_raw.columns)):
+            val = str(df_arr_raw.iloc[1, c_idx]).strip().upper()
+            if "ESSAIS" in val or "ENTRAINEMENT" in val: idx_arr = c_idx
+
+        df_dep = pd.DataFrame({"N°": df_dep_raw.iloc[2:, idx_dep].apply(nettoyer_numero), "Heure_Depart": df_dep_raw.iloc[2:, idx_dep + 1]}) if idx_dep is not None else pd.DataFrame(columns=["N°", "Heure_Depart"])
+        df_arr = pd.DataFrame({"N°": df_arr_raw.iloc[2:, idx_arr].apply(nettoyer_numero), "Heure_Arrivee": df_arr_raw.iloc[2:, idx_arr + 2], "Chrono_Excel": df_arr_raw.iloc[2:, idx_arr + 3]}) if idx_arr is not None else pd.DataFrame(columns=["N°", "Heure_Arrivee", "Chrono_Excel"])
 
         df_eng_raw.columns = df_eng_raw.columns.astype(str).str.strip().str.upper()
         df_eng = pd.DataFrame({"N°": df_eng_raw.iloc[:, 0].apply(nettoyer_numero), 
