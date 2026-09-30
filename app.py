@@ -13,7 +13,7 @@ button:focus, div:focus, input:focus, select:focus {
     outline: none !important; border-color: transparent !important; box-shadow: none !important;
 }
 
-/* Modifié : alignement du texte à gauche avec une marge supérieure propre */
+/* Modifié : marge à gauche et largeur automatique pour éviter tout chevauchement */
 .texte-menu {
     font-size: 1.05rem !important; 
     font-weight: bold !important;
@@ -22,6 +22,7 @@ button:focus, div:focus, input:focus, select:focus {
     margin-top: -16px !important; 
     margin-bottom: 0px !important;
     white-space: nowrap !important;
+    padding-right: 5px !important;
 }
 
 /* Écriture du bouton sélecteur plus grande et en gras */
@@ -78,9 +79,9 @@ def gen_html(df, cl):
         return f"<table class='table-compacte {cl}'><tr><td style='text-align: center; padding: 10px;'>Aucune donnée disponible</td></tr></table>"
     return df.to_html(index=False, classes=f"table-compacte {cl}", escape=False, border=0)
 
-# --- CONFIGURATION SÉLECTEUR CALÉE À GAUCHE ---
-# col_reste (4.0) sert de tampon pour pousser l'ensemble vers la gauche de la fenêtre
-col_texte, col_select, col_reste = st.columns([1.1, 0.9, 4.0], vertical_alignment="center")
+# --- CONFIGURATION SÉLECTEUR ÉLARGIE ---
+# Passé de 1.1 à 1.3 pour donner plus de place au texte et supprimer le masquage
+col_texte, col_select, col_reste = st.columns([1.3, 0.9, 3.8], vertical_alignment="center")
 with col_texte:
     st.markdown('<p class="texte-menu">Sélectionnez la session à afficher :</p>', unsafe_allow_html=True)
 with col_select:
