@@ -8,17 +8,48 @@ st.set_page_config(
     layout="wide"
 )
 
-# --- DESIGN VISUEL CSS UNIQUE ---
+# --- DESIGN VISUEL CSS UNIQUE & SUPPRESSION DU FLASH ---
 st.markdown("""
     <style>
+    /* Supprime le bandeau blanc Streamlit tout en haut */
     [data-testid="stHeader"] { display: none !important; }
     
-    /* Style épuré pour le sélecteur central */
-    .stSelectbox {
-        max-width: 500px !important;
-        margin: 0 auto 15px auto !important;
+    /* SUPPRESSION DE LA PERTE D'INTENSITÉ AU RAFRAÎCHISSEMENT */
+    [data-testid="stForm"], [data-testid="stVerticalBlock"] > div {
+        opacity: 1 !important;
+        transition: none !important;
+    }
+    div[data-testid="stFragment"] {
+        opacity: 1 !important;
+        animation: none !important;
     }
     
+    /* CONFIGURATION ALIGNEMENT HORIZONTAL DU MENU SUPER-COMPACT */
+    .bloc-menu-horizontal {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 15px;
+        margin: 0 auto 10px auto;
+        max-width: 800px;
+    }
+    .texte-menu {
+        font-size: 0.95rem !important;
+        font-weight: bold !important;
+        color: #334155 !important;
+        white-space: nowrap;
+    }
+    /* Largeur forcée du sélecteur pour qu'il reste compact */
+    div[data-testid="stSelectbox"] {
+        width: 300px !important;
+        margin-bottom: 0px !important;
+    }
+    /* Masque le titre natif de Streamlit pour ne garder que notre texte à gauche */
+    div[data-testid="stSelectbox"] label {
+        display: none !important;
+    }
+    
+    /* Styles des tableaux et titres */
     .titre-live, .titre-hist, .titre-classement {
         color: #FFFFFF !important; font-size: 1.05rem !important; font-weight: bold !important;
         padding: 4px 8px !important; border-radius: 3px !important; margin-bottom: 6px !important;
@@ -76,26 +107,37 @@ def generer_tableau_html(df, classe_specifique):
         return f"<table class='table-compacte {classe_specifique}'><tr><td style='text-align: center; padding: 10px;'>Aucune donnée disponible</td></tr></table>"
     return df.to_html(index=False, classes=f"table-compacte {classe_specifique}", escape=False, border=0)
 
-# Barre de sélection épurée posée directement en haut au milieu du site
-choix_course = st.selectbox(
-    "Sélectionnez la session à afficher :",
-    [
-        "Essais / Entraînements", 
-        "Course 1 ASAF", "Course 1 RACB", 
-        "Course 2 ASAF", "Course 2 RACB", 
-        "Course 3 ASAF", "Course 3 RACB"
-    ]
-)
 
-# --- ZONE D'AFFICHAGE DYNAMIQUE AUTOMATIQUE ---
-@st.fragment(run_every=4)
+# --- CRÉATION DE LA LIGNE HORIZONTALE UNIQUE POUR LE MENU ---
+conteneur_menu = st.container()
+with conteneur_menu:
+    st.markdown('<div class="bloc-menu-horizontal">', unsafe_allow_html=True)
+    
+    col_texte, col_select = st.columns([1.1, 1.0])
+    with col_texte:
+        st.markdown('<p class="texte-menu" style="margin-top: 8px; text-align: right;">Sélectionnez la session à afficher :</p>', unsafe_allow_html=True)
+    
+    with col_select:
+        choix_course = st.selectbox(
+            "Session",
+            [
+                "Essais / Entraînements", 
+                "Course 1 ASAF", "Course 1 RACB", 
+                "Course 2 ASAF", "Course 2 RACB", 
+                "Course 3 ASAF", "Course 3 RACB"
+            ]
+        )
+    st.markdown('</div>', unsafe_allow_html=True)
+
+
+# --- ZONE D'AFFICHAGE DYNAMIQUE AUTOMATIQUE (FIXÉE À 30 SECONDES) ---
+@st.fragment(run_every=30)
 def afficher_tableaux():
-    st.cache_data.clear() # Force le re-téléchargement immédiat
+    st.cache_data.clear()
     
     if choix_course == "Essais / Entraînements":
         df_live, df_hist, df_racb, df_asaf123, df_asaf4 = Essais.recuperer_donnees_course()
     else:
-        # Redirection par défaut vers Essais en attendant les autres scripts
         df_live, df_hist, df_racb, df_asaf123, df_asaf4 = Essais.recuperer_donnees_course()
 
     cg, cd = st.columns([1.3, 0.9])
@@ -118,5 +160,5 @@ def afficher_tableaux():
         st.markdown("<span class='titre-classement'>🏆 CLASSEMENT EVOLUTIF DES ESSAIS ASAF DIV 4 (Top 10)</span>", unsafe_allow_html=True)
         st.markdown(generer_tableau_html(df_asaf4, "table-class-robuste"), unsafe_allow_html=True)
 
-# Déclenchement de la vue
+# Lancement de la vue
 afficher_tableaux()
