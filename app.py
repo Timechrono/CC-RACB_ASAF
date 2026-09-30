@@ -20,28 +20,28 @@ div[data-baseweb="select"]:focus-within {
     box-shadow: 0 0 0 2px rgba(30, 58, 138, 0.2) !important;
 }
 
-/* Restauration et alignement du texte menu */
+/* Alignement parfait en hauteur du texte menu (ajusté pour le bouton élargi) */
 .texte-menu {
     font-size: 1.05rem !important; 
     font-weight: bold !important;
     color: #1E293B !important; 
     text-align: left !important; 
-    margin-top: -12px !important; 
+    margin-top: -8px !important; 
     margin-bottom: 0px !important;
     white-space: nowrap !important;
     padding-right: 5px !important;
 }
 
-/* Ajustement pour descendre légèrement le chrono de décompte */
+/* Alignement parfait en hauteur du chrono de décompte visuel */
 .texte-chrono {
     font-size: 0.95rem !important;
     font-weight: bold !important;
     color: #475569 !important;
-    margin-top: -12px !important; 
+    margin-top: -8px !important; 
     white-space: nowrap !important;
 }
 
-/* Cible uniquement le texte dans le bouton sélecteur pour le mettre en gras et plus grand */
+/* Cible le texte dans le bouton sélecteur : plus grand (1.15rem) et en gras */
 div[data-testid="stSelectbox"] div[data-baseweb="select"] {
     font-size: 1.15rem !important;
     font-weight: bold !important;
@@ -95,7 +95,11 @@ def gen_html(df, cl):
         return f"<table class='table-compacte {cl}'><tr><td style='text-align: center; padding: 10px;'>Aucune donnée disponible</td></tr></table>"
     return df.to_html(index=False, classes=f"table-compacte {cl}", escape=False, border=0)
 
-# --- CONFIGURATION SÉLECTEUR ÉLARGIE ---
+# --- INITIALISATION DES VARIABLES DE COMPTE À REBOURS ---
+if "decompte" not in st.session_state:
+    st.session_state.decompte = 30
+
+# --- CONFIGURATION GRILLE SÉLECTEUR ---
 col_texte, col_select, col_chrono, col_reste = st.columns([1.3, 1.8, 1.8, 3.1], vertical_alignment="center")
 with col_texte:
     st.markdown('<p class="texte-menu">Sélectionnez la session à afficher :</p>', unsafe_allow_html=True)
@@ -107,10 +111,24 @@ with col_chrono:
 st.markdown("<div style='height:25px;'></div>", unsafe_allow_html=True)
 
 # --- REFRESH ET APPEL DIRECT ---
-@st.fragment
+# run_every=1 force le fragment à se re-exécuter toutes les secondes de façon ultra fluide et asynchrone
+@st.fragment(run_every=1)
 def afficher_tableaux_avec_decompte():
-    st.cache_data.clear()
+    # Décrémentation du compteur
+    st.session_state.decompte -= 1
     
+    # Arrivé au terme des 30 secondes, on vide le cache et on réinitialise le compteur
+    if st.session_state.decompte <= 0:
+        st.cache_data.clear()
+        st.session_state.decompte = 30
+        
+    # Affichage en temps réel du décompte à la bonne hauteur
+    emplacement_chrono.markdown(
+        f'<p class="texte-chrono">🔄 Rafraîchissement dans {st.session_state.decompte}s</p>', 
+        unsafe_allow_html=True
+    )
+    
+    # Chargement et rendu immédiat des tableaux (Zéro blocage)
     d_liv, d_his, d_as123, d_as4, d_racb, t_racb, t_as123, t_as4 = Essais.recuperer_donnees_course()
     titre_historique = "🕒 HISTORIQUE DES TEMPS / ENTRAINEMENTS ASAF & RACB"
     
@@ -134,12 +152,5 @@ def afficher_tableaux_avec_decompte():
         
         st.markdown(f"<span class='titre-classement'>{t_as4}</span>", unsafe_allow_html=True)
         st.markdown(gen_html(d_as4, "table-class-robuste"), unsafe_allow_html=True)
-
-    # Décompte fluide
-    for secondes_restantes in range(30, 0, -1):
-        emplacement_chrono.markdown(f'<p class="texte-chrono">🔄 Rafraîchissement dans {secondes_restantes}s</p>', unsafe_allow_html=True)
-        time.sleep(1)
-    
-    st.rerun()
 
 afficher_tableaux_avec_decompte()
