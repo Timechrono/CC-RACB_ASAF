@@ -100,5 +100,15 @@ def afficher_tableaux():
         st.markdown(gen_html(d_as4, "table-class-robuste"), unsafe_allow_html=True)
 
 afficher_tableaux()
+    # ... (tout le reste du code de votre fonction reste identique) ...
+    except Exception: pass
+
+    # --- AJOUT DES TITRES CENTRALISÉS ---
+    titre_racb = "🏆 CLASSEMENT EVOLUTIF DES ESSAIS RACB (Top 15)"
+    titre_asaf123 = "🏆 CLASSEMENT EVOLUTIF DES ESSAIS Division 123 (Top 15)"
+    titre_asaf4 = "🏆 CLASSEMENT EVOLUTIF DES ESSAIS Division 4 (Top 10)"
+
+    return df_live, df_hist, df_asaf123, df_asaf4, df_racb, titre_racb, titre_asaf123, titre_asaf4
+
 
 # --- FIN DU SCRIPT ---
