@@ -208,3 +208,8 @@ def executer_affichage_essais():
         st.markdown("<div style='height: 55px;'></div>", unsafe_allow_html=True)
         st.markdown("<span class='titre-classement'>🏆 CLASSEMENT EVOLUTIF DES ESSAIS ASAF DIV 4 (Top 10)</span>", unsafe_allow_html=True)
         st.markdown(generer_tableau_html(df_asaf4, "table-class-robuste"), unsafe_allow_html=True)
+            except Exception: pass
+
+    # CORRECTION CRITIQUE DU RETOUR D'ATTRIBUTS POUR APP.PY
+    return df_live, df_hist, df_asaf123, df_asaf4, df_racb
+
