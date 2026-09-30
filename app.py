@@ -2,13 +2,23 @@ import streamlit as st
 import time
 import Essais
 
-st.set_page_config(page_title="Live", layout="wide")
+# IMPORTATION DU NOUVEAU SCRIPT DE COURSE
+try:
+    import Course_1_ASAF
+except Exception:
+    pass
 
+st.set_page_config(
+    page_title="Live",
+    layout="wide"
+)
+
+# --- STYLE CSS DE L'APPLICATION ---
 st.markdown("""
 <style>
 [data-testid="stHeader"] { display: none !important; }
 
-/* REJET DU ROUGE ET DES CONTOURS DE SÉLECTION ILR */
+/* REJET DU ROUGE ET DES CONTOURS */
 button:focus, div:focus, input:focus, select:focus {
     outline: none !important;
     border-color: transparent !important;
@@ -25,7 +35,6 @@ div[data-testid="stFragment"] {
     color: #1E293B !important; text-align: right; padding-right: 15px;
 }
 
-/* LE BANDU REPASSE AU BLEU FONCÉ RACB */
 .titre-live, .titre-hist, .titre-classement {
     color: #FFFFFF !important; font-size: 1.05rem !important; font-weight: bold !important;
     padding: 4px 8px !important; border-radius: 3px !important; margin-bottom: 6px !important;
@@ -83,7 +92,7 @@ def gen_html(df, cl):
         return f"<table class='table-compacte {cl}'><tr><td style='text-align: center; padding: 10px;'>Aucune donnée disponible</td></tr></table>"
     return df.to_html(index=False, classes=f"table-compacte {cl}", escape=False, border=0)
 
-# --- SÉLECTEUR SANS LE MOT SESSION POUR ENLEVER LE DOUBLON ---
+# --- SÉLECTEUR CENTRAL ALIGNÉ ---
 col_vide, col_texte, col_select = st.columns([0.6, 1.5, 1.3])
 
 with col_texte:
@@ -94,26 +103,37 @@ with col_select:
 
 st.markdown("<div style='height:12px;'></div>", unsafe_allow_html=True)
 
+# --- REFRESH AUTOMATIQUE INTERNET ---
 @st.fragment(run_every=30)
 def afficher_tableaux():
     st.cache_data.clear()
-    df_live, df_hist, df_racb, df_asaf123, df_asaf4 = Essais.recuperer_donnees_course()
+    
+    # LOGIQUE INTÉGRÉE POUR ACTIVER LE LIEN COURSE 1 ASAF
+    if choix_course == "Course 1 ASAF":
+        d_liv, d_his, d_as123, d_as4, d_div = Course_1_ASAF.recuperer_donnees_course()
+    else:
+        # Par défaut, on charge les Essais (et pour les autres courses non encore créées)
+        d_liv, d_his, d_as123, d_as4, _ = Essais.recuperer_donnees_course()
+        d_div = pd.DataFrame() # Vide aux essais
 
     cg, cd = st.columns([1.3, 0.9])
     with cg:
         st.markdown("<span class='titre-live'>🏎️ EN DIRECT / Derniers concurrents partis</span>", unsafe_allow_html=True)
-        st.markdown(gen_html(df_live, "table-live"), unsafe_allow_html=True)
+        st.markdown(gen_html(d_liv, "table-live"), unsafe_allow_html=True)
         st.markdown("<div style='height:35px;'></div>", unsafe_allow_html=True)
         st.markdown("<span class='titre-hist'>🕒 HISTORIQUE DES TEMPS</span>", unsafe_allow_html=True)
-        st.markdown(gen_html(df_hist, "table-hist"), unsafe_allow_html=True)
+        st.markdown(gen_html(d_his, "table-hist"), unsafe_allow_html=True)
     with cd:
-        st.markdown("<span class='titre-classement'>🏆 CLASSEMENT ESSAIS RACB (Top 20)</span>", unsafe_allow_html=True)
-        st.markdown(gen_html(df_racb, "table-class-robuste"), unsafe_allow_html=True)
+        st.markdown("<span class='titre-classement'>🏆 CLASSEMENT GENERAL OFFICIEUX Division 123 (Top 25)</span>", unsafe_allow_html=True)
+        st.markdown(gen_html(d_as123, "table-class-robuste"), unsafe_allow_html=True)
         st.markdown("<div style='height:55px;'></div>", unsafe_allow_html=True)
-        st.markdown("<span class='titre-classement'>🏆 CLASSEMENT ASAF DIV 1-2-3 (Top 25)</span>", unsafe_allow_html=True)
-        st.markdown(gen_html(df_asaf123, "table-class-robuste"), unsafe_allow_html=True)
-        st.markdown("<div style='height:55px;'></div>", unsafe_allow_html=True)
-        st.markdown("<span class='titre-classement'>🏆 CLASSEMENT ASAF DIV 4 (Top 10)</span>", unsafe_allow_html=True)
-        st.markdown(gen_html(df_asaf4, "table-class-robuste"), unsafe_allow_html=True)
+        st.markdown("<span class='titre-classement'>🏆 CLASSEMENT GENERAL OFFICIEUX Division 4 (Top 10)</span>", unsafe_allow_html=True)
+        st.markdown(gen_html(d_as4, "table-class-robuste"), unsafe_allow_html=True)
+        
+        # Affichage du classement par classe uniquement en mode Course 1 ASAF
+        if choix_course == "Course 1 ASAF":
+            st.markdown("<div style='height:55px;'></div>", unsafe_allow_html=True)
+            st.markdown("<span class='titre-classement'>📊 CLASSEMENT OFFICIEUX PAR Division / Classe (Top 3)</span>", unsafe_allow_html=True)
+            st.markdown(gen_html(d_div, "table-class-robuste"), unsafe_allow_html=True)
 
 afficher_tableaux()
