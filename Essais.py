@@ -97,6 +97,7 @@ def recuperer_donnees_course():
 
         df_eng_raw.columns = df_eng_raw.columns.astype(str).str.strip().str.upper()
         
+        # Harmonisation : On force l'encodage du numéro en texte propre (ex: "N12" reste "N12", "45" reste "45")
         df_eng = pd.DataFrame({
             "N°": df_eng_raw.iloc[:, 0].apply(nettoyer_numero), 
             "Nom_Prenom": df_eng_raw.iloc[:, 1].fillna("Pilote Inconnu").astype(str).str.strip(),
@@ -109,7 +110,7 @@ def recuperer_donnees_course():
         df_dep = df_dep[(df_dep["N°"] != "NAN") & (df_dep["N°"] != "")]
 
         for d in [df_dep, df_arr]:
-            if len(d) > 0: d["N°"] = d["N°"].astype(str); d["Run_Index"] = d.groupby("N°").cumcount() + 1
+            if len(d) > 0: d["N°"] = d["N°"].astype(str).str.strip().str.upper(); d["Run_Index"] = d.groupby("N°").cumcount() + 1
 
         if len(df_dep) > 0: df_dep["Sec_Dep"] = df_dep["Heure_Depart"].apply(convertir_en_secondes)
         if len(df_arr) > 0: df_arr["Sec_Arr"] = df_arr["Heure_Arrivee"].apply(convertir_en_secondes); df_arr["Sec_Excel"] = df_arr["Chrono_Excel"].apply(convertir_en_secondes)
@@ -136,31 +137,32 @@ def recuperer_donnees_course():
             base["Ordre_Saisie"] = range(len(base))
             df_hist = base.sort_values(by="Ordre_Saisie", ascending=False)[["N°", "Nom_Prenom", "Voiture", "Division", "Classe", "Chrono_Visual_Hist"]].rename(columns={"Chrono_Visual_Hist": "Chrono réalisé"})
 
-            # Traitement des classements
+            # Tri des meilleurs temps
             df_valides = base[base["Calc_Sec"].notna() & (base["Calc_Sec"] > 0)].copy()
             idx_meilleur = df_valides.groupby("N°")["Calc_Sec"].idxmin()
             df_meilleurs = df_valides.loc[idx_meilleur].copy()
 
-            # SÉCURITÉ ABSOLUE : Détection textuelle de la lettre N n'importe où dans le numéro
+            # --- SÉPARATION ANALYTIQUE RADICALE ---
+            # On isole de manière étanche les chaînes de texte commençant par la lettre N
             df_meilleurs["N°_Txt"] = df_meilleurs["N°"].astype(str).str.strip().str.upper()
-            mask_contient_n = df_meilleurs["N°_Txt"].str.contains("N", na=False)
+            mask_racb = df_meilleurs["N°_Txt"].str.startswith("N", na=False)
 
-            # 1. CLASSEMENT RACB (Top 20) : Tout numéro contenant un N va ICI, peu importe sa classe
-            df_m_racb = df_meilleurs[mask_contient_n].copy()
+            # RÈGLE 1 : CLASSEMENT EVOLUTIF DES ESSAIS RACB (Top 20) -> Uniquement si commence par N (Peu importe la classe)
+            df_m_racb = df_meilleurs[mask_racb].copy()
             if len(df_m_racb) > 0:
                 df_m_racb = df_m_racb.sort_values(by="Calc_Sec").head(20)
                 df_m_racb["Pos"] = range(1, len(df_m_racb) + 1)
                 df_m_racb["Chrono"] = df_m_racb["Calc_Sec"].apply(lambda x: format_final_chrono(x))
                 df_racb = df_m_racb[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]]
 
-            # Pour les classements ASAF, exclusion définitive de TOUT numéro contenant un N
-            df_m_non_n = df_meilleurs[~mask_contient_n].copy()
+            # RÈGLE 2 & 3 : CLASSEMENTS ASAF -> Uniquement si le numéro NE commence PAS par N
+            df_m_non_n = df_meilleurs[~mask_racb].copy()
 
             if len(df_m_non_n) > 0:
-                # Conversion numérique propre de la colonne Classe
+                # Lecture numérique sécurisée de la colonne Classe
                 df_m_non_n["Classe_Num"] = pd.to_numeric(df_m_non_n["Classe"], errors='coerce')
 
-                # 2. CLASSEMENT GENERAL Division 123 (Top 25) : Aucun N + Classe numérique vaut 1, 2 ou 3
+                # CLASSEMENT GENERAL Division 123 (Top 25) : Aucun N + Classe est 1, 2 ou 3
                 mask_123 = df_m_non_n["Classe_Num"].isin([1, 2, 3])
                 df_m_asaf123 = df_m_non_n[mask_123].sort_values(by="Calc_Sec").head(25)
                 if len(df_m_asaf123) > 0:
@@ -168,7 +170,7 @@ def recuperer_donnees_course():
                     df_m_asaf123["Chrono"] = df_m_asaf123["Calc_Sec"].apply(lambda x: format_final_chrono(x))
                     df_asaf123 = df_m_asaf123[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]]
 
-                # 3. CLASSEMENT GENERAL Division 4 : Aucun N + Classe numérique vaut 4
+                # CLASSEMENT GENERAL Division 4 : Aucun N + Classe est 4
                 mask_4 = df_m_non_n["Classe_Num"].isin([4])
                 df_m_asaf4 = df_m_non_n[mask_4].sort_values(by="Calc_Sec")
                 if len(df_m_asaf4) > 0:
