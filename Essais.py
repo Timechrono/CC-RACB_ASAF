@@ -4,7 +4,7 @@ import datetime
 import requests
 import io
 
-# --- ADRESSES DROPBOX REELLES DE VOS TABLEAUX EXCEL ---
+# --- CONFIGURATION INTERNET DIRECTE AVEC VOS VRAIS LIENS EXCEL ---
 HOTE = "://dropboxusercontent.com"
 FILE_ARRIVEE = f"https://{HOTE}/scl/fi/7uu9cmlpzglx0ngvbklpt/LIVE_Temps_ARRIVEE.xlsm?rlkey=g9urz4v3jr36h0apzt45ognm6&dl=1"
 FILE_DEPART  = f"https://{HOTE}/scl/fi/gbkaq01qzjujc8nq3zj28/LIVE_Temps_DEPART.xlsm?rlkey=4x4rvvlfyzz8v59gqbxn80a4d&dl=1"
@@ -69,8 +69,8 @@ def generer_tableau_html(df, classe_specifique):
     if df.empty: 
         return f"<table class='table-compacte {classe_specifique}'><tr><td style='text-align: center; padding: 10px;'>Aucune donnée disponible</td></tr></table>"
     return df.to_html(index=False, classes=f"table-compacte {classe_specifique}", escape=False, border=0)
-def afficher_ecran_complet():
-    # Injection étanche de vos styles visuels et largeurs exactes d'origine
+# CODE DE MISE EN PAGE INTERNE TRÈS STRUCTURÉ SANS AUCUN INTERFÉRENCE AVEC APP.PY
+def injecter_style_essais():
     st.markdown("""
         <style>
         .titre-live, .titre-hist, .titre-classement {
@@ -114,12 +114,12 @@ def afficher_ecran_complet():
         .table-class-robuste th:nth-child(6), .table-class-robuste td:nth-child(6) { width: 18% !important; text-align: right !important; }
         </style>
     """, unsafe_allow_html=True)
-    
-    # Appel du fragment interne de calculs sécurisés
-    rafraichir_essais()
+# L'UNIQUE CORPS D'AFFICHAGE PLAT AUTORISÉ SUR LE CLOUD
 @st.fragment(run_every=30)
-def rafraichir_essais():
+def afficher_ecran_complet():
+    injecter_style_essais()
     st.cache_data.clear()
+    
     df_live = pd.DataFrame(columns=["N°", "Nom_Prenom", "Voiture", "Départ", "Arrivée", "Chrono réalisé"])
     df_hist = pd.DataFrame(columns=["N°", "Nom_Prenom", "Voiture", "Division", "Classe", "Chrono réalisé"])
     df_racb = pd.DataFrame(columns=["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"])
