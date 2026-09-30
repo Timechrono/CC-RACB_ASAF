@@ -1,20 +1,4 @@
-import streamlit as st
-import pandas as pd
-import time
-
-# --- CHARGEMENT DES SESSIONS DE COURSE ---
-try: import Essais
-except Exception: pass
-try: import Course_1_ASAF
-except Exception: pass
-try: import Course_1_RACB
-except Exception: pass
-try: import Course_2_ASAF
-except Exception: pass
-
-st.set_page_config(layout="wide")
-
-# --- STYLE CSS DU SÉLECTEUR UNIQUEMENT ---
+CLASSEMENT EVOLUTIF DES ESSAIS RACB (Top 20)# --- DESIGN COMPACT DU SÉLECTEUR ---
 st.markdown("""
     <style>
     [data-testid="stHeader"] { display: none !important; }
@@ -30,7 +14,7 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# --- BARRE DE NAVIGATION CONTÔLÉE ---
+# --- MENUS DE SÉLECTION EN HAUT ---
 col_vide, col_texte, col_select = st.columns([0.6, 1.5, 1.3])
 with col_texte:
     st.markdown('<p class="texte-menu" style="margin-top:28px;">Sélectionnez la session à afficher :</p>', unsafe_allow_html=True)
@@ -39,13 +23,14 @@ with col_select:
 
 st.markdown("<div style='height:12px;'></div>", unsafe_allow_html=True)
 
-# --- L'AIGUILLAGE PUR : CHAQUE FICHIER REPREND SA LIBERTÉ ---
+# --- LOGIQUE D'AIGUILLAGE CENTRALE : LE CONTROLE REPASSE AUX FICHIERS ---
 if choix_course == "Course 1 ASAF":
-    Course_1_ASAF.afficher_ecran_complet()
+    try: Course_1_ASAF.afficher_ecran_complet()
+    except Exception: st.error("Fichier Course 1 ASAF en cours de configuration")
 elif choix_course == "Course 1 RACB":
-    Course_1_RACB.afficher_ecran_complet()
+    pass
 elif choix_course == "Course 2 ASAF":
-    Course_2_ASAF.afficher_ecran_complet()
+    pass
 else:
-    # Par défaut, les Essais gèrent l'intégralité de leur affichage
+    # Appel de la fonction autonome complète que vous venez de coller dans Essais.py
     Essais.afficher_ecran_complet()
