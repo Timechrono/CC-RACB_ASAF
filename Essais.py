@@ -1,10 +1,19 @@
 import pandas as pd
 import datetime
+import requests
+import io
 
-# --- CONFIGURATION DES LIENS DROPBOX BRUTS ---
+# --- CONFIGURATION STRICTE DES ACCÈS DROPBOX BRUTS VIA HTTP REQUESTS ---
 FILE_ENGAGES = "https://dropboxusercontent.com"
 FILE_ARRIVEE = "https://dropboxusercontent.com"
 FILE_DEPART = "https://dropboxusercontent.com"
+
+def telecharger_fichier_vers_memoire(url):
+    """Télécharge le fichier de force en simulant un navigateur pour casser le blocage réseau"""
+    entetes = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'}
+    reponse = requests.get(url, headers=entetes, timeout=10)
+    reponse.raise_for_status() # Lève une erreur claire si Dropbox rejette la connexion
+    return io.BytesIO(reponse.content)
 
 def convertir_en_secondes(valeur):
     if pd.isna(valeur) or valeur is None: return None
@@ -59,10 +68,14 @@ def recuperer_donnees_course():
     df_asaf123 = pd.DataFrame(columns=["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"])
     df_asaf4 = pd.DataFrame(columns=["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"])
 
-    # --- SUPPRESSION DU TRY/EXCEPT POUR FORCER L'AFFICHAGE DE L'ERREUR ---
-    df_eng_raw = pd.read_excel(FILE_ENGAGES, engine='openpyxl')
-    df_dep_raw = pd.read_excel(FILE_DEPART, skiprows=2, engine='openpyxl')
-    df_arr_raw = pd.read_excel(FILE_ARRIVEE, skiprows=2, engine='openpyxl')
+    # Extraction des flux de données en mémoire vive (évite l'erreur d'adresse réseau)
+    flux_eng = telecharger_fichier_vers_memoire(FILE_ENGAGES)
+    flux_dep = telecharger_fichier_vers_memoire(FILE_DEPART)
+    flux_arr = telecharger_fichier_vers_memoire(FILE_ARRIVEE)
+
+    df_eng_raw = pd.read_excel(flux_eng, engine='openpyxl')
+    df_dep_raw = pd.read_excel(flux_dep, skiprows=2, engine='openpyxl')
+    df_arr_raw = pd.read_excel(flux_arr, skiprows=2, engine='openpyxl')
 
     df_eng_raw.columns = df_eng_raw.columns.astype(str).str.strip().str.upper()
     df_dep_raw.columns = df_dep_raw.columns.astype(str).str.strip().str.upper()
