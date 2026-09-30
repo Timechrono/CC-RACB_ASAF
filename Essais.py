@@ -111,6 +111,7 @@ def recuperer_donnees_course():
 
         if len(df_dep) > 0: df_dep["Sec_Dep"] = df_dep["Heure_Depart"].apply(convertir_en_secondes)
         if len(df_arr) > 0: df_arr["Sec_Arr"] = df_arr["Heure_Arrivee"].apply(convertir_en_secondes); df_arr["Sec_Excel"] = df_arr["Chrono_Excel"].apply(convertir_en_secondes)
+
         base_runs = pd.DataFrame(columns=["N°", "Run_Index"])
         if len(df_dep) > 0: base_runs = pd.concat([base_runs, df_dep[["N°", "Run_Index"]]], ignore_index=True)
         if len(base_runs) == 0: base_runs = df_eng[["N°"]].copy(); base_runs["Run_Index"] = 1
@@ -134,13 +135,16 @@ def recuperer_donnees_course():
             base["Ordre_Saisie"] = range(len(base))
             df_hist = base.sort_values(by="Ordre_Saisie", ascending=False)[["N°", "Nom_Prenom", "Voiture", "Division", "Classe", "Chrono_Visual_Hist"]].rename(columns={"Chrono_Visual_Hist": "Chrono réalisé"})
 
-            # --- LOGIQUE DE SEPARATION COMPLÈTEMENT CORRIGÉE ---
+            # --- LOGIQUE D'AIGUILLAGE ET DE FILTRAGE ULTRA-STRICT ---
             df_valides = base[base["Calc_Sec"].notna() & (base["Calc_Sec"] > 0)].copy()
             idx_meilleur = df_valides.groupby("N°")["Calc_Sec"].idxmin()
             df_meilleurs = df_valides.loc[idx_meilleur].copy()
 
-            # RÈGLE 1 : Si le numéro commence par N -> Va DIRECTEMENT dans RACB (Top 20)
-            mask_racb = df_meilleurs["N°"].str.startswith("N")
+            # Nettoyage forcé pour la détection : conversion en texte propre sans espaces
+            df_meilleurs["N°_Check"] = df_meilleurs["N°"].astype(str).str.strip().str.upper()
+
+            # RÈGLE 1 : Si le numéro commence par N (ou contient un N au début) -> VA SEULEMENT DANS RACB
+            mask_racb = df_meilleurs["N°_Check"].str.startswith("N", na=False) | df_meilleurs["N°_Check"].str.contains(r"^N", na=False, regex=True)
             df_m_racb = df_meilleurs[mask_racb].copy()
             
             if len(df_m_racb) > 0:
@@ -149,20 +153,19 @@ def recuperer_donnees_course():
                 df_m_racb["Chrono"] = df_m_racb["Calc_Sec"].apply(lambda x: format_final_chrono(x))
                 df_racb = df_m_racb[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]]
 
-            # RÈGLE 2 & 3 : Si pas de "N" -> Traitement ASAF par classe ou division
+            # RÈGLES ASAF : On exclut définitivement TOUS les dossiers contenant "N"
             df_m_non_n = df_meilleurs[~mask_racb].copy()
 
             if len(df_m_non_n) > 0:
-                # CLASSEMENT EVOLUTIF DES ESSAIS Division 123 (Top 25)
+                # Division 1, 2, 3 (Top 25)
                 mask_123 = df_m_non_n["Division"].isin(["1", "2", "3", 1, 2, 3]) | df_m_non_n["Classe"].isin(["1", "2", "3", 1, 2, 3])
                 df_m_asaf123 = df_m_non_n[mask_123].sort_values(by="Calc_Sec").head(25)
                 if len(df_m_asaf123) > 0:
-                    # Correction du titre demandée pour le tableau à l'écran
                     df_m_asaf123["Pos"] = range(1, len(df_m_asaf123) + 1)
                     df_m_asaf123["Chrono"] = df_m_asaf123["Calc_Sec"].apply(lambda x: format_final_chrono(x))
                     df_asaf123 = df_m_asaf123[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]]
 
-                # CLASSEMENT GENERAL Division 4
+                # Division 4
                 mask_4 = df_m_non_n["Division"].isin(["4", 4]) | df_m_non_n["Classe"].isin(["4", 4])
                 df_m_asaf4 = df_m_non_n[mask_4].sort_values(by="Calc_Sec")
                 if len(df_m_asaf4) > 0:
