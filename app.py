@@ -5,14 +5,20 @@ import Essais
 st.set_page_config(
     page_title="Live Chrono - RACB & ASAF",
     page_icon="🏎️",
-    layout="wide",
-    initial_sidebar_state="expanded"
+    layout="wide"
 )
 
-# --- DESIGN VISUEL CSS ---
+# --- DESIGN VISUEL CSS UNIQUE ---
 st.markdown("""
     <style>
     [data-testid="stHeader"] { display: none !important; }
+    
+    /* Style épuré pour le sélecteur central */
+    .stSelectbox {
+        max-width: 500px !important;
+        margin: 0 auto 15px auto !important;
+    }
+    
     .titre-live, .titre-hist, .titre-classement {
         color: #FFFFFF !important; font-size: 1.05rem !important; font-weight: bold !important;
         padding: 4px 8px !important; border-radius: 3px !important; margin-bottom: 6px !important;
@@ -60,7 +66,7 @@ st.markdown("""
     .table-class-robuste th:nth-child(5), .table-class-robuste td:nth-child(5) { width: 6% !important; }
     .table-class-robuste th:nth-child(6), .table-class-robuste td:nth-child(6) { width: 18% !important; text-align: right !important; }
 
-    .block-container { padding-top: 0.3rem !important; padding-bottom: 0rem !important; }
+    .block-container { padding-top: 0.5rem !important; padding-bottom: 0rem !important; }
     div[data-testid="stVerticalBlock"] { gap: 0rem !important; }
     </style>
 """, unsafe_allow_html=True)
@@ -70,31 +76,26 @@ def generer_tableau_html(df, classe_specifique):
         return f"<table class='table-compacte {classe_specifique}'><tr><td style='text-align: center; padding: 10px;'>Aucune donnée disponible</td></tr></table>"
     return df.to_html(index=False, classes=f"table-compacte {classe_specifique}", escape=False, border=0)
 
-# --- BARRE LATÉRALE DE SÉLECTION (SIDEBAR) ---
-with st.sidebar:
-    st.markdown("<div class='titre-sidebar'>🏁 Sélection du Live</div>", unsafe_allow_html=True)
-    choix_course = st.radio(
-        "Choisissez votre session :",
-        [
-            "⏱️ Essais / Entraînements", 
-            "🚗 Course 1 ASAF", "🏆 Course 1 RACB", 
-            "🚗 Course 2 ASAF", "🏆 Course 2 RACB", 
-            "🚗 Course 3 ASAF", "🏆 Course 3 RACB"
-        ],
-        label_visibility="collapsed"
-    )
+# Barre de sélection épurée posée directement en haut au milieu du site
+choix_course = st.selectbox(
+    "Sélectionnez la session à afficher :",
+    [
+        "Essais / Entraînements", 
+        "Course 1 ASAF", "Course 1 RACB", 
+        "Course 2 ASAF", "Course 2 RACB", 
+        "Course 3 ASAF", "Course 3 RACB"
+    ]
+)
 
-# --- ZONE D'AFFICHAGE DYNAMIQUE ---
-# st.fragment permet de rafraîchir uniquement les tableaux sans figer toute l'application
+# --- ZONE D'AFFICHAGE DYNAMIQUE AUTOMATIQUE ---
 @st.fragment(run_every=4)
 def afficher_tableaux():
-    st.cache_data.clear() # Nettoyage obligatoire pour forcer Streamlit à re-télécharger les fichiers Excel
+    st.cache_data.clear() # Force le re-téléchargement immédiat
     
-    # Appel du script correspondant à la sélection
-    if choix_course == "⏱️ Essais / Entraînements":
+    if choix_course == "Essais / Entraînements":
         df_live, df_hist, df_racb, df_asaf123, df_asaf4 = Essais.recuperer_donnees_course()
     else:
-        # En attente des autres fichiers, on charge Essais par défaut pour éviter un plantage
+        # Redirection par défaut vers Essais en attendant les autres scripts
         df_live, df_hist, df_racb, df_asaf123, df_asaf4 = Essais.recuperer_donnees_course()
 
     cg, cd = st.columns([1.3, 0.9])
@@ -117,5 +118,5 @@ def afficher_tableaux():
         st.markdown("<span class='titre-classement'>🏆 CLASSEMENT EVOLUTIF DES ESSAIS ASAF DIV 4 (Top 10)</span>", unsafe_allow_html=True)
         st.markdown(generer_tableau_html(df_asaf4, "table-class-robuste"), unsafe_allow_html=True)
 
-# Lancement de la fonction d'affichage
+# Déclenchement de la vue
 afficher_tableaux()
