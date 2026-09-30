@@ -19,7 +19,6 @@ def telecharger_excel(url):
     reponse = requests.get(url, headers=entetes, timeout=12)
     reponse.raise_for_status()
     return io.BytesIO(reponse.content)
-
 def convertir_en_secondes(valeur):
     if pd.isna(valeur) or valeur is None: return None
     if isinstance(valeur, pd.Timedelta): return valeur.total_seconds()
@@ -33,7 +32,6 @@ def convertir_en_secondes(valeur):
             return (int(parts[0]) * 60) + float(parts[1].replace(",", "."))
         except Exception: pass
     if s.endswith(".0"): s = s[:-2]
-    # Traitement spécifique pour conserver les caractères comme "N"
     if any(c.isalpha() for c in s):
         s_clean = s
     else:
@@ -135,39 +133,79 @@ def recuperer_donnees_course():
             base["Ordre_Saisie"] = range(len(base))
             df_hist = base.sort_values(by="Ordre_Saisie", ascending=False)[["N°", "Nom_Prenom", "Voiture", "Division", "Classe", "Chrono_Visual_Hist"]].rename(columns={"Chrono_Visual_Hist": "Chrono réalisé"})
 
-            # --- CORRECTION DE L'AIGUILLAGE STRICT DES CLASSEMENTS ESSAIS ---
+            # --- LOGIQUE D'AIGUILLAGE ET DE FILTRAGE STRICT ---
             df_valides = base[base["Calc_Sec"].notna() & (base["Calc_Sec"] > 0)].copy()
             idx_meilleur = df_valides.groupby("N°")["Calc_Sec"].idxmin()
             df_meilleurs = df_valides.loc[idx_meilleur].copy()
 
-            # Séparation : si commence par N -> RACB. Sinon -> ASAF numérique pur.
+            # 1. CLASSEMENT EVOLUTIF DES ESSAIS RACB (Top 20) : Uniquement si commence par "N"
             mask_racb = df_meilleurs["N°"].str.startswith("N")
             df_m_racb = df_meilleurs[mask_racb].copy()
-            df_m_asaf = df_meilleurs[~mask_racb].copy()
-
-            # CLASSEMENT EVOLUTIF DES ESSAIS RACB (Top 20)
             if len(df_m_racb) > 0:
                 df_m_racb = df_m_racb.sort_values(by="Calc_Sec").head(20)
                 df_m_racb["Pos"] = range(1, len(df_m_racb) + 1)
                 df_m_racb["Chrono"] = df_m_racb["Calc_Sec"].apply(lambda x: format_final_chrono(x))
                 df_racb = df_m_racb[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]]
 
-            # CLASSEMENT EVOLUTIF DES ESSAIS Division 123 (Top 25)
-            if len(df_m_asaf) > 0:
-                df_m_asaf123 = df_m_asaf[df_m_asaf["Division"].isin(["1", "2", "3", 1, 2, 3])].sort_values(by="Calc_Sec").head(25)
+            # Concurrents dont le numéro ne commence pas par "N"
+            df_m_non_n = df_meilleurs[~mask_racb].copy()
+
+            if len(df_m_non_n) > 0:
+                # 2. CLASSEMENT EVOLUTIF DES ESSAIS Division 123 (Top 25) : Pas de "N" et Division ou Classe est 1, 2, ou 3
+                mask_123 = df_m_non_n["Division"].isin(["1", "2", "3", 1, 2, 3]) | df_m_non_n["Classe"].isin(["1", "2", "3", 1, 2, 3])
+                df_m_asaf123 = df_m_non_n[mask_123].sort_values(by="Calc_Sec").head(25)
                 if len(df_m_asaf123) > 0:
                     df_m_asaf123["Pos"] = range(1, len(df_m_asaf123) + 1)
                     df_m_asaf123["Chrono"] = df_m_asaf123["Calc_Sec"].apply(lambda x: format_final_chrono(x))
                     df_asaf123 = df_m_asaf123[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]]
 
-                # Division 4
-                df_m_asaf4 = df_m_asaf[df_m_asaf["Division"].isin(["4", 4])].sort_values(by="Calc_Sec")
+                # 3. CLASSEMENT GENERAL Division 4 : Pas de "N" et Division ou Classe est 4
+                mask_4 = df_m_non_n["Division"].isin(["4", 4]) | df_m_non_n["Classe"].isin(["4", 4])
+                df_m_asaf4 = df_m_non_n[mask_4].sort_values(by="Calc_Sec")
                 if len(df_m_asaf4) > 0:
                     df_m_asaf4["Pos"] = range(1, len(df_m_asaf4) + 1)
                     df_m_asaf4["Chrono"] = df_m_asaf4["Calc_Sec"].apply(lambda x: format_final_chrono(x))
                     df_asaf4 = df_m_asaf4[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]]
 
     except Exception as e:
-        pass
+        st.error(f"Erreur d'extraction : {e}")
 
     return df_live, df_hist, df_racb, df_asaf123, df_asaf4
+
+# --- LOGIQUE D'AFFICHAGE RECONSTRUITE ---
+st.set_page_config(layout="wide")
+
+df_live, df_hist, df_racb, df_asaf123, df_asaf4 = recuperer_donnees_course()
+
+col_gauche, col_droite = st.columns([1.1, 0.9])
+
+with col_gauche:
+    tab1, tab2, tab3 = st.tabs([
+        "CLASSEMENT EVOLUTIF DES ESSAIS Division 123 (Top 25)", 
+        "CLASSEMENT EVOLUTIF DES ESSAIS RACB (Top 20)", 
+        "CLASSEMENT GENERAL Division 4"
+    ])
+    
+    with tab1:
+        st.subheader("CLASSEMENT EVOLUTIF DES ESSAIS Division 123 (Top 25)")
+        st.dataframe(df_asaf123, hide_index=True, use_container_width=True)
+        
+    with tab2:
+        st.subheader("CLASSEMENT EVOLUTIF DES ESSAIS RACB (Top 20)")
+        st.dataframe(df_racb, hide_index=True, use_container_width=True)
+        
+    with tab3:
+        st.subheader("CLASSEMENT GENERAL Division 4")
+        st.dataframe(df_asaf4, hide_index=True, use_container_width=True)
+
+with col_droite:
+    st.markdown("### ⏱️ DERNIERS PASSAGES LIVE")
+    st.dataframe(df_live, hide_index=True, use_container_width=True)
+    
+    st.markdown("### 📝 HISTORIQUE GLOBAL DES ESSAIS")
+    st.dataframe(df_hist, hide_index=True, use_container_width=True)
+
+st.info("Actualisation automatique active (10s)")
+import time
+time.sleep(10)
+st.rerun()
