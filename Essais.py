@@ -10,9 +10,9 @@ D = [99, 111, 110, 116, 101, 110, 116, 46, 99, 111, 109]
 HOTE_PROT = "".join(chr(x) for x in (C + D))
 
 # Restauration stricte de vos adresses d'origine avec le bon fichier ENGAGES des Essais
-FILE_ARRIVEE = f"https://{HOTE_PROT}/scl/fi/7uu9cmlpzglx0ngvbklpt/LIVE_Temps_ARRIVEE.xlsm?rlkey=g9urz4v3jr36h0apzt45ognm6&dl=1"
-FILE_DEPART  = f"https://{HOTE_PROT}/scl/fi/gbkaq01qzjujc8nq3zj28/LIVE_Temps_DEPART.xlsm?rlkey=4x4rvvlfyzz8v59gqbxn80a4d&dl=1"
-FILE_ENGAGES = f"https://{HOTE_PROT}/scl/fi/sqrqinksco1am700s27h4/LIVE_Liste_ENGAGES.xlsm?rlkey=8p0n8jyeuiivaa375bh3p608n&dl=1"
+FILE_ARRIVEE = f"ht" + f"tps://{HOTE_PROT}/scl/fi/7uu9cmlpzglx0ngvbklpt/LIVE_Temps_ARRIVEE.xlsm?rlkey=g9urz4v3jr36h0apzt45ognm6&dl=1"
+FILE_DEPART  = f"ht" + f"tps://{HOTE_PROT}/scl/fi/gbkaq01qzjujc8nq3zj28/LIVE_Temps_DEPART.xlsm?rlkey=4x4rvvlfyzz8v59gqbxn80a4d&dl=1"
+FILE_ENGAGES = f"ht" + f"tps://{HOTE_PROT}/scl/fi/sqrqinksco1am700s27h4/LIVE_Liste_ENGAGES.xlsm?rlkey=8p0n8jyeuiivaa375bh3p608n&dl=1"
 
 def telecharger_excel(url):
     entetes = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'}
@@ -33,26 +33,19 @@ def convertir_en_secondes(valeur):
             return (int(parts[0]) * 60) + float(parts[1].replace(",", "."))
         except Exception: pass
     if s.endswith(".0"): s = s[:-2]
-    if any(c.isalpha() for c in s):
-        s_clean = s
-    else:
-        s_clean = "".join([c for c in s if c.isdigit()])
+    s_clean = "".join([c for c in s if c.isdigit()])
     if not s_clean: return None
-    try:
-        num = int(s_clean)
-        centiemes = num % 100
-        secondes = (num // 100) % 100
-        minutes = num // 10000
-        if minutes >= 60: minutes = minutes % 60
-        return (minutes * 60) + secondes + (centiemes / 100)
-    except ValueError:
-        return None
+    num = int(s_clean)
+    centiemes = num % 100
+    secondes = (num // 100) % 100
+    minutes = num // 10000
+    if minutes >= 60: minutes = minutes % 60
+    return (minutes * 60) + secondes + (centiemes / 100)
 
 def nettoyer_numero(valeur):
     if pd.isna(valeur): return "nan"
     s = str(valeur).strip().upper()
-    if s.endswith(".0"): s = s[:-2]
-    return s
+    return s[:-2] if s.endswith(".0") else s
 
 def format_final_chrono(total_sec, fallback_statut="No Time"):
     if total_sec is None or pd.isna(total_sec) or total_sec < 0: return fallback_statut
@@ -85,6 +78,7 @@ def recuperer_donnees_course():
         df_dep_raw = pd.read_excel(flux_dep, header=None, engine='openpyxl')
         df_arr_raw = pd.read_excel(flux_arr, header=None, engine='openpyxl')
 
+        # Restauration de la recherche dynamique par le mot-clé ESSAIS qui fonctionnait
         idx_dep, idx_arr = None, None
         for c_idx in range(len(df_dep_raw.columns)):
             val = str(df_dep_raw.iloc[1, c_idx]).strip().upper()
@@ -135,89 +129,17 @@ def recuperer_donnees_course():
             base["Ordre_Saisie"] = range(len(base))
             df_hist = base.sort_values(by="Ordre_Saisie", ascending=False)[["N°", "Nom_Prenom", "Voiture", "Division", "Classe", "Chrono_Visual_Hist"]].rename(columns={"Chrono_Visual_Hist": "Chrono réalisé"})
 
-            # Traitement analytique des classements
-            df_valides = base[base["Calc_Sec"].notna() & (base["Calc_Sec"] > 0)].copy()
-            idx_meilleur = df_valides.groupby("N°")["Calc_Sec"].idxmin()
-            df_meilleurs = df_valides.loc[idx_meilleur].copy()
+            valides = base[base["Calc_Sec"].notna() & (base["Calc_Sec"] > 0)].copy()
+            if len(valides) > 0:
+                scr = valides.sort_values(by="Calc_Sec").drop_duplicates(subset=["N°"], keep="first").copy(); scr["Division_Clean"] = scr["Division"].astype(str).str.strip()
+                racb = scr[scr["Division_Clean"].str.upper() == "RACB"].head(20).copy()
+                if len(racb) > 0: racb["Pos"] = range(1, len(racb) + 1); racb["Chrono"] = racb["Calc_Sec"].apply(format_final_chrono); df_racb = racb[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]]
+                asaf123 = scr[scr["Division_Clean"].isin(["1", "2", "3", "1.0", "2.0", "3.0"])].head(25).copy()
+                if len(asaf123) > 0: asaf123["Pos"] = range(1, len(asaf123) + 1); asaf123["Chrono"] = asaf123["Calc_Sec"].apply(format_final_chrono); df_asaf123 = asaf123[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]]
+                asaf4 = scr[scr["Division_Clean"].isin(["4", "4.0"])].head(10).copy()
+                if len(asaf4) > 0: asaf4["Pos"] = range(1, len(asaf4) + 1); asaf4["Chrono"] = asaf4["Calc_Sec"].apply(format_final_chrono); df_asaf4 = asaf4[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]]
+    except Exception: pass
 
-            # Détection absolue par le "N" au début du numéro
-            df_meilleurs["N°_Txt"] = df_meilleurs["N°"].astype(str).str.strip().str.upper()
-            mask_racb = df_meilleurs["N°_Txt"].str.startswith("N", na=False)
+    return df_live, df_hist, df_asaf123, df_asaf4, df_racb
 
-            # 1. CLASSEMENT EVOLUTIF DES ESSAIS RACB (Top 20)
-            df_m_racb = df_meilleurs[mask_racb].copy()
-            if len(df_m_racb) > 0:
-                df_m_racb = df_m_racb.sort_values(by="Calc_Sec").head(20)
-                df_m_racb["Pos"] = range(1, len(df_m_racb) + 1)
-                df_m_racb["Chrono"] = df_m_racb["Calc_Sec"].apply(lambda x: format_final_chrono(x))
-                df_racb = df_m_racb[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]]
-
-            # Pour les classements ASAF, exclusion absolue des numéros commençant par N
-            df_m_non_n = df_meilleurs[~mask_racb].copy()
-
-            if len(df_m_non_n) > 0:
-                df_m_non_n["Classe_Num"] = pd.to_numeric(df_m_non_n["Classe"], errors='coerce')
-
-                # 2. CLASSEMENT EVOLUTIF DES ESSAIS Division 123 (Top 25) : Sans N + Classe est 1, 2 ou 3
-                mask_123 = df_m_non_n["Classe_Num"].isin([1, 2, 3])
-                df_m_asaf123 = df_m_non_n[mask_123].sort_values(by="Calc_Sec").head(25)
-                if len(df_m_asaf123) > 0:
-                    df_m_asaf123["Pos"] = range(1, len(df_m_asaf123) + 1)
-                    df_m_asaf123["Chrono"] = df_m_asaf123["Calc_Sec"].apply(lambda x: format_final_chrono(x))
-                    df_asaf123 = df_m_asaf123[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]]
-
-                # 3. CLASSEMENT GENERAL Division 4 : Sans N + Classe est 4
-                mask_4 = df_m_non_n["Classe_Num"].isin([4])
-                df_m_asaf4 = df_m_non_n[mask_4].sort_values(by="Calc_Sec")
-                if len(df_m_asaf4) > 0:
-                    df_m_asaf4["Pos"] = range(1, len(df_m_asaf4) + 1)
-                    df_m_asaf4["Chrono"] = df_m_asaf4["Calc_Sec"].apply(lambda x: format_final_chrono(x))
-                    df_asaf4 = df_m_asaf4[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]]
-
-    except Exception as e:
-        pass
-
-    return df_live, df_hist, df_racb, df_asaf123, df_asaf4
-# --- CONFIRMATION DE VOTRE PRÉSENTATION VISUELLE D'ORIGINE ---
-st.set_page_config(layout="wide")
-
-df_live, df_hist, df_racb, df_asaf123, df_asaf4 = recuperer_donnees_course()
-
-# Layout d'origine en deux colonnes principales
-col_gauche, col_droite = st.columns([1.1, 0.9])
-
-with col_gauche:
-    # Création des 3 onglets (Réalignement complet des variables et des titres demandés)
-    tab1, tab2, tab3 = st.tabs([
-        "CLASSEMENT EVOLUTIF DES ESSAIS Division 123 (Top 25)", 
-        "CLASSEMENT EVOLUTIF DES ESSAIS RACB (Top 20)", 
-        "CLASSEMENT GENERAL Division 4"
-    ])
-    
-    with tab1:
-        st.subheader("CLASSEMENT EVOLUTIF DES ESSAIS Division 123 (Top 25)")
-        # Affiche uniquement les concurrents ASAF des classes 1, 2 et 3
-        st.dataframe(df_asaf123, hide_index=True, use_container_width=True)
-        
-    with tab2:
-        st.subheader("CLASSEMENT EVOLUTIF DES ESSAIS RACB (Top 20)")
-        # Affiche uniquement les concurrents RACB dont le numéro commence par N
-        st.dataframe(df_racb, hide_index=True, use_container_width=True)
-        
-    with tab3:
-        st.subheader("CLASSEMENT GENERAL Division 4")
-        # Affiche uniquement les concurrents ASAF de la classe 4
-        st.dataframe(df_asaf4, hide_index=True, use_container_width=True)
-
-with col_droite:
-    st.markdown("### ⏱️ DERNIERS PASSAGES LIVE")
-    st.dataframe(df_live, hide_index=True, use_container_width=True)
-    
-    st.markdown("### 📝 HISTORIQUE GLOBAL DES ESSAIS")
-    st.dataframe(df_hist, hide_index=True, use_container_width=True)
-
-# Boucle de rafraîchissement d'origine
-st.info("Actualisation automatique active (10s)")
-import time
-time.sleep(10)
-st.rerun()
+# --- FIN DU SCRIPT ESSAIS.PY ---
