@@ -5,11 +5,11 @@ import requests
 import io
 
 # --- ENCODAGE NUMÉRIQUE INTERNE ANTI-CENSURE (VOS VALEURS VALIDÉES) ---
-C = [100, 108, 46, 100, 114, 111, 112, 98, 111, 120, 117, 115, 101, 114]
-D = [99, 111, 110, 116, 101, 110, 116, 46, 99, 111, 109]
+C =
+D =
 HOTE_PROT = "".join(chr(x) for x in (C + D))
 
-# Adresses de vos fichiers d'origine
+# Liens absolus de vos fichiers Excel
 FILE_ARRIVEE = f"https://{HOTE_PROT}/scl/fi/7uu9cmlpzglx0ngvbklpt/LIVE_Temps_ARRIVEE.xlsm?rlkey=g9urz4v3jr36h0apzt45ognm6&dl=1"
 FILE_DEPART  = f"https://{HOTE_PROT}/scl/fi/gbkaq01qzjujc8nq3zj28/LIVE_Temps_DEPART.xlsm?rlkey=4x4rvvlfyzz8v59gqbxn80a4d&dl=1"
 FILE_ENGAGES = f"https://{HOTE_PROT}/scl/fi/sqrqinksco1am700s27h4/LIVE_Liste_ENGAGES.xlsm?rlkey=8p0n8jyeuiivaa375bh3p608n&dl=1"
@@ -33,7 +33,7 @@ def convertir_en_secondes(valeur):
             return (int(parts[0]) * 60) + float(parts[1].replace(",", "."))
         except Exception: pass
     if s.endswith(".0"): s = s[:-2]
-    # Si le numéro contient une lettre (ex: N), on adapte le traitement du temps
+    # Si le numéro commence par N ou contient une lettre, on adapte la lecture du temps brut
     if any(c.isalpha() for c in s):
         s_clean = s
     else:
@@ -136,31 +136,32 @@ def recuperer_donnees_course():
             base["Ordre_Saisie"] = range(len(base))
             df_hist = base.sort_values(by="Ordre_Saisie", ascending=False)[["N°", "Nom_Prenom", "Voiture", "Division", "Classe", "Chrono_Visual_Hist"]].rename(columns={"Chrono_Visual_Hist": "Chrono réalisé"})
 
-            # --- LOGIQUE DE SEPARATION STRICTE DES CLASSEMENTS ---
+            # --- CORRECTION DE L'AIGUILLAGE STRICT DES CLASSEMENTS ---
             df_valides = base[base["Calc_Sec"].notna() & (base["Calc_Sec"] > 0)].copy()
             idx_meilleur = df_valides.groupby("N°")["Calc_Sec"].idxmin()
             df_meilleurs = df_valides.loc[idx_meilleur].copy()
 
-            # SEPARATION : RACB (commence par N ou contient des lettres) VS ASAF
-            mask_racb = df_meilleurs["N°"].str.startswith("N") | df_meilleurs["N°"].str.contains("[A-Z]", regex=True)
+            # SEPARATION TRÈS STRICTE : Si commence par N -> RACB. Sinon -> ASAF numérique.
+            mask_racb = df_meilleurs["N°"].str.startswith("N")
             df_m_racb = df_meilleurs[mask_racb].copy()
             df_m_asaf = df_meilleurs[~mask_racb].copy()
 
-            # Classement RACB
+            # CLASSEMENT EVOLUTIF DES ESSAIS RACB (Top 20)
             if len(df_m_racb) > 0:
-                df_m_racb = df_m_racb.sort_values(by="Calc_Sec")
+                df_m_racb = df_m_racb.sort_values(by="Calc_Sec").head(20)
                 df_m_racb["Pos"] = range(1, len(df_m_racb) + 1)
                 df_m_racb["Chrono"] = df_m_racb["Calc_Sec"].apply(lambda x: format_final_chrono(x))
                 df_racb = df_m_racb[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]]
 
-            # Classements ASAF (totalement purgés des numéros contenant des lettres)
+            # CLASSEMENT EVOLUTIF DES ESSAIS Division 123 (Top 25)
             if len(df_m_asaf) > 0:
-                df_m_asaf123 = df_m_asaf[df_m_asaf["Division"].isin(["1", "2", "3", 1, 2, 3])].sort_values(by="Calc_Sec")
+                df_m_asaf123 = df_m_asaf[df_m_asaf["Division"].isin(["1", "2", "3", 1, 2, 3])].sort_values(by="Calc_Sec").head(25)
                 if len(df_m_asaf123) > 0:
                     df_m_asaf123["Pos"] = range(1, len(df_m_asaf123) + 1)
                     df_m_asaf123["Chrono"] = df_m_asaf123["Calc_Sec"].apply(lambda x: format_final_chrono(x))
                     df_asaf123 = df_m_asaf123[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]]
 
+                # Division 4
                 df_m_asaf4 = df_m_asaf[df_m_asaf["Division"].isin(["4", 4])].sort_values(by="Calc_Sec")
                 if len(df_m_asaf4) > 0:
                     df_m_asaf4["Pos"] = range(1, len(df_m_asaf4) + 1)
