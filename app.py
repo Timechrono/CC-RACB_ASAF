@@ -1,9 +1,69 @@
+import streamlit as st
+import pandas as pd
+import time
+import Essais
+
+st.set_page_config(page_title="Live", layout="wide")
+
+# --- DESIGN SCIENTIFIQUE RIGIDE ET FIXE ---
+st.markdown("""
+<style>
+[data-testid="stHeader"] { display: none !important; }
+button:focus, div:focus, input:focus, select:focus {
+    outline: none !important; border-color: transparent !important; box-shadow: none !important;
+}
+.texte-menu {
+    font-size: 0.95rem !important; font-weight: bold !important;
+    color: #1E293B !important; text-align: right; padding-right: 15px;
+}
+.titre-live, .titre-hist, .titre-classement {
+    color: #FFFFFF !important; font-size: 1.05rem !important; font-weight: bold !important;
+    padding: 4px 8px !important; border-radius: 3px !important; margin-bottom: 6px !important;
+    width: 100% !important; display: block !important; clear: both !important;
+}
+.titre-live { background-color: #15803D !important; }
+.titre-hist { background-color: #475569 !important; }
+.titre-classement { background-color: #1E3A8A !important; }
+
+.table-compacte {
+    width: 100% !important; margin-bottom: 0px !important;
+    border-collapse: collapse !important; table-layout: fixed !important;
+}
+.table-compacte tr { height: 18px !important; }
+.table-compacte th, .table-compacte td { 
+    height: 18px !important; padding: 1px 5px !important; line-height: 1.1 !important; 
+    font-size: 0.85rem !important; color: #000000 !important; vertical-align: middle !important; 
+    overflow: hidden !important; text-overflow: ellipsis !important; white-space: nowrap !important; 
+}
+.table-compacte td { border-bottom: 1px solid #E0E0E0 !important; background-color: #FFFFFF !important; }
+.table-compacte th { font-weight: bold !important; background-color: #F5F5F5 !important; border-bottom: 2px solid #CCCCCC !important; text-align: left !important; }
+.table-live td:last-child, .table-hist td:last-child, .table-class-robuste td:last-child { font-weight: bold !important; font-size: 0.94rem !important; color: #0F172A !important; }
+.table-hist tr:nth-child(odd) td { background-color: #E0F2FE !important; }
+
+.table-live th:nth-child(1), .table-live td:nth-child(1) { width: 8% !important; }
+.table-live th:nth-child(2), .table-live td:nth-child(2) { width: 26% !important; }
+.table-live th:nth-child(3), .table-live td:nth-child(3) { width: 18% !important; }
+.table-live th:nth-child(4), .table-live td:nth-child(4) { width: 13% !important; }
+.table-live th:nth-child(5), .table-live td:nth-child(5) { width: 13% !important; }
+.table-live th:nth-child(6), .table-live td:nth-child(6) { width: 22% !important; }
+
+.table-class-robuste th:nth-child(1), .table-class-robuste td:nth-child(1) { width: 9% !important; }
+.table-class-robuste th:nth-child(2), .table-class-robuste td:nth-child(2) { width: 11% !important; }
+.table-class-robuste th:nth-child(3), .table-class-robuste td:nth-child(3) { width: 33% !important; }
+.table-class-robuste th:nth-child(4), .table-class-robuste td:nth-child(4) { width: 23% !important; }
+.table-class-robuste th:nth-child(5), .table-class-robuste td:nth-child(5) { width: 6% !important; }
+.table-class-robuste th:nth-child(6), .table-class-robuste td:nth-child(6) { width: 18% !important; text-align: right !important; }
+
+.block-container { padding-top: 0.4rem !important; padding-bottom: 0rem !important; }
+div[data-testid="stVerticalBlock"] { gap: 0rem !important; }
+</style>
+""", unsafe_allow_html=True)
 def gen_html(df, cl):
     if df.empty:
         return f"<table class='table-compacte {cl}'><tr><td style='text-align: center; padding: 10px;'>Aucune donnée disponible</td></tr></table>"
     return df.to_html(index=False, classes=f"table-compacte {cl}", escape=False, border=0)
 
-# --- MENU DE SELECTION PURGE DES AUTRES COURSES ---
+# --- CONFIGURATION SÉLECTEUR ---
 col_vide, col_texte, col_select = st.columns([0.6, 1.5, 1.3])
 with col_texte:
     st.markdown('<p class="texte-menu" style="margin-top:28px;">Sélectionnez la session à afficher :</p>', unsafe_allow_html=True)
@@ -12,16 +72,14 @@ with col_select:
 
 st.markdown("<div style='height:12px;'></div>", unsafe_allow_html=True)
 
-# --- AFFICHAGE EXCLUSIF DES ESSAIS ---
+# --- REFRESH ET APPEL DIRECT ---
 @st.fragment(run_every=30)
 def afficher_tableaux():
     st.cache_data.clear()
     
-    # Appel direct et unique au script Essais
     d_liv, d_his, d_as123, d_as4, d_racb = Essais.recuperer_donnees_course()
     titre_historique = "🕒 HISTORIQUE DES TEMPS / ENTRAINEMENTS ASAF & RACB"
     
-    # Application de vos largeurs d'historique 6 colonnes d'essais
     st.markdown("<style>.table-hist th:nth-child(1), .table-hist td:nth-child(1) { width: 7% !important; } .table-hist th:nth-child(2), .table-hist td:nth-child(2) { width: 23% !important; } .table-hist th:nth-child(3), .table-hist td:nth-child(3) { width: 22% !important; } .table-hist th:nth-child(4), .table-hist td:nth-child(4) { width: 10% !important; } .table-hist th:nth-child(5), .table-hist td:nth-child(5) { width: 10% !important; } .table-hist th:nth-child(6), .table-hist td:nth-child(6) { width: 14% !important; }</style>", unsafe_allow_html=True)
 
     cg, cd = st.columns([1.3, 0.9])
