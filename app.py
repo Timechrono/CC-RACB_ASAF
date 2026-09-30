@@ -3,7 +3,6 @@ import pandas as pd
 import time
 import Essais
 
-# CONNEXION SÉCURISÉE AVEC LES SCRIPTS DE COURSE
 try:
     import Course_1_ASAF
 except Exception: pass
@@ -16,12 +15,11 @@ except Exception: pass
 
 st.set_page_config(page_title="Live", layout="wide")
 
-# --- FEUILLE DE STYLE CSS DE L'APPLICATION ---
+# --- FEUILLE DE STYLE CSS RECALIBRÉE (ANTI-DÉBORDEMENT) ---
 st.markdown("""
 <style>
 [data-testid="stHeader"] { display: none !important; }
 
-/* REJET DU ROUGE ET DES CONTOURS DE SÉLECTION */
 button:focus, div:focus, input:focus, select:focus {
     outline: none !important;
     border-color: transparent !important;
@@ -63,19 +61,22 @@ div[data-testid="stFragment"] {
 .badge-piste { background-color: #FEE2E2 !important; color: #DC2626 !important; padding: 1px 4px !important; border-radius: 3px !important; font-weight: bold; }
 .table-hist tr:nth-child(odd) td { background-color: #E0F2FE !important; }
 
+/* FIXATION STRICTE DES LARGEURS DU TABLEAU EN DIRECT (TOTAL = 100%) */
 .table-live th:nth-child(1), .table-live td:nth-child(1) { width: 8% !important; }
 .table-live th:nth-child(2), .table-live td:nth-child(2) { width: 25% !important; }
 .table-live th:nth-child(3), .table-live td:nth-child(3) { width: 17% !important; }
 .table-live th:nth-child(4), .table-live td:nth-child(4) { width: 12% !important; }
 .table-live th:nth-child(5), .table-live td:nth-child(5) { width: 13% !important; }
 .table-live th:nth-child(6), .table-live td:nth-child(6) { width: 25% !important; }
-.table-hist th:nth-child(1), .table-hist td:nth-child(1) { width: 8% !important; }
-.table-hist th:nth-child(2), .table-hist td:nth-child(2) { width: 30% !important; }
-.table-hist th:nth-child(3), .table-hist td:nth-child(3) { width: 26% !important; }
-.table-hist th:nth-child(4), .table-hist td:nth-child(4) { width: 11% !important; }
-.table-hist th:nth-child(5), .table-hist td:nth-child(5) { width: 8% !important; }
-.table-hist th:nth-child(6), .table-hist td:nth-child(6) { width: 17% !important; }
+/* CORRECTION CRITIQUE DES LARGEURS DE L'HISTORIQUE (TOTAL AJUSTÉ STRICTEMENT À 100%) */
+.table-hist th:nth-child(1), .table-hist td:nth-child(1) { width: 8% !important; }   
+.table-hist th:nth-child(2), .table-hist td:nth-child(2) { width: 28% !important; }  
+.table-hist th:nth-child(3), .table-hist td:nth-child(3) { width: 24% !important; }  
+.table-hist th:nth-child(4), .table-hist td:nth-child(4) { width: 10% !important; }  
+.table-hist th:nth-child(5), .table-hist td:nth-child(5) { width: 8% !important; }   
+.table-hist th:nth-child(6), .table-hist td:nth-child(6) { width: 22% !important; }  
 
+/* SÉCURISATION DES LARGEURS DES CLASSEMENTS A DROITE (TOTAL = 100%) */
 .table-class-robuste th:nth-child(1), .table-class-robuste td:nth-child(1) { width: 9% !important; }
 .table-class-robuste th:nth-child(2), .table-class-robuste td:nth-child(2) { width: 11% !important; }
 .table-class-robuste th:nth-child(3), .table-class-robuste td:nth-child(3) { width: 33% !important; }
@@ -104,7 +105,7 @@ with col_select:
 
 st.markdown("<div style='height:12px;'></div>", unsafe_allow_html=True)
 
-# --- BLOC DE REFRESCH AUTOMATIQUE (30 SECONDES) ---
+# --- BLOC DE REFRESH DYNAMIQUE (30 SECONDES) ---
 @st.fragment(run_every=30)
 def afficher_tableaux():
     st.cache_data.clear()
