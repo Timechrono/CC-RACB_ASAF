@@ -1,58 +1,125 @@
 import streamlit as st
 import pandas as pd
 import time
+import Essais
 
-# --- NAVETTES SÉCURISÉES SANS CHARGEMENT SAUVAGE ---
-try:
-    import Essais
-except Exception: pass
 try:
     import Course_1_ASAF
-except Exception: pass
-try:
-    import Course_1_RACB
 except Exception: pass
 try:
     import Course_2_ASAF
 except Exception: pass
 
-st.set_page_config(layout="wide")
-st.cache_data.clear()
-# --- DESIGN COMPACT ET FIXE DU SÉLECTEUR ---
+st.set_page_config(page_title="Live", layout="wide")
+
+# --- STYLE CSS DE VOS BANDEAUX ET TABLEAUX ---
 st.markdown("""
-    <style>
-    [data-testid="stHeader"] { display: none !important; }
-    button:focus, div:focus, input:focus, select:focus {
-        outline: none !important; border-color: transparent !important; box-shadow: none !important;
-    }
-    .texte-menu {
-        font-size: 0.95rem !important; font-weight: bold !important;
-        color: #1E293B !important; text-align: right; padding-right: 15px;
-    }
-    .block-container { padding-top: 0.4rem !important; padding-bottom: 0rem !important; }
-    div[data-testid="stVerticalBlock"] { gap: 0rem !important; }
-    </style>
+<style>
+[data-testid="stHeader"] { display: none !important; }
+button:focus, div:focus, input:focus, select:focus {
+    outline: none !important; border-color: transparent !important; box-shadow: none !important;
+}
+.texte-menu {
+    font-size: 0.95rem !important; font-weight: bold !important;
+    color: #1E293B !important; text-align: right; padding-right: 15px;
+}
+.titre-live, .titre-hist, .titre-classement {
+    color: #FFFFFF !important; font-size: 1.05rem !important; font-weight: bold !important;
+    padding: 4px 8px !important; border-radius: 3px !important; margin-bottom: 6px !important;
+    width: 100% !important; display: block !important; clear: both !important;
+}
+.titre-live { background-color: #15803D !important; }
+.titre-hist { background-color: #475569 !important; }
+.titre-classement { background-color: #1E3A8A !important; }
+
+.table-compacte {
+    width: 100% !important; margin-bottom: 0px !important;
+    border-collapse: collapse !important; table-layout: fixed !important;
+}
+.table-compacte tr { height: 18px !important; }
+.table-compacte th, .table-compacte td { 
+    height: 18px !important; padding: 1px 5px !important; line-height: 1.1 !important; 
+    font-size: 0.85rem !important; color: #000000 !important; vertical-align: middle !important; 
+    overflow: hidden !important; text-overflow: ellipsis !important; white-space: nowrap !important; 
+}
+.table-compacte td { border-bottom: 1px solid #E0E0E0 !important; background-color: #FFFFFF !important; }
+.table-compacte th { font-weight: bold !important; background-color: #F5F5F5 !important; border-bottom: 2px solid #CCCCCC !important; text-align: left !important; }
+.table-live td:last-child, .table-hist td:last-child, .table-class-robuste td:last-child { font-weight: bold !important; font-size: 0.94rem !important; color: #0F172A !important; }
+.table-hist tr:nth-child(odd) td { background-color: #E0F2FE !important; }
+
+/* REGLAGES EXACTS DES COLONNES DE GAUCHE */
+.table-live th:nth-child(1), .table-live td:nth-child(1) { width: 8% !important; }
+.table-live th:nth-child(2), .table-live td:nth-child(2) { width: 26% !important; }
+.table-live th:nth-child(3), .table-live td:nth-child(3) { width: 18% !important; }
+.table-live th:nth-child(4), .table-live td:nth-child(4) { width: 13% !important; }
+.table-live th:nth-child(5), .table-live td:nth-child(5) { width: 13% !important; }
+.table-live th:nth-child(6), .table-live td:nth-child(6) { width: 22% !important; }
+
+/* REGLAGES EXACTS DE VOS CLASSEMENTS DE DROITE */
+.table-class-robuste th:nth-child(1), .table-class-robuste td:nth-child(1) { width: 9% !important; }
+.table-class-robuste th:nth-child(2), .table-class-robuste td:nth-child(2) { width: 11% !important; }
+.table-class-robuste th:nth-child(3), .table-class-robuste td:nth-child(3) { width: 33% !important; }
+.table-class-robuste th:nth-child(4), .table-class-robuste td:nth-child(4) { width: 23% !important; }
+.table-class-robuste th:nth-child(5), .table-class-robuste td:nth-child(5) { width: 6% !important; }
+.table-class-robuste th:nth-child(6), .table-class-robuste td:nth-child(6) { width: 18% !important; text-align: right !important; }
+
+.block-container { padding-top: 0.4rem !important; padding-bottom: 0rem !important; }
+div[data-testid="stVerticalBlock"] { gap: 0rem !important; }
+</style>
 """, unsafe_allow_html=True)
 
-# --- MENUS DE SÉLECTION EN HAUT ---
+def gen_html(df, cl):
+    if df.empty:
+        return f"<table class='table-compacte {cl}'><tr><td style='text-align: center; padding: 10px;'>Aucune donnée disponible</td></tr></table>"
+    return df.to_html(index=False, classes=f"table-compacte {cl}", escape=False, border=0)
+
+# --- SÉLECTEUR CENTRAL ---
 col_vide, col_texte, col_select = st.columns([0.6, 1.5, 1.3])
 with col_texte:
     st.markdown('<p class="texte-menu" style="margin-top:28px;">Sélectionnez la session à afficher :</p>', unsafe_allow_html=True)
 with col_select:
-    choix_course = st.selectbox("Session_Label", ["Essais / Entraînements", "Course 1 ASAF", "Course 1 RACB", "Course 2 ASAF", "Course 2 RACB", "Course 3 ASAF", "Course 3 RACB"], label_visibility="collapsed")
+    choix_course = st.selectbox("Session_Label", ["Essais / Entraînements", "Course 1 ASAF", "Course 2 ASAF"], label_visibility="collapsed")
 
 st.markdown("<div style='height:12px;'></div>", unsafe_allow_html=True)
 
-# --- BOÎTE D'AIGUILLAGE ÉTANCHE ---
-# On utilise un conteneur principal Streamlit pour forcer l'affichage propre
-with st.container():
+# --- REFRESH AUTOMATIQUE INTERNE (30 SECONDES) ---
+@st.fragment(run_every=30)
+def afficher_tableaux():
+    st.cache_data.clear()
+    
     if choix_course == "Course 1 ASAF":
-        try: Course_1_ASAF.afficher_ecran_complet()
-        except Exception: st.error("Fichier Course 1 ASAF en cours de configuration")
-    elif choix_course == "Course 1 RACB":
-        pass
+        d_liv, d_his, d_as123, d_as4, d_div = Course_1_ASAF.recuperer_donnees_course()
+        titre_historique = "🕒 HISTORIQUE DES TEMPS / 1er COURSE / Concurrents ASAF"
+        st.markdown("<style>.table-hist th:nth-child(1), .table-hist td:nth-child(1) { width: 8% !important; } .table-hist th:nth-child(2), .table-hist td:nth-child(2) { width: 30% !important; } .table-hist th:nth-child(3), .table-hist td:nth-child(3) { width: 26% !important; } .table-hist th:nth-child(4), .table-hist td:nth-child(4) { width: 11% !important; } .table-hist th:nth-child(5), .table-hist td:nth-child(5) { width: 8% !important; } .table-hist th:nth-child(6), .table-hist td:nth-child(6) { width: 17% !important; }</style>", unsafe_allow_html=True)
     elif choix_course == "Course 2 ASAF":
-        pass
+        d_liv, d_his, d_as123, d_as4, d_div = Course_2_ASAF.recuperer_donnees_course()
+        titre_historique = "🕒 HISTORIQUE DES TEMPS / 2ème COURSE / Concurrents ASAF"
+        st.markdown("<style>.table-hist th:nth-child(1), .table-hist td:nth-child(1) { width: 7% !important; } .table-hist th:nth-child(2), .table-hist td:nth-child(2) { width: 23% !important; } .table-hist th:nth-child(3), .table-hist td:nth-child(3) { width: 25% !important; } .table-hist th:nth-child(4), .table-hist td:nth-child(4) { width: 10% !important; } .table-hist th:nth-child(5), .table-hist td:nth-child(5) { width: 7% !important; } .table-hist th:nth-child(6), .table-hist td:nth-child(6) { width: 14% !important; } .table-hist th:nth-child(7), .table-hist td:nth-child(7) { width: 14% !important; }</style>", unsafe_allow_html=True)
     else:
-        # Appel de vos Essais autonomes d'origine
-        Essais.afficher_ecran_complet()
+        d_liv, d_his, d_as123, d_as4, d_racb = Essais.recuperer_donnees_course()
+        d_div = pd.DataFrame()
+        titre_historique = "🕒 HISTORIQUE DES TEMPS / ENTRAINEMENTS ASAF & RACB"
+        st.markdown("<style>.table-hist th:nth-child(1), .table-hist td:nth-child(1) { width: 7% !important; } .table-hist th:nth-child(2), .table-hist td:nth-child(2) { width: 23% !important; } .table-hist th:nth-child(3), .table-hist td:nth-child(3) { width: 22% !important; } .table-hist th:nth-child(4), .table-hist td:nth-child(4) { width: 10% !important; } .table-hist th:nth-child(5), .table-hist td:nth-child(5) { width: 10% !important; } .table-hist th:nth-child(6), .table-hist td:nth-child(6) { width: 14% !important; }</style>", unsafe_allow_html=True)
+
+    cg, cd = st.columns([1.3, 0.9])
+    with cg:
+        st.markdown("<span class='titre-live'>🏎️ EN DIRECT / Derniers concurrents partis</span>", unsafe_allow_html=True)
+        st.markdown(gen_html(d_liv, "table-live"), unsafe_allow_html=True)
+        st.markdown("<div style='height:35px;'></div>", unsafe_allow_html=True)
+        st.markdown(f"<span class='titre-hist'>{titre_historique}</span>", unsafe_allow_html=True)
+        st.markdown(gen_html(d_his, "table-hist"), unsafe_allow_html=True)
+    with cd:
+        if choix_course == "Essais / Entraînements":
+            st.markdown("<span class='titre-classement'>🏆 CLASSEMENT EVOLUTIF DES ESSAIS RACB (Top 20)</span>", unsafe_allow_html=True)
+            st.markdown(gen_html(d_racb, "table-class-robuste"), unsafe_allow_html=True)
+            st.markdown("<div style='height: 55px;'></div>")
+        
+        st.markdown("<span class='titre-classement'>🏆 CLASSEMENT GENERAL Division 123 (Top 25)</span>", unsafe_allow_html=True)
+        st.markdown(gen_html(d_as123, "table-class-robuste"), unsafe_allow_html=True)
+        st.markdown("<div style='height: 55px;'></div>", unsafe_allow_html=True)
+        st.markdown("<span class='titre-classement'>🏆 CLASSEMENT GENERAL Division 4 (Top 10)</span>", unsafe_allow_html=True)
+        st.markdown(gen_html(d_as4, "table-class-robuste"), unsafe_allow_html=True)
+
+afficher_tableaux()
+
+# --- FIN DU SCRIPT APP.PY ---
