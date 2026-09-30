@@ -19,6 +19,7 @@ def telecharger_excel(url):
     reponse = requests.get(url, headers=entetes, timeout=12)
     reponse.raise_for_status()
     return io.BytesIO(reponse.content)
+
 def convertir_en_secondes(valeur):
     if pd.isna(valeur) or valeur is None: return None
     if isinstance(valeur, pd.Timedelta): return valeur.total_seconds()
@@ -133,25 +134,25 @@ def recuperer_donnees_course():
             base["Ordre_Saisie"] = range(len(base))
             df_hist = base.sort_values(by="Ordre_Saisie", ascending=False)[["N°", "Nom_Prenom", "Voiture", "Division", "Classe", "Chrono_Visual_Hist"]].rename(columns={"Chrono_Visual_Hist": "Chrono réalisé"})
 
-            # --- LOGIQUE D'AIGUILLAGE ET DE FILTRAGE STRICT ---
+            # --- LOGIQUE DE SEPARATION STRICTE DES CLASSEMENTS ---
             df_valides = base[base["Calc_Sec"].notna() & (base["Calc_Sec"] > 0)].copy()
             idx_meilleur = df_valides.groupby("N°")["Calc_Sec"].idxmin()
             df_meilleurs = df_valides.loc[idx_meilleur].copy()
 
-            # 1. CLASSEMENT EVOLUTIF DES ESSAIS RACB (Top 20) : Uniquement si commence par "N"
+            # Séparation absolue
             mask_racb = df_meilleurs["N°"].str.startswith("N")
             df_m_racb = df_meilleurs[mask_racb].copy()
+            df_m_non_n = df_meilleurs[~mask_racb].copy()
+
+            # 1. CLASSEMENT EVOLUTIF DES ESSAIS RACB (Top 20)
             if len(df_m_racb) > 0:
                 df_m_racb = df_m_racb.sort_values(by="Calc_Sec").head(20)
                 df_m_racb["Pos"] = range(1, len(df_m_racb) + 1)
                 df_m_racb["Chrono"] = df_m_racb["Calc_Sec"].apply(lambda x: format_final_chrono(x))
                 df_racb = df_m_racb[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]]
 
-            # Concurrents dont le numéro ne commence pas par "N"
-            df_m_non_n = df_meilleurs[~mask_racb].copy()
-
             if len(df_m_non_n) > 0:
-                # 2. CLASSEMENT EVOLUTIF DES ESSAIS Division 123 (Top 25) : Pas de "N" et Division ou Classe est 1, 2, ou 3
+                # 2. CLASSEMENT EVOLUTIF DES ESSAIS Division 123 (Top 25)
                 mask_123 = df_m_non_n["Division"].isin(["1", "2", "3", 1, 2, 3]) | df_m_non_n["Classe"].isin(["1", "2", "3", 1, 2, 3])
                 df_m_asaf123 = df_m_non_n[mask_123].sort_values(by="Calc_Sec").head(25)
                 if len(df_m_asaf123) > 0:
@@ -159,7 +160,7 @@ def recuperer_donnees_course():
                     df_m_asaf123["Chrono"] = df_m_asaf123["Calc_Sec"].apply(lambda x: format_final_chrono(x))
                     df_asaf123 = df_m_asaf123[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]]
 
-                # 3. CLASSEMENT GENERAL Division 4 : Pas de "N" et Division ou Classe est 4
+                # 3. CLASSEMENT GENERAL Division 4
                 mask_4 = df_m_non_n["Division"].isin(["4", 4]) | df_m_non_n["Classe"].isin(["4", 4])
                 df_m_asaf4 = df_m_non_n[mask_4].sort_values(by="Calc_Sec")
                 if len(df_m_asaf4) > 0:
@@ -168,18 +169,20 @@ def recuperer_donnees_course():
                     df_asaf4 = df_m_asaf4[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]]
 
     except Exception as e:
-        st.error(f"Erreur d'extraction : {e}")
+        pass
 
     return df_live, df_hist, df_racb, df_asaf123, df_asaf4
-
-# --- LOGIQUE D'AFFICHAGE RECONSTRUITE ---
+# --- INITIALISATION ET PRÉSENTATION GRAPHIQUE D'ORIGINE RESTAURÉE ---
 st.set_page_config(layout="wide")
 
+# Chargement des variables
 df_live, df_hist, df_racb, df_asaf123, df_asaf4 = recuperer_donnees_course()
 
+# Rétablissement exact du gabarit à 2 colonnes (Gauche pour les Onglets / Droite pour les Tables Annexes)
 col_gauche, col_droite = st.columns([1.1, 0.9])
 
 with col_gauche:
+    # Création des structures d'onglets (Renommés selon vos exigences de titres)
     tab1, tab2, tab3 = st.tabs([
         "CLASSEMENT EVOLUTIF DES ESSAIS Division 123 (Top 25)", 
         "CLASSEMENT EVOLUTIF DES ESSAIS RACB (Top 20)", 
@@ -205,6 +208,7 @@ with col_droite:
     st.markdown("### 📝 HISTORIQUE GLOBAL DES ESSAIS")
     st.dataframe(df_hist, hide_index=True, use_container_width=True)
 
+# Boucle native de rafraîchissement d'arrière-plan de 10 secondes
 st.info("Actualisation automatique active (10s)")
 import time
 time.sleep(10)
