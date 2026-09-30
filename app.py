@@ -3,15 +3,8 @@ import pandas as pd
 import time
 import Essais
 
-# --- CONFIGURATION INITIALE (Le primaryColor règle définitivement la couleur du cadre au clic sans CSS cassant) ---
-st.set_page_config(
-    page_title="Live", 
-    layout="wide",
-    theme={
-        "primaryColor": "#1E3A8A", # Le cadre rouge au clic devient automatiquement Bleu Foncé
-        "backgroundColor": "#FFFFFF"
-    }
-)
+# --- CONFIGURATION INITIALE CORRIGÉE (Sans le paramètre theme invalide) ---
+st.set_page_config(page_title="Live", layout="wide")
 
 # --- DESIGN SCIENTIFIQUE RIGIDE ET FIXE RESTAURÉ ---
 st.markdown("""
@@ -19,6 +12,12 @@ st.markdown("""
 [data-testid="stHeader"] { display: none !important; }
 button:focus, div:focus, input:focus, select:focus {
     outline: none !important; border-color: transparent !important; box-shadow: none !important;
+}
+
+/* Force la couleur bleu foncé au clic (focus) sur le sélecteur à la place du rouge */
+div[data-baseweb="select"]:focus-within {
+    border-color: #1E3A8A !important;
+    box-shadow: 0 0 0 2px rgba(30, 58, 138, 0.2) !important;
 }
 
 /* Restauration stricte du texte menu */
@@ -38,7 +37,7 @@ button:focus, div:focus, input:focus, select:focus {
     font-size: 0.95rem !important;
     font-weight: bold !important;
     color: #475569 !important;
-    margin-top: -16px !important; /* Calé sur la même hauteur que le texte de gauche */
+    margin-top: -16px !important; 
     white-space: nowrap !important;
 }
 
