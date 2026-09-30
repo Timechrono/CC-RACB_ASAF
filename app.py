@@ -1,8 +1,8 @@
 import streamlit as st
+import pandas as pd  # CORRECTION : Ajout de l'importation manquante pour éviter la NameError
 import time
 import Essais
 
-# IMPORTATION DU NOUVEAU SCRIPT DE COURSE
 try:
     import Course_1_ASAF
 except Exception:
@@ -18,7 +18,7 @@ st.markdown("""
 <style>
 [data-testid="stHeader"] { display: none !important; }
 
-/* REJET DU ROUGE ET DES CONTOURS */
+/* REJET DU ROUGE AND CONTOURS */
 button:focus, div:focus, input:focus, select:focus {
     outline: none !important;
     border-color: transparent !important;
@@ -108,13 +108,11 @@ st.markdown("<div style='height:12px;'></div>", unsafe_allow_html=True)
 def afficher_tableaux():
     st.cache_data.clear()
     
-    # LOGIQUE INTÉGRÉE POUR ACTIVER LE LIEN COURSE 1 ASAF
     if choix_course == "Course 1 ASAF":
         d_liv, d_his, d_as123, d_as4, d_div = Course_1_ASAF.recuperer_donnees_course()
     else:
-        # Par défaut, on charge les Essais (et pour les autres courses non encore créées)
         d_liv, d_his, d_as123, d_as4, _ = Essais.recuperer_donnees_course()
-        d_div = pd.DataFrame() # Vide aux essais
+        d_div = pd.DataFrame()
 
     cg, cd = st.columns([1.3, 0.9])
     with cg:
@@ -130,7 +128,6 @@ def afficher_tableaux():
         st.markdown("<span class='titre-classement'>🏆 CLASSEMENT GENERAL OFFICIEUX Division 4 (Top 10)</span>", unsafe_allow_html=True)
         st.markdown(gen_html(d_as4, "table-class-robuste"), unsafe_allow_html=True)
         
-        # Affichage du classement par classe uniquement en mode Course 1 ASAF
         if choix_course == "Course 1 ASAF":
             st.markdown("<div style='height:55px;'></div>", unsafe_allow_html=True)
             st.markdown("<span class='titre-classement'>📊 CLASSEMENT OFFICIEUX PAR Division / Classe (Top 3)</span>", unsafe_allow_html=True)
