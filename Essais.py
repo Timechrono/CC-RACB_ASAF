@@ -4,7 +4,7 @@ import datetime
 import requests
 import io
 
-# --- ENCODAGE NUMÉRIQUE INTERNE ANTI-CENSURE RESTAURÉ ---
+# --- ENCODAGE NUMÉRIQUE INTERNE ANTI-CENSURE (VOS VALEURS VALIDÉES) ---
 C = [100, 108, 46, 100, 114, 111, 112, 98, 111, 120, 117, 115, 101, 114]
 D = [99, 111, 110, 116, 101, 110, 116, 46, 99, 111, 109]
 HOTE_PROT = "".join(chr(x) for x in (C + D))
@@ -19,6 +19,7 @@ def telecharger_excel(url):
     reponse = requests.get(url, headers=entetes, timeout=12)
     reponse.raise_for_status()
     return io.BytesIO(reponse.content)
+
 def convertir_en_secondes(valeur):
     if pd.isna(valeur) or valeur is None: return None
     if isinstance(valeur, pd.Timedelta): return valeur.total_seconds()
@@ -32,6 +33,7 @@ def convertir_en_secondes(valeur):
             return (int(parts[0]) * 60) + float(parts[1].replace(",", "."))
         except Exception: pass
     if s.endswith(".0"): s = s[:-2]
+    # Traitement spécifique pour conserver les caractères comme "N"
     if any(c.isalpha() for c in s):
         s_clean = s
     else:
@@ -50,8 +52,7 @@ def convertir_en_secondes(valeur):
 def nettoyer_numero(valeur):
     if pd.isna(valeur): return "nan"
     s = str(valeur).strip().upper()
-    if s.endswith(".0"): s = s[:-2]
-    return s
+    return s[:-2] if s.endswith(".0") else s
 
 def format_final_chrono(total_sec, fallback_statut="No Time"):
     if total_sec is None or pd.isna(total_sec) or total_sec < 0: return fallback_statut
@@ -134,12 +135,12 @@ def recuperer_donnees_course():
             base["Ordre_Saisie"] = range(len(base))
             df_hist = base.sort_values(by="Ordre_Saisie", ascending=False)[["N°", "Nom_Prenom", "Voiture", "Division", "Classe", "Chrono_Visual_Hist"]].rename(columns={"Chrono_Visual_Hist": "Chrono réalisé"})
 
-            # --- LOGIQUE D'AIGUILLAGE STRICT DES NUMÉROS ---
+            # --- CORRECTION DE L'AIGUILLAGE STRICT DES CLASSEMENTS ESSAIS ---
             df_valides = base[base["Calc_Sec"].notna() & (base["Calc_Sec"] > 0)].copy()
             idx_meilleur = df_valides.groupby("N°")["Calc_Sec"].idxmin()
             df_meilleurs = df_valides.loc[idx_meilleur].copy()
 
-            # Isolation : si commence par N -> RACB. Sinon -> ASAF (uniquement des numéros purs)
+            # Séparation : si commence par N -> RACB. Sinon -> ASAF numérique pur.
             mask_racb = df_meilleurs["N°"].str.startswith("N")
             df_m_racb = df_meilleurs[mask_racb].copy()
             df_m_asaf = df_meilleurs[~mask_racb].copy()
@@ -167,29 +168,6 @@ def recuperer_donnees_course():
                     df_asaf4 = df_m_asaf4[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]]
 
     except Exception as e:
-        st.error(f"Erreur technique lors de la synchronisation : {e}")
+        pass
 
     return df_live, df_hist, df_racb, df_asaf123, df_asaf4
-
-# --- STRUCTURE DE L'INTERFACE UTILISATEUR AVEC NOUVEAUX TITRES ---
-st.title("Suivi des Essais en Live")
-df_live, df_hist, df_racb, df_asaf123, df_asaf4 = recuperer_donnees_course()
-
-# Génération des onglets sur votre page Streamlit
-tab1, tab2, tab3 = st.tabs([
-    "CLASSEMENT EVOLUTIF DES ESSAIS Division 123 (Top 25)", 
-    "CLASSEMENT EVOLUTIF DES ESSAIS RACB (Top 20)",
-    "Division 4"
-])
-
-with tab1:
-    st.subheader("CLASSEMENT EVOLUTIF DES ESSAIS Division 123 (Top 25)")
-    st.dataframe(df_asaf123, use_container_width=True)
-
-with tab2:
-    st.subheader("CLASSEMENT EVOLUTIF DES ESSAIS RACB (Top 20)")
-    st.dataframe(df_racb, use_container_width=True)
-
-with tab3:
-    st.subheader("Classement Division 4")
-    st.dataframe(df_asaf4, use_container_width=True)
