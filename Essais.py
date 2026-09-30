@@ -62,6 +62,7 @@ def formater_heure_ecran(val):
     if s.endswith(".0"): s = s[:-2]
     s = s.zfill(6)
     return f"{s[0:2]}:{s[2:4]}.{s[4:6]}" if len(s) == 6 else str(val)
+
 def recuperer_donnees_course():
     df_live = pd.DataFrame(columns=["N°", "Nom_Prenom", "Voiture", "Départ", "Arrivée", "Chrono réalisé"])
     df_hist = pd.DataFrame(columns=["N°", "Nom_Prenom", "Voiture", "Division", "Classe", "Chrono réalisé"])
@@ -131,11 +132,21 @@ def recuperer_donnees_course():
 
             valides = base[base["Calc_Sec"].notna() & (base["Calc_Sec"] > 0)].copy()
             if len(valides) > 0:
-                scr = valides.sort_values(by="Calc_Sec").drop_duplicates(subset=["N°"], keep="first").copy(); scr["Division_Clean"] = scr["Division"].astype(str).str.strip()
-                racb = scr[scr["Division_Clean"].str.upper() == "RACB"].head(20).copy()
-                if len(racb) > 0: racb["Pos"] = range(1, len(racb) + 1); racb["Chrono"] = racb["Calc_Sec"].apply(format_final_chrono); df_racb = racb[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]]
+                scr = valides.sort_values(by="Calc_Sec").drop_duplicates(subset=["N°"], keep="first").copy()
+                scr["Division_Clean"] = scr["Division"].astype(str).str.strip()
+                
+                # Sont considérés comme RACB tous les concurrents dont la division n'est ni 1, ni 2, ni 3, ni 4
+                exclus_asaf = ["1", "2", "3", "4", "1.0", "2.0", "3.0", "4.0"]
+                racb = scr[~scr["Division_Clean"].isin(exclus_asaf)].head(20).copy()
+                
+                if len(racb) > 0: 
+                    racb["Pos"] = range(1, len(racb) + 1)
+                    racb["Chrono"] = racb["Calc_Sec"].apply(format_final_chrono)
+                    df_racb = racb[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]]
+                
                 asaf123 = scr[scr["Division_Clean"].isin(["1", "2", "3", "1.0", "2.0", "3.0"])].head(25).copy()
                 if len(asaf123) > 0: asaf123["Pos"] = range(1, len(asaf123) + 1); asaf123["Chrono"] = asaf123["Calc_Sec"].apply(format_final_chrono); df_asaf123 = asaf123[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]]
+                
                 asaf4 = scr[scr["Division_Clean"].isin(["4", "4.0"])].head(10).copy()
                 if len(asaf4) > 0: asaf4["Pos"] = range(1, len(asaf4) + 1); asaf4["Chrono"] = asaf4["Calc_Sec"].apply(format_final_chrono); df_asaf4 = asaf4[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]]
     except Exception: pass
