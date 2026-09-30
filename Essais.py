@@ -33,7 +33,6 @@ def convertir_en_secondes(valeur):
             return (int(parts[0]) * 60) + float(parts[1].replace(",", "."))
         except Exception: pass
     if s.endswith(".0"): s = s[:-2]
-    # Si la valeur contient une lettre (comme N), on nettoie uniquement les espaces
     if any(c.isalpha() for c in s):
         s_clean = s
     else:
@@ -121,7 +120,6 @@ def recuperer_donnees_course():
         base = pd.merge(base_runs, df_eng, on="N°", how="inner")
         if len(df_dep) > 0: base = pd.merge(base, df_dep, on=["N°", "Run_Index"], how="left")
         if len(df_arr) > 0: base = pd.merge(base, df_arr, on=["N°", "Run_Index"], how="left")
-        
         if len(base) > 0:
             base["Calc_Sec"] = base["Sec_Excel"].fillna((base["Sec_Arr"] - base["Sec_Dep"]).apply(lambda x: x + 3600 if (x is not None and x < 0) else x))
             
@@ -136,38 +134,47 @@ def recuperer_donnees_course():
             base["Ordre_Saisie"] = range(len(base))
             df_hist = base.sort_values(by="Ordre_Saisie", ascending=False)[["N°", "Nom_Prenom", "Voiture", "Division", "Classe", "Chrono_Visual_Hist"]].rename(columns={"Chrono_Visual_Hist": "Chrono réalisé"})
 
-            # --- LOGIQUE DES CLASSEMENTS ---
+            # Traitement des classements par meilleurs temps
             df_valides = base[base["Calc_Sec"].notna() & (base["Calc_Sec"] > 0)].copy()
             idx_meilleur = df_valides.groupby("N°")["Calc_Sec"].idxmin()
             df_meilleurs = df_valides.loc[idx_meilleur].copy()
 
-            # Séparation RACB (commence par N ou contient des lettres) VS ASAF
-            mask_racb = df_meilleurs["N°"].str.startswith("N") | df_meilleurs["N°"].str.contains("[A-Z]", regex=True)
-            df_m_racb = df_meilleurs[mask_racb].copy()
-            df_m_asaf = df_meilleurs[~mask_racb].copy()
+            # Isolation par le format textuel du numéro propre
+            df_meilleurs["N°_Txt"] = df_meilleurs["N°"].astype(str).str.strip().str.upper()
+            mask_racb = df_meilleurs["N°_Txt"].str.startswith("N", na=False)
 
-            # RACB Tri & Format
+            # RÈGLE A : Si commence par N -> Uniquement dans RACB (Top 20)
+            df_m_racb = df_meilleurs[mask_racb].copy()
             if len(df_m_racb) > 0:
-                df_m_racb = df_m_racb.sort_values(by="Calc_Sec")
+                df_m_racb = df_m_racb.sort_values(by="Calc_Sec").head(20)
                 df_m_racb["Pos"] = range(1, len(df_m_racb) + 1)
                 df_m_racb["Chrono"] = df_m_racb["Calc_Sec"].apply(lambda x: format_final_chrono(x))
                 df_racb = df_m_racb[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]]
 
-            # ASAF 1-2-3 et ASAF 4
-            if len(df_m_asaf) > 0:
-                df_m_asaf123 = df_m_asaf[df_m_asaf["Division"].isin(["1", "2", "3", 1, 2, 3])].sort_values(by="Calc_Sec")
+            # Pour les classements ASAF, on écarte définitivement tout numéro contenant un N
+            df_m_non_n = df_meilleurs[~mask_racb].copy()
+
+            if len(df_m_non_n) > 0:
+                # Conversion numérique sécurisée de la colonne Classe
+                df_m_non_n["Classe_Num"] = pd.to_numeric(df_m_non_n["Classe"], errors='coerce')
+
+                # RÈGLE B : Division 123 (Top 25) -> Uniquement si la Classe est numérique et vaut 1, 2 ou 3
+                mask_123 = df_m_non_n["Classe_Num"].isin([1, 2, 3])
+                df_m_asaf123 = df_m_non_n[mask_123].sort_values(by="Calc_Sec").head(25)
                 if len(df_m_asaf123) > 0:
                     df_m_asaf123["Pos"] = range(1, len(df_m_asaf123) + 1)
                     df_m_asaf123["Chrono"] = df_m_asaf123["Calc_Sec"].apply(lambda x: format_final_chrono(x))
                     df_asaf123 = df_m_asaf123[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]]
 
-                df_m_asaf4 = df_m_asaf[df_m_asaf["Division"].isin(["4", 4])].sort_values(by="Calc_Sec")
+                # RÈGLE C : Division 4 -> Uniquement si la Classe est numérique et vaut 4
+                mask_4 = df_m_non_n["Classe_Num"].isin([4])
+                df_m_asaf4 = df_m_non_n[mask_4].sort_values(by="Calc_Sec")
                 if len(df_m_asaf4) > 0:
                     df_m_asaf4["Pos"] = range(1, len(df_m_asaf4) + 1)
                     df_m_asaf4["Chrono"] = df_m_asaf4["Calc_Sec"].apply(lambda x: format_final_chrono(x))
                     df_asaf4 = df_m_asaf4[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]]
 
     except Exception as e:
-        st.error(f"Erreur technique lors de la synchronisation : {e}")
+        pass
 
     return df_live, df_hist, df_racb, df_asaf123, df_asaf4
