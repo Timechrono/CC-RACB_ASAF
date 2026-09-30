@@ -7,17 +7,9 @@ st.set_page_config(
     layout="wide"
 )
 
-# --- THEME GLOBAL FORCE ET DESIGN CSS ---
+# --- CONFIGURATION STYLE CSS NETTOYÉ ET FLUIDE ---
 st.markdown("""
 <style>
-/* FORCE LES COULEURS DE BASE DE STREAMLIT SUR LE MENU */
-:root {
-    --primary-color: #1E3A8A !important;
-    --background-color: #FFFFFF !important;
-    --secondary-background-color: #1E3A8A !important;
-    --text-color: #FFFFFF !important;
-}
-
 [data-testid="stHeader"] {
     display: none !important;
 }
@@ -57,7 +49,7 @@ div[data-testid="stSelectbox"] label {
     display: none !important;
 }
 
-/* FORÇAGE COULEUR DU BOUTON FERMÉ : BLEU FONCÉ & BLANC */
+/* CONFIGURATION DU SÉLECTEUR : BLEU FONCÉ & BLANC */
 div[data-testid="stSelectbox"] [role="combobox"],
 div[data-testid="stSelectbox"] div[data-baseweb="select"] > div {
     background-color: #1E3A8A !important;
@@ -82,20 +74,6 @@ div[data-testid="stSelectbox"] div[data-baseweb="select"] > div > div {
     padding-top: 0px !important;
     padding-bottom: 0px !important;
     height: 24px !important;
-}
-
-/* INTERDICTION STRICTE DU BLEU CIEL LORS DU CLIC (MENU OUVERT) */
-div[data-baseweb="popover"] ul,
-div[data-baseweb="menu"],
-[role="listbox"],
-[role="option"] {
-    background-color: #1E3A8A !important;
-    color: #FFFFFF !important;
-}
-[role="option"]:hover,
-[aria-selected="true"] {
-    background-color: #1D4ED8 !important;
-    color: #FFFFFF !important;
 }
 
 .espace-sous-menu {
