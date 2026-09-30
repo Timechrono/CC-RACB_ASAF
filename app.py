@@ -7,81 +7,33 @@ st.set_page_config(
     layout="wide"
 )
 
-# --- CONFIGURATION STYLE CSS NETTOYÉ ET ULTRA-FLUIDE ---
+# --- STYLE CSS DIRECT ET NETTOYÉ ---
 st.markdown("""
 <style>
 [data-testid="stHeader"] {
     display: none !important;
 }
-[data-testid="stForm"], 
-[data-testid="stVerticalBlock"] > div {
-    opacity: 1 !important;
-    transition: none !important;
-}
-div[data-testid="stFragment"] {
-    opacity: 1 !important;
-    animation: none !important;
-}
 
-/* CONTENEUR DE LA LIGNE HORIZONTALE UNIQUE */
-.bloc-menu-horizontal {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-    margin: 0 auto 0px auto;
-    max-width: 900px;
-}
-.texte-menu {
-    font-size: 0.92rem !important;
-    font-weight: bold !important;
-    color: #1E293B !important;
-    white-space: nowrap;
-    margin-bottom: 0px !important;
-    margin-top: 4px !important;
-}
-
-/* SUPPRESSION ET TRONCATURE DES BOUTONS NATIFS */
-div[data-testid="stWidgetLabel"] {
-    display: none !important;
-}
-div[data-testid="stPills"] {
-    margin-bottom: 0px !important;
-}
-
-/* ALIGNEMENT RESSERRÉ DE NOS PASTILLES DE CHOIX */
-div[data-testid="stPills"] [data-testid="stPillsContainer"] {
-    gap: 4px !important;
-}
-
-/* STYLE UNIQUE DE LA PASTILLE SÉLECTIONNÉE (VRAI BLEU FONCÉ DE COURSE) */
-div[data-testid="stPills"] button[aria-checked="true"] {
+/* SÉLECTEUR : COMPACT, BLEU FONCÉ ET TRIANGLE BLANC */
+div[data-testid="stSelectbox"] [role="combobox"],
+div[data-testid="stSelectbox"] div[data-baseweb="select"] > div {
     background-color: #1E3A8A !important;
     color: #FFFFFF !important;
     border: 1px solid #1D4ED8 !important;
-    font-weight: bold !important;
-}
-
-/* STYLE UNIQUE DES PASTILLES DISPONIBLES NON SÉLECTIONNÉES */
-div[data-testid="stPills"] button[aria-checked="false"] {
-    background-color: #F8FAFC !important;
-    color: #334155 !important;
-    border: 1px solid #E2E8F0 !important;
-}
-
-/* COMPACITÉ MAXIMALE EN HAUTEUR (HAUTEUR STRICTEMENT FIXÉE À 26PX) */
-div[data-testid="stPills"] button {
-    padding: 1px 8px !important;
-    min-height: 26px !important;
-    height: 26px !important;
-    font-size: 0.84rem !important;
+    min-height: 28px !important;
+    height: 28px !important;
     border-radius: 4px !important;
 }
-
-.espace-sous-menu {
-    height: 12px !important;
-    clear: both !important;
+div[data-testid="stSelectbox"] [data-testid="stSelectboxValue"] {
+    color: #FFFFFF !important;
+    line-height: 28px !important;
 }
+div[data-testid="stSelectbox"] svg {
+    fill: #FFFFFF !important;
+    color: #FFFFFF !important;
+}
+
+/* STYLE DES TABLEAUX ET DES TITRES */
 .titre-live, 
 .titre-hist, 
 .titre-classement {
@@ -95,7 +47,7 @@ div[data-testid="stPills"] button {
     display: block !important;
     clear: both !important;
 }
-.titre-live { background-color: #15803D !important; }
+.titre-live { background-color: #1E3A8A !important; }
 .titre-hist { background-color: #475569 !important; }
 .titre-classement { background-color: #1E3A8A !important; }
 
@@ -166,12 +118,12 @@ div[data-testid="stPills"] button {
 .table-class-robuste th:nth-child(1), .table-class-robuste td:nth-child(1) { width: 9% !important; }
 .table-class-robuste th:nth-child(2), .table-class-robuste td:nth-child(2) { width: 11% !important; }
 .table-class-robuste th:nth-child(3), .table-class-robuste td:nth-child(3) { width: 33% !important; }
-.table-class-robuste th:nth-child(4), .table-class-robuste td:xlink-child(4) { width: 23% !important; }
+.table-class-robuste th:nth-child(4), .table-class-robuste td:nth-child(4) { width: 23% !important; }
 .table-class-robuste th:nth-child(5), .table-class-robuste td:nth-child(5) { width: 6% !important; }
 .table-class-robuste th:nth-child(6), .table-class-robuste td:nth-child(6) { width: 18% !important; text-align: right !important; }
 
 .block-container {
-    padding-top: 0.4rem !important;
+    padding-top: 0.5rem !important;
     padding-bottom: 0rem !important;
 }
 div[data-testid="stVerticalBlock"] {
@@ -190,54 +142,30 @@ def gen_html(df, classe):
         border=0
     )
 
-# --- MENU PAR BOUTONS COMPACTS INTELLIGENTS ET REACTIONNELS ---
-st.markdown(
-    '<div class="bloc-menu-horizontal">',
-    unsafe_allow_html=True
-)
-c_txt, c_sel = st.columns([0.45, 2.0])
-with c_txt:
-    st.markdown(
-        '<p class="texte-menu">Session à afficher :</p>',
-        unsafe_allow_html=True
-    )
-with c_sel:
-    # Changement immédiat au clic et forçage CSS de la compacité
-    choix_course = st.pills(
-        "Session",
+# --- LE MENU ALIGNÉ À DROITE ---
+col_vide, col_menu = st.columns([1.6, 1.0])
+with col_menu:
+    choix_course = st.selectbox(
+        "Sélectionnez la session à afficher :",
         [
             "Essais / Entraînements",
-            "C1 ASAF", "C1 RACB",
-            "C2 ASAF", "C2 RACB",
-            "C3 ASAF", "C3 RACB"
-        ],
-        default="Essais / Entraînements"
+            "Course 1 ASAF", "Course 1 RACB",
+            "Course 2 ASAF", "Course 2 RACB",
+            "Course 3 ASAF", "Course 3 RACB"
+        ]
     )
-st.markdown(
-    '</div>',
-    unsafe_allow_html=True
-)
 
-st.markdown(
-    '<div class="espace-sous-menu"></div>',
-    unsafe_allow_html=True
-)
+# Micro espace sous le menu
+st.markdown("<div style='height:8px;'></div>", unsafe_allow_html=True)
 
-# --- ZONE D'AFFICHAGE DYNAMIQUE (30 SECONDES) ---
+# --- REFRESH TOUTES LES 30 SECONDES ---
 @st.fragment(run_every=30)
 def afficher_tableaux():
     st.cache_data.clear()
     
-    # Résolution immédiate des fichiers selon le choix réactif de l'utilisateur
-    if choix_course == "Essais / Entraînements":
-        df_live, df_hist, df_racb, df_asaf123, df_asaf4 = (
-            Essais.recuperer_donnees_course()
-        )
-    else:
-        # Redirection temporaire stable vers le module Essais
-        df_live, df_hist, df_racb, df_asaf123, df_asaf4 = (
-            Essais.recuperer_donnees_course()
-        )
+    df_live, df_hist, df_racb, df_asaf123, df_asaf4 = (
+        Essais.recuperer_donnees_course()
+    )
 
     cg, cd = st.columns([1.3, 0.9])
     with cg:
@@ -284,7 +212,7 @@ def afficher_tableaux():
         )
         st.markdown(
             "<span class='titre-classement'>"
-            "🏆 CLASSEMENT ASAF DIV 1-2-3 (Top 25) "
+            "🏆 CLASSEMENT ASAF DIV 1-2-3 (Top 25)"
             "</span>",
             unsafe_allow_html=True
         )
