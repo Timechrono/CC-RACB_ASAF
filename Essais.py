@@ -96,11 +96,15 @@ def recuperer_donnees_course():
         df_arr = pd.DataFrame({"N°": df_arr_raw.iloc[2:, idx_arr].apply(nettoyer_numero), "Heure_Arrivee": df_arr_raw.iloc[2:, idx_arr + 2], "Chrono_Excel": df_arr_raw.iloc[2:, idx_arr + 3]}) if idx_arr is not None else pd.DataFrame(columns=["N°", "Heure_Arrivee", "Chrono_Excel"])
 
         df_eng_raw.columns = df_eng_raw.columns.astype(str).str.strip().str.upper()
-        df_eng = pd.DataFrame({"N°": df_eng_raw.iloc[:, 0].apply(nettoyer_numero), 
-                               "Nom_Prenom": df_eng_raw.iloc[:, 1].fillna("Pilote Inconnu").astype(str).str.strip(),
-                               "Voiture": df_eng_raw.iloc[:, 4].fillna("").astype(str).str.strip(),
-                               "Division": df_eng_raw.iloc[:, 5].apply(lambda x: "-" if pd.isna(x) else str(x).strip()[:-2] if str(x).strip().endswith(".0") else str(x).strip()),
-                               "Classe": df_eng_raw.iloc[:, 6].fillna("-").astype(str).str.strip().apply(lambda x: x[:-2] if x.endswith(".0") else x)})
+        
+        # NETTOYAGE ULTRA-STRICT DU FORMAT DES COLONNES DIVISION ET CLASSE
+        df_eng = pd.DataFrame({
+            "N°": df_eng_raw.iloc[:, 0].apply(nettoyer_numero), 
+            "Nom_Prenom": df_eng_raw.iloc[:, 1].fillna("Pilote Inconnu").astype(str).str.strip(),
+            "Voiture": df_eng_raw.iloc[:, 4].fillna("").astype(str).str.strip(),
+            "Division": df_eng_raw.iloc[:, 5].apply(lambda x: "-" if pd.isna(x) else str(x).strip()[:-2] if str(x).strip().endswith(".0") else str(x).strip()),
+            "Classe": df_eng_raw.iloc[:, 6].apply(lambda x: "-" if pd.isna(x) else str(x).strip()[:-2] if str(x).strip().endswith(".0") else str(x).strip())
+        })
 
         df_eng = df_eng[df_eng["N°"] != "NAN"].drop_duplicates(subset=["N°"])
         df_dep = df_dep[(df_dep["N°"] != "NAN") & (df_dep["N°"] != "")]
@@ -119,7 +123,6 @@ def recuperer_donnees_course():
         base = pd.merge(base_runs, df_eng, on="N°", how="inner")
         if len(df_dep) > 0: base = pd.merge(base, df_dep, on=["N°", "Run_Index"], how="left")
         if len(df_arr) > 0: base = pd.merge(base, df_arr, on=["N°", "Run_Index"], how="left")
-        
         if len(base) > 0:
             base["Calc_Sec"] = base["Sec_Excel"].fillna((base["Sec_Arr"] - base["Sec_Dep"]).apply(lambda x: x + 3600 if (x is not None and x < 0) else x))
             
@@ -134,16 +137,16 @@ def recuperer_donnees_course():
             base["Ordre_Saisie"] = range(len(base))
             df_hist = base.sort_values(by="Ordre_Saisie", ascending=False)[["N°", "Nom_Prenom", "Voiture", "Division", "Classe", "Chrono_Visual_Hist"]].rename(columns={"Chrono_Visual_Hist": "Chrono réalisé"})
 
-            # --- CORRECTION STRICTE DE L'AIGUILLAGE DE LA CLASSE ---
+            # Traitement des meilleurs temps valides
             df_valides = base[base["Calc_Sec"].notna() & (base["Calc_Sec"] > 0)].copy()
             idx_meilleur = df_valides.groupby("N°")["Calc_Sec"].idxmin()
             df_meilleurs = df_valides.loc[idx_meilleur].copy()
 
-            # Nettoyage pour le contrôle strict de la chaîne de texte du numéro
+            # Forcer la détection propre du numéro en texte majuscule sans espaces
             df_meilleurs["N°_Check"] = df_meilleurs["N°"].astype(str).str.strip().str.upper()
             mask_racb = df_meilleurs["N°_Check"].str.startswith("N", na=False)
 
-            # 1. Classement RACB (Top 20) : Uniquement si commence par N
+            # 1. CLASSEMENT RACB : Uniquement les numéros commençant par N (Top 20)
             df_m_racb = df_meilleurs[mask_racb].copy()
             if len(df_m_racb) > 0:
                 df_m_racb = df_m_racb.sort_values(by="Calc_Sec").head(20)
@@ -151,20 +154,21 @@ def recuperer_donnees_course():
                 df_m_racb["Chrono"] = df_m_racb["Calc_Sec"].apply(lambda x: format_final_chrono(x))
                 df_racb = df_m_racb[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]]
 
-            # Pour les classements ASAF, on filtre STRICTEMENT en excluant la lettre N
+            # 2 & 3. CLASSEMENTS ASAF : Strictement aucun numéro commençant par N
             df_m_non_n = df_meilleurs[~mask_racb].copy()
 
             if len(df_m_non_n) > 0:
-                # 2. Classement Division 123 (Top 25) : Pas de N et Classe vaut 1, 2 ou 3
-                mask_123 = df_m_non_n["Classe"].isin(["1", "2", "3", 1, 2, 3])
+                # Filtrage ultra-sécurisé sur les caractères textuels "1", "2", "3" de la colonne Classe
+                mask_123 = df_m_non_n["Classe"].astype(str).str.strip().isin(["1", "2", "3"])
                 df_m_asaf123 = df_m_non_n[mask_123].sort_values(by="Calc_Sec").head(25)
+                
                 if len(df_m_asaf123) > 0:
                     df_m_asaf123["Pos"] = range(1, len(df_m_asaf123) + 1)
                     df_m_asaf123["Chrono"] = df_m_asaf123["Calc_Sec"].apply(lambda x: format_final_chrono(x))
                     df_asaf123 = df_m_asaf123[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]]
 
-                # 3. Classement Division 4 : Pas de N et Classe vaut 4
-                mask_4 = df_m_non_n["Classe"].isin(["4", 4])
+                    # Filtrage ultra-sécurisé sur le caractère textuel "4" de la colonne Classe
+                mask_4 = df_m_non_n["Classe"].astype(str).str.strip().isin(["4"])
                 df_m_asaf4 = df_m_non_n[mask_4].sort_values(by="Calc_Sec")
                 if len(df_m_asaf4) > 0:
                     df_m_asaf4["Pos"] = range(1, len(df_m_asaf4) + 1)
