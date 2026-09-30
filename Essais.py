@@ -4,14 +4,14 @@ import datetime
 import requests
 import io
 
-# --- CONFIGURATION INTERNET COMMERCIALE DROPBOX BRUTE ---
+# --- LIENS DROPBOX DIRECTS DE VOS FICHIERS EXCEL ---
 HOTE = "://dropboxusercontent.com"
 FILE_ARRIVEE = f"https://{HOTE}/scl/fi/7uu9cmlpzglx0ngvbklpt/LIVE_Temps_ARRIVEE.xlsm?rlkey=g9urz4v3jr36h0apzt45ognm6&dl=1"
 FILE_DEPART  = f"https://{HOTE}/scl/fi/gbkaq01qzjujc8nq3zj28/LIVE_Temps_DEPART.xlsm?rlkey=4x4rvvlfyzz8v59gqbxn80a4d&dl=1"
 FILE_ENGAGES = f"https://{HOTE}/scl/fi/sqrqinksco1am700s27h4/LIVE_Liste_ENGAGES.xlsm?rlkey=8p0n8jyeuiivaa375bh3p608n&dl=1"
 
 def telecharger_excel(url):
-    entetes = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'}
+    entetes = {'User-Agent': 'Mozilla/5.0'}
     reponse = requests.get(url, headers=entetes, timeout=12)
     reponse.raise_for_status()
     return io.BytesIO(reponse.content)
@@ -32,11 +32,7 @@ def convertir_en_secondes(valeur):
     s_clean = "".join([c for c in s if c.isdigit()])
     if not s_clean: return None
     num = int(s_clean)
-    centiemes = num % 100
-    secondes = (num // 100) % 100
-    minutes = num // 10000
-    if minutes >= 60: minutes = minutes % 60
-    return (minutes * 60) + secondes + (centiemes / 100)
+    return (num // 10000 * 60) + ((num // 100) % 100) + ((num % 100) / 100)
 
 def nettoyer_numero(valeur):
     if pd.isna(valeur): return "nan"
@@ -130,4 +126,4 @@ def recuperer_donnees_course():
 
     return df_live, df_hist, df_asaf123, df_asaf4, df_racb
 
-# --- FIN DU SCRIPT ESSAIS.PY ---
+# --- FIN DU SCRIPT ---
