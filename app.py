@@ -13,7 +13,7 @@ button:focus, div:focus, input:focus, select:focus {
     outline: none !important; border-color: transparent !important; box-shadow: none !important;
 }
 
-/* AJOUTÉ : Force la couleur bleu foncé au clic (focus) sur le sélecteur à la place du rouge */
+/* Force la couleur bleu foncé au clic (focus) sur le sélecteur à la place du rouge */
 div[data-baseweb="select"]:focus-within {
     border-color: #1E3A8A !important;
     box-shadow: 0 0 0 2px rgba(30, 58, 138, 0.2) !important;
@@ -33,7 +33,7 @@ div[data-baseweb="select"]:focus-within {
 
 /* Écriture du bouton sélecteur plus grande et en gras */
 div[data-testid="stSelectbox"] div[data-baseweb="select"] {
-    font-size: 1.05rem !important;
+    font-size: 1.15rem !important;
     font-weight: bold !important;
 }
 
@@ -86,7 +86,7 @@ def gen_html(df, cl):
     return df.to_html(index=False, classes=f"table-compacte {cl}", escape=False, border=0)
 
 # --- CONFIGURATION SÉLECTEUR AJUSTÉE ---
-col_texte, col_select, col_reste = st.columns([1.3, 1.4, 3.3], vertical_alignment="center")
+col_texte, col_select, col_reste = st.columns([1.3, 1.8, 3.3], vertical_alignment="center")
 with col_texte:
     st.markdown('<p class="texte-menu">Sélectionnez la session à afficher :</p>', unsafe_allow_html=True)
 with col_select:
@@ -98,8 +98,6 @@ st.markdown("<div style='height:25px;'></div>", unsafe_allow_html=True)
 # --- REFRESH ET APPEL DIRECT ---
 @st.fragment(run_every=30)
 def afficher_tableaux():
-    # MODIFIÉ : Suppression complète de st.cache_data.clear() pour éviter le blocage infini du script
-    
     d_liv, d_his, d_as123, d_as4, d_racb, t_racb, t_as123, t_as4 = Essais.recuperer_donnees_course()
     titre_historique = "🕒 HISTORIQUE DES TEMPS / ENTRAINEMENTS ASAF & RACB"
     
