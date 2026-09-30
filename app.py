@@ -13,10 +13,21 @@ button:focus, div:focus, input:focus, select:focus {
     outline: none !important; border-color: transparent !important; box-shadow: none !important;
 }
 
-/* --- AJOUTÉ : Force la couleur bleu foncé au clic (focus) sur le sélecteur à la place du rouge --- */
-div[data-baseweb="select"]:focus-within {
+/* --- LOGIQUE MODERNE STREAMLIT : FORCE LE CADRE BLEU FONCÉ AU CLIC --- */
+div[data-baseweb="select"] > div:focus-within,
+div[data-baseweb="select"]:focus-within,
+div[role="combobox"]:focus-within {
     border-color: #1E3A8A !important;
-    box-shadow: 0 0 0 2px rgba(30, 58, 138, 0.2) !important;
+    box-shadow: 0 0 0 2px rgba(30, 58, 138, 0.3) !important;
+}
+
+/* --- LOGIQUE MODERNE STREAMLIT : FORCE LE BOUTON EN GRAND ET EN GRAS --- */
+div[data-testid="stSelectbox"] div[data-baseweb="select"] *, 
+div[data-testid="stSelectbox"] [data-testid="stMarkdownContainer"] p,
+div[data-baseweb="select"] span {
+    font-size: 1.15rem !important;
+    font-weight: 800 !important; /* Force un gras très épais et visible */
+    color: #000000 !important;
 }
 
 /* Alignement du texte à gauche avec une marge supérieure propre */
@@ -29,12 +40,6 @@ div[data-baseweb="select"]:focus-within {
     margin-bottom: 0px !important;
     white-space: nowrap !important;
     padding-right: 5px !important;
-}
-
-/* --- MODIFIÉ : Écriture du bouton sélecteur plus grande (1.15rem) et en gras --- */
-div[data-testid="stSelectbox"] div[data-baseweb="select"] {
-    font-size: 1.15rem !important;
-    font-weight: bold !important;
 }
 
 .titre-live, .titre-hist, .titre-classement {
