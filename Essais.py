@@ -133,7 +133,7 @@ def recuperer_donnees_course():
                 scr = valides.sort_values(by="Calc_Sec").drop_duplicates(subset=["N°"], keep="first").copy()
                 scr["Division_Clean"] = scr["Division"].astype(str).str.strip()
                 
-                # --- RACB (Top 15) ---
+                # --- RACB (Top 15 centralisé) ---
                 exclus_asaf = ["1", "2", "3", "4", "1.0", "2.0", "3.0", "4.0"]
                 racb = scr[~scr["Division_Clean"].isin(exclus_asaf)].head(15).copy()
                 if len(racb) > 0: 
@@ -141,44 +141,18 @@ def recuperer_donnees_course():
                     racb["Chrono"] = racb["Calc_Sec"].apply(format_final_chrono)
                     df_racb = racb[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]]
                 
-                # --- ASAF 123 (Top 15) ---
+                # --- ASAF 123 (Top 15 centralisé) ---
                 asaf123 = scr[scr["Division_Clean"].isin(["1", "2", "3", "1.0", "2.0", "3.0"])].head(15).copy()
                 if len(asaf123) > 0: asaf123["Pos"] = range(1, len(asaf123) + 1); asaf123["Chrono"] = asaf123["Calc_Sec"].apply(format_final_chrono); df_asaf123 = asaf123[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]]
                 
-                # --- ASAF 4 (Top 10) ---
+                # --- ASAF 4 (Top 10 centralisé) ---
                 asaf4 = scr[scr["Division_Clean"].isin(["4", "4.0"])].head(10).copy()
                 if len(asaf4) > 0: asaf4["Pos"] = range(1, len(asaf4) + 1); asaf4["Chrono"] = asaf4["Calc_Sec"].apply(format_final_chrono); df_asaf4 = asaf4[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]]
     except Exception: pass
 
-    return df_live, df_hist, df_asaf123, df_asaf4, df_racb
+    # Variables de titres générées directement ici
+    titre_racb = "🏆 CLASSEMENT EVOLUTIF DES ESSAIS RACB (Top 15)"
+    titre_asaf123 = "🏆 CLASSEMENT EVOLUTIF DES ESSAIS Division 123 (Top 15)"
+    titre_asaf4 = "🏆 CLASSEMENT EVOLUTIF DES ESSAIS Division 4 (Top 10)"
 
-# --- PARTIE INTERFACE ET TITRES MAJ ---
-st.title("Chrono Live Essais")
-df_live, df_hist, df_asaf123, df_asaf4, df_racb = recuperer_donnees_course()
-
-if st.button("Rafraîchir les données"):
-    st.rerun()
-
-tab1, tab2, tab3, tab4, tab5 = st.tabs([
-    "Derniers Passages (Live)", 
-    "CLASSEMENT EVOLUTIF DES ESSAIS Division 123 (Top 15)", 
-    "CLASSEMENT EVOLUTIF DES ESSAIS Division 4 (Top 10)",
-    "CLASSEMENT EVOLUTIF DES ESSAIS RACB (Top 15)", 
-    "Historique Complet"
-])
-
-with tab1:
-    st.subheader("Derniers Passages (Live)")
-    st.dataframe(df_live, use_container_width=True)
-with tab2:
-    st.subheader("CLASSEMENT EVOLUTIF DES ESSAIS Division 123 (Top 15)")
-    st.dataframe(df_asaf123, use_container_width=True)
-with tab3:
-    st.subheader("CLASSEMENT EVOLUTIF DES ESSAIS Division 4 (Top 10)")
-    st.dataframe(df_asaf4, use_container_width=True)
-with tab4:
-    st.subheader("CLASSEMENT EVOLUTIF DES ESSAIS RACB (Top 15)")
-    st.dataframe(df_racb, use_container_width=True)
-with tab5:
-    st.subheader("Historique Complet des Saisies")
-    st.dataframe(df_hist, use_container_width=True)
+    return df_live, df_hist, df_asaf123, df_asaf4, df_racb, titre_racb, titre_asaf123, titre_asaf4
