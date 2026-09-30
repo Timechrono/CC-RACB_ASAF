@@ -10,18 +10,23 @@ st.markdown("""
 <style>
 [data-testid="stHeader"] { display: none !important; }
 
-/* Modifié : Le cadre au clic (focus) passe du rouge au bleu foncé (#1E3A8A) */
-button:focus, div:focus, input:focus, select:focus {
+/* --- SUPPRESSION TOTALE DU CADRE ROUGE STREAMLIT ET REMPLACEMENT PAR BLEU FONCÉ --- */
+button:focus, div:focus, input:focus, select:focus, [data-baseweb="select"]:focus-within {
     outline: none !important; 
     border-color: #1E3A8A !important; 
     box-shadow: 0 0 0 2px rgba(30, 58, 138, 0.2) !important;
 }
-div[data-baseweb="select"] {
+/* Annulation de la couleur rouge native de Streamlit au clic */
+div[data-baseweb="select"] > div {
     border-color: #CCCCCC !important;
 }
-div[data-baseweb="select"]:focus-within {
+div[data-baseweb="select"] > div:focus-within, 
+div[data-baseweb="select"] > div:hover {
     border-color: #1E3A8A !important;
-    box-shadow: 0 0 0 2px rgba(30, 58, 138, 0.2) !important;
+}
+/* Ciblage de la liste déroulante quand elle s'ouvre */
+ul[role="listbox"] {
+    border: 1px solid #1E3A8A !important;
 }
 
 /* Alignement du texte à gauche avec une marge supérieure propre */
@@ -36,62 +41,24 @@ div[data-baseweb="select"]:focus-within {
     padding-right: 5px !important;
 }
 
-/* Style pour le texte du chronomètre de décompte */
+/* Modifié : Le chronomètre remonte un peu plus haut (margin-top passe à -20px) */
 .texte-chrono {
     font-size: 0.95rem !important;
     font-weight: bold !important;
     color: #475569 !important;
-    margin-top: -12px !important;
+    margin-top: -20px !important;
     white-space: nowrap !important;
 }
 
-/* Modifié : Écriture du bouton sélecteur PLUS GRANDE (1.1rem) et EN GRAS */
-div[data-testid="stSelectbox"] div[data-baseweb="select"] {
-    font-size: 1.1rem !important;
-    font-weight: bold !important;
+/* --- FORCE LA TAILLE ET LE GRAS À L'INTÉRIEUR DU BOUTON SÉLECTEUR --- */
+div[data-testid="stSelectbox"] p, 
+div[data-testid="stSelectbox"] div,
+div[data-baseweb="select"] [data-testid="stMarkdownContainer"] p,
+div[data-baseweb="select"] span {
+    font-size: 1.15rem !important;
+    font-weight: 800 !important; /* Gras très prononcé */
     color: #000000 !important;
 }
-
-.titre-live, .titre-hist, .titre-classement {
-    color: #FFFFFF !important; font-size: 1.05rem !important; font-weight: bold !important;
-    padding: 4px 8px !important; border-radius: 3px !important; margin-bottom: 6px !important;
-    width: 100% !important; display: block !important; clear: both !important;
-}
-.titre-live { background-color: #15803D !important; }
-.titre-hist { background-color: #475569 !important; }
-.titre-classement { background-color: #1E3A8A !important; }
-
-.table-compacte {
-    width: 100% !important; margin-bottom: 0px !important;
-    border-collapse: collapse !important; table-layout: fixed !important;
-}
-.table-compacte tr { height: 18px !important; }
-.table-compacte th, .table-compacte td { 
-    height: 18px !important; padding: 1px 5px !important; line-height: 1.1 !important; 
-    font-size: 0.85rem !important; color: #000000 !important; vertical-align: middle !important; 
-    overflow: hidden !important; text-overflow: ellipsis !important; white-space: nowrap !important; 
-}
-.table-compacte td { border-bottom: 1px solid #E0E0E0 !important; background-color: #FFFFFF !important; }
-.table-compacte th { font-weight: bold !important; background-color: #F5F5F5 !important; border-bottom: 2px solid #CCCCCC !important; text-align: left !important; }
-.table-live td:last-child, .table-hist td:last-child, .table-class-robuste td:last-child { font-weight: bold !important; font-size: 0.94rem !important; color: #0F172A !important; }
-.table-hist tr:nth-child(odd) td { background-color: #E0F2FE !important; }
-
-.table-live th:nth-child(1), .table-live td:nth-child(1) { width: 8% !important; }
-.table-live th:nth-child(2), .table-live td:nth-child(2) { width: 26% !important; }
-.table-live th:nth-child(3), .table-live td:nth-child(3) { width: 18% !important; }
-.table-live th:nth-child(4), .table-live td:nth-child(4) { width: 13% !important; }
-.table-live th:nth-child(5), .table-live td:nth-child(5) { width: 13% !important; }
-.table-live th:nth-child(6), .table-live td:nth-child(6) { width: 22% !important; }
-
-.table-class-robuste th:nth-child(1), .table-class-robuste td:nth-child(1) { width: 9% !important; }
-.table-class-robuste th:nth-child(2), .table-class-robuste td:nth-child(2) { width: 11% !important; }
-.table-class-robuste th:nth-child(3), .table-class-robuste td:nth-child(3) { width: 33% !important; }
-.table-class-robuste th:nth-child(4), .table-class-robuste td:nth-child(4) { width: 23% !important; }
-.table-class-robuste th:nth-child(5), .table-class-robuste td:nth-child(5) { width: 6% !important; }
-.table-class-robuste th:nth-child(6), .table-class-robuste td:nth-child(6) { width: 18% !important; text-align: right !important; }
-
-.block-container { padding-top: 0.4rem !important; padding-bottom: 0rem !important; }
-div[data-testid="stVerticalBlock"] { gap: 0rem !important; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -101,7 +68,6 @@ def gen_html(df, cl):
     return df.to_html(index=False, classes=f"table-compacte {cl}", escape=False, border=0)
 
 # --- CONFIGURATION SÉLECTEUR ET CHRONO ---
-# Colonne select élargie de 1.4 à 1.6. Ajout d'une colonne de 1.5 pour accueillir le chrono visuel.
 col_texte, col_select, col_chrono, col_reste = st.columns([1.3, 1.6, 1.5, 1.8], vertical_alignment="center")
 
 with col_texte:
@@ -111,18 +77,15 @@ with col_select:
     choix_course = st.selectbox("Session_Label", ["Essais / Entraînements"], label_visibility="collapsed")
 
 with col_chrono:
-    # Zone d'affichage dynamique réservée pour le compte à rebours
     emplacement_chrono = st.empty()
 
-# Marge sous la zone supérieure
 st.markdown("<div style='height:25px;'></div>", unsafe_allow_html=True)
 
-# --- ZONE PRINCIPALE D'AFFICHAGE (ST.FRAGMENT CORRIGÉ POUR LE CHRONO SECONDE PAR SECONDE) ---
+# --- ZONE PRINCIPALE D'AFFICHAGE ---
 @st.fragment
 def afficher_tableaux_avec_decompte():
     st.cache_data.clear()
     
-    # 1. Récupération et affichage immédiat des classements de course
     d_liv, d_his, d_as123, d_as4, d_racb, t_racb, t_as123, t_as4 = Essais.recuperer_donnees_course()
     titre_historique = "🕒 HISTORIQUE DES TEMPS / ENTRAINEMENTS ASAF & RACB"
     
@@ -147,12 +110,10 @@ def afficher_tableaux_avec_decompte():
         st.markdown(f"<span class='titre-classement'>{t_as4}</span>", unsafe_allow_html=True)
         st.markdown(gen_html(d_as4, "table-class-robuste"), unsafe_allow_html=True)
 
-    # 2. Boucle de décompte visuel de 30 à 0 secondes (s'exécute en tâche de fond)
     for secondes_restantes in range(30, 0, -1):
         emplacement_chrono.markdown(f'<p class="texte-chrono">🔄 Rafraîchissement dans {secondes_restantes}s</p>', unsafe_allow_html=True)
         time.sleep(1)
     
-    # 3. Arrivé à 0, on force la relance du fragment pour re-télécharger les Excel
     st.rerun()
 
 afficher_tableaux_avec_decompte()
