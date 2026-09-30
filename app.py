@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 import time
 
-# --- NAVETTES INTERNES ENTRE SESSIONS ---
+# --- NAVETTES SÉCURISÉES SANS CHARGEMENT SAUVAGE ---
 try:
     import Essais
 except Exception: pass
@@ -18,7 +18,7 @@ except Exception: pass
 
 st.set_page_config(layout="wide")
 st.cache_data.clear()
-# --- DESIGN COMPACT DU SÉLECTEUR SANS PARASITE ---
+# --- DESIGN COMPACT ET FIXE DU SÉLECTEUR ---
 st.markdown("""
     <style>
     [data-testid="stHeader"] { display: none !important; }
@@ -43,14 +43,16 @@ with col_select:
 
 st.markdown("<div style='height:12px;'></div>", unsafe_allow_html=True)
 
-# --- LOGIQUE D'AIGUILLAGE CENTRALE : LE CONTROLE REPASSE AUX FICHIERS ---
-if choix_course == "Course 1 ASAF":
-    try: Course_1_ASAF.afficher_ecran_complet()
-    except Exception: st.error("Fichier Course 1 ASAF en cours de configuration")
-elif choix_course == "Course 1 RACB":
-    pass
-elif choix_course == "Course 2 ASAF":
-    pass
-else:
-    # Les Essais reprennent le contrôle total de leur affichage et de leurs données
-    Essais.afficher_ecran_complet()
+# --- BOÎTE D'AIGUILLAGE ÉTANCHE ---
+# On utilise un conteneur principal Streamlit pour forcer l'affichage propre
+with st.container():
+    if choix_course == "Course 1 ASAF":
+        try: Course_1_ASAF.afficher_ecran_complet()
+        except Exception: st.error("Fichier Course 1 ASAF en cours de configuration")
+    elif choix_course == "Course 1 RACB":
+        pass
+    elif choix_course == "Course 2 ASAF":
+        pass
+    else:
+        # Appel de vos Essais autonomes d'origine
+        Essais.afficher_ecran_complet()
