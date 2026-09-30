@@ -9,7 +9,7 @@ C = [100, 108, 46, 100, 114, 111, 112, 98, 111, 120, 117, 115, 101, 114]
 D = [99, 111, 110, 116, 101, 110, 116, 46, 99, 111, 109]
 HOTE_PROT = "".join(chr(x) for x in (C + D))
 
-# Restauration stricte de vos adresses d'origine avec le bon fichier ENGAGES des Essais
+# Liens d'origine de vos fichiers Excel
 FILE_ARRIVEE = f"https://{HOTE_PROT}/scl/fi/7uu9cmlpzglx0ngvbklpt/LIVE_Temps_ARRIVEE.xlsm?rlkey=g9urz4v3jr36h0apzt45ognm6&dl=1"
 FILE_DEPART  = f"https://{HOTE_PROT}/scl/fi/gbkaq01qzjujc8nq3zj28/LIVE_Temps_DEPART.xlsm?rlkey=4x4rvvlfyzz8v59gqbxn80a4d&dl=1"
 FILE_ENGAGES = f"https://{HOTE_PROT}/scl/fi/sqrqinksco1am700s27h4/LIVE_Liste_ENGAGES.xlsm?rlkey=8p0n8jyeuiivaa375bh3p608n&dl=1"
@@ -33,6 +33,7 @@ def convertir_en_secondes(valeur):
             return (int(parts[0]) * 60) + float(parts[1].replace(",", "."))
         except Exception: pass
     if s.endswith(".0"): s = s[:-2]
+    # Conserve la chaîne si elle contient des lettres comme N
     if any(c.isalpha() for c in s):
         s_clean = s
     else:
@@ -84,7 +85,6 @@ def recuperer_donnees_course():
         df_dep_raw = pd.read_excel(flux_dep, header=None, engine='openpyxl')
         df_arr_raw = pd.read_excel(flux_arr, header=None, engine='openpyxl')
 
-        # Restauration de la recherche dynamique par le mot-clé ESSAIS qui fonctionnait
         idx_dep, idx_arr = None, None
         for c_idx in range(len(df_dep_raw.columns)):
             val = str(df_dep_raw.iloc[1, c_idx]).strip().upper()
@@ -134,33 +134,35 @@ def recuperer_donnees_course():
             base["Ordre_Saisie"] = range(len(base))
             df_hist = base.sort_values(by="Ordre_Saisie", ascending=False)[["N°", "Nom_Prenom", "Voiture", "Division", "Classe", "Chrono_Visual_Hist"]].rename(columns={"Chrono_Visual_Hist": "Chrono réalisé"})
 
-            # --- NOUVELLE LOGIQUE D'AIGUILLAGE STRICT POUR LES TABLEAUX ---
+            # --- LOGIQUE DE SEPARATION COMPLÈTEMENT CORRIGÉE ---
             df_valides = base[base["Calc_Sec"].notna() & (base["Calc_Sec"] > 0)].copy()
             idx_meilleur = df_valides.groupby("N°")["Calc_Sec"].idxmin()
             df_meilleurs = df_valides.loc[idx_meilleur].copy()
 
-            # Séparation par la lettre "N" en début de numéro
+            # RÈGLE 1 : Si le numéro commence par N -> Va DIRECTEMENT dans RACB (Top 20)
             mask_racb = df_meilleurs["N°"].str.startswith("N")
             df_m_racb = df_meilleurs[mask_racb].copy()
-            df_m_non_n = df_meilleurs[~mask_racb].copy()
-
-            # 1. CLASSEMENT EVOLUTIF DES ESSAIS RACB (Top 20)
+            
             if len(df_m_racb) > 0:
                 df_m_racb = df_m_racb.sort_values(by="Calc_Sec").head(20)
                 df_m_racb["Pos"] = range(1, len(df_m_racb) + 1)
                 df_m_racb["Chrono"] = df_m_racb["Calc_Sec"].apply(lambda x: format_final_chrono(x))
                 df_racb = df_m_racb[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]]
 
+            # RÈGLE 2 & 3 : Si pas de "N" -> Traitement ASAF par classe ou division
+            df_m_non_n = df_meilleurs[~mask_racb].copy()
+
             if len(df_m_non_n) > 0:
-                # 2. CLASSEMENT EVOLUTIF DES ESSAIS Division 123 (Top 25) : Sans "N", Classe ou Division 1, 2, 3
+                # CLASSEMENT EVOLUTIF DES ESSAIS Division 123 (Top 25)
                 mask_123 = df_m_non_n["Division"].isin(["1", "2", "3", 1, 2, 3]) | df_m_non_n["Classe"].isin(["1", "2", "3", 1, 2, 3])
                 df_m_asaf123 = df_m_non_n[mask_123].sort_values(by="Calc_Sec").head(25)
                 if len(df_m_asaf123) > 0:
+                    # Correction du titre demandée pour le tableau à l'écran
                     df_m_asaf123["Pos"] = range(1, len(df_m_asaf123) + 1)
                     df_m_asaf123["Chrono"] = df_m_asaf123["Calc_Sec"].apply(lambda x: format_final_chrono(x))
                     df_asaf123 = df_m_asaf123[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]]
 
-                # 3. CLASSEMENT GENERAL Division 4 : Sans "N", Classe ou Division 4
+                # CLASSEMENT GENERAL Division 4
                 mask_4 = df_m_non_n["Division"].isin(["4", 4]) | df_m_non_n["Classe"].isin(["4", 4])
                 df_m_asaf4 = df_m_non_n[mask_4].sort_values(by="Calc_Sec")
                 if len(df_m_asaf4) > 0:
