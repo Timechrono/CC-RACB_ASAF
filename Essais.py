@@ -11,7 +11,6 @@ FILE_DEPART  = f"https://{HOTE}/scl/fi/gbkaq01qzjujc8nq3zj28/LIVE_Temps_DEPART.x
 FILE_ENGAGES = f"https://{HOTE}/scl/fi/sqrqinksco1am700s27h4/LIVE_Liste_ENGAGES.xlsm?rlkey=8p0n8jyeuiivaa375bh3p608n&dl=1"
 
 def telecharger_excel(url):
-    # RESTAURATION DE L'ENTÊTE NAVIGATEUR COMPLET FORCE POUR CONTOURNER LE BLOCAGE DROPBOX
     entetes = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'}
     reponse = requests.get(url, headers=entetes, timeout=12)
     reponse.raise_for_status()
@@ -33,7 +32,11 @@ def convertir_en_secondes(valeur):
     s_clean = "".join([c for c in s if c.isdigit()])
     if not s_clean: return None
     num = int(s_clean)
-    return (num // 10000 * 60) + ((num // 100) % 100) + ((num % 100) / 100)
+    centiemes = num % 100
+    secondes = (num // 100) % 100
+    minutes = num // 10000
+    if minutes >= 60: minutes = minutes % 60
+    return (minutes * 60) + secondes + (centiemes / 100)
 
 def nettoyer_numero(valeur):
     if pd.isna(valeur): return "nan"
@@ -71,17 +74,25 @@ def recuperer_donnees_course():
         df_dep_raw = pd.read_excel(flux_dep, header=None, engine='openpyxl')
         df_arr_raw = pd.read_excel(flux_arr, header=None, engine='openpyxl')
 
-        idx_dep, idx_arr = None, None
-        for c_idx in range(len(df_dep_raw.columns)):
-            if "ESSAIS" in str(df_dep_raw.iloc[1, c_idx]).strip().upper(): idx_dep = c_idx
-        for c_idx in range(len(df_arr_raw.columns)):
-            if "ESSAIS" in str(df_arr_raw.iloc[1, c_idx]).strip().upper(): idx_arr = c_idx
-
-        df_dep = pd.DataFrame({"N°": df_dep_raw.iloc[2:, idx_dep].apply(nettoyer_numero), "Heure_Depart": df_dep_raw.iloc[2:, idx_dep + 1]}) if idx_dep is not None else pd.DataFrame(columns=["N°", "Heure_Depart"])
-        df_arr = pd.DataFrame({"N°": df_arr_raw.iloc[2:, idx_arr].apply(nettoyer_numero), "Heure_Arrivee": df_arr_raw.iloc[2:, idx_arr + 2], "Chrono_Excel": df_arr_raw.iloc[2:, idx_arr + 3]}) if idx_arr is not None else pd.DataFrame(columns=["N°", "Heure_Arrivee", "Chrono_Excel"])
+        # LECTURE ROBUSTE PAR INDEX FIXE (COLONNES 0 ET 1 DU PREMIER BLOC ESSAIS)
+        # Évite le piège du nom d'onglet manquant ou mal orthographié
+        df_dep = pd.DataFrame({
+            "N°": df_dep_raw.iloc[2:, 0].apply(nettoyer_numero), 
+            "Heure_Depart": df_dep_raw.iloc[2:, 1]
+        })
+        df_arr = pd.DataFrame({
+            "N°": df_arr_raw.iloc[2:, 0].apply(nettoyer_numero), 
+            "Heure_Arrivee": df_arr_raw.iloc[2:, 2], 
+            "Chrono_Excel": df_arr_raw.iloc[2:, 3]
+        })
 
         df_eng_raw.columns = df_eng_raw.columns.astype(str).str.strip().str.upper()
-        df_eng = pd.DataFrame({"N°": df_eng_raw.iloc[:, 0].apply(nettoyer_numero), "Nom_Prenom": df_eng_raw.iloc[:, 1].fillna("Pilote Inconnu").astype(str).str.strip(), "Voiture": df_eng_raw.iloc[:, 4].fillna("").astype(str).str.strip(), "Division": df_eng_raw.iloc[:, 5].apply(lambda x: "-" if pd.isna(x) else str(x).strip()[:-2] if str(x).strip().endswith(".0") else str(x).strip()), "Classe": df_eng_raw.iloc[:, 6].fillna("-").astype(str).str.strip().apply(lambda x: x[:-2] if x.endswith(".0") else x)})
+        df_eng = pd.DataFrame({"N°": df_eng_raw.iloc[:, 0].apply(nettoyer_numero), 
+                               "Nom_Prenom": df_eng_raw.iloc[:, 1].fillna("Pilote Inconnu").astype(str).str.strip(),
+                               "Voiture": df_eng_raw.iloc[:, 4].fillna("").astype(str).str.strip(),
+                               "Division": df_eng_raw.iloc[:, 5].apply(lambda x: "-" if pd.isna(x) else str(x).strip()[:-2] if str(x).strip().endswith(".0") else str(x).strip()),
+                               "Classe": df_eng_raw.iloc[:, 6].fillna("-").astype(str).str.strip().apply(lambda x: x[:-2] if x.endswith(".0") else x)})
+
         df_eng = df_eng[df_eng["N°"] != "NAN"].drop_duplicates(subset=["N°"])
         df_dep = df_dep[(df_dep["N°"] != "NAN") & (df_dep["N°"] != "")]
 
