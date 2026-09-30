@@ -12,7 +12,6 @@ except Exception: pass
 
 st.set_page_config(page_title="Live", layout="wide")
 
-# --- STYLE CSS RESTAURÉ AVEC VOS LARGEURS COMPACTES ET SÉCURISÉES ---
 st.markdown("""
 <style>
 [data-testid="stHeader"] { display: none !important; }
@@ -56,20 +55,17 @@ div[data-testid="stFragment"] {
 .badge-piste { background-color: #FEE2E2 !important; color: #DC2626 !important; padding: 1px 4px !important; border-radius: 3px !important; font-weight: bold; }
 .table-hist tr:nth-child(odd) td { background-color: #E0F2FE !important; }
 
-/* REGLAGE DE VOS COLONNES EN DIRECT ET CLASSEMENTS DE DROITE D'ORIGINE */
-.table-live th:nth-child(1), .table-live td:nth-child(1) { width: 8% !important; }
-.table-live th:nth-child(2), .table-live td:nth-child(2) { width: 26% !important; }
-.table-live th:nth-child(3), .table-live td:nth-child(3) { width: 18% !important; }
-.table-live th:nth-child(4), .table-live td:nth-child(4) { width: 13% !important; }
-.table-live th:nth-child(5), .table-live td:nth-child(5) { width: 13% !important; }
-.table-live th:nth-child(6), .table-live td:nth-child(6) { width: 22% !important; }
+/* RETOUR DU SÉPARATEUR DE CLASSE DE 2PX */
+.ligne-separation-classe td {
+    border-bottom: 2px solid #1E3A8A !important;
+}
 
-.table-class-robuste th:nth-child(1), .table-class-robuste td:nth-child(1) { width: 9% !important; }
-.table-class-robuste th:nth-child(2), .table-class-robuste td:nth-child(2) { width: 11% !important; }
-.table-class-robuste th:nth-child(3), .table-class-robuste td:nth-child(3) { width: 33% !important; }
-.table-class-robuste th:nth-child(4), .table-class-robuste td:nth-child(4) { width: 23% !important; }
-.table-class-robuste th:nth-child(5), .table-class-robuste td:nth-child(5) { width: 6% !important; }
-.table-class-robuste th:nth-child(6), .table-class-robuste td:nth-child(6) { width: 18% !important; text-align: right !important; }
+.table-live th:nth-child(1), .table-live td:nth-child(1) { width: 8% !important; }
+.table-live th:nth-child(2), .table-live td:nth-child(2) { width: 25% !important; }
+.table-live th:nth-child(3), .table-live td:nth-child(3) { width: 17% !important; }
+.table-live th:nth-child(4), .table-live td:nth-child(4) { width: 12% !important; }
+.table-live th:nth-child(5), .table-live td:nth-child(5) { width: 13% !important; }
+.table-live th:nth-child(6), .table-live td:nth-child(6) { width: 25% !important; }
 .block-container { padding-top: 0.4rem !important; padding-bottom: 0rem !important; }
 div[data-testid="stVerticalBlock"] { gap: 0rem !important; }
 </style>
@@ -78,9 +74,24 @@ div[data-testid="stVerticalBlock"] { gap: 0rem !important; }
 def gen_html(df, cl):
     if df.empty:
         return f"<table class='table-compacte {cl}'><tr><td style='text-align: center; padding: 10px;'>Aucune donnée disponible</td></tr></table>"
+    
+    if cl == "table-class-groupes" and "Classe" in df.columns and "Division" in df.columns:
+        html = f"<table class='table-compacte table-class-robuste'><thead><tr>"
+        for col in df.columns: html += f"<th>{col}</th>"
+        html += "</tr></thead><tbody>"
+        for idx in range(len(df)):
+            classe_row = ""
+            if idx < len(df) - 1:
+                if str(df.iloc[idx]["Classe"]) != str(df.iloc[idx + 1]["Classe"]) or str(df.iloc[idx]["Division"]) != str(df.iloc[idx + 1]["Division"]):
+                    classe_row = "class='ligne-separation-classe'"
+            html += f"<tr {classe_row}>"
+            for col in df.columns: html += f"<td>{df.iloc[idx][col]}</td>"
+            html += "</tr>"
+        html += "</tbody></table>"
+        return html
     return df.to_html(index=False, classes=f"table-compacte {cl}", escape=False, border=0)
 
-# --- SÉLECTEUR CENTRAL UNIQUE SUR UNE LIGNE ---
+# --- SÉLECTEUR CENTRAL ---
 col_vide, col_texte, col_select = st.columns([0.6, 1.5, 1.3])
 with col_texte:
     st.markdown('<p class="texte-menu" style="margin-top:28px;">Sélectionnez la session à afficher :</p>', unsafe_allow_html=True)
@@ -89,7 +100,6 @@ with col_select:
 
 st.markdown("<div style='height:12px;'></div>", unsafe_allow_html=True)
 
-# --- BLOC DE FRAGMENT SÉCURISÉ FIXÉ À 30 SECONDES ---
 @st.fragment(run_every=30)
 def afficher_tableaux():
     st.cache_data.clear()
@@ -98,28 +108,23 @@ def afficher_tableaux():
         d_liv, d_his, d_as123, d_as4, d_div = Course_1_ASAF.recuperer_donnees_course()
         d_racb = pd.DataFrame()
         titre_historique = "🕒 HISTORIQUE DES TEMPS / 1er COURSE / Concurrents ASAF"
-        # Application dynamique de vos pourcentages 6 colonnes ASAF
         st.markdown("<style>.table-hist th:nth-child(1), .table-hist td:nth-child(1) { width: 8% !important; } .table-hist th:nth-child(2), .table-hist td:nth-child(2) { width: 30% !important; } .table-hist th:nth-child(3), .table-hist td:nth-child(3) { width: 26% !important; } .table-hist th:nth-child(4), .table-hist td:nth-child(4) { width: 11% !important; } .table-hist th:nth-child(5), .table-hist td:nth-child(5) { width: 8% !important; } .table-hist th:nth-child(6), .table-hist td:nth-child(6) { width: 17% !important; }</style>", unsafe_allow_html=True)
     elif choix_course == "Course 1 RACB":
         d_liv, d_his, d_racb, d_div = Course_1_RACB.recuperer_donnees_course()
         d_as123, d_as4 = pd.DataFrame(), pd.DataFrame()
         titre_historique = "🕒 HISTORIQUE DES TEMPS / 1er COURSE / Concurrents RACB"
-        # Application dynamique de vos pourcentages 6 colonnes RACB
         st.markdown("<style>.table-hist th:nth-child(1), .table-hist td:nth-child(1) { width: 8% !important; } .table-hist th:nth-child(2), .table-hist td:nth-child(2) { width: 30% !important; } .table-hist th:nth-child(3), .table-hist td:nth-child(3) { width: 26% !important; } .table-hist th:nth-child(4), .table-hist td:nth-child(4) { width: 11% !important; } .table-hist th:nth-child(5), .table-hist td:nth-child(5) { width: 8% !important; } .table-hist th:nth-child(6), .table-hist td:nth-child(6) { width: 17% !important; }</style>", unsafe_allow_html=True)
     elif choix_course == "Course 2 ASAF":
         d_liv, d_his, d_as123, d_as4, d_div = Course_2_ASAF.recuperer_donnees_course()
         d_racb = pd.DataFrame()
         titre_historique = "🕒 HISTORIQUE DES TEMPS / 2ème COURSE / Concurrents ASAF"
-        # Application dynamique de vos pourcentages 7 colonnes Course 2 ASAF
         st.markdown("<style>.table-hist th:nth-child(1), .table-hist td:nth-child(1) { width: 7% !important; } .table-hist th:nth-child(2), .table-hist td:nth-child(2) { width: 23% !important; } .table-hist th:nth-child(3), .table-hist td:nth-child(3) { width: 25% !important; } .table-hist th:nth-child(4), .table-hist td:nth-child(4) { width: 10% !important; } .table-hist th:nth-child(5), .table-hist td:nth-child(5) { width: 7% !important; } .table-hist th:nth-child(6), .table-hist td:nth-child(6) { width: 14% !important; } .table-hist th:nth-child(7), .table-hist td:nth-child(7) { width: 14% !important; }</style>", unsafe_allow_html=True)
     else:
         d_liv, d_his, d_as123, d_as4, d_racb = Essais.recuperer_donnees_course()
         d_div = pd.DataFrame()
         titre_historique = "🕒 HISTORIQUE DES TEMPS / ENTRAINEMENTS ASAF & RACB"
-        # Application dynamique de vos pourcentages Essais d'origine
         st.markdown("<style>.table-hist th:nth-child(1), .table-hist td:nth-child(1) { width: 7% !important; } .table-hist th:nth-child(2), .table-hist td:nth-child(2) { width: 23% !important; } .table-hist th:nth-child(3), .table-hist td:nth-child(3) { width: 22% !important; } .table-hist th:nth-child(4), .table-hist td:nth-child(4) { width: 10% !important; } .table-hist th:nth-child(5), .table-hist td:nth-child(5) { width: 10% !important; } .table-hist th:nth-child(6), .table-hist td:nth-child(6) { width: 14% !important; }</style>", unsafe_allow_html=True)
 
-    # RECONDUCTION DE VOS PROPORTIONS D'ÉCRAN D'ORIGINE EXACTES
     cg, cd = st.columns([1.3, 0.9])
     with cg:
         st.markdown("<span class='titre-live'>🏎️ EN DIRECT / Derniers concurrents partis</span>", unsafe_allow_html=True)
@@ -133,7 +138,16 @@ def afficher_tableaux():
             st.markdown(gen_html(d_racb, "table-class-robuste"), unsafe_allow_html=True)
             st.markdown("<div style='height: 30px;'></div>", unsafe_allow_html=True)
             st.markdown("<span class='titre-classement'>📊 CLASSEMENT OFFICIEUX PAR Groupe / Classe (Top 3)</span>", unsafe_allow_html=True)
-            st.markdown(gen_html(d_div, "table-class-robuste"), unsafe_allow_html=True)
+            st.markdown(gen_html(d_div, "table-class-groupes"), unsafe_allow_html=True)
+        elif choix_course in ["Course 1 ASAF", "Course 2 ASAF"]:
+            st.markdown("<span class='titre-classement'>🏆 CLASSEMENT GENERAL Division 123 (Top 25)</span>", unsafe_allow_html=True)
+            st.markdown(gen_html(d_as123, "table-class-robuste"), unsafe_allow_html=True)
+            st.markdown("<div style='height: 55px;'></div>", unsafe_allow_html=True)
+            st.markdown("<span class='titre-classement'>🏆 CLASSEMENT GENERAL Division 4 (Top 10)</span>", unsafe_allow_html=True)
+            st.markdown(gen_html(d_as4, "table-class-robuste"), unsafe_allow_html=True)
+            st.markdown("<div style='height: 55px;'></div>", unsafe_allow_html=True)
+            st.markdown("<span class='titre-classement'>📊 CLASSEMENT PAR Division / Classe (Top 3)</span>", unsafe_allow_html=True)
+            st.markdown(gen_html(d_div, "table-class-groupes"), unsafe_allow_html=True)
         else:
             st.markdown("<span class='titre-classement'>🏆 CLASSEMENT EVOLUTIF DES ESSAIS RACB (Top 20)</span>", unsafe_allow_html=True)
             st.markdown(gen_html(d_racb, "table-class-robuste"), unsafe_allow_html=True)
@@ -143,10 +157,5 @@ def afficher_tableaux():
             st.markdown("<div style='height: 55px;'></div>", unsafe_allow_html=True)
             st.markdown("<span class='titre-classement'>🏆 CLASSEMENT EVOLUTIF DES ESSAIS ASAF DIV 4 (Top 10)</span>", unsafe_allow_html=True)
             st.markdown(gen_html(d_as4, "table-class-robuste"), unsafe_allow_html=True)
-            
-            if choix_course in ["Course 1 ASAF", "Course 2 ASAF"]:
-                st.markdown("<div style='height: 55px;'></div>", unsafe_allow_html=True)
-                st.markdown("<span class='titre-classement'>📊 CLASSEMENT PAR Division / Classe (Top 3)</span>", unsafe_allow_html=True)
-                st.markdown(gen_html(d_div, "table-class-robuste"), unsafe_allow_html=True)
 
 afficher_tableaux()
