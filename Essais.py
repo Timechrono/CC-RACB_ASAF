@@ -1,20 +1,18 @@
+import streamlit as st
 import pandas as pd
 import datetime
 import requests
 import io
-import streamlit as st
 
-# --- DESIGN ULTRA-ROBUSTE CONTRE LE COLLAGE INVALIDE ---
-# Nous retirons le "https://" du texte brut pour empêcher le bug de double protocole (https://://)
-HOTE = "dl.dropboxusercontent.com"
+# --- CONFIGURATION RÉSEAU SECURISEE EXTRACTIVE ---
+HOTE = "://dropboxusercontent.com"
 
-# Reconstruction sécurisée par le code en arrière-plan
-FILE_ENGAGES = f"https://{HOTE}/scl/fi/sqrqinksco1am700s27h4/LIVE_Liste_ENGAGES.xlsm?rlkey=8p0n8jyeuiivaa375bh3p608n&dl=1"
-FILE_ARRIVEE = f"https://{HOTE}/scl/fi/7uu9cmlpzglx0ngvbklpt/LIVE_Temps_ARRIVEE.xlsm?rlkey=g9urz4v3jr36h0apzt45ognm6&dl=1"
-FILE_DEPART  = f"https://{HOTE}/scl/fi/gbkaq01qzjujc8nq3zj28/LIVE_Temps_DEPART.xlsm?rlkey=4x4rvvlfyzz8v59gqbxn80a4d&dl=1"
+# Reconstruction automatique des liens Dropbox d'origine
+FILE_ARRIVEE = f"https://{HOTE}/scl/fi/7uu9cmlpzglx0ngvbklpt/LIVE_Temps_ARRIVEE.xlsm?rlkey=g9urz4v3jr36h0apzt45ognm6&st=0d9mpgfw&dl=1"
+FILE_DEPART  = f"https://{HOTE}/scl/fi/gbkaq01qzjujc8nq3zj28/LIVE_Temps_DEPART.xlsm?rlkey=4x4rvvlfyzz8v59gqbxn80a4d&st=mcibn3xx&dl=1"
+FILE_ENGAGES = f"https://{HOTE}/scl/fi/sqrqinksco1am700s27h4/LIVE_Liste_ENGAGES.xlsm?rlkey=8p0n8jyeuiivaa375bh3p608n&st=b9rzq7xo&dl=1"
 
 def telecharger_excel(url):
-    """Télécharge le fichier en mémoire vive de manière propre et sécurisée"""
     entetes = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'}
     reponse = requests.get(url, headers=entetes, timeout=12)
     reponse.raise_for_status()
@@ -22,9 +20,18 @@ def telecharger_excel(url):
 
 def convertir_en_secondes(valeur):
     if pd.isna(valeur) or valeur is None: return None
+    if isinstance(valeur, pd.Timedelta): return valeur.total_seconds()
     if isinstance(valeur, (datetime.time, datetime.datetime)):
         return (valeur.minute * 60) + valeur.second + (valeur.microsecond / 1000000)
     s = str(valeur).strip()
+    if not s or s.lower() == "nan": return None
+    if ":" in s:
+        try:
+            parts = s.split(":")
+            minutes = int(parts[0])
+            secondes_centièmes = float(parts[1].replace(",", "."))
+            return (minutes * 60) + secondes_centièmes
+        except Exception: pass
     if s.endswith(".0"): s = s[:-2]
     s_clean = "".join([c for c in s if c.isdigit()])
     if not s_clean: return None
@@ -34,14 +41,13 @@ def convertir_en_secondes(valeur):
     minutes = num // 10000
     if minutes >= 60: minutes = minutes % 60
     return (minutes * 60) + secondes + (centiemes / 100)
-
 def nettoyer_numero(valeur):
     if pd.isna(valeur): return "nan"
     s = str(valeur).strip().upper()
     return s[:-2] if s.endswith(".0") else s
 
-def format_final_chrono(total_sec):
-    if total_sec is None or pd.isna(total_sec) or total_sec < 0: return "En Piste"
+def format_final_chrono(total_sec, fallback_statut="No Time"):
+    if total_sec is None or pd.isna(total_sec) or total_sec < 0: return fallback_statut
     m, reste_sec = divmod(round(total_sec, 2), 60)
     s = int(reste_sec // 1)
     c = int(round((reste_sec % 1) * 100))
@@ -57,15 +63,34 @@ def formater_heure_ecran(val):
     return f"{s[0:2]}:{s[2:4]}.{s[4:6]}" if len(s) == 6 else str(val)
 
 def calculer_statut_chrono(row, est_dans_le_live=True):
-    if pd.notna(row["Calc_Sec"]):
+    if "Calc_Sec" in row and pd.notna(row["Calc_Sec"]) and row["Calc_Sec"] > 0:
         return format_final_chrono(row["Calc_Sec"])
-    if pd.notna(row["Heure_Depart"]) and pd.isna(row["Heure_Arrivee"]):
-        return "<span class='badge-piste'>&#128680; En Piste</span>" if est_dans_le_live else "No Time"
-    return "<span class='badge-piste'>&#128680; En Piste</span>" if est_dans_le_live else "En Piste"
+    if "Heure_Depart" in row and pd.notna(row["Heure_Depart"]) and ("Heure_Arrivee" in row and pd.isna(row["Heure_Arrivee"])):
+        return "<span class='vrai-gyrophare'>🚨</span> EN PISTE" if est_dans_le_live else "En Piste"
+    return "No Time"
 
-def recuperer_donnees_course():
+def generer_tableau_html(df, classe_specifique):
+    if df.empty: 
+        return f"<table class='table-compacte {classe_specifique}'><tr><td style='text-align: center; padding: 10px;'>Aucune donnée disponible</td></tr></table>"
+    
+    if classe_specifique == "table-class-groupes" and "Classe" in df.columns and "Division" in df.columns:
+        html = f"<table class='table-compacte table-class-robuste'><thead><tr>"
+        for col in df.columns: html += f"<th>{col}</th>"
+        html += "</tr></thead><tbody>"
+        for idx in range(len(df)):
+            classe_row = ""
+            if idx < len(df) - 1:
+                if str(df.iloc[idx]["Classe"]) != str(df.iloc[idx + 1]["Classe"]) or str(df.iloc[idx]["Division"]) != str(df.iloc[idx + 1]["Division"]):
+                    classe_row = "class='ligne-separation-classe'"
+            html += f"<tr {classe_row}>"
+            for col in df.columns: html += f"<td>{df.iloc[idx][col]}</td>"
+            html += "</tr>"
+        html += "</tbody></table>"
+        return html
+    return df.to_html(index=False, classes=f"table-compacte {classe_specifique}", escape=False, border=0)
+def executer_affichage_essais():
     cols_live = ["N°", "Nom_Prenom", "Voiture", "Départ", "Arrivée", "Chrono réalisé"]
-    cols_hist = ["N°", "Nom_Prenom", "Voiture", "Division", "Classe", "Départ", "Arrivée", "Chrono réalisé"]
+    cols_hist = ["N°", "Nom_Prenom", "Voiture", "Division", "Classe", "Chrono réalisé"]
     
     df_live = pd.DataFrame(columns=cols_live)
     df_hist = pd.DataFrame(columns=cols_hist)
@@ -78,102 +103,108 @@ def recuperer_donnees_course():
         flux_dep = telecharger_excel(FILE_DEPART)
         flux_arr = telecharger_excel(FILE_ARRIVEE)
 
-        df_eng_raw = pd.read_excel(flux_eng, engine='openpyxl')
-        df_dep_raw = pd.read_excel(flux_dep, skiprows=2, engine='openpyxl')
-        df_arr_raw = pd.read_excel(flux_arr, skiprows=2, engine='openpyxl')
+        df_eng_raw = pd.read_excel(flux_eng, skiprows=1, engine='openpyxl')
+        df_dep_raw = pd.read_excel(flux_dep, header=None, engine='openpyxl')
+        df_arr_raw = pd.read_excel(flux_arr, header=None, engine='openpyxl')
+
+        idx_dep_essais, idx_arr_essais = None, None
+        for c_idx in range(len(df_dep_raw.columns)):
+            val = str(df_dep_raw.iloc[1, c_idx]).strip().upper()
+            if "ESSAIS" in val or "ENTRAINEMENT" in val: idx_dep_essais = c_idx
+        for c_idx in range(len(df_arr_raw.columns)):
+            val = str(df_arr_raw.iloc[1, c_idx]).strip().upper()
+            if "ESSAIS" in val or "ENTRAINEMENT" in val: idx_arr_essais = c_idx
+
+        df_dep = pd.DataFrame({"N°": df_dep_raw.iloc[2:, idx_dep_essais].apply(nettoyer_numero), "Heure_Depart": df_dep_raw.iloc[2:, idx_dep_essais + 1]}) if idx_dep_essais is not None else pd.DataFrame(columns=["N°", "Heure_Depart"])
+        df_arr = pd.DataFrame({"N°": df_arr_raw.iloc[2:, idx_arr_essais].apply(nettoyer_numero), "Heure_Arrivee": df_arr_raw.iloc[2:, idx_arr_essais + 2], "Chrono_Excel": df_arr_raw.iloc[2:, idx_arr_essais + 3]}) if idx_arr_essais is not None else pd.DataFrame(columns=["N°", "Heure_Arrivee", "Chrono_Excel"])
 
         df_eng_raw.columns = df_eng_raw.columns.astype(str).str.strip().str.upper()
-        df_dep_raw.columns = df_dep_raw.columns.astype(str).str.strip().str.upper()
-        df_arr_raw.columns = df_arr_raw.columns.astype(str).str.strip().str.upper()
-
-        df_eng = pd.DataFrame()
-        df_eng["N°"] = df_eng_raw.iloc[:, 0].apply(nettoyer_numero)
-        df_eng["Nom_Prenom"] = df_eng_raw.iloc[:, 1].fillna("Pilote Inconnu").astype(str).str.strip()
-        df_eng["Voiture"] = df_eng_raw.iloc[:, 4].fillna("").astype(str).str.strip()
-        
-        def ext_div(x):
-            if pd.isna(x): return "-"
-            s = str(x).strip()
-            return s[:-2] if s.endswith(".0") else s
-            
-        df_eng["Division"] = df_eng_raw.iloc[:, 5].apply(ext_div)
-        df_eng["Classe"] = df_eng_raw.iloc[:, 6].fillna("-").astype(str).str.strip().apply(lambda x: x[:-2] if x.endswith(".0") else x)
-
-        df_dep = df_dep_raw.iloc[:, 0:2].copy()
-        df_dep.columns = ["N°", "Heure_Depart"]
-        df_dep["N°"] = df_dep["N°"].apply(nettoyer_numero)
-
-        df_arr = df_arr_raw.iloc[:, 0:3].copy()
-        df_arr.columns = ["N°", "Poubelle", "Heure_Arrivee"]
-        df_arr["N°"] = df_arr["N°"].apply(nettoyer_numero)
+        df_eng = pd.DataFrame({"N°": df_eng_raw.iloc[:, 0].apply(nettoyer_numero), 
+                               "Nom_Prenom": df_eng_raw.iloc[:, 1].fillna("Pilote Inconnu").astype(str).str.strip(),
+                               "Voiture": df_eng_raw.iloc[:, 4].fillna("").astype(str).str.strip(),
+                               "Division": df_eng_raw.iloc[:, 5].apply(lambda x: "-" if pd.isna(x) else str(x).strip()[:-2] if str(x).strip().endswith(".0") else str(x).strip()),
+                               "Classe": df_eng_raw.iloc[:, 6].fillna("-").astype(str).str.strip().apply(lambda x: x[:-2] if x.endswith(".0") else x)})
 
         df_eng = df_eng[df_eng["N°"] != "NAN"].drop_duplicates(subset=["N°"])
-        df_dep = df_dep[df_dep["N°"] != "NAN"].copy()
-        df_arr = df_arr[df_arr["N°"] != "NAN"].copy()
+        df_dep = df_dep[(df_dep["N°"] != "NAN") & (df_dep["N°"] != "")]
 
-        if len(df_dep) > 0:
-            df_dep["Ordre_Saisie"] = range(len(df_dep))
-            df_dep["Run_Index"] = df_dep.groupby("N°").cumcount() + 1
-            df_arr["Run_Index"] = df_arr.groupby("N°").cumcount() + 1
+        for d in [df_dep, df_arr]:
+            if len(d) > 0:
+                d["N°"] = d["N°"].astype(str)
+                d["Run_Index"] = d.groupby("N°").cumcount() + 1
 
-            df_dep["Sec_Dep"] = df_dep["Heure_Depart"].apply(convertir_en_secondes)
-            df_arr["Sec_Arr"] = df_arr["Heure_Arrivee"].apply(convertir_en_secondes)
+        if len(df_dep) > 0: df_dep["Sec_Dep"] = df_dep["Heure_Depart"].apply(convertir_en_secondes)
+        if len(df_arr) > 0: df_arr["Sec_Arr"] = df_arr["Heure_Arrivee"].apply(convertir_en_secondes)
+        if len(df_arr) > 0: df_arr["Sec_Excel"] = df_arr["Chrono_Excel"].apply(convertir_en_secondes)
 
-            fusion = pd.merge(df_dep, df_arr, on=["N°", "Run_Index"], how="left")
-            base = pd.merge(fusion, df_eng, on="N°", how="left")
+        base_runs = pd.DataFrame(columns=["N°", "Run_Index"])
+        if len(df_dep) > 0: base_runs = pd.concat([base_runs, df_dep[["N°", "Run_Index"]]], ignore_index=True)
+        if len(base_runs) == 0:
+            base_runs = df_eng[["N°"]].copy(); base_runs["Run_Index"] = 1
+        else:
+            base_runs = base_runs.drop_duplicates(subset=["N°", "Run_Index"])
 
-            base["Nom_Prenom"] = base["Nom_Prenom"].fillna("Pilote Inconnu")
-            base["Voiture"] = base["Voiture"].fillna("")
-            base["Division"] = base["Division"].fillna("-")
-            base["Classe"] = base["Classe"].fillna("-")
+        base = pd.merge(base_runs, df_eng, on="N°", how="inner")
+        if len(df_dep) > 0: base = pd.merge(base, df_dep, on=["N°", "Run_Index"], how="left")
+        if len(df_arr) > 0: base = pd.merge(base, df_arr, on=["N°", "Run_Index"], how="left")
+        
+        if len(base) > 0:
+            base["Calc_Sec"] = base["Sec_Excel"].fillna((base["Sec_Arr"] - base["Sec_Dep"]).apply(lambda x: x + 3600 if (x is not None and x < 0) else x))
+            base["Départ_C1"] = base["Heure_Depart"].apply(formater_heure_ecran)
 
-            if len(base) > 0:
-                base["Calc_Sec"] = base["Sec_Arr"] - base["Sec_Dep"]
-                base["Calc_Sec"] = base["Calc_Sec"].apply(lambda x: x + 3600 if (x is not None and x < 0) else x)
-                base["Départ"] = base["Heure_Depart"].apply(formater_heure_ecran)
-                base["Arrivée"] = base["Heure_Arrivee"].apply(formater_heure_ecran)
-                
-                base_triee = base.sort_values(by="Ordre_Saisie", ascending=False).copy()
-                
-                # 1. En Direct
-                df_live_base = base_triee.head(5).copy()
+            if "Heure_Depart" in base.columns and base["Heure_Depart"].notna().any():
+                base_c1 = base[base["Heure_Depart"].notna()].copy()
+                base_c1["Ordre_Live"] = range(len(base_c1))
+                df_live_base = base_c1.sort_values(by="Ordre_Live", ascending=False).head(5).copy()
                 df_live_base["Chrono réalisé"] = df_live_base.apply(lambda r: calculer_statut_chrono(r, est_dans_le_live=True), axis=1)
-                df_live = df_live_base[["N°", "Nom_Prenom", "Voiture", "Départ", "Arrivée", "Chrono réalisé"]]
+                df_live_base["Arrivée_Brute"] = df_live_base["Heure_Arrivee"].apply(formater_heure_ecran)
+                df_live = df_live_base[["N°", "Nom_Prenom", "Voiture", "Départ_C1", "Arrivée_Brute", "Chrono réalisé"]].rename(columns={"Départ_C1": "Départ", "Arrivée_Brute": "Arrivée"})
+
+            base["Chrono_Visual_Hist"] = base.apply(lambda r: "En Piste" if pd.notna(r["Heure_Depart"]) and pd.isna(r["Heure_Arrivee"]) and pd.isna(r["Sec_Excel"]) else format_final_chrono(r["Calc_Sec"]) if pd.notna(r["Calc_Sec"]) and r["Calc_Sec"] > 0 else "No Time", axis=1)
+            base["Ordre_Saisie"] = range(len(base))
+            df_hist = base.sort_values(by="Ordre_Saisie", ascending=False)[["N°", "Nom_Prenom", "Voiture", "Division", "Classe", "Chrono_Visual_Hist"]].rename(columns={"Chrono_Visual_Hist": "Chrono réalisé"})
+
+            valides = base[base["Calc_Sec"].notna() & (base["Calc_Sec"] > 0)].copy()
+            if len(valides) > 0:
+                scr = valides.sort_values(by="Calc_Sec").drop_duplicates(subset=["N°"], keep="first").copy()
+                scr["Division_Clean"] = scr["Division"].astype(str).str.strip()
                 
-                # 2. Historique
-                df_hist_base = base_triee.copy()
-                df_hist_base["Chrono réalisé"] = df_hist_base.apply(lambda r: calculer_statut_chrono(r, est_dans_le_live=False), axis=1)
+                # REPARTITION RIGOUREUSE DES MARQUES LOCALES
+                racb = scr[scr["Division_Clean"].str.upper() == "RACB"].head(20).copy()
+                if len(racb) > 0:
+                    racb["Pos"] = range(1, len(racb) + 1)
+                    racb["Chrono"] = racb["Calc_Sec"].apply(format_final_chrono)
+                    df_racb = racb[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]]
+
+                asaf123 = scr[scr["Division_Clean"].isin(["1", "2", "3", "1.0", "2.0", "3.0"])].head(25).copy()
+                if len(asaf123) > 0:
+                    asaf123["Pos"] = range(1, len(asaf123) + 1)
+                    asaf123["Chrono"] = asaf123["Calc_Sec"].apply(format_final_chrono)
+                    df_asaf123 = asaf123[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]]
                 
-                indices_top5 = df_hist_base.head(5).index
-                for idx in indices_top5:
-                    if pd.isna(df_hist_base.loc[idx, "Heure_Arrivee"]):
-                        df_hist_base.loc[idx, "Chrono réalisé"] = "En Piste"
-                        
-                df_hist = df_hist_base[["N°", "Nom_Prenom", "Voiture", "Division", "Classe", "Départ", "Arrivée", "Chrono réalisé"]]
-                
-                # 3. Classements
-                valides = base[base["Calc_Sec"].notna()].copy()
-                if len(valides) > 0:
-                    scr = valides.sort_values(by="Calc_Sec").drop_duplicates(subset=["N°"], keep="first").copy()
+                asaf4 = scr[scr["Division_Clean"].isin(["4", "4.0"])].head(10).copy()
+                if len(asaf4) > 0:
+                    asaf4["Pos"] = range(1, len(asaf4) + 1)
+                    asaf4["Chrono"] = asaf4["Calc_Sec"].apply(format_final_chrono)
+                    df_asaf4 = asaf4[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]]
+    except Exception: pass
 
-                    racb = scr[scr["N°"].astype(str).str.contains("N", na=False)].head(20).copy()
-                    if len(racb) > 0:
-                        racb["Pos"] = range(1, len(racb) + 1)
-                        racb["Chrono"] = racb["Calc_Sec"].apply(format_final_chrono)
-                        df_racb = racb[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]]
-
-                    asaf123 = scr[scr["Division"].isin(["1", "2", "3"])].head(25).copy()
-                    if len(asaf123) > 0:
-                        asaf123["Pos"] = range(1, len(asaf123) + 1)
-                        asaf123["Chrono"] = asaf123["Calc_Sec"].apply(format_final_chrono)
-                        df_asaf123 = asaf123[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]]
-
-                    asaf4 = scr[scr["Division"] == "4"].head(10).copy()
-                    if len(asaf4) > 0:
-                        asaf4["Pos"] = range(1, len(asaf4) + 1)
-                        asaf4["Chrono"] = asaf4["Calc_Sec"].apply(format_final_chrono)
-                        df_asaf4 = asaf4[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]]
-    except Exception as e:
-        st.error(f"Erreur de synchronisation en direct : {e}")
-
-    return df_live, df_hist, df_racb, df_asaf123, df_asaf4
+    # --- INJECTION STRICTE DE VOS TITRES ET LARGEURS LOCALES MILLIMÉTRÉES ---
+    st.markdown("<style>.table-hist th:nth-child(1), .table-hist td:nth-child(1) { width: 7% !important; } .table-hist th:nth-child(2), .table-hist td:nth-child(2) { width: 23% !important; } .table-hist th:nth-child(3), .table-hist td:nth-child(3) { width: 22% !important; } .table-hist th:nth-child(4), .table-hist td:nth-child(4) { width: 10% !important; } .table-hist th:nth-child(5), .table-hist td:nth-child(5) { width: 10% !important; } .table-hist th:nth-child(6), .table-hist td:nth-child(6) { width: 14% !important; }</style>", unsafe_allow_html=True)
+    
+    cg, cd = st.columns([1.3, 0.9])
+    with cg:
+        st.markdown("<span class='titre-live'>🏎️ EN DIRECT / Derniers concurrents partis</span>", unsafe_allow_html=True)
+        st.markdown(generer_tableau_html(df_live, "table-live"), unsafe_allow_html=True)
+        st.markdown("<div style='height: 35px;'></div>", unsafe_allow_html=True)
+        st.markdown("<span class='titre-hist'>🕒 HISTORIQUE DES TEMPS / ENTRAINEMENTS ASAF & RACB</span>", unsafe_allow_html=True)
+        st.markdown(generer_tableau_html(df_hist, "table-hist"), unsafe_allow_html=True)
+    with cd:
+        st.markdown("<span class='titre-classement'>🏆 CLASSEMENT EVOLUTIF DES ESSAIS RACB (Top 20)</span>", unsafe_allow_html=True)
+        st.markdown(generer_tableau_html(df_racb, "table-class-robuste"), unsafe_allow_html=True)
+        st.markdown("<div style='height: 55px;'></div>", unsafe_allow_html=True)
+        st.markdown("<span class='titre-classement'>🏆 CLASSEMENT EVOLUTIF DES ESSAIS ASAF DIV 1-2-3 (Top 25)</span>", unsafe_allow_html=True)
+        st.markdown(generer_tableau_html(df_asaf123, "table-class-robuste"), unsafe_allow_html=True)
+        st.markdown("<div style='height: 55px;'></div>", unsafe_allow_html=True)
+        st.markdown("<span class='titre-classement'>🏆 CLASSEMENT EVOLUTIF DES ESSAIS ASAF DIV 4 (Top 10)</span>", unsafe_allow_html=True)
+        st.markdown(generer_tableau_html(df_asaf4, "table-class-robuste"), unsafe_allow_html=True)
