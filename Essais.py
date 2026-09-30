@@ -4,12 +4,12 @@ import datetime
 import requests
 import io
 
-# --- ENCODAGE NUMÉRIQUE INTERNE ANTI-CENSURE ---
+# --- ENCODAGE NUMÉRIQUE INTERNE ANTI-CENSURE RESTAURÉ ---
 C = [100, 108, 46, 100, 114, 111, 112, 98, 111, 120, 117, 115, 101, 114]
 D = [99, 111, 110, 116, 101, 110, 116, 46, 99, 111, 109]
 HOTE_PROT = "".join(chr(x) for x in (C + D))
 
-# Liens absolus de vos fichiers Excel
+# Restauration stricte de vos adresses d'origine avec le bon fichier ENGAGES des Essais
 FILE_ARRIVEE = f"https://{HOTE_PROT}/scl/fi/7uu9cmlpzglx0ngvbklpt/LIVE_Temps_ARRIVEE.xlsm?rlkey=g9urz4v3jr36h0apzt45ognm6&dl=1"
 FILE_DEPART  = f"https://{HOTE_PROT}/scl/fi/gbkaq01qzjujc8nq3zj28/LIVE_Temps_DEPART.xlsm?rlkey=4x4rvvlfyzz8v59gqbxn80a4d&dl=1"
 FILE_ENGAGES = f"https://{HOTE_PROT}/scl/fi/sqrqinksco1am700s27h4/LIVE_Liste_ENGAGES.xlsm?rlkey=8p0n8jyeuiivaa375bh3p608n&dl=1"
@@ -19,7 +19,6 @@ def telecharger_excel(url):
     reponse = requests.get(url, headers=entetes, timeout=12)
     reponse.raise_for_status()
     return io.BytesIO(reponse.content)
-
 def convertir_en_secondes(valeur):
     if pd.isna(valeur) or valeur is None: return None
     if isinstance(valeur, pd.Timedelta): return valeur.total_seconds()
@@ -135,12 +134,12 @@ def recuperer_donnees_course():
             base["Ordre_Saisie"] = range(len(base))
             df_hist = base.sort_values(by="Ordre_Saisie", ascending=False)[["N°", "Nom_Prenom", "Voiture", "Division", "Classe", "Chrono_Visual_Hist"]].rename(columns={"Chrono_Visual_Hist": "Chrono réalisé"})
 
-            # --- CORRECTION DE L'AIGUILLAGE STRICT DES CLASSEMENTS ---
+            # --- LOGIQUE D'AIGUILLAGE STRICT DES NUMÉROS ---
             df_valides = base[base["Calc_Sec"].notna() & (base["Calc_Sec"] > 0)].copy()
             idx_meilleur = df_valides.groupby("N°")["Calc_Sec"].idxmin()
             df_meilleurs = df_valides.loc[idx_meilleur].copy()
 
-            # SEPARATION TRÈS STRICTE : Si commence par N -> RACB. Sinon -> ASAF numérique.
+            # Isolation : si commence par N -> RACB. Sinon -> ASAF (uniquement des numéros purs)
             mask_racb = df_meilleurs["N°"].str.startswith("N")
             df_m_racb = df_meilleurs[mask_racb].copy()
             df_m_asaf = df_meilleurs[~mask_racb].copy()
@@ -171,3 +170,26 @@ def recuperer_donnees_course():
         st.error(f"Erreur technique lors de la synchronisation : {e}")
 
     return df_live, df_hist, df_racb, df_asaf123, df_asaf4
+
+# --- STRUCTURE DE L'INTERFACE UTILISATEUR AVEC NOUVEAUX TITRES ---
+st.title("Suivi des Essais en Live")
+df_live, df_hist, df_racb, df_asaf123, df_asaf4 = recuperer_donnees_course()
+
+# Génération des onglets sur votre page Streamlit
+tab1, tab2, tab3 = st.tabs([
+    "CLASSEMENT EVOLUTIF DES ESSAIS Division 123 (Top 25)", 
+    "CLASSEMENT EVOLUTIF DES ESSAIS RACB (Top 20)",
+    "Division 4"
+])
+
+with tab1:
+    st.subheader("CLASSEMENT EVOLUTIF DES ESSAIS Division 123 (Top 25)")
+    st.dataframe(df_asaf123, use_container_width=True)
+
+with tab2:
+    st.subheader("CLASSEMENT EVOLUTIF DES ESSAIS RACB (Top 20)")
+    st.dataframe(df_racb, use_container_width=True)
+
+with tab3:
+    st.subheader("Classement Division 4")
+    st.dataframe(df_asaf4, use_container_width=True)
