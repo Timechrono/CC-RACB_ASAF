@@ -2,7 +2,13 @@ import streamlit as st
 import pandas as pd
 import time
 import Essais
-import Course1  # Importation de ton script Course 1
+
+# Sécurité : On essaie de charger ton script Course1 s'il existe dans le dossier
+try:
+    import Course1
+    course1_disponible = True
+except ModuleNotFoundError:
+    course1_disponible = False
 
 st.set_page_config(page_title="Live", layout="wide")
 
@@ -76,7 +82,7 @@ div[data-testid="stSelectbox"] div[data-baseweb="select"] {
 .table-class-robuste th:nth-child(5), .table-class-robuste td:nth-child(5) { width: 6% !important; }
 .table-class-robuste th:nth-child(6), .table-class-robuste td:nth-child(6) { width: 18% !important; text-align: right !important; }
 
-.block-container { padding-top: 0.4rem !important; padding-bottom: 0rem !important; }
+.skinny-block { padding-top: 0.4rem !important; padding-bottom: 0rem !important; }
 div[data-testid="stVerticalBlock"] { gap: 0rem !important; }
 </style>
 """, unsafe_allow_html=True)
@@ -87,14 +93,15 @@ def gen_html(df, cl):
     return df.to_html(index=False, classes=f"table-compacte {cl}", escape=False, border=0)
 
 # --- CONFIGURATION SÉLECTEUR AJUSTÉE ---
-col_texte, col_select, col_reste = st.columns([1.3, 1.8, 3.3], vertical_alignment="center")
+col_texte, col_select, col_reste = st.columns([1.3, 1.4, 3.3], vertical_alignment="center")
 with col_texte:
     st.markdown('<p class="texte-menu">Sélectionnez la session à afficher :</p>', unsafe_allow_html=True)
 with col_select:
-    # Intégration de l'option Course 1 ASAF dans le menu déroulant
-    choix_course = st.selectbox("Session_Label", ["Essais / Entraînements", "Course 1 ASAF"], label_visibility="collapsed")
+    options_menu = ["Essais / Entraînements"]
+    if course1_disponible:
+        options_menu.append("Course 1 ASAF")
+    choix_course = st.selectbox("Session_Label", options_menu, label_visibility="collapsed")
 
-# Marge sous la zone de sélection
 st.markdown("<div style='height:25px;'></div>", unsafe_allow_html=True)
 
 # --- REFRESH ET APPEL DIRECT ---
@@ -102,15 +109,12 @@ st.markdown("<div style='height:25px;'></div>", unsafe_allow_html=True)
 def afficher_tableaux():
     st.cache_data.clear()
     
-    # Choix dynamique des données selon l'option sélectionnée dans le menu
-    if choix_course == "Course 1 ASAF":
-        # Ton script d'origine Course 1 renvoie 3 tables (df_live, df_hist, df_asaf123, df_asaf4, df_divisions)
+    if course1_disponible and choix_course == "Course 1 ASAF":
         d_liv, d_his, d_as123, d_as4, d_divs = Course1.recuperer_donnees_course()
-        t_racb = "🏆 CLASSEMENT GENERAL Division 123" # Fallback visuel ou titre par défaut si besoin
+        t_racb = "🏆 CLASSEMENT GENERAL Division 123"
         t_as123 = "🏆 CLASSEMENT GENERAL Division 123"
         t_as4 = "🏆 CLASSEMENT GENERAL Division 4"
     else:
-        # Les Essais renvoient 5 tables et 3 titres
         d_liv, d_his, d_as123, d_as4, d_racb, t_racb, t_as123, t_as4 = Essais.recuperer_donnees_course()
         
     titre_historique = "🕒 HISTORIQUE DES TEMPS / ENTRAINEMENTS ASAF & RACB"
@@ -125,8 +129,7 @@ def afficher_tableaux():
         st.markdown(f"<span class='titre-hist'>{titre_historique}</span>", unsafe_allow_html=True)
         st.markdown(gen_html(d_his, "table-hist"), unsafe_allow_html=True)
     with cd:
-        if choix_course == "Course 1 ASAF":
-            # Si c'est la Course 1, on affiche ses classements spécifiques sans toucher à la structure
+        if course1_disponible and choix_course == "Course 1 ASAF":
             st.markdown(f"<span class='titre-classement'>{t_as123}</span>", unsafe_allow_html=True)
             st.markdown(gen_html(d_as123, "table-class-robuste"), unsafe_allow_html=True)
             st.markdown("<div style='height: 55px;'></div>", unsafe_allow_html=True)
@@ -138,7 +141,6 @@ def afficher_tableaux():
             st.markdown("<span class='titre-classement'>🏆 CLASSEMENT PAR DIVISIONS / CLASSES</span>", unsafe_allow_html=True)
             st.markdown(gen_html(d_divs, "table-class-robuste"), unsafe_allow_html=True)
         else:
-            # Sinon, l'affichage d'origine des Essais reste intact
             st.markdown(f"<span class='titre-classement'>{t_racb}</span>", unsafe_allow_html=True)
             st.markdown(gen_html(d_racb, "table-class-robuste"), unsafe_allow_html=True)
             st.markdown("<div style='height: 55px;'></div>", unsafe_allow_html=True)
