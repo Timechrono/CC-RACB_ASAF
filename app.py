@@ -3,9 +3,9 @@ import pandas as pd
 import time
 import Essais
 
-# Sécurité : On essaie de charger ton script Course1 s'il existe dans le dossier
+# Sécurité : On essaie d'importer ton script Course_1_ASAF s'il est présent dans le dossier
 try:
-    import Course1
+    import Course_1_ASAF
     course1_disponible = True
 except ModuleNotFoundError:
     course1_disponible = False
@@ -82,7 +82,7 @@ div[data-testid="stSelectbox"] div[data-baseweb="select"] {
 .table-class-robuste th:nth-child(5), .table-class-robuste td:nth-child(5) { width: 6% !important; }
 .table-class-robuste th:nth-child(6), .table-class-robuste td:nth-child(6) { width: 18% !important; text-align: right !important; }
 
-.skinny-block { padding-top: 0.4rem !important; padding-bottom: 0rem !important; }
+.block-container { padding-top: 0.4rem !important; padding-bottom: 0rem !important; }
 div[data-testid="stVerticalBlock"] { gap: 0rem !important; }
 </style>
 """, unsafe_allow_html=True)
@@ -92,7 +92,7 @@ def gen_html(df, cl):
         return f"<table class='table-compacte {cl}'><tr><td style='text-align: center; padding: 10px;'>Aucune donnée disponible</td></tr></table>"
     return df.to_html(index=False, classes=f"table-compacte {cl}", escape=False, border=0)
 
-# --- CONFIGURATION SÉLECTEUR AJUSTÉE ---
+# --- CONFIGURATION SÉLECTEUR ---
 col_texte, col_select, col_reste = st.columns([1.3, 1.4, 3.3], vertical_alignment="center")
 with col_texte:
     st.markdown('<p class="texte-menu">Sélectionnez la session à afficher :</p>', unsafe_allow_html=True)
@@ -110,7 +110,8 @@ def afficher_tableaux():
     st.cache_data.clear()
     
     if course1_disponible and choix_course == "Course 1 ASAF":
-        d_liv, d_his, d_as123, d_as4, d_divs = Course1.recuperer_donnees_course()
+        # Appel direct au nom exact de ton fichier
+        d_liv, d_his, d_as123, d_as4, d_divs = Course_1_ASAF.recuperer_donnees_course()
         t_racb = "🏆 CLASSEMENT GENERAL Division 123"
         t_as123 = "🏆 CLASSEMENT GENERAL Division 123"
         t_as4 = "🏆 CLASSEMENT GENERAL Division 4"
