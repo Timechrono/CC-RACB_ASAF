@@ -1,4 +1,4 @@
-import streamlit st
+import streamlit as st
 import pandas as pd
 import time
 import Essais
@@ -26,7 +26,7 @@ div[data-baseweb="select"]:focus-within {
     font-weight: bold !important;
     color: #1E293B !important; 
     text-align: left !important; 
-    margin-top: -12px !important; /* Ajusté pour s'aligner sur le bouton agrandi */
+    margin-top: -12px !important; 
     margin-bottom: 0px !important;
     white-space: nowrap !important;
     padding-right: 5px !important;
@@ -37,7 +37,7 @@ div[data-baseweb="select"]:focus-within {
     font-size: 0.95rem !important;
     font-weight: bold !important;
     color: #475569 !important;
-    margin-top: -12px !important; /* Aligné sur la même hauteur que le texte menu et le bouton */
+    margin-top: -12px !important; 
     white-space: nowrap !important;
 }
 
@@ -96,7 +96,6 @@ def gen_html(df, cl):
     return df.to_html(index=False, classes=f"table-compacte {cl}", escape=False, border=0)
 
 # --- CONFIGURATION SÉLECTEUR ÉLARGIE ---
-# colonnes ajustées à [1.3, 1.8, 1.8, 3.1] pour écarter le bouton et faire de la place pour le texte complet
 col_texte, col_select, col_chrono, col_reste = st.columns([1.3, 1.8, 1.8, 3.1], vertical_alignment="center")
 with col_texte:
     st.markdown('<p class="texte-menu">Sélectionnez la session à afficher :</p>', unsafe_allow_html=True)
