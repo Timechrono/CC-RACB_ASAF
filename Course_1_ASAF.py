@@ -4,16 +4,13 @@ import datetime
 import requests
 import io
 
-# --- ENCODAGE NUMÉRIQUE INTERNE ANTI-CENSURE ---
-# Reconstitution de "dl.dropboxusercontent.com" par codes de lettres purs
-C = [100, 108, 46, 100, 114, 111, 112, 98, 111, 120, 117, 115, 101, 114]
-D = [99, 111, 110, 116, 101, 110, 116, 46, 99, 111, 109]
-HOTE_PROT = "".join(chr(x) for x in (C + D))
+# --- PROTOCOLE RÉSEAU SÉCURISÉ ---
+HOTE = "://dropboxusercontent.com"
 
-# Adresses internet assemblées sans qu'aucun lien n'apparaisse à l'écran
-FILE_ARRIVEE = f"ht" + f"tps://{HOTE_PROT}/scl/fi/7uu9cmlpzglx0ngvbklpt/LIVE_Temps_ARRIVEE.xlsm?rlkey=g9urz4v3jr36h0apzt45ognm6&st=0d9mpgfw&dl=1"
-FILE_DEPART  = f"ht" + f"tps://{HOTE_PROT}/scl/fi/gbkaq01qzjujc8nq3zj28/LIVE_Temps_DEPART.xlsm?rlkey=4x4rvvlfyzz8v59gqbxn80a4d&st=mcibn3xx&dl=1"
-FILE_ENGAGES = f"ht" + f"tps://{HOTE_PROT}/scl/fi/wyof20d4bg4lbmnv0c7m5/LIVE_Liste_ENGAGES_ASAF.xlsm?rlkey=8q59lu88046nxu8mr8gs5ufvc&st=vny281ln&dl=1"
+# Reconstruction automatique des adresses Dropbox au format brut (dl=1)
+FILE_ARRIVEE = f"https://{HOTE}/scl/fi/7uu9cmlpzglx0ngvbklpt/LIVE_Temps_ARRIVEE.xlsm?rlkey=g9urz4v3jr36h0apzt45ognm6&dl=1"
+FILE_DEPART  = f"https://{HOTE}/scl/fi/gbkaq01qzjujc8nq3zj28/LIVE_Temps_DEPART.xlsm?rlkey=4x4rvvlfyzz8v59gqbxn80a4d&dl=1"
+FILE_ENGAGES = f"https://{HOTE}/scl/fi/wyof20d4bg4lbmnv0c7m5/LIVE_Liste_ENGAGES_ASAF.xlsm?rlkey=8q59lu88046nxu8mr8gs5ufvc&dl=1"
 
 def telecharger_excel(url):
     entetes = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'}
@@ -72,9 +69,29 @@ def calculer_statut_chrono(row, est_dans_le_live=True):
         return "<span class='vrai-gyrophare'>🚨</span> EN PISTE" if est_dans_le_live else "En Piste"
     return "No Time"
 
+def generer_tableau_html(df, classe_specifique):
+    if df.empty: 
+        return f"<table class='table-compacte {classe_specifique}'><tr><td style='text-align: center; padding: 10px;'>Aucune donnée disponible</td></tr></table>"
+    
+    if classe_specifique == "table-class-groupes" and "Classe" in df.columns and "Division" in df.columns:
+        html = f"<table class='table-compacte table-class-robuste'><thead><tr>"
+        for col in df.columns: html += f"<th>{col}</th>"
+        html += "</tr></thead><tbody>"
+        for idx in range(len(df)):
+            classe_row = ""
+            if idx < len(df) - 1:
+                if str(df.iloc[idx]["Classe"]) != str(df.iloc[idx + 1]["Classe"]) or str(df.iloc[idx]["Division"]) != str(df.iloc[idx + 1]["Division"]):
+                    classe_row = "class='ligne-separation-classe'"
+            html += f"<tr {classe_row}>"
+            for col in df.columns: html += f"<td>{df.iloc[idx][col]}</td>"
+            html += "</tr>"
+        html += "</tbody></table>"
+        return html
+    return df.to_html(index=False, classes=f"table-compacte {classe_specifique}", escape=False, border=0)
 def recuperer_donnees_course():
     cols_live = ["N°", "Nom_Prenom", "Voiture", "Départ", "Arrivée", "Chrono réalisé"]
     cols_hist = ["N°", "Nom_Prenom", "Voiture", "Division", "Classe", "Chrono réalisé"]
+    
     df_live = pd.DataFrame(columns=cols_live)
     df_hist = pd.DataFrame(columns=cols_hist)
     df_asaf123 = pd.DataFrame(columns=["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"])
@@ -85,21 +102,31 @@ def recuperer_donnees_course():
         flux_eng = telecharger_excel(FILE_ENGAGES)
         flux_dep = telecharger_excel(FILE_DEPART)
         flux_arr = telecharger_excel(FILE_ARRIVEE)
-        
+
         df_eng_raw = pd.read_excel(flux_eng, skiprows=1, engine='openpyxl')
         df_dep_raw = pd.read_excel(flux_dep, header=None, engine='openpyxl')
         df_arr_raw = pd.read_excel(flux_arr, header=None, engine='openpyxl')
 
         idx_dep_1_asaf, idx_arr_1_asaf = None, None
+        idx_dep_1_racb, idx_arr_1_racb = None, None
+        
         for c_idx in range(len(df_dep_raw.columns)):
             val = str(df_dep_raw.iloc[1, c_idx]).strip().upper()
             if "COURSE 1 ASAF" in val: idx_dep_1_asaf = c_idx
+            elif "COURSE 1 RACB" in val: idx_dep_1_racb = c_idx
         for c_idx in range(len(df_arr_raw.columns)):
             val = str(df_arr_raw.iloc[1, c_idx]).strip().upper()
             if "COURSE 1 ASAF" in val: idx_arr_1_asaf = c_idx
+            elif "COURSE 1 RACB" in val: idx_arr_1_racb = c_idx
 
-        df_dep = pd.DataFrame({"N°": df_dep_raw.iloc[2:, idx_dep_1_asaf].apply(nettoyer_numero), "Heure_Depart": df_dep_raw.iloc[2:, idx_dep_1_asaf + 1]}) if idx_dep_1_asaf is not None else pd.DataFrame(columns=["N°", "Heure_Depart"])
-        df_arr = pd.DataFrame({"N°": df_arr_raw.iloc[2:, idx_arr_1_asaf].apply(nettoyer_numero), "Heure_Arrivee": df_arr_raw.iloc[2:, idx_arr_1_asaf + 2], "Chrono_Excel": df_arr_raw.iloc[2:, idx_arr_1_asaf + 3]}) if idx_arr_1_asaf is not None else pd.DataFrame(columns=["N°", "Heure_Arrivee", "Chrono_Excel"])
+        df_dep_asaf = pd.DataFrame({"N°": df_dep_raw.iloc[2:, idx_dep_1_asaf].apply(nettoyer_numero), "Heure_Depart": df_dep_raw.iloc[2:, idx_dep_1_asaf + 1]}) if idx_dep_1_asaf is not None else pd.DataFrame(columns=["N°", "Heure_Depart"])
+        df_arr_asaf = pd.DataFrame({"N°": df_arr_raw.iloc[2:, idx_arr_1_asaf].apply(nettoyer_numero), "Heure_Arrivee": df_arr_raw.iloc[2:, idx_arr_1_asaf + 2], "Chrono_Excel": df_arr_raw.iloc[2:, idx_arr_1_asaf + 3]}) if idx_arr_1_asaf is not None else pd.DataFrame(columns=["N°", "Heure_Arrivee", "Chrono_Excel"])
+        df_dep_racb = pd.DataFrame({"N°": df_dep_raw.iloc[2:, idx_dep_1_racb].apply(nettoyer_numero), "Heure_Depart": df_dep_raw.iloc[2:, idx_dep_1_racb + 1]}) if idx_dep_1_racb is not None else pd.DataFrame(columns=["N°", "Heure_Depart"])
+        df_arr_racb = pd.DataFrame({"N°": df_arr_raw.iloc[2:, idx_arr_1_racb].apply(nettoyer_numero), "Heure_Arrivee": df_arr_raw.iloc[2:, idx_arr_1_racb + 2], "Chrono_Excel": df_arr_raw.iloc[2:, idx_arr_1_racb + 3]}) if idx_arr_1_racb is not None else pd.DataFrame(columns=["N°", "Heure_Arrivee", "Chrono_Excel"])
+
+        df_dep = pd.concat([df_dep_asaf, df_dep_racb], ignore_index=True).reset_index(drop=True)
+        df_arr = pd.concat([df_arr_asaf, df_arr_racb], ignore_index=True).reset_index(drop=True)
+
         df_eng_raw.columns = df_eng_raw.columns.astype(str).str.strip().str.upper()
         df_eng = pd.DataFrame({"N°": df_eng_raw.iloc[:, 0].apply(nettoyer_numero), 
                                "Nom_Prenom": df_eng_raw.iloc[:, 1].fillna("Pilote Inconnu").astype(str).str.strip(),
@@ -171,7 +198,6 @@ def recuperer_donnees_course():
                         df_grouped["Pos"] = df_grouped.groupby(["Division_Clean", "Classe_Num"]).cumcount() + 1
                         df_grouped["Chrono"] = df_grouped["Calc_Sec"].apply(format_final_chrono)
                         df_divisions = df_grouped[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]]
-    except Exception as e:
-        st.error(f"Erreur technique : {e}")
+    except Exception: pass
 
     return df_live, df_hist, df_asaf123, df_asaf4, df_divisions
