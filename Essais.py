@@ -4,13 +4,16 @@ import datetime
 import requests
 import io
 
+# --- CONFIGURATION INTERNET AVEC VOS VRAIS LIENS FONCTIONNELS ---
 HOTE = "://dropboxusercontent.com"
-FILE_ARRIVEE = f"https://{HOTE}/scl/fi/7uu9cmlpzglx0ngvbklpt/LIVE_Temps_ARRIVEE.xlsm?rlkey=g9urz4v3jr36h0apzt45ognm6&st=0d9mpgfw&dl=1"
-FILE_DEPART  = f"https://{HOTE}/scl/fi/gbkaq01qzjujc8nq3zj28/LIVE_Temps_DEPART.xlsm?rlkey=4x4rvvlfyzz8v59gqbxn80a4d&st=mcibn3xx&dl=1"
-FILE_ENGAGES = f"https://{HOTE}/scl/fi/sqrqinksco1am700s27h4/LIVE_Liste_ENGAGES.xlsm?rlkey=8p0n8jyeuiivaa375bh3p608n&st=b9rzq7xo&dl=1"
+
+# Vos liens exacts configurés au format brut pour Streamlit (dl=1)
+FILE_ARRIVEE = f"https://{HOTE}/scl/fi/7uu9cmlpzglx0ngvbklpt/LIVE_Temps_ARRIVEE.xlsm?rlkey=g9urz4v3jr36h0apzt45ognm6&dl=1"
+FILE_DEPART  = f"https://{HOTE}/scl/fi/gbkaq01qzjujc8nq3zj28/LIVE_Temps_DEPART.xlsm?rlkey=4x4rvvlfyzz8v59gqbxn80a4d&dl=1"
+FILE_ENGAGES = f"https://{HOTE}/scl/fi/sqrqinksco1am700s27h4/LIVE_Liste_ENGAGES.xlsm?rlkey=8p0n8jyeuiivaa375bh3p608n&dl=1"
 
 def telecharger_excel(url):
-    entetes = {'User-Agent': 'Mozilla/5.0'}
+    entetes = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'}
     reponse = requests.get(url, headers=entetes, timeout=12)
     reponse.raise_for_status()
     return io.BytesIO(reponse.content)
@@ -25,8 +28,8 @@ def convertir_en_secondes(valeur):
     if ":" in s:
         try:
             parts = s.split(":")
-            m = int(parts)
-            sec = float(parts.replace(",", "."))
+            m = int(parts[0])
+            sec = float(parts[1].replace(",", "."))
             return (m * 60) + sec
         except Exception: pass
     if s.endswith(".0"): s = s[:-2]
@@ -165,5 +168,4 @@ def recuperer_donnees_course():
                     df_asaf4 = asaf4[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]]
     except Exception: pass
 
-    # ALIGNEMENT DES VARIABLES ATTENDUES POUR APP.PY SANS INDENTATIONERROR
     return df_live, df_hist, df_asaf123, df_asaf4, df_racb
