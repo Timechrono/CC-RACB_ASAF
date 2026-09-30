@@ -15,7 +15,7 @@ except Exception: pass
 
 st.set_page_config(page_title="Live", layout="wide")
 
-# --- STYLE CSS RESTAURÉ AVEC PRISE EN CHARGE DE LA COLONNE COURSE 1 ---
+# --- STYLE CSS AJUSTÉ AVEC MARGE DE SÉCURITÉ RESEAU ---
 st.markdown("""
 <style>
 [data-testid="stHeader"] { display: none !important; }
@@ -61,23 +61,23 @@ div[data-testid="stFragment"] {
 .badge-piste { background-color: #FEE2E2 !important; color: #DC2626 !important; padding: 1px 4px !important; border-radius: 3px !important; font-weight: bold; }
 .table-hist tr:nth-child(odd) td { background-color: #E0F2FE !important; }
 
-/* FIXATION ETANCHE DU TABLEAU EN DIRECT (TOTAL = 100%) */
+/* REGLAGE STRICT DU LIVE (TOTAL = 100%) */
 .table-live th:nth-child(1), .table-live td:nth-child(1) { width: 8% !important; }
 .table-live th:nth-child(2), .table-live td:nth-child(2) { width: 25% !important; }
 .table-live th:nth-child(3), .table-live td:nth-child(3) { width: 17% !important; }
 .table-live th:nth-child(4), .table-live td:nth-child(4) { width: 12% !important; }
 .table-live th:nth-child(5), .table-live td:nth-child(5) { width: 13% !important; }
 .table-live th:nth-child(6), .table-live td:nth-child(6) { width: 25% !important; }
-/* RE-REPARTITION SÉCURISÉE DE L'HISTORIQUE AVEC PRISE EN CHARGE DU FORMAT 6 OU 7 COLONNES (TOTAL = 100%) */
-.table-hist th:nth-child(1), .table-hist td:nth-child(1) { width: 8% !important; }   
-.table-hist th:nth-child(2), .table-hist td:nth-child(2) { width: 24% !important; }  
+/* REGLAGE DE L'HISTORIQUE SÉCURISÉ AVEC LEGENDE DE SÉCURITÉ DE 3% POUR ABSORBER LES MARGES (TOTAL REEL DÉGAGE A 97%) */
+.table-hist th:nth-child(1), .table-hist td:nth-child(1) { width: 7% !important; }   
+.table-hist th:nth-child(2), .table-hist td:nth-child(2) { width: 28% !important; }  
 .table-hist th:nth-child(3), .table-hist td:nth-child(3) { width: 22% !important; }  
-.table-hist th:nth-child(4), .table-hist td:nth-child(4) { width: 10% !important; }  
-.table-hist th:nth-child(5), .table-hist td:nth-child(5) { width: 8% !important; }   
-.table-hist th:nth-child(6), .table-hist td:nth-child(6) { width: 14% !important; }  
-.table-hist th:nth-child(7), .table-hist td:nth-child(7) { width: 14% !important; }  
+.table-hist th:nth-child(4), .table-hist td:nth-child(4) { width: 9% !important; }  
+.table-hist th:nth-child(5), .table-hist td:nth-child(5) { width: 7% !important; }   
+.table-hist th:nth-child(6), .table-hist td:nth-child(6) { width: 12% !important; }  
+.table-hist th:nth-child(7), .table-hist td:nth-child(7) { width: 12% !important; }  
 
-/* RESTAURATION DE LA LARGEUR CLASSEMENT DE DROITE D'ORIGINE */
+/* SÉCURISATION DES LARGEURS DES CLASSEMENTS SANS COMPRESSION DE LA ZONE DE DROITE */
 .table-class-robuste th:nth-child(1), .table-class-robuste td:nth-child(1) { width: 9% !important; }
 .table-class-robuste th:nth-child(2), .table-class-robuste td:nth-child(2) { width: 11% !important; }
 .table-class-robuste th:nth-child(3), .table-class-robuste td:nth-child(3) { width: 33% !important; }
@@ -106,7 +106,7 @@ with col_select:
 
 st.markdown("<div style='height:12px;'></div>", unsafe_allow_html=True)
 
-# --- BLOC DE REFRESH DYNAMIQUE ---
+# --- REFRESH AUTOMATIQUE INTERNET (30 SECONDES) ---
 @st.fragment(run_every=30)
 def afficher_tableaux():
     st.cache_data.clear()
@@ -128,7 +128,6 @@ def afficher_tableaux():
         d_div, d_racb = pd.DataFrame(), pd.DataFrame()
         titre_historique = "🕒 HISTORIQUE DES TEMPS"
 
-    # RESTAURATION DES PROPORTIONS D'ECRAN DE BASE PARTICULIEREMENT COMPACTES ET BELLES
     cg, cd = st.columns([1.3, 0.9])
     with cg:
         st.markdown("<span class='titre-live'>🏎️ EN DIRECT / Derniers concurrents partis</span>", unsafe_allow_html=True)
