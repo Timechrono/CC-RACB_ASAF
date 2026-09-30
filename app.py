@@ -13,7 +13,7 @@ button:focus, div:focus, input:focus, select:focus {
     outline: none !important; border-color: transparent !important; box-shadow: none !important;
 }
 
-/* Modifié : marge supérieure négative pour aligner au milieu du bouton */
+/* Marge supérieure négative pour aligner au milieu du bouton */
 .texte-menu {
     font-size: 1.05rem !important; 
     font-weight: bold !important;
@@ -78,14 +78,14 @@ def gen_html(df, cl):
         return f"<table class='table-compacte {cl}'><tr><td style='text-align: center; padding: 10px;'>Aucune donnée disponible</td></tr></table>"
     return df.to_html(index=False, classes=f"table-compacte {cl}", escape=False, border=0)
 
-# --- CONFIGURATION SÉLECTEUR (Modifié : répartition [0.1, 1.4, 1.4] pour décaler vers la gauche) ---
-col_vide, col_texte, col_select = st.columns([0.1, 1.4, 1.4], vertical_alignment="center")
+# --- CONFIGURATION SÉLECTEUR (Modifié : proportion [0.4, 1.4, 0.7] pour rétrécir la taille du bouton) ---
+col_vide, col_texte, col_select = st.columns([0.4, 1.4, 0.7], vertical_alignment="center")
 with col_texte:
     st.markdown('<p class="texte-menu">Sélectionnez la session à afficher :</p>', unsafe_allow_html=True)
 with col_select:
     choix_course = st.selectbox("Session_Label", ["Essais / Entraînements"], label_visibility="collapsed")
 
-# Modifié : Passage de 12px à 25px pour créer une vraie marge sous le bouton
+# Marge sous le bouton
 st.markdown("<div style='height:25px;'></div>", unsafe_allow_html=True)
 
 # --- REFRESH ET APPEL DIRECT ---
