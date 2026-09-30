@@ -5,8 +5,8 @@ import requests
 import io
 
 # --- ENCODAGE NUMÉRIQUE INTERNE ANTI-CENSURE (VOS VALEURS VALIDÉES) ---
-C = [100, 108, 46, 100, 114, 111, 112, 98, 111, 120, 117, 115, 101, 114]
-D = [99, 111, 110, 116, 101, 110, 116, 46, 99, 111, 109]
+C =
+D =
 HOTE_PROT = "".join(chr(x) for x in (C + D))
 
 # Liens d'origine de vos fichiers Excel
@@ -33,7 +33,6 @@ def convertir_en_secondes(valeur):
             return (int(parts[0]) * 60) + float(parts[1].replace(",", "."))
         except Exception: pass
     if s.endswith(".0"): s = s[:-2]
-    # Conserve la chaîne si elle contient des lettres comme N
     if any(c.isalpha() for c in s):
         s_clean = s
     else:
@@ -135,43 +134,23 @@ def recuperer_donnees_course():
             base["Ordre_Saisie"] = range(len(base))
             df_hist = base.sort_values(by="Ordre_Saisie", ascending=False)[["N°", "Nom_Prenom", "Voiture", "Division", "Classe", "Chrono_Visual_Hist"]].rename(columns={"Chrono_Visual_Hist": "Chrono réalisé"})
 
-            # --- LOGIQUE D'AIGUILLAGE ET DE FILTRAGE ULTRA-STRICT ---
+            # --- PREMIÈRE ÉTAPE DE CORRECTION ---
             df_valides = base[base["Calc_Sec"].notna() & (base["Calc_Sec"] > 0)].copy()
             idx_meilleur = df_valides.groupby("N°")["Calc_Sec"].idxmin()
             df_meilleurs = df_valides.loc[idx_meilleur].copy()
 
-            # Nettoyage forcé pour la détection : conversion en texte propre sans espaces
-            df_meilleurs["N°_Check"] = df_meilleurs["N°"].astype(str).str.strip().str.upper()
-
-            # RÈGLE 1 : Si le numéro commence par N (ou contient un N au début) -> VA SEULEMENT DANS RACB
-            mask_racb = df_meilleurs["N°_Check"].str.startswith("N", na=False) | df_meilleurs["N°_Check"].str.contains(r"^N", na=False, regex=True)
-            df_m_racb = df_meilleurs[mask_racb].copy()
+            # Filtrage STRICT sur la colonne Classe uniquement (1, 2 ou 3) pour le Top 25
+            mask_123 = df_meilleurs["Classe"].isin(["1", "2", "3", 1, 2, 3])
+            df_m_asaf123 = df_meilleurs[mask_123].sort_values(by="Calc_Sec").head(25)
             
-            if len(df_m_racb) > 0:
-                df_m_racb = df_m_racb.sort_values(by="Calc_Sec").head(20)
-                df_m_racb["Pos"] = range(1, len(df_m_racb) + 1)
-                df_m_racb["Chrono"] = df_m_racb["Calc_Sec"].apply(lambda x: format_final_chrono(x))
-                df_racb = df_m_racb[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]]
+            if len(df_m_asaf123) > 0:
+                df_m_asaf123["Pos"] = range(1, len(df_m_asaf123) + 1)
+                df_m_asaf123["Chrono"] = df_m_asaf123["Calc_Sec"].apply(lambda x: format_final_chrono(x))
+                df_asaf123 = df_m_asaf123[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]]
 
-            # RÈGLES ASAF : On exclut définitivement TOUS les dossiers contenant "N"
-            df_m_non_n = df_meilleurs[~mask_racb].copy()
-
-            if len(df_m_non_n) > 0:
-                # Division 1, 2, 3 (Top 25)
-                mask_123 = df_m_non_n["Division"].isin(["1", "2", "3", 1, 2, 3]) | df_m_non_n["Classe"].isin(["1", "2", "3", 1, 2, 3])
-                df_m_asaf123 = df_m_non_n[mask_123].sort_values(by="Calc_Sec").head(25)
-                if len(df_m_asaf123) > 0:
-                    df_m_asaf123["Pos"] = range(1, len(df_m_asaf123) + 1)
-                    df_m_asaf123["Chrono"] = df_m_asaf123["Calc_Sec"].apply(lambda x: format_final_chrono(x))
-                    df_asaf123 = df_m_asaf123[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]]
-
-                # Division 4
-                mask_4 = df_m_non_n["Division"].isin(["4", 4]) | df_m_non_n["Classe"].isin(["4", 4])
-                df_m_asaf4 = df_m_non_n[mask_4].sort_values(by="Calc_Sec")
-                if len(df_m_asaf4) > 0:
-                    df_m_asaf4["Pos"] = range(1, len(df_m_asaf4) + 1)
-                    df_m_asaf4["Chrono"] = df_m_asaf4["Calc_Sec"].apply(lambda x: format_final_chrono(x))
-                    df_asaf4 = df_m_asaf4[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]]
+            # Temporaire pour les autres tables en attendant les prochaines étapes
+            df_racb = df_meilleurs.sort_values(by="Calc_Sec").head(20) # Sera adapté à l'étape 2
+            df_asaf4 = df_meilleurs.sort_values(by="Calc_Sec").head(20) # Sera adapté à l'étape 3
 
     except Exception as e:
         pass
