@@ -3,27 +3,24 @@ import pandas as pd
 import time
 import Essais
 
-try:
-    import Course_1_ASAF
+# LIAISON SECURISEE AVEC VOS SCRIPTS DE CALCULS
+try: import Course_1_ASAF
 except Exception: pass
-try:
-    import Course_1_RACB
+try: import Course_1_RACB
 except Exception: pass
-try:
-    import Course_2_ASAF
+try: import Course_2_ASAF
 except Exception: pass
 
 st.set_page_config(page_title="Live", layout="wide")
 
-# --- STYLE CSS AJUSTÉ AVEC MARGE DE SÉCURITÉ RESEAU ---
+# --- DESIGN SCIENTIFIQUE RIGIDE RESTAURÉ ---
 st.markdown("""
 <style>
 [data-testid="stHeader"] { display: none !important; }
 
+/* REJET DU ROUGE ET DES CONTOURS DE SÉLECTION */
 button:focus, div:focus, input:focus, select:focus {
-    outline: none !important;
-    border-color: transparent !important;
-    box-shadow: none !important;
+    outline: none !important; border-color: transparent !important; box-shadow: none !important;
 }
 [data-testid="stForm"], [data-testid="stVerticalBlock"] > div {
     opacity: 1 !important; transition: none !important;
@@ -61,23 +58,7 @@ div[data-testid="stFragment"] {
 .badge-piste { background-color: #FEE2E2 !important; color: #DC2626 !important; padding: 1px 4px !important; border-radius: 3px !important; font-weight: bold; }
 .table-hist tr:nth-child(odd) td { background-color: #E0F2FE !important; }
 
-/* REGLAGE STRICT DU LIVE (TOTAL = 100%) */
-.table-live th:nth-child(1), .table-live td:nth-child(1) { width: 8% !important; }
-.table-live th:nth-child(2), .table-live td:nth-child(2) { width: 25% !important; }
-.table-live th:nth-child(3), .table-live td:nth-child(3) { width: 17% !important; }
-.table-live th:nth-child(4), .table-live td:nth-child(4) { width: 12% !important; }
-.table-live th:nth-child(5), .table-live td:nth-child(5) { width: 13% !important; }
-.table-live th:nth-child(6), .table-live td:nth-child(6) { width: 25% !important; }
-/* REGLAGE DE L'HISTORIQUE SÉCURISÉ AVEC LEGENDE DE SÉCURITÉ DE 3% POUR ABSORBER LES MARGES (TOTAL REEL DÉGAGE A 97%) */
-.table-hist th:nth-child(1), .table-hist td:nth-child(1) { width: 7% !important; }   
-.table-hist th:nth-child(2), .table-hist td:nth-child(2) { width: 28% !important; }  
-.table-hist th:nth-child(3), .table-hist td:nth-child(3) { width: 22% !important; }  
-.table-hist th:nth-child(4), .table-hist td:nth-child(4) { width: 9% !important; }  
-.table-hist th:nth-child(5), .table-hist td:nth-child(5) { width: 7% !important; }   
-.table-hist th:nth-child(6), .table-hist td:nth-child(6) { width: 12% !important; }  
-.table-hist th:nth-child(7), .table-hist td:nth-child(7) { width: 12% !important; }  
-
-/* SÉCURISATION DES LARGEURS DES CLASSEMENTS SANS COMPRESSION DE LA ZONE DE DROITE */
+/* DROITE : RECONDUCTION AU MILLIMÈTRE DE VOS LARGEURS CLASSEMENTS (TOP 30) */
 .table-class-robuste th:nth-child(1), .table-class-robuste td:nth-child(1) { width: 9% !important; }
 .table-class-robuste th:nth-child(2), .table-class-robuste td:nth-child(2) { width: 11% !important; }
 .table-class-robuste th:nth-child(3), .table-class-robuste td:nth-child(3) { width: 33% !important; }
@@ -89,45 +70,52 @@ div[data-testid="stFragment"] {
 div[data-testid="stVerticalBlock"] { gap: 0rem !important; }
 </style>
 """, unsafe_allow_html=True)
-
 def gen_html(df, cl):
     if df.empty:
         return f"<table class='table-compacte {cl}'><tr><td style='text-align: center; padding: 10px;'>Aucune donnée disponible</td></tr></table>"
     return df.to_html(index=False, classes=f"table-compacte {cl}", escape=False, border=0)
 
-# --- SÉLECTEUR CENTRAL ---
+# --- SÉLECTEUR CENTRAL HORIZONTAL ---
 col_vide, col_texte, col_select = st.columns([0.6, 1.5, 1.3])
-
 with col_texte:
     st.markdown('<p class="texte-menu" style="margin-top:28px;">Sélectionnez la session à afficher :</p>', unsafe_allow_html=True)
-
 with col_select:
     choix_course = st.selectbox("Session_Label", ["Essais / Entraînements", "Course 1 ASAF", "Course 1 RACB", "Course 2 ASAF", "Course 2 RACB", "Course 3 ASAF", "Course 3 RACB"], label_visibility="collapsed")
 
 st.markdown("<div style='height:12px;'></div>", unsafe_allow_html=True)
 
-# --- REFRESH AUTOMATIQUE INTERNET (30 SECONDES) ---
+# --- BLOC DE REFRESH DYNAMIQUE AUTONOME ---
 @st.fragment(run_every=30)
 def afficher_tableaux():
     st.cache_data.clear()
     
+    # CHARGEMENT DES DONNÉES ET AJUSTEMENT DES LARGEURS D'ORIGINE SELON LA SESSION
     if choix_course == "Course 1 ASAF":
         d_liv, d_his, d_as123, d_as4, d_div = Course_1_ASAF.recuperer_donnees_course()
         d_racb = pd.DataFrame()
         titre_historique = "🕒 HISTORIQUE DES TEMPS / 1er COURSE / Concurrents ASAF"
+        # Injection stricte de vos pourcentages 6 colonnes réajustées ASAF (Somme = 100%)
+        st.markdown("<style>.table-hist th:nth-child(1), .table-hist td:nth-child(1) { width: 8% !important; } .table-hist th:nth-child(2), .table-hist td:nth-child(2) { width: 30% !important; } .table-hist th:nth-child(3), .table-hist td:nth-child(3) { width: 26% !important; } .table-hist th:nth-child(4), .table-hist td:nth-child(4) { width: 11% !important; } .table-hist th:nth-child(5), .table-hist td:nth-child(5) { width: 8% !important; } .table-hist th:nth-child(6), .table-hist td:nth-child(6) { width: 17% !important; }</style>", unsafe_allow_html=True)
     elif choix_course == "Course 1 RACB":
         d_liv, d_his, d_racb, d_div = Course_1_RACB.recuperer_donnees_course()
         d_as123, d_as4 = pd.DataFrame(), pd.DataFrame()
         titre_historique = "🕒 HISTORIQUE DES TEMPS / 1er COURSE / Concurrents RACB"
+        # Injection stricte de vos pourcentages 6 colonnes d'origine RACB (Somme = 100%)
+        st.markdown("<style>.table-hist th:nth-child(1), .table-hist td:nth-child(1) { width: 8% !important; } .table-hist th:nth-child(2), .table-hist td:nth-child(2) { width: 30% !important; } .table-hist th:nth-child(3), .table-hist td:nth-child(3) { width: 26% !important; } .table-hist th:nth-child(4), .table-hist td:nth-child(4) { width: 11% !important; } .table-hist th:nth-child(5), .table-hist td:nth-child(5) { width: 8% !important; } .table-hist th:nth-child(6), .table-hist td:nth-child(6) { width: 17% !important; }</style>", unsafe_allow_html=True)
     elif choix_course == "Course 2 ASAF":
         d_liv, d_his, d_as123, d_as4, d_div = Course_2_ASAF.recuperer_donnees_course()
         d_racb = pd.DataFrame()
         titre_historique = "🕒 HISTORIQUE DES TEMPS / 2ème COURSE / Concurrents ASAF"
+        # Injection stricte de vos pourcentages 7 colonnes Course 2 ASAF (Somme = 100%)
+        st.markdown("<style>.table-hist th:nth-child(1), .table-hist td:nth-child(1) { width: 7% !important; } .table-hist th:nth-child(2), .table-hist td:nth-child(2) { width: 23% !important; } .table-hist th:nth-child(3), .table-hist td:nth-child(3) { width: 25% !important; } .table-hist th:nth-child(4), .table-hist td:nth-child(4) { width: 10% !important; } .table-hist th:nth-child(5), .table-hist td:nth-child(5) { width: 7% !important; } .table-hist th:nth-child(6), .table-hist td:nth-child(6) { width: 14% !important; } .table-hist th:nth-child(7), .table-hist td:nth-child(7) { width: 14% !important; }</style>", unsafe_allow_html=True)
     else:
         d_liv, d_his, d_as123, d_as4, _ = Essais.recuperer_donnees_course()
         d_div, d_racb = pd.DataFrame(), pd.DataFrame()
         titre_historique = "🕒 HISTORIQUE DES TEMPS"
+        # Injection stricte de vos pourcentages Essais 6 colonnes d'origine (Somme = 100%)
+        st.markdown("<style>.table-hist th:nth-child(1), .table-hist td:nth-child(1) { width: 7% !important; } .table-hist th:nth-child(2), .table-hist td:nth-child(2) { width: 23% !important; } .table-hist th:nth-child(3), .table-hist td:nth-child(3) { width: 22% !important; } .table-hist th:nth-child(4), .table-hist td:nth-child(4) { width: 10% !important; } .table-hist th:nth-child(5), .table-hist td:nth-child(5) { width: 10% !important; } .table-hist th:nth-child(6), .table-hist td:nth-child(6) { width: 14% !important; }</style>", unsafe_allow_html=True)
 
+    # Restauration de l'écartement d'origine exact des deux grands blocs de l'écran
     cg, cd = st.columns([1.3, 0.9])
     with cg:
         st.markdown("<span class='titre-live'>🏎️ EN DIRECT / Derniers concurrents partis</span>", unsafe_allow_html=True)
