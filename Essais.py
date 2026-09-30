@@ -10,6 +10,7 @@ FILE_DEPART = st.secrets["url_depart"]
 FILE_ENGAGES = st.secrets["url_engages"]
 
 
+
 def convertir_en_secondes(valeur):
     if pd.isna(valeur) or valeur is None: return None
     if isinstance(valeur, (datetime.time, datetime.datetime)):
