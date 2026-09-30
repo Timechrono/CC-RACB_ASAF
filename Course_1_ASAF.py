@@ -4,21 +4,12 @@ import datetime
 import requests
 import io
 
-# --- CODES UNIQUES EXTENSIBLES (AUCUN LIEN INTERNET BRUT) ---
-# Vos codes Dropbox d'origine issus de vos liens réels
-ID_ARRIVEE = "7uu9cmlpzglx0ngvbklpt"
-ID_DEPART  = "gbkaq01qzjujc8nq3zj28"
-ID_ENGAGES = "wyof20d4bg4lbmnv0c7m5"
+# --- PROTOCOLE RÉSEAU IDENTIQUE À ESSAIS.PY ---
+HOTE = "://dropboxusercontent.com"
 
-# Clés de sécurité Dropbox associées (rlkey)
-KEY_ARRIVEE = "g9urz4v3jr36h0apzt45ognm6"
-KEY_DEPART  = "4x4rvvlfyzz8v59gqbxn80a4d"
-KEY_ENGAGES = "8q59lu88046nxu8mr8gs5ufvc"
-
-# Assemblage interne automatique (totalement invisible pour le navigateur)
-FILE_ARRIVEE = f"https://dropboxusercontent.com{ID_ARRIVEE}/LIVE_Temps_ARRIVEE.xlsm?rlkey={KEY_ARRIVEE}&dl=1"
-FILE_DEPART  = f"https://dropboxusercontent.com{ID_DEPART}/LIVE_Temps_DEPART.xlsm?rlkey={KEY_DEPART}&dl=1"
-FILE_ENGAGES = f"https://dropboxusercontent.com{ID_ENGAGES}/LIVE_Liste_ENGAGES_ASAF.xlsm?rlkey={KEY_ENGAGES}&dl=1"
+FILE_ARRIVEE = f"https://{HOTE}/scl/fi/7uu9cmlpzglx0ngvbklpt/LIVE_Temps_ARRIVEE.xlsm?rlkey=g9urz4v3jr36h0apzt45ognm6&st=0d9mpgfw&dl=1"
+FILE_DEPART  = f"https://{HOTE}/scl/fi/gbkaq01qzjujc8nq3zj28/LIVE_Temps_DEPART.xlsm?rlkey=4x4rvvlfyzz8v59gqbxn80a4d&st=mcibn3xx&dl=1"
+FILE_ENGAGES = f"https://{HOTE}/scl/fi/wyof20d4bg4lbmnv0c7m5/LIVE_Liste_ENGAGES_ASAF.xlsm?rlkey=8q59lu88046nxu8mr8gs5ufvc&st=vny281ln&dl=1"
 
 def telecharger_excel(url):
     entetes = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'}
@@ -36,9 +27,9 @@ def convertir_en_secondes(valeur):
     if ":" in s:
         try:
             parts = s.split(":")
-            minutes = int(parts[0])
-            secondes_centièmes = float(parts[1].replace(",", "."))
-            return (minutes * 60) + secondes_centièmes
+            m = int(parts[0])
+            sec = float(parts[1].replace(",", "."))
+            return (m * 60) + sec
         except Exception: pass
     if s.endswith(".0"): s = s[:-2]
     s_clean = "".join([c for c in s if c.isdigit()])
@@ -176,6 +167,7 @@ def recuperer_donnees_course():
                         df_grouped["Pos"] = df_grouped.groupby(["Division_Clean", "Classe_Num"]).cumcount() + 1
                         df_grouped["Chrono"] = df_grouped["Calc_Sec"].apply(format_final_chrono)
                         df_divisions = df_grouped[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]]
-    except Exception: pass
+    except Exception as e:
+        st.error(f"Erreur technique : {e}")
 
     return df_live, df_hist, df_asaf123, df_asaf4, df_divisions
