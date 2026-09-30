@@ -120,7 +120,6 @@ def recuperer_donnees_course():
         base = pd.merge(base_runs, df_eng, on="N°", how="inner")
         if len(df_dep) > 0: base = pd.merge(base, df_dep, on=["N°", "Run_Index"], how="left")
         if len(df_arr) > 0: base = pd.merge(base, df_arr, on=["N°", "Run_Index"], how="left")
-        
         if len(base) > 0:
             base["Calc_Sec"] = base["Sec_Excel"].fillna((base["Sec_Arr"] - base["Sec_Dep"]).apply(lambda x: x + 3600 if (x is not None and x < 0) else x))
             
@@ -135,15 +134,16 @@ def recuperer_donnees_course():
             base["Ordre_Saisie"] = range(len(base))
             df_hist = base.sort_values(by="Ordre_Saisie", ascending=False)[["N°", "Nom_Prenom", "Voiture", "Division", "Classe", "Chrono_Visual_Hist"]].rename(columns={"Chrono_Visual_Hist": "Chrono réalisé"})
 
-            # Traitement analytique des meilleurs temps
+            # Traitement des classements par meilleurs temps
             df_valides = base[base["Calc_Sec"].notna() & (base["Calc_Sec"] > 0)].copy()
             idx_meilleur = df_valides.groupby("N°")["Calc_Sec"].idxmin()
             df_meilleurs = df_valides.loc[idx_meilleur].copy()
 
+            # Isolation par le format textuel du numéro propre
             df_meilleurs["N°_Txt"] = df_meilleurs["N°"].astype(str).str.strip().str.upper()
             mask_racb = df_meilleurs["N°_Txt"].str.startswith("N", na=False)
 
-            # 1. Préparation RACB : Commence par N (Top 20)
+            # RÈGLE A : Si commence par N -> Uniquement dans RACB (Top 20)
             df_m_racb = df_meilleurs[mask_racb].copy()
             if len(df_m_racb) > 0:
                 df_m_racb = df_m_racb.sort_values(by="Calc_Sec").head(20)
@@ -151,13 +151,14 @@ def recuperer_donnees_course():
                 df_m_racb["Chrono"] = df_m_racb["Calc_Sec"].apply(lambda x: format_final_chrono(x))
                 df_racb = df_m_racb[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]]
 
-            # Pour les profils ASAF (Pas de N)
+            # Pour les classements ASAF, on écarte définitivement tout numéro contenant un N
             df_m_non_n = df_meilleurs[~mask_racb].copy()
 
             if len(df_m_non_n) > 0:
+                # Conversion numérique sécurisée de la colonne Classe
                 df_m_non_n["Classe_Num"] = pd.to_numeric(df_m_non_n["Classe"], errors='coerce')
 
-                # 2. Préparation Division 123 (Top 25) : Pas de N ET Classe vaut 1, 2 ou 3
+                # RÈGLE B : Division 123 (Top 25) -> Uniquement si la Classe est numérique et vaut 1, 2 ou 3
                 mask_123 = df_m_non_n["Classe_Num"].isin([1, 2, 3])
                 df_m_asaf123 = df_m_non_n[mask_123].sort_values(by="Calc_Sec").head(25)
                 if len(df_m_asaf123) > 0:
@@ -165,7 +166,7 @@ def recuperer_donnees_course():
                     df_m_asaf123["Chrono"] = df_m_asaf123["Calc_Sec"].apply(lambda x: format_final_chrono(x))
                     df_asaf123 = df_m_asaf123[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]]
 
-                # 3. Préparation Division 4 : Pas de N ET Classe vaut 4
+                # RÈGLE C : Division 4 -> Uniquement si la Classe est numérique et vaut 4
                 mask_4 = df_m_non_n["Classe_Num"].isin([4])
                 df_m_asaf4 = df_m_non_n[mask_4].sort_values(by="Calc_Sec")
                 if len(df_m_asaf4) > 0:
@@ -176,46 +177,4 @@ def recuperer_donnees_course():
     except Exception as e:
         pass
 
-    # --- SÉCURISATION ABSOLUE DE L'ORDRE DES VARIABLES RETOURNÉES ---
     return df_live, df_hist, df_racb, df_asaf123, df_asaf4
-# --- AJUSTEMENT DES ONGLETS STREAMLIT (ORDRE CORRIGÉ) ---
-st.set_page_config(layout="wide")
-
-df_live, df_hist, df_racb, df_asaf123, df_asaf4 = recuperer_donnees_course()
-
-col_gauche, col_droite = st.columns([1.1, 0.9])
-
-with col_gauche:
-    # Création des trois onglets
-    tab1, tab2, tab3 = st.tabs([
-        "CLASSEMENT EVOLUTIF DES ESSAIS Division 123 (Top 25)", 
-        "CLASSEMENT EVOLUTIF DES ESSAIS RACB (Top 20)", 
-        "CLASSEMENT GENERAL Division 4"
-    ])
-    
-    with tab1:
-        st.subheader("CLASSEMENT EVOLUTIF DES ESSAIS Division 123 (Top 25)")
-        # On force la variable df_asaf123 (uniquement les classes numérique 1, 2, 3) dans cet onglet
-        st.dataframe(df_asaf123, hide_index=True, use_container_width=True)
-        
-    with tab2:
-        st.subheader("CLASSEMENT EVOLUTIF DES ESSAIS RACB (Top 20)")
-        # On force la variable df_racb (uniquement les numéros commençant par N) dans cet onglet
-        st.dataframe(df_racb, hide_index=True, use_container_width=True)
-        
-    with tab3:
-        st.subheader("CLASSEMENT GENERAL Division 4")
-        # On force la variable df_asaf4 (uniquement la classe numérique 4) dans cet onglet
-        st.dataframe(df_asaf4, hide_index=True, use_container_width=True)
-
-with col_droite:
-    st.markdown("### ⏱️ DERNIERS PASSAGES LIVE")
-    st.dataframe(df_live, hide_index=True, use_container_width=True)
-    
-    st.markdown("### 📝 HISTORIQUE GLOBAL DES ESSAIS")
-    st.dataframe(df_hist, hide_index=True, use_container_width=True)
-
-st.info("Actualisation automatique active (10s)")
-import time
-time.sleep(10)
-st.rerun()
