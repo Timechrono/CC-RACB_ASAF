@@ -1,9 +1,9 @@
-import streamlit as st
+import streamlit st
 import pandas as pd
 import time
 import Essais
 
-# --- CONFIGURATION INITIALE CORRIGÉE (Sans le paramètre theme invalide) ---
+# --- CONFIGURATION INITIALE ---
 st.set_page_config(page_title="Live", layout="wide")
 
 # --- DESIGN SCIENTIFIQUE RIGIDE ET FIXE RESTAURÉ ---
@@ -20,24 +20,24 @@ div[data-baseweb="select"]:focus-within {
     box-shadow: 0 0 0 2px rgba(30, 58, 138, 0.2) !important;
 }
 
-/* Restauration stricte du texte menu */
+/* Restauration et alignement du texte menu */
 .texte-menu {
     font-size: 1.05rem !important; 
     font-weight: bold !important;
     color: #1E293B !important; 
     text-align: left !important; 
-    margin-top: -16px !important; 
+    margin-top: -12px !important; /* Ajusté pour s'aligner sur le bouton agrandi */
     margin-bottom: 0px !important;
     white-space: nowrap !important;
     padding-right: 5px !important;
 }
 
-/* Alignement parfait en hauteur du chrono de décompte */
+/* Ajustement pour descendre légèrement le chrono de décompte */
 .texte-chrono {
     font-size: 0.95rem !important;
     font-weight: bold !important;
     color: #475569 !important;
-    margin-top: -16px !important; 
+    margin-top: -12px !important; /* Aligné sur la même hauteur que le texte menu et le bouton */
     white-space: nowrap !important;
 }
 
@@ -95,8 +95,9 @@ def gen_html(df, cl):
         return f"<table class='table-compacte {cl}'><tr><td style='text-align: center; padding: 10px;'>Aucune donnée disponible</td></tr></table>"
     return df.to_html(index=False, classes=f"table-compacte {cl}", escape=False, border=0)
 
-# --- CONFIGURATION SÉLECTEUR ---
-col_texte, col_select, col_chrono, col_reste = st.columns([1.3, 1.4, 1.5, 3.3], vertical_alignment="center")
+# --- CONFIGURATION SÉLECTEUR ÉLARGIE ---
+# colonnes ajustées à [1.3, 1.8, 1.8, 3.1] pour écarter le bouton et faire de la place pour le texte complet
+col_texte, col_select, col_chrono, col_reste = st.columns([1.3, 1.8, 1.8, 3.1], vertical_alignment="center")
 with col_texte:
     st.markdown('<p class="texte-menu">Sélectionnez la session à afficher :</p>', unsafe_allow_html=True)
 with col_select:
