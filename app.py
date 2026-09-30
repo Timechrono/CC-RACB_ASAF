@@ -2,238 +2,140 @@ import streamlit as st
 import time
 import Essais
 
-st.set_page_config(
-    page_title="Live",
-    layout="wide"
-)
+st.set_page_config(page_title="Live Chrono - RACB & ASAF", layout="wide")
 
-# --- STYLE CSS DIRECT ET NETTOYÉ ---
+# --- STYLE CSS ÉPURÉ ET LARGEUR MAXIMALE POUR TOUT PASSER SUR UNE SEULE LIGNE ---
 st.markdown("""
-<style>
-[data-testid="stHeader"] {
-    display: none !important;
-}
-
-/* SÉLECTEUR : COMPACT, BLEU FONCÉ ET TRIANGLE BLANC */
-div[data-testid="stSelectbox"] [role="combobox"],
-div[data-testid="stSelectbox"] div[data-baseweb="select"] > div {
-    background-color: #1E3A8A !important;
-    color: #FFFFFF !important;
-    border: 1px solid #1D4ED8 !important;
-    min-height: 28px !important;
-    height: 28px !important;
-    border-radius: 4px !important;
-}
-div[data-testid="stSelectbox"] [data-testid="stSelectboxValue"] {
-    color: #FFFFFF !important;
-    line-height: 28px !important;
-}
-div[data-testid="stSelectbox"] svg {
-    fill: #FFFFFF !important;
-    color: #FFFFFF !important;
-}
-
-/* STYLE DES TABLEAUX ET DES TITRES */
-.titre-live, 
-.titre-hist, 
-.titre-classement {
-    color: #FFFFFF !important;
-    font-size: 1.05rem !important;
-    font-weight: bold !important;
-    padding: 4px 8px !important;
-    border-radius: 3px !important;
-    margin-bottom: 6px !important;
-    width: 100% !important;
-    display: block !important;
-    clear: both !important;
-}
-.titre-live { background-color: #1E3A8A !important; }
-.titre-hist { background-color: #475569 !important; }
-.titre-classement { background-color: #1E3A8A !important; }
-
-.table-compacte {
-    width: 100% !important;
-    margin-bottom: 0px !important;
-    border-collapse: collapse !important;
-    table-layout: fixed !important;
-}
-.table-compacte tr { height: 18px !important; }
-.table-compacte th, 
-.table-compacte td { 
-    height: 18px !important;
-    padding: 1px 5px !important;
-    line-height: 1.1 !important;
-    font-size: 0.85rem !important;
-    color: #000000 !important;
-    vertical-align: middle !important;
-    overflow: hidden !important;
-    text-overflow: ellipsis !important;
-    white-space: nowrap !important;
-}
-.table-compacte td {
-    border-bottom: 1px solid #E0E0E0 !important;
-    background-color: #FFFFFF !important;
-}
-.table-compacte th {
-    font-weight: bold !important;
-    background-color: #F5F5F5 !important;
-    border-bottom: 2px solid #CCCCCC !important;
-    text-align: left !important;
-}
-.table-live td:last-child, 
-.table-hist td:last-child, 
-.table-class-robuste td:last-child {
-    font-weight: bold !important;
-    font-size: 0.94rem !important;
-    color: #0F172A !important;
-    overflow: visible !important;
-}
-.badge-piste {
-    background-color: #FEE2E2 !important;
-    color: #DC2626 !important;
-    padding: 1px 4px !important;
-    border-radius: 3px !important;
-    font-weight: bold;
-}
-.table-hist tr:nth-child(odd) td {
-    background-color: #E0F2FE !important;
-}
-
-.table-live th:nth-child(1), .table-live td:nth-child(1) { width: 8% !important; }
-.table-live th:nth-child(2), .table-live td:nth-child(2) { width: 25% !important; }
-.table-live th:nth-child(3), .table-live td:nth-child(3) { width: 17% !important; }
-.table-live th:nth-child(4), .table-live td:nth-child(4) { width: 12% !important; }
-.table-live th:nth-child(5), .table-live td:nth-child(5) { width: 13% !important; }
-.table-live th:nth-child(6), .table-live td:nth-child(6) { width: 25% !important; }
-
-.table-hist th:nth-child(1), .table-hist td:nth-child(1) { width: 7% !important; }
-.table-hist th:nth-child(2), .table-hist td:nth-child(2) { width: 23% !important; }
-.table-hist th:nth-child(3), .table-hist td:nth-child(3) { width: 22% !important; }
-.table-hist th:nth-child(4), .table-hist td:nth-child(4) { width: 7% !important; }
-.table-hist th:nth-child(5), .table-hist td:nth-child(5) { width: 7% !important; }
-.table-hist th:nth-child(6), .table-hist td:nth-child(6) { width: 10% !important; }
-.table-hist th:nth-child(7), .table-hist td:nth-child(7) { width: 10% !important; }
-.table-hist th:nth-child(8), .table-hist td:nth-child(8) { width: 14% !important; }
-
-.table-class-robuste th:nth-child(1), .table-class-robuste td:nth-child(1) { width: 9% !important; }
-.table-class-robuste th:nth-child(2), .table-class-robuste td:nth-child(2) { width: 11% !important; }
-.table-class-robuste th:nth-child(3), .table-class-robuste td:nth-child(3) { width: 33% !important; }
-.table-class-robuste th:nth-child(4), .table-class-robuste td:nth-child(4) { width: 23% !important; }
-.table-class-robuste th:nth-child(5), .table-class-robuste td:nth-child(5) { width: 6% !important; }
-.table-class-robuste th:nth-child(6), .table-class-robuste td:nth-child(6) { width: 18% !important; text-align: right !important; }
-
-.block-container {
-    padding-top: 0.5rem !important;
-    padding-bottom: 0rem !important;
-}
-div[data-testid="stVerticalBlock"] {
-    gap: 0rem !important;
-}
-</style>
+    <style>
+    [data-testid="stHeader"] { display: none !important; }
+    
+    /* Force l'alignement horizontal parfait du texte et du sélecteur sans forcer de petite largeur */
+    .bloc-menu-horizontal {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 15px;
+        margin: 0 auto 10px auto;
+        width: 100% !important;
+    }
+    .texte-menu {
+        font-size: 1rem !important;
+        font-weight: bold !important;
+        color: #1E293B !important;
+        white-space: nowrap;
+        margin: 0 !important;
+    }
+    
+    /* Élargissement du cadre du sélecteur pour qu'il s'étire proprement sur la ligne */
+    div[data-testid="stSelectbox"] {
+        width: 400px !important;
+        margin: 0 !important;
+    }
+    div[data-testid="stSelectbox"] label { display: none !important; }
+    
+    /* Application du style bleu foncé sur le sélecteur d'origine */
+    div[data-testid="stSelectbox"] [role="combobox"],
+    div[data-testid="stSelectbox"] div[data-baseweb="select"] > div {
+        background-color: #1E3A8A !important;
+        color: #FFFFFF !important;
+        border: 1px solid #1D4ED8 !important;
+        border-radius: 4px !important;
+    }
+    div[data-testid="stSelectbox"] [data-testid="stSelectboxValue"], div[data-testid="stSelectbox"] svg {
+        color: #FFFFFF !important;
+        fill: #FFFFFF !important;
+    }
+    
+    /* Petit décalage sous le menu */
+    .espace-sous-menu { height: 15px !important; clear: both !important; }
+    
+    /* Configuration des tableaux */
+    .titre-live, .titre-hist, .titre-classement {
+        color: #FFFFFF !important; font-size: 1.05rem !important; font-weight: bold !important;
+        padding: 4px 8px !important; border-radius: 3px !important; margin-bottom: 6px !important;
+        width: 100% !important; display: block !important; clear: both !important;
+    }
+    .titre-live { background-color: #1E3A8A !important; }
+    .titre-hist { background-color: #475569 !important; }
+    .titre-classement { background-color: #1E3A8A !important; }
+    
+    .table-compacte { width: 100% !important; margin-bottom: 0px !important; border-collapse: collapse !important; table-layout: fixed !important; }
+    .table-compacte tr { height: 18px !important; }
+    .table-compacte th, .table-compacte td { 
+        height: 18px !important; padding: 1px 5px !important; line-height: 1.1 !important; font-size: 0.85rem !important; color: #000000 !important; 
+        vertical-align: middle !important; overflow: hidden !important; text-overflow: ellipsis !important; white-space: nowrap !important; 
+    }
+    .table-compacte td { border-bottom: 1px solid #E0E0E0 !important; background-color: #FFFFFF !important; }
+    .table-compacte th { font-weight: bold !important; background-color: #F5F5F5 !important; border-bottom: 2px solid #CCCCCC !important; text-align: left !important; }
+    .table-live td:last-child, .table-hist td:last-child, .table-class-robuste td:last-child { font-weight: bold !important; font-size: 0.94rem !important; color: #0F172A !important; overflow: visible !important; }
+    .badge-piste { background-color: #FEE2E2 !important; color: #DC2626 !important; padding: 1px 4px !important; border-radius: 3px !important; font-weight: bold; }
+    .table-hist tr:nth-child(odd) td { background-color: #E0F2FE !important; }
+    
+    .table-live th:nth-child(1), .table-live td:nth-child(1) { width: 8% !important; }
+    .table-live th:nth-child(2), .table-live td:nth-child(2) { width: 25% !important; }
+    .table-live th:nth-child(3), .table-live td:nth-child(3) { width: 17% !important; }
+    .table-live th:nth-child(4), .table-live td:nth-child(4) { width: 12% !important; }
+    .table-live th:nth-child(5), .table-live td:nth-child(5) { width: 13% !important; }
+    .table-live th:nth-child(6), .table-live td:nth-child(6) { width: 25% !important; }
+    
+    .table-hist th:nth-child(1), .table-hist td:nth-child(1) { width: 7% !important; }
+    .table-hist th:nth-child(2), .table-hist td:nth-child(2) { width: 23% !important; }
+    .table-hist th:nth-child(3), .table-hist td:nth-child(3) { width: 22% !important; }
+    .table-hist th:nth-child(4), .table-hist td:nth-child(4) { width: 7% !important; }
+    .table-hist th:nth-child(5), .table-hist td:nth-child(5) { width: 7% !important; }
+    .table-hist th:nth-child(6), .table-hist td:nth-child(6) { width: 10% !important; }
+    .table-hist th:nth-child(7), .table-hist td:nth-child(7) { width: 10% !important; }
+    .table-hist th:nth-child(8), .table-hist td:nth-child(8) { width: 14% !important; }
+    
+    .table-class-robuste th:nth-child(1), .table-class-robuste td:nth-child(1) { width: 9% !important; }
+    .table-class-robuste th:nth-child(2), .table-class-robuste td:nth-child(2) { width: 11% !important; }
+    .table-class-robuste th:nth-child(3), .table-class-robuste td:nth-child(3) { width: 33% !important; }
+    .table-class-robuste th:nth-child(4), .table-class-robuste td:nth-child(4) { width: 23% !important; }
+    .table-class-robuste th:nth-child(5), .table-class-robuste td:nth-child(5) { width: 6% !important; }
+    .table-class-robuste th:nth-child(6), .table-class-robuste td:nth-child(6) { width: 18% !important; text-align: right !important; }
+    
+    .block-container { padding-top: 0.4rem !important; padding-bottom: 0rem !important; }
+    div[data-testid="stVerticalBlock"] { gap: 0rem !important; }
+    </style>
 """, unsafe_allow_html=True)
 
 def gen_html(df, classe):
-    if df.empty:
+    if df.empty: 
         return f"<table class='table-compacte {classe}'><tr><td style='text-align: center; padding: 10px;'>Aucune donnée disponible</td></tr></table>"
-    return df.to_html(
-        index=False,
-        classes=f"table-compacte {classe}",
-        escape=False,
-        border=0
-    )
+    return df.to_html(index=False, classes=f"table-compacte {classe}", escape=False, border=0)
 
-# --- LE MENU ALIGNÉ À DROITE ---
-col_vide, col_menu = st.columns([1.6, 1.0])
-with col_menu:
-    choix_course = st.selectbox(
-        "Sélectionnez la session à afficher :",
-        [
-            "Essais / Entraînements",
-            "Course 1 ASAF", "Course 1 RACB",
-            "Course 2 ASAF", "Course 2 RACB",
-            "Course 3 ASAF", "Course 3 RACB"
-        ]
-    )
+# --- INJECTION DU MENU EN LIGNE DESIGN ÉLARGIE ---
+st.markdown('<div class="bloc-menu-horizontal">', unsafe_allow_html=True)
+col_gauche, col_droite = st.columns([1.2, 1.0])
+with col_gauche:
+    st.markdown('<p class="texte-menu" style="text-align: right;">Sélectionnez la session à afficher :</p>', unsafe_allow_html=True)
+with col_droite:
+    choix_course = st.selectbox("Session", ["Essais / Entraînements", "Course 1 ASAF", "Course 1 RACB", "Course 2 ASAF", "Course 2 RACB", "Course 3 ASAF", "Course 3 RACB"])
+st.markdown('</div>', unsafe_allow_html=True)
 
-# Micro espace sous le menu
-st.markdown("<div style='height:8px;'></div>", unsafe_allow_html=True)
+st.markdown('<div class="espace-sous-menu"></div>', unsafe_allow_html=True)
 
-# --- REFRESH TOUTES LES 30 SECONDES ---
+# --- EN DIRECT & REFRESH 30 SECONDES ---
 @st.fragment(run_every=30)
 def afficher_tableaux():
     st.cache_data.clear()
+    df_live, df_hist, df_racb, df_asaf123, df_asaf4 = Essais.recuperer_donnees_course()
     
-    df_live, df_hist, df_racb, df_asaf123, df_asaf4 = (
-        Essais.recuperer_donnees_course()
-    )
-
     cg, cd = st.columns([1.3, 0.9])
     with cg:
-        st.markdown(
-            "<span class='titre-live'>"
-            "🏎️ EN DIRECT / Derniers concurrents partis"
-            "</span>",
-            unsafe_allow_html=True
-        )
-        st.markdown(
-            gen_html(df_live, "table-live"),
-            unsafe_allow_html=True
-        )
-        
-        st.markdown(
-            "<div style='height:35px;'></div>",
-            unsafe_allow_html=True
-        )
-        st.markdown(
-            "<span class='titre-hist'>"
-            "🕒 HISTORIQUE DES TEMPS"
-            "</span>",
-            unsafe_allow_html=True
-        )
-        st.markdown(
-            gen_html(df_hist, "table-hist"),
-            unsafe_allow_html=True
-        )
+        st.markdown("<span class='titre-live'>🏎️ EN DIRECT / Derniers concurrents partis</span>", unsafe_allow_html=True)
+        st.markdown(gen_html(df_live, "table-live"), unsafe_allow_html=True)
+        st.markdown("<div style='height: 35px;'></div>", unsafe_allow_html=True)
+        st.markdown("<span class='titre-hist'>🕒 HISTORIQUE DES TEMPS</span>", unsafe_allow_html=True)
+        st.markdown(gen_html(df_hist, "table-hist"), unsafe_allow_html=True)
     with cd:
-        st.markdown(
-            "<span class='titre-classement'>"
-            "🏆 CLASSEMENT ESSAIS RACB (Top 20)"
-            "</span>",
-            unsafe_allow_html=True
-        )
-        st.markdown(
-            gen_html(df_racb, "table-class-robuste"),
-            unsafe_allow_html=True
-        )
-        
-        st.markdown(
-            "<div style='height:55px;'></div>",
-            unsafe_allow_html=True
-        )
-        st.markdown(
-            "<span class='titre-classement'>"
-            "🏆 CLASSEMENT ASAF DIV 1-2-3 (Top 25)"
-            "</span>",
-            unsafe_allow_html=True
-        )
-        st.markdown(
-            gen_html(df_asaf123, "table-class-robuste"),
-            unsafe_allow_html=True
-        )
-        
-        st.markdown(
-            "<div style='height:55px;'></div>",
-            unsafe_allow_html=True
-        )
-        st.markdown(
-            "<span class='titre-classement'>"
-            "🏆 CLASSEMENT ASAF DIV 4 (Top 10)"
-            "</span>",
-            unsafe_allow_html=True
-        )
-        st.markdown(
-            gen_html(df_asaf4, "table-class-robuste"),
-            unsafe_allow_html=True
-        )
+        st.markdown("<span class='titre-classement'>🏆 CLASSEMENT ESSAIS RACB (Top 20)</span>", unsafe_allow_html=True)
+        st.markdown(gen_html(df_racb, "table-class-robuste"), unsafe_allow_html=True)
+        st.markdown("<div style='height: 55px;'></div>", unsafe_allow_html=True)
+        st.markdown("<span class='titre-classement'>🏆 CLASSEMENT ASAF DIV 1-2-3 (Top 25)</span>", unsafe_allow_html=True)
+        st.markdown(gen_html(df_asaf123, "table-class-robuste"), unsafe_allow_html=True)
+        st.markdown("<div style='height: 55px;'></div>", unsafe_allow_html=True)
+        st.markdown("<span class='titre-classement'>🏆 CLASSEMENT ASAF DIV 4 (Top 10)</span>", unsafe_allow_html=True)
+        st.markdown(gen_html(df_asaf4, "table-class-robuste"), unsafe_allow_html=True)
 
 afficher_tableaux()
