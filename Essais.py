@@ -97,13 +97,13 @@ def recuperer_donnees_course():
 
         df_eng_raw.columns = df_eng_raw.columns.astype(str).str.strip().str.upper()
         
-        # NETTOYAGE ULTRA-STRICT DU FORMAT DES COLONNES DIVISION ET CLASSE
+        # Récupération directe de la 7ème colonne (index 6) sans forcer une conversion en texte destructrice
         df_eng = pd.DataFrame({
             "N°": df_eng_raw.iloc[:, 0].apply(nettoyer_numero), 
             "Nom_Prenom": df_eng_raw.iloc[:, 1].fillna("Pilote Inconnu").astype(str).str.strip(),
             "Voiture": df_eng_raw.iloc[:, 4].fillna("").astype(str).str.strip(),
             "Division": df_eng_raw.iloc[:, 5].apply(lambda x: "-" if pd.isna(x) else str(x).strip()[:-2] if str(x).strip().endswith(".0") else str(x).strip()),
-            "Classe": df_eng_raw.iloc[:, 6].apply(lambda x: "-" if pd.isna(x) else str(x).strip()[:-2] if str(x).strip().endswith(".0") else str(x).strip())
+            "Classe": df_eng_raw.iloc[:, 6]  # Conservé au format natif (Standard / Numérique Excel)
         })
 
         df_eng = df_eng[df_eng["N°"] != "NAN"].drop_duplicates(subset=["N°"])
@@ -142,11 +142,11 @@ def recuperer_donnees_course():
             idx_meilleur = df_valides.groupby("N°")["Calc_Sec"].idxmin()
             df_meilleurs = df_valides.loc[idx_meilleur].copy()
 
-            # Forcer la détection propre du numéro en texte majuscule sans espaces
+            # Séparation par le "N" de départ du numéro
             df_meilleurs["N°_Check"] = df_meilleurs["N°"].astype(str).str.strip().str.upper()
             mask_racb = df_meilleurs["N°_Check"].str.startswith("N", na=False)
 
-            # 1. CLASSEMENT RACB : Uniquement les numéros commençant par N (Top 20)
+            # Onglet 2 : CLASSEMENT RACB (Top 20) -> Uniquement les numéros commençant par N
             df_m_racb = df_meilleurs[mask_racb].copy()
             if len(df_m_racb) > 0:
                 df_m_racb = df_m_racb.sort_values(by="Calc_Sec").head(20)
@@ -154,21 +154,23 @@ def recuperer_donnees_course():
                 df_m_racb["Chrono"] = df_m_racb["Calc_Sec"].apply(lambda x: format_final_chrono(x))
                 df_racb = df_m_racb[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]]
 
-            # 2 & 3. CLASSEMENTS ASAF : Strictement aucun numéro commençant par N
+            # Pour les classements ASAF (Pas de numéro commençant par N)
             df_m_non_n = df_meilleurs[~mask_racb].copy()
 
             if len(df_m_non_n) > 0:
-                # Filtrage ultra-sécurisé sur les caractères textuels "1", "2", "3" de la colonne Classe
-                mask_123 = df_m_non_n["Classe"].astype(str).str.strip().isin(["1", "2", "3"])
+                # Conversion numérique sécurisée pour éviter les conflits de types (int/float)
+                df_m_non_n["Classe_Num"] = pd.to_numeric(df_m_non_n["Classe"], errors='coerce')
+
+                # Onglet 1 : Division 123 (Top 25) -> Classe numérique vaut 1, 2 ou 3
+                mask_123 = df_m_non_n["Classe_Num"].isin([1, 2, 3])
                 df_m_asaf123 = df_m_non_n[mask_123].sort_values(by="Calc_Sec").head(25)
-                
                 if len(df_m_asaf123) > 0:
                     df_m_asaf123["Pos"] = range(1, len(df_m_asaf123) + 1)
                     df_m_asaf123["Chrono"] = df_m_asaf123["Calc_Sec"].apply(lambda x: format_final_chrono(x))
                     df_asaf123 = df_m_asaf123[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]]
 
-                    # Filtrage ultra-sécurisé sur le caractère textuel "4" de la colonne Classe
-                mask_4 = df_m_non_n["Classe"].astype(str).str.strip().isin(["4"])
+                # Onglet 3 : Division 4 -> Classe numérique vaut 4
+                mask_4 = df_m_non_n["Classe_Num"].isin([4])
                 df_m_asaf4 = df_m_non_n[mask_4].sort_values(by="Calc_Sec")
                 if len(df_m_asaf4) > 0:
                     df_m_asaf4["Pos"] = range(1, len(df_m_asaf4) + 1)
