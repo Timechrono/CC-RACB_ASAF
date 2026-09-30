@@ -119,7 +119,6 @@ def recuperer_donnees_course():
         base = pd.merge(base_runs, df_eng, on="N°", how="inner")
         if len(df_dep) > 0: base = pd.merge(base, df_dep, on=["N°", "Run_Index"], how="left")
         if len(df_arr) > 0: base = pd.merge(base, df_arr, on=["N°", "Run_Index"], how="left")
-        
         if len(base) > 0:
             base["Calc_Sec"] = base["Sec_Excel"].fillna((base["Sec_Arr"] - base["Sec_Dep"]).apply(lambda x: x + 3600 if (x is not None and x < 0) else x))
             
@@ -134,23 +133,40 @@ def recuperer_donnees_course():
             base["Ordre_Saisie"] = range(len(base))
             df_hist = base.sort_values(by="Ordre_Saisie", ascending=False)[["N°", "Nom_Prenom", "Voiture", "Division", "Classe", "Chrono_Visual_Hist"]].rename(columns={"Chrono_Visual_Hist": "Chrono réalisé"})
 
-            # --- PREMIÈRE ÉTAPE DE CORRECTION ---
+            # --- SÉPARATION CORRIGÉE SELON LE NUMÉRO ET LA CLASSE ---
             df_valides = base[base["Calc_Sec"].notna() & (base["Calc_Sec"] > 0)].copy()
             idx_meilleur = df_valides.groupby("N°")["Calc_Sec"].idxmin()
             df_meilleurs = df_valides.loc[idx_meilleur].copy()
 
-            # Filtrage STRICT sur la colonne Classe uniquement (1, 2 ou 3) pour le Top 25
-            mask_123 = df_meilleurs["Classe"].isin(["1", "2", "3", 1, 2, 3])
-            df_m_asaf123 = df_meilleurs[mask_123].sort_values(by="Calc_Sec").head(25)
+            # RÈGLE A : Si le numéro commence par N -> Uniquement dans RACB (Top 20)
+            mask_commence_par_n = df_meilleurs["N°"].astype(str).str.strip().str.upper().str.startswith("N", na=False)
+            df_m_racb = df_meilleurs[mask_commence_par_n].copy()
             
-            if len(df_m_asaf123) > 0:
-                df_m_asaf123["Pos"] = range(1, len(df_m_asaf123) + 1)
-                df_m_asaf123["Chrono"] = df_m_asaf123["Calc_Sec"].apply(lambda x: format_final_chrono(x))
-                df_asaf123 = df_m_asaf123[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]]
+            if len(df_m_racb) > 0:
+                df_m_racb = df_m_racb.sort_values(by="Calc_Sec").head(20)
+                df_m_racb["Pos"] = range(1, len(df_m_racb) + 1)
+                df_m_racb["Chrono"] = df_m_racb["Calc_Sec"].apply(lambda x: format_final_chrono(x))
+                df_racb = df_m_racb[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]]
 
-            # Temporaire pour les autres tables en attendant les prochaines étapes
-            df_racb = df_meilleurs.sort_values(by="Calc_Sec").head(20) # Sera adapté à l'étape 2
-            df_asaf4 = df_meilleurs.sort_values(by="Calc_Sec").head(20) # Sera adapté à l'étape 3
+            # Pour les classements ASAF, on ne garde QUE ceux qui NE commencent PAS par N
+            df_m_non_n = df_meilleurs[~mask_commence_par_n].copy()
+
+            if len(df_m_non_n) > 0:
+                # RÈGLE B : Division 123 (Top 25) -> Ne commence pas par N ET la classe est 1, 2 ou 3
+                mask_123 = df_m_non_n["Classe"].isin(["1", "2", "3", 1, 2, 3])
+                df_m_asaf123 = df_m_non_n[mask_123].sort_values(by="Calc_Sec").head(25)
+                if len(df_m_asaf123) > 0:
+                    df_m_asaf123["Pos"] = range(1, len(df_m_asaf123) + 1)
+                    df_m_asaf123["Chrono"] = df_m_asaf123["Calc_Sec"].apply(lambda x: format_final_chrono(x))
+                    df_asaf123 = df_m_asaf123[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]]
+
+                # RÈGLE C : Division 4 -> Ne commence pas par N ET la classe est 4
+                mask_4 = df_m_non_n["Classe"].isin(["4", 4])
+                df_m_asaf4 = df_m_non_n[mask_4].sort_values(by="Calc_Sec")
+                if len(df_m_asaf4) > 0:
+                    df_m_asaf4["Pos"] = range(1, len(df_m_asaf4) + 1)
+                    df_m_asaf4["Chrono"] = df_m_asaf4["Calc_Sec"].apply(lambda x: format_final_chrono(x))
+                    df_asaf4 = df_m_asaf4[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]]
 
     except Exception as e:
         pass
