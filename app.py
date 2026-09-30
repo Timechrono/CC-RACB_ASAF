@@ -13,14 +13,14 @@ button:focus, div:focus, input:focus, select:focus {
     outline: none !important; border-color: transparent !important; box-shadow: none !important;
 }
 
-/* Modifié : marge supérieure négative pour remonter le texte précisément au milieu */
+/* Modifié : marge supérieure négative augmentée à -16px pour remonter le texte encore plus */
 .texte-menu {
     font-size: 1.05rem !important; 
     font-weight: bold !important;
     color: #1E293B !important; 
     text-align: right; 
     padding-right: 15px;
-    margin-top: -8px !important; 
+    margin-top: -16px !important; 
     margin-bottom: 0px !important;
 }
 
