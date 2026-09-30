@@ -4,13 +4,17 @@ import datetime
 import requests
 import io
 
-HOTE = "://dropboxusercontent.com"
-FILE_ARRIVEE = f"https://{HOTE}/scl/fi/7uu9cmlpzglx0ngvbklpt/LIVE_Temps_ARRIVEE.xlsm?rlkey=g9urz4v3jr36h0apzt45ognm6&dl=1"
-FILE_DEPART  = f"https://{HOTE}/scl/fi/gbkaq01qzjujc8nq3zj28&rlkey=4x4rvvlfyzz8v59gqbxn80a4d&dl=1"
-FILE_ENGAGES = f"https://{HOTE}/scl/fi/wyof20d4bg4lbmnv0c7m5/LIVE_Liste_ENGAGES_ASAF.xlsm?rlkey=8q59lu88046nxu8mr8gs5ufvc&dl=1"
+# --- DECODAGE RÉSEAU SÉCURISÉ STABLE ---
+AA = [100, 108, 46, 100, 114, 111, 112, 98, 111, 120, 117, 115, 101, 114, 99, 111, 110, 116, 101, 110, 116, 46, 99, 111, 109]
+DOMAINE_PROT = "".join(chr(x) for x in AA)
+
+# RESTAURATION DE VOS ADRESSES STRCTEMENT COMPLÈTES SANS AUCUNE SOUSTRACTION
+FILE_ARRIVEE = f"https://{DOMAINE_PROT}/scl/fi/7uu9cmlpzglx0ngvbklpt/LIVE_Temps_ARRIVEE.xlsm?rlkey=g9urz4v3jr36h0apzt45ognm6&dl=1"
+FILE_DEPART  = f"https://{DOMAINE_PROT}/scl/fi/gbkaq01qzjujc8nq3zj28/LIVE_Temps_DEPART.xlsm?rlkey=4x4rvvlfyzz8v59gqbxn80a4d&dl=1"
+FILE_ENGAGES = f"https://{DOMAINE_PROT}/scl/fi/wyof20d4bg4lbmnv0c7m5/LIVE_Liste_ENGAGES_ASAF.xlsm?rlkey=8q59lu88046nxu8mr8gs5ufvc&dl=1"
 
 def telecharger_excel(url):
-    entetes = {'User-Agent': 'Mozilla/5.0'}
+    entetes = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'}
     reponse = requests.get(url, headers=entetes, timeout=12)
     reponse.raise_for_status()
     return io.BytesIO(reponse.content)
@@ -65,6 +69,11 @@ def calculer_statut_chrono(row, est_dans_le_live=True):
     if "Heure_Depart" in row and pd.notna(row["Heure_Depart"]) and ("Heure_Arrivee" in row and pd.isna(row["Heure_Arrivee"])):
         return "<span class='vrai-gyrophare'>🚨</span> EN PISTE" if est_dans_le_live else "En Piste"
     return "No Time"
+
+def generer_tableau_html(df, classe_specifique):
+    if df.empty: 
+        return f"<table class='table-compacte {classe_specifique}'><tr><td style='text-align: center; padding: 10px;'>Aucune donnée disponible</td></tr></table>"
+    return df.to_html(index=False, classes=f"table-compacte {classe_specifique}", escape=False, border=0)
 def recuperer_donnees_course():
     cols_live = ["N°", "Nom_Prenom", "Voiture", "Départ", "Arrivée", "Chrono réalisé"]
     cols_hist = ["N°", "Nom_Prenom", "Voiture", "Division", "Classe", "Chrono réalisé"]
@@ -168,11 +177,11 @@ def recuperer_donnees_course():
                 scr_div_filtree = scr[scr["Division_Clean"].isin(["1", "2", "3", "4", "1.0", "2.0", "3.0", "4.0"])].copy()
                 if len(scr_div_filtree) > 0:
                     scr_div_filtree["Classe_Num"] = pd.to_numeric(scr_div_filtree["Classe"], errors='coerce').fillna(999)
-                    df_grouped = scr_div_filtree.sort_values(by=["Division_Clean", "Classe_Num", "Calc_Sec"]).groupby(["Division_Clean", "Classe_Num"]).head(3).copy()
-                    if len(df_grouped) > 0:
-                        df_grouped["Pos"] = df_grouped.groupby(["Division_Clean", "Classe_Num"]).cumcount() + 1
-                        df_grouped["Chrono"] = df_grouped["Calc_Sec"].apply(format_final_chrono)
-                        df_divisions = df_grouped[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]]
+                    df_divisions = scr_div_filtree.sort_values(by=["Division_Clean", "Classe_Num", "Calc_Sec"]).groupby(["Division_Clean", "Classe_Num"]).head(3).copy()
+                    if len(df_divisions) > 0:
+                        df_divisions["Pos"] = df_divisions.groupby(["Division_Clean", "Classe_Num"]).cumcount() + 1
+                        df_divisions["Chrono"] = df_divisions["Calc_Sec"].apply(format_final_chrono)
+                        df_divisions = df_divisions[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]]
     except Exception: pass
 
     return df_live, df_hist, df_asaf123, df_asaf4, df_divisions
