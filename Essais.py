@@ -5,14 +5,10 @@ import requests
 import io
 import time
 
-# --- RECONSTRUCTION INTERNE SECURISEE CONTRE LE COMPRESSION GITHUB ---
-AA = [100, 108, 46, 100, 114, 111, 112, 98, 111, 120, 117, 115, 101, 114, 99, 111, 110, 116, 101, 110, 116, 46, 99, 111, 109]
-DOMAINE_PROT = "".join(chr(x) for x in AA)
-
-# Assemblage par blocs étanches pour le serveur
-FILE_ARRIVEE = f"ht" + f"tps://{DOMAINE_PROT}/scl/fi/7uu9cmlpzglx0ngvbklpt/LIVE_Temps_ARRIVEE.xlsm?rlkey=g9urz4v3jr36h0apzt45ognm6&dl=1"
-FILE_DEPART  = f"ht" + f"tps://{DOMAINE_PROT}/scl/fi/gbkaq01qzjujc8nq3zj28/LIVE_Temps_DEPART.xlsm?rlkey=4x4rvvlfyzz8v59gqbxn80a4d&dl=1"
-FILE_ENGAGES = f"ht" + f"tps://{DOMAINE_PROT}/scl/fi/sqrqinksco1am700s27h4/LIVE_Liste_ENGAGES.xlsm?rlkey=8p0n8jyeuiivaa375bh3p608n&dl=1"
+# --- CONFIGURATION INTERNET AVEC VOS VRAIS LIENS FONCTIONNELS REPRIS MOT POUR MOT ---
+FILE_ARRIVEE = "https://dropboxusercontent.com"
+FILE_DEPART  = "https://dropboxusercontent.com"
+FILE_ENGAGES = "https://dropboxusercontent.com"
 
 def telecharger_excel(url):
     entetes = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'}
@@ -30,13 +26,19 @@ def convertir_en_secondes(valeur):
     if ":" in s:
         try:
             parts = s.split(":")
-            return (int(parts[0]) * 60) + float(parts[1].replace(",", "."))
+            m = int(parts[0])
+            sec = float(parts[1].replace(",", "."))
+            return (m * 60) + sec
         except Exception: pass
     if s.endswith(".0"): s = s[:-2]
     s_clean = "".join([c for c in s if c.isdigit()])
     if not s_clean: return None
     num = int(s_clean)
-    return (num // 10000 * 60) + ((num // 100) % 100) + (num % 100 / 100)
+    centiemes = num % 100
+    secondes = (num // 100) % 100
+    minutes = num // 10000
+    if minutes >= 60: minutes = minutes % 60
+    return (minutes * 60) + secondes + (centiemes / 100)
 def nettoyer_numero(valeur):
     if pd.isna(valeur): return "nan"
     s = str(valeur).strip().upper()
@@ -55,7 +57,8 @@ def formater_heure_ecran(val):
     if pd.isna(val) or val == "" or str(val).lower() == "nan": return "-"
     s = str(val).strip()
     if s.endswith(".0"): s = s[:-2]
-    return f"{s.zfill(6)[0:2]}:{s.zfill(6)[2:4]}.{s.zfill(6)[4:6]}" if len(s.zfill(6)) == 6 else str(val)
+    s = s.zfill(6)
+    return f"{s[0:2]}:{s[2:4]}.{s[4:6]}" if len(s) == 6 else str(val)
 
 def calculer_statut_chrono(row, est_dans_le_live=True):
     if "Calc_Sec" in row and pd.notna(row["Calc_Sec"]) and row["Calc_Sec"] > 0:
