@@ -9,8 +9,19 @@ st.set_page_config(page_title="Live", layout="wide")
 st.markdown("""
 <style>
 [data-testid="stHeader"] { display: none !important; }
+
+/* Modifié : Le cadre au clic (focus) passe du rouge au bleu foncé (#1E3A8A) */
 button:focus, div:focus, input:focus, select:focus {
-    outline: none !important; border-color: transparent !important; box-shadow: none !important;
+    outline: none !important; 
+    border-color: #1E3A8A !important; 
+    box-shadow: 0 0 0 2px rgba(30, 58, 138, 0.2) !important;
+}
+div[data-baseweb="select"] {
+    border-color: #CCCCCC !important;
+}
+div[data-baseweb="select"]:focus-within {
+    border-color: #1E3A8A !important;
+    box-shadow: 0 0 0 2px rgba(30, 58, 138, 0.2) !important;
 }
 
 /* Alignement du texte à gauche avec une marge supérieure propre */
@@ -25,10 +36,20 @@ button:focus, div:focus, input:focus, select:focus {
     padding-right: 5px !important;
 }
 
-/* Écriture du bouton sélecteur plus grande et en gras */
-div[data-testid="stSelectbox"] div[data-baseweb="select"] {
-    font-size: 1.05rem !important;
+/* Style pour le texte du chronomètre de décompte */
+.texte-chrono {
+    font-size: 0.95rem !important;
     font-weight: bold !important;
+    color: #475569 !important;
+    margin-top: -12px !important;
+    white-space: nowrap !important;
+}
+
+/* Modifié : Écriture du bouton sélecteur PLUS GRANDE (1.1rem) et EN GRAS */
+div[data-testid="stSelectbox"] div[data-baseweb="select"] {
+    font-size: 1.1rem !important;
+    font-weight: bold !important;
+    color: #000000 !important;
 }
 
 .titre-live, .titre-hist, .titre-classement {
@@ -79,22 +100,29 @@ def gen_html(df, cl):
         return f"<table class='table-compacte {cl}'><tr><td style='text-align: center; padding: 10px;'>Aucune donnée disponible</td></tr></table>"
     return df.to_html(index=False, classes=f"table-compacte {cl}", escape=False, border=0)
 
-# --- CONFIGURATION SÉLECTEUR AJUSTÉE ---
-# La colonne du sélecteur passe de 0.9 à 1.4 pour agrandir la largeur du bouton
-col_texte, col_select, col_reste = st.columns([1.3, 1.4, 3.3], vertical_alignment="center")
+# --- CONFIGURATION SÉLECTEUR ET CHRONO ---
+# Colonne select élargie de 1.4 à 1.6. Ajout d'une colonne de 1.5 pour accueillir le chrono visuel.
+col_texte, col_select, col_chrono, col_reste = st.columns([1.3, 1.6, 1.5, 1.8], vertical_alignment="center")
+
 with col_texte:
     st.markdown('<p class="texte-menu">Sélectionnez la session à afficher :</p>', unsafe_allow_html=True)
+
 with col_select:
     choix_course = st.selectbox("Session_Label", ["Essais / Entraînements"], label_visibility="collapsed")
 
-# Marge sous la zone de sélection
+with col_chrono:
+    # Zone d'affichage dynamique réservée pour le compte à rebours
+    emplacement_chrono = st.empty()
+
+# Marge sous la zone supérieure
 st.markdown("<div style='height:25px;'></div>", unsafe_allow_html=True)
 
-# --- REFRESH ET APPEL DIRECT ---
-@st.fragment(run_every=30)
-def afficher_tableaux():
+# --- ZONE PRINCIPALE D'AFFICHAGE (ST.FRAGMENT CORRIGÉ POUR LE CHRONO SECONDE PAR SECONDE) ---
+@st.fragment
+def afficher_tableaux_avec_decompte():
     st.cache_data.clear()
     
+    # 1. Récupération et affichage immédiat des classements de course
     d_liv, d_his, d_as123, d_as4, d_racb, t_racb, t_as123, t_as4 = Essais.recuperer_donnees_course()
     titre_historique = "🕒 HISTORIQUE DES TEMPS / ENTRAINEMENTS ASAF & RACB"
     
@@ -119,4 +147,12 @@ def afficher_tableaux():
         st.markdown(f"<span class='titre-classement'>{t_as4}</span>", unsafe_allow_html=True)
         st.markdown(gen_html(d_as4, "table-class-robuste"), unsafe_allow_html=True)
 
-afficher_tableaux()
+    # 2. Boucle de décompte visuel de 30 à 0 secondes (s'exécute en tâche de fond)
+    for secondes_restantes in range(30, 0, -1):
+        emplacement_chrono.markdown(f'<p class="texte-chrono">🔄 Rafraîchissement dans {secondes_restantes}s</p>', unsafe_allow_html=True)
+        time.sleep(1)
+    
+    # 3. Arrivé à 0, on force la relance du fragment pour re-télécharger les Excel
+    st.rerun()
+
+afficher_tableaux_avec_decompte()
