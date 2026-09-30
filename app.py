@@ -7,7 +7,7 @@ st.set_page_config(
     layout="wide"
 )
 
-# --- CONFIGURATION STYLE CSS BLEU FONCÉ ---
+# --- CONFIGURATION STYLE CSS GLOBAL ---
 st.markdown("""
 <style>
 [data-testid="stHeader"] {
@@ -48,22 +48,22 @@ div[data-testid="stSelectbox"] label {
 /* STYLE DU BOUTON FERMÉ : BLEU FONCÉ */
 div[data-testid="stSelectbox"] [role="combobox"],
 div[data-testid="stSelectbox"] div[data-baseweb="select"] > div {
-    background-color: #1E3A8A !important; /* Vrai bleu foncé */
-    color: #FFFFFF !important;             /* Texte blanc pur */
-    border: 1px solid #1D4ED8 !important;  /* Bordure bleue */
+    background-color: #1E3A8A !important;
+    color: #FFFFFF !important;
+    border: 1px solid #1D4ED8 !important;
     min-height: 26px !important;
     height: 26px !important;
     border-radius: 4px !important;
     font-size: 0.88rem !important;
 }
 
-/* COULEUR DU TEXTE SELECTIONNE & PETITE FLÈCHE EN BLANC */
+/* COULEUR DU TEXTE SELECTIONNE & FLÈCHE EN BLANC */
 div[data-testid="stSelectbox"] [data-testid="stSelectboxValue"] {
     color: #FFFFFF !important;
     line-height: 26px !important;
 }
 div[data-testid="stSelectbox"] svg {
-    fill: #FFFFFF !important;              /* Triangle blanc */
+    fill: #FFFFFF !important;
     color: #FFFFFF !important;
 }
 div[data-testid="stSelectbox"] div[data-baseweb="select"] > div > div {
@@ -72,22 +72,23 @@ div[data-testid="stSelectbox"] div[data-baseweb="select"] > div > div {
     height: 24px !important;
 }
 
-/* STYLE DE LA LISTE QUAND LE MENU EST OUVERT : BLEU FONCÉ */
-div[data-baseweb="popover"] ul,
-div[data-baseweb="menu"] {
-    background-color: #1E3A8A !important;  /* Fond bleu foncé */
+/* PROTECTION GLOBALE CONTRE LE BLEU CIEL (CIBLE TOUTE LA PAGE) */
+html body div[data-baseweb="popover"] ul,
+html body div[data-baseweb="menu"],
+html body [role="listbox"] {
+    background-color: #1E3A8A !important;
     color: #FFFFFF !important;
     border: 1px solid #1D4ED8 !important;
 }
-div[data-baseweb="popover"] li,
-div[role="option"] {
-    background-color: #1E3A8A !important;  /* Lignes bleues */
+html body div[data-baseweb="popover"] li,
+html body [role="option"] {
+    background-color: #1E3A8A !important;
     color: #FFFFFF !important;
 }
-/* Survol des options à la souris */
-div[data-baseweb="popover"] li:hover,
-div[role="option"]:hover {
-    background-color: #1D4ED8 !important;  /* Bleu plus clair au survol */
+html body div[data-baseweb="popover"] li:hover,
+html body [role="option"]:hover,
+html body [role="option"][aria-selected="true"] {
+    background-color: #1D4ED8 !important;
     color: #FFFFFF !important;
 }
 
