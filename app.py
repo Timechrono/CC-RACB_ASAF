@@ -7,7 +7,7 @@ st.set_page_config(
     layout="wide"
 )
 
-# --- CONFIGURATION STYLE CSS NETTOYÉ ET FLUIDE ---
+# --- CONFIGURATION STYLE CSS NETTOYÉ ET ULTRA-FLUIDE ---
 st.markdown("""
 <style>
 [data-testid="stHeader"] {
@@ -23,14 +23,14 @@ div[data-testid="stFragment"] {
     animation: none !important;
 }
 
-/* BLOC HORIZONTAL ALIGNÉ ET ULTRA-COMPACT */
+/* CONTENEUR DE LA LIGNE HORIZONTALE UNIQUE */
 .bloc-menu-horizontal {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 12px;
+    gap: 10px;
     margin: 0 auto 0px auto;
-    max-width: 850px;
+    max-width: 900px;
 }
 .texte-menu {
     font-size: 0.92rem !important;
@@ -38,42 +38,44 @@ div[data-testid="stFragment"] {
     color: #1E293B !important;
     white-space: nowrap;
     margin-bottom: 0px !important;
+    margin-top: 4px !important;
 }
 
-/* TAILLE DU BOUTON UNIQUE DE SÉLECTION */
-div[data-testid="stSelectbox"] {
-    width: 260px !important;
-    margin-bottom: 0px !important;
-}
-div[data-testid="stSelectbox"] label {
+/* SUPPRESSION ET TRONCATURE DES BOUTONS NATIFS */
+div[data-testid="stWidgetLabel"] {
     display: none !important;
 }
+div[data-testid="stPills"] {
+    margin-bottom: 0px !important;
+}
 
-/* CONFIGURATION DU SÉLECTEUR : BLEU FONCÉ & BLANC */
-div[data-testid="stSelectbox"] [role="combobox"],
-div[data-testid="stSelectbox"] div[data-baseweb="select"] > div {
+/* ALIGNEMENT RESSERRÉ DE NOS PASTILLES DE CHOIX */
+div[data-testid="stPills"] [data-testid="stPillsContainer"] {
+    gap: 4px !important;
+}
+
+/* STYLE UNIQUE DE LA PASTILLE SÉLECTIONNÉE (VRAI BLEU FONCÉ DE COURSE) */
+div[data-testid="stPills"] button[aria-checked="true"] {
     background-color: #1E3A8A !important;
     color: #FFFFFF !important;
     border: 1px solid #1D4ED8 !important;
-    min-height: 26px !important;
-    height: 26px !important;
-    border-radius: 4px !important;
-    font-size: 0.88rem !important;
+    font-weight: bold !important;
 }
 
-/* COULEUR DU TEXTE ET DU TRIANGLE EN BLANC PUR */
-div[data-testid="stSelectbox"] [data-testid="stSelectboxValue"] {
-    color: #FFFFFF !important;
-    line-height: 26px !important;
+/* STYLE UNIQUE DES PASTILLES DISPONIBLES NON SÉLECTIONNÉES */
+div[data-testid="stPills"] button[aria-checked="false"] {
+    background-color: #F8FAFC !important;
+    color: #334155 !important;
+    border: 1px solid #E2E8F0 !important;
 }
-div[data-testid="stSelectbox"] svg {
-    fill: #FFFFFF !important;
-    color: #FFFFFF !important;
-}
-div[data-testid="stSelectbox"] div[data-baseweb="select"] > div > div {
-    padding-top: 0px !important;
-    padding-bottom: 0px !important;
-    height: 24px !important;
+
+/* COMPACITÉ MAXIMALE EN HAUTEUR (HAUTEUR STRICTEMENT FIXÉE À 26PX) */
+div[data-testid="stPills"] button {
+    padding: 1px 8px !important;
+    min-height: 26px !important;
+    height: 26px !important;
+    font-size: 0.84rem !important;
+    border-radius: 4px !important;
 }
 
 .espace-sous-menu {
@@ -164,7 +166,7 @@ div[data-testid="stSelectbox"] div[data-baseweb="select"] > div > div {
 .table-class-robuste th:nth-child(1), .table-class-robuste td:nth-child(1) { width: 9% !important; }
 .table-class-robuste th:nth-child(2), .table-class-robuste td:nth-child(2) { width: 11% !important; }
 .table-class-robuste th:nth-child(3), .table-class-robuste td:nth-child(3) { width: 33% !important; }
-.table-class-robuste th:nth-child(4), .table-class-robuste td:nth-child(4) { width: 23% !important; }
+.table-class-robuste th:nth-child(4), .table-class-robuste td:xlink-child(4) { width: 23% !important; }
 .table-class-robuste th:nth-child(5), .table-class-robuste td:nth-child(5) { width: 6% !important; }
 .table-class-robuste th:nth-child(6), .table-class-robuste td:nth-child(6) { width: 18% !important; text-align: right !important; }
 
@@ -188,28 +190,28 @@ def gen_html(df, classe):
         border=0
     )
 
-# --- MENU DÉROULANT COMPACT EN LIGNE ---
+# --- MENU PAR BOUTONS COMPACTS INTELLIGENTS ET REACTIONNELS ---
 st.markdown(
     '<div class="bloc-menu-horizontal">',
     unsafe_allow_html=True
 )
-c_txt, c_sel = st.columns([1.3, 1.0])
+c_txt, c_sel = st.columns([0.45, 2.0])
 with c_txt:
     st.markdown(
-        '<p class="texte-menu" '
-        'style="margin-top:4px;text-align:right;">'
-        'Sélectionnez la session à afficher :</p>',
+        '<p class="texte-menu">Session à afficher :</p>',
         unsafe_allow_html=True
     )
 with c_sel:
-    choix_course = st.selectbox(
+    # Changement immédiat au clic et forçage CSS de la compacité
+    choix_course = st.pills(
         "Session",
         [
             "Essais / Entraînements",
-            "Course 1 ASAF", "Course 1 RACB",
-            "Course 2 ASAF", "Course 2 RACB",
-            "Course 3 ASAF", "Course 3 RACB"
-        ]
+            "C1 ASAF", "C1 RACB",
+            "C2 ASAF", "C2 RACB",
+            "C3 ASAF", "C3 RACB"
+        ],
+        default="Essais / Entraînements"
     )
 st.markdown(
     '</div>',
@@ -221,14 +223,21 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-# --- AFFICHAGE AUTOMATIQUE (30 SECONDES) ---
+# --- ZONE D'AFFICHAGE DYNAMIQUE (30 SECONDES) ---
 @st.fragment(run_every=30)
 def afficher_tableaux():
     st.cache_data.clear()
     
-    df_live, df_hist, df_racb, df_asaf123, df_asaf4 = (
-        Essais.recuperer_donnees_course()
-    )
+    # Résolution immédiate des fichiers selon le choix réactif de l'utilisateur
+    if choix_course == "Essais / Entraînements":
+        df_live, df_hist, df_racb, df_asaf123, df_asaf4 = (
+            Essais.recuperer_donnees_course()
+        )
+    else:
+        # Redirection temporaire stable vers le module Essais
+        df_live, df_hist, df_racb, df_asaf123, df_asaf4 = (
+            Essais.recuperer_donnees_course()
+        )
 
     cg, cd = st.columns([1.3, 0.9])
     with cg:
