@@ -179,3 +179,44 @@ def recuperer_donnees_course():
         pass
 
     return df_live, df_hist, df_racb, df_asaf123, df_asaf4
+# --- ETANCHEITE DE LA PRESENTATION VISUELLE D'ORIGINE RESTAUREE ---
+st.set_page_config(layout="wide")
+
+df_live, df_hist, df_racb, df_asaf123, df_asaf4 = recuperer_donnees_course()
+
+col_gauche, col_droite = st.columns([1.1, 0.9])
+
+with col_gauche:
+    # Attribution stricte des variables dans les bons onglets de classement
+    tab1, tab2, tab3 = st.tabs([
+        "CLASSEMENT EVOLUTIF DES ESSAIS Division 123 (Top 25)", 
+        "CLASSEMENT EVOLUTIF DES ESSAIS RACB (Top 20)", 
+        "CLASSEMENT GENERAL Division 4"
+    ])
+    
+    with tab1:
+        st.subheader("CLASSEMENT EVOLUTIF DES ESSAIS Division 123 (Top 25)")
+        # Affiche uniquement les classes 1, 2, 3 sans aucun numéro en N
+        st.dataframe(df_asaf123, hide_index=True, use_container_width=True)
+        
+    with tab2:
+        st.subheader("CLASSEMENT EVOLUTIF DES ESSAIS RACB (Top 20)")
+        # Affiche uniquement les numéros commençant par N
+        st.dataframe(df_racb, hide_index=True, use_container_width=True)
+        
+    with tab3:
+        st.subheader("CLASSEMENT GENERAL Division 4")
+        # Affiche uniquement la classe 4 sans aucun numéro en N
+        st.dataframe(df_asaf4, hide_index=True, use_container_width=True)
+
+with col_droite:
+    st.markdown("### ⏱️ DERNIERS PASSAGES LIVE")
+    st.dataframe(df_live, hide_index=True, use_container_width=True)
+    
+    st.markdown("### 📝 HISTORIQUE GLOBAL DES ESSAIS")
+    st.dataframe(df_hist, hide_index=True, use_container_width=True)
+
+st.info("Actualisation automatique active (10s)")
+import time
+time.sleep(10)
+st.rerun()
