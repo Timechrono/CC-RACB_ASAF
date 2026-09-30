@@ -7,12 +7,14 @@ st.set_page_config(
     layout="wide"
 )
 
-# --- STYLE CSS DESIGN COMPACT ---
+# --- STYLE CSS STABLE ET NETTOYÉ ---
 st.markdown("""
 <style>
 [data-testid="stHeader"] {
     display: none !important;
 }
+
+/* SUPPRESSION DU CONTOUR ROUGE ET DU FLASH */
 button:focus, 
 button:active, 
 div:focus {
@@ -29,6 +31,8 @@ div[data-testid="stFragment"] {
     opacity: 1 !important;
     animation: none !important;
 }
+
+/* ALIGNEMENT HORIZONTAL DES BOUTONS SUR 1 LIGNE */
 .bloc-menu-horizontal {
     display: flex;
     align-items: center;
@@ -44,17 +48,8 @@ div[data-testid="stFragment"] {
     white-space: nowrap;
     margin: 0 !important;
 }
-.btn-actif {
-    background-color: #1E3A8A !important;
-    color: #FFFFFF !important;
-    border: 1px solid #1D4ED8 !important;
-    font-weight: bold !important;
-}
-.btn-eteint {
-    background-color: #F8FAFC !important;
-    color: #334155 !important;
-    border: 1px solid #E2E8F0 !important;
-}
+
+/* COMPACITÉ DU BANDU DE NAVIGATION DE COURSE */
 div[data-testid="stHorizontalBlock"] button {
     padding: 1px 8px !important;
     min-height: 26px !important;
@@ -63,11 +58,7 @@ div[data-testid="stHorizontalBlock"] button {
     border-radius: 4px !important;
     transition: none !important;
 }
-div[data-testid="stHorizontalBlock"] button:hover {
-    background-color: #1D4ED8 !important;
-    color: #FFFFFF !important;
-    border-color: #1D4ED8 !important;
-}
+
 .espace-sous-menu {
     height: 12px !important;
     clear: both !important;
@@ -199,11 +190,11 @@ def gen_html(df, cl):
         border=0
     )
 
-# --- CONFIGURATION INITIALE ---
+# --- CONFIGURATION INITIALE DE LA SESSION ---
 if "session_live" not in st.session_state:
     st.session_state.session_live = "Essais"
 
-# --- BARRE DE MENU HORIZONTALE ---
+# --- BARRE DE NAVIGATION EN LIGNE ---
 st.markdown(
     '<div class="bloc-menu-horizontal">', 
     unsafe_allow_html=True
@@ -222,29 +213,29 @@ with col_txt:
 
 with col_b1:
     txt_e = "⏱️ Essais ▼" if st.session_state.session_live == "Essais" else "Essais"
-    cl_e = "btn-actif" if st.session_state.session_live == "Essais" else "btn-eteint"
-    if st.button(txt_e, key="btn_ess", class_name=cl_e):
+    ty_e = "primary" if st.session_state.session_live == "Essais" else "secondary"
+    if st.button(txt_e, key="btn_ess", type=ty_e):
         st.session_state.session_live = "Essais"
         st.rerun()
 
 with col_b2:
     txt_c1 = "🏆 Course 1 ▼" if st.session_state.session_live == "C1" else "Course 1"
-    cl_c1 = "btn-actif" if st.session_state.session_live == "C1" else "btn-eteint"
-    if st.button(txt_c1, key="btn_c1", class_name=cl_c1):
+    ty_c1 = "primary" if st.session_state.session_live == "C1" else "secondary"
+    if st.button(txt_c1, key="btn_c1", type=ty_c1):
         st.session_state.session_live = "C1"
         st.rerun()
 
 with col_b3:
     txt_c2 = "🏆 Course 2 ▼" if st.session_state.session_live == "C2" else "Course 2"
-    cl_c2 = "btn-actif" if st.session_state.session_live == "C2" else "btn-eteint"
-    if st.button(txt_c2, key="btn_c2", class_name=cl_c2):
+    ty_c2 = "primary" if st.session_state.session_live == "C2" else "secondary"
+    if st.button(txt_c2, key="btn_c2", type=ty_c2):
         st.session_state.session_live = "C2"
         st.rerun()
 
 with col_b4:
     txt_c3 = "🏆 Course 3 ▼" if st.session_state.session_live == "C3" else "Course 3"
-    cl_c3 = "btn-actif" if st.session_state.session_live == "C3" else "btn-eteint"
-    if st.button(txt_c3, key="btn_c3", class_name=cl_c3):
+    ty_c3 = "primary" if st.session_state.session_live == "C3" else "secondary"
+    if st.button(txt_c3, key="btn_c3", type=ty_c3):
         st.session_state.session_live = "C3"
         st.rerun()
 
@@ -254,7 +245,7 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-# --- TRAITEMENT ET AFFICHAGE AUTOMATIQUE ---
+# --- AFFICHAGE AUTOMATIQUE DES CHRONOS ---
 @st.fragment(run_every=30)
 def afficher_tableaux():
     st.cache_data.clear()
