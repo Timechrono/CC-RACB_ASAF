@@ -1,13 +1,24 @@
-import streamlit as st
 import pandas as pd
 import datetime
 import urllib.request
+import streamlit as st
 
-# --- CONFIGURATION VIA LES SECRETS DE L'APPLICATION ---
-# Le script récupère les jetons et les adresses directement depuis la mémoire du serveur
-FILE_ARRIVEE = st.secrets["liens_dropbox"]["arrivee"]
-FILE_DEPART = st.secrets["liens_dropbox"]["depart"]
-FILE_ENGAGES = st.secrets["liens_dropbox"]["engages"]
+# --- RECONSTRUCTION INTERNE SÉCURISÉE SANS LIENS INTERNET ---
+# Extraction des identifiants et clés depuis les secrets TOML
+ID_ENG = st.secrets["db_ids"]["eng"]  # Reçoit: sqrqinksco1am700s27h4
+KEY_ENG = st.secrets["db_keys"]["eng"] # Reçoit: 8p0n8jyeuiivaa375bh3p608n
+
+ID_ARR = st.secrets["db_ids"]["arr"]  # Reçoit: 7uu9cmlpzglx0ngvbklpt
+KEY_ARR = st.secrets["db_keys"]["arr"] # Reçoit: g9urz4v3jr36h0apzt45ognm6
+
+ID_DEP = st.secrets["db_ids"]["dep"]  # Reçoit: gbkaq01qzjujc8nq3zj28
+KEY_DEP = st.secrets["db_keys"]["dep"] # Reçoit: 4x4rvvlfyzz8v59gqbxn80a4d
+
+# Assemblage automatique et masqué par le serveur
+FILE_ENGAGES = f"https://dropboxusercontent.com{ID_ENG}/LIVE_Liste_ENGAGES.xlsm?rlkey={KEY_ENG}&dl=1"
+FILE_ARRIVEE = f"https://dropboxusercontent.com{ID_ARR}/LIVE_Temps_ARRIVEE.xlsm?rlkey={KEY_ARR}&dl=1"
+FILE_DEPART  = f"https://dropboxusercontent.com{ID_DEP}/LIVE_Temps_DEPART.xlsm?rlkey={KEY_DEP}&dl=1"
+
 
 
 
