@@ -13,18 +13,18 @@ button:focus, div:focus, input:focus, select:focus {
     outline: none !important; border-color: transparent !important; box-shadow: none !important;
 }
 
-/* Modifié : Texte plus grand, en gras et alignement vertical */
+/* Modifié : marge supérieure négative pour remonter le texte précisément au milieu */
 .texte-menu {
     font-size: 1.05rem !important; 
     font-weight: bold !important;
     color: #1E293B !important; 
     text-align: right; 
     padding-right: 15px;
-    margin: 0 !important;
-    line-height: 42px; /* Aligne parfaitement à hauteur du milieu du sélecteur */
+    margin-top: -8px !important; 
+    margin-bottom: 0px !important;
 }
 
-/* Ajouté : Écriture du bouton sélecteur plus grande et en gras */
+/* Écriture du bouton sélecteur plus grande et en gras */
 div[data-testid="stSelectbox"] div[data-baseweb="select"] {
     font-size: 1.05rem !important;
     font-weight: bold !important;
