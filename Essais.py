@@ -5,7 +5,7 @@ import requests
 import io
 import time
 
-# --- CONFIGURATION DROPBOX DIRECTE STRICTE (VOS LIENS VALIDES) ---
+# --- CONFIGURATION INTERNET AVEC VOS VRAIS LIENS ET VALEURS DIRECTES ---
 HOTE = "://dropboxusercontent.com"
 FILE_ARRIVEE = f"https://{HOTE}/scl/fi/7uu9cmlpzglx0ngvbklpt/LIVE_Temps_ARRIVEE.xlsm?rlkey=g9urz4v3jr36h0apzt45ognm6&dl=1"
 FILE_DEPART  = f"https://{HOTE}/scl/fi/gbkaq01qzjujc8nq3zj28/LIVE_Temps_DEPART.xlsm?rlkey=4x4rvvlfyzz8v59gqbxn80a4d&dl=1"
@@ -27,9 +27,7 @@ def convertir_en_secondes(valeur):
     if ":" in s:
         try:
             parts = s.split(":")
-            m = int(parts[0])
-            sec = float(parts[1].replace(",", "."))
-            return (m * 60) + sec
+            return (int(parts[0]) * 60) + float(parts[1].replace(",", "."))
         except Exception: pass
     if s.endswith(".0"): s = s[:-2]
     s_clean = "".join([c for c in s if c.isdigit()])
@@ -73,7 +71,6 @@ def generer_tableau_html(df, classe_specifique):
         return f"<table class='table-compacte {classe_specifique}'><tr><td style='text-align: center; padding: 10px;'>Aucune donnée disponible</td></tr></table>"
     return df.to_html(index=False, classes=f"table-compacte {classe_specifique}", escape=False, border=0)
 def afficher_ecran_complet():
-    # Réinjection de vos titres d'origine et de vos largeurs exactes au pixel près
     st.markdown("""
         <style>
         .titre-live, .titre-hist, .titre-classement {
@@ -84,7 +81,6 @@ def afficher_ecran_complet():
         .titre-live { background-color: #15803D !important; margin-top: 0px !important; }
         .titre-hist { background-color: #475569 !important; margin-top: 10px !important; }
         .titre-classement { background-color: #1E3A8A !important; margin-top: 0px !important; }
-        
         .table-compacte { width: 100% !important; margin-bottom: 0px !important; border-collapse: collapse !important; table-layout: fixed !important; }
         .table-compacte tr { height: 18px !important; }
         .table-compacte th, .table-compacte td { 
