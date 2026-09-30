@@ -84,6 +84,7 @@ def recuperer_donnees_course():
         df_dep_raw = pd.read_excel(flux_dep, header=None, engine='openpyxl')
         df_arr_raw = pd.read_excel(flux_arr, header=None, engine='openpyxl')
 
+        # Restauration de la recherche dynamique par le mot-clé ESSAIS qui fonctionnait
         idx_dep, idx_arr = None, None
         for c_idx in range(len(df_dep_raw.columns)):
             val = str(df_dep_raw.iloc[1, c_idx]).strip().upper()
@@ -110,7 +111,6 @@ def recuperer_donnees_course():
 
         if len(df_dep) > 0: df_dep["Sec_Dep"] = df_dep["Heure_Depart"].apply(convertir_en_secondes)
         if len(df_arr) > 0: df_arr["Sec_Arr"] = df_arr["Heure_Arrivee"].apply(convertir_en_secondes); df_arr["Sec_Excel"] = df_arr["Chrono_Excel"].apply(convertir_en_secondes)
-
         base_runs = pd.DataFrame(columns=["N°", "Run_Index"])
         if len(df_dep) > 0: base_runs = pd.concat([base_runs, df_dep[["N°", "Run_Index"]]], ignore_index=True)
         if len(base_runs) == 0: base_runs = df_eng[["N°"]].copy(); base_runs["Run_Index"] = 1
@@ -134,12 +134,12 @@ def recuperer_donnees_course():
             base["Ordre_Saisie"] = range(len(base))
             df_hist = base.sort_values(by="Ordre_Saisie", ascending=False)[["N°", "Nom_Prenom", "Voiture", "Division", "Classe", "Chrono_Visual_Hist"]].rename(columns={"Chrono_Visual_Hist": "Chrono réalisé"})
 
-            # --- LOGIQUE DE SEPARATION STRICTE DES CLASSEMENTS ---
+            # --- NOUVELLE LOGIQUE D'AIGUILLAGE STRICT POUR LES TABLEAUX ---
             df_valides = base[base["Calc_Sec"].notna() & (base["Calc_Sec"] > 0)].copy()
             idx_meilleur = df_valides.groupby("N°")["Calc_Sec"].idxmin()
             df_meilleurs = df_valides.loc[idx_meilleur].copy()
 
-            # Séparation absolue
+            # Séparation par la lettre "N" en début de numéro
             mask_racb = df_meilleurs["N°"].str.startswith("N")
             df_m_racb = df_meilleurs[mask_racb].copy()
             df_m_non_n = df_meilleurs[~mask_racb].copy()
@@ -152,7 +152,7 @@ def recuperer_donnees_course():
                 df_racb = df_m_racb[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]]
 
             if len(df_m_non_n) > 0:
-                # 2. CLASSEMENT EVOLUTIF DES ESSAIS Division 123 (Top 25)
+                # 2. CLASSEMENT EVOLUTIF DES ESSAIS Division 123 (Top 25) : Sans "N", Classe ou Division 1, 2, 3
                 mask_123 = df_m_non_n["Division"].isin(["1", "2", "3", 1, 2, 3]) | df_m_non_n["Classe"].isin(["1", "2", "3", 1, 2, 3])
                 df_m_asaf123 = df_m_non_n[mask_123].sort_values(by="Calc_Sec").head(25)
                 if len(df_m_asaf123) > 0:
@@ -160,7 +160,7 @@ def recuperer_donnees_course():
                     df_m_asaf123["Chrono"] = df_m_asaf123["Calc_Sec"].apply(lambda x: format_final_chrono(x))
                     df_asaf123 = df_m_asaf123[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]]
 
-                # 3. CLASSEMENT GENERAL Division 4
+                # 3. CLASSEMENT GENERAL Division 4 : Sans "N", Classe ou Division 4
                 mask_4 = df_m_non_n["Division"].isin(["4", 4]) | df_m_non_n["Classe"].isin(["4", 4])
                 df_m_asaf4 = df_m_non_n[mask_4].sort_values(by="Calc_Sec")
                 if len(df_m_asaf4) > 0:
@@ -172,44 +172,3 @@ def recuperer_donnees_course():
         pass
 
     return df_live, df_hist, df_racb, df_asaf123, df_asaf4
-# --- INITIALISATION ET PRÉSENTATION GRAPHIQUE D'ORIGINE RESTAURÉE ---
-st.set_page_config(layout="wide")
-
-# Chargement des variables
-df_live, df_hist, df_racb, df_asaf123, df_asaf4 = recuperer_donnees_course()
-
-# Rétablissement exact du gabarit à 2 colonnes (Gauche pour les Onglets / Droite pour les Tables Annexes)
-col_gauche, col_droite = st.columns([1.1, 0.9])
-
-with col_gauche:
-    # Création des structures d'onglets (Renommés selon vos exigences de titres)
-    tab1, tab2, tab3 = st.tabs([
-        "CLASSEMENT EVOLUTIF DES ESSAIS Division 123 (Top 25)", 
-        "CLASSEMENT EVOLUTIF DES ESSAIS RACB (Top 20)", 
-        "CLASSEMENT GENERAL Division 4"
-    ])
-    
-    with tab1:
-        st.subheader("CLASSEMENT EVOLUTIF DES ESSAIS Division 123 (Top 25)")
-        st.dataframe(df_asaf123, hide_index=True, use_container_width=True)
-        
-    with tab2:
-        st.subheader("CLASSEMENT EVOLUTIF DES ESSAIS RACB (Top 20)")
-        st.dataframe(df_racb, hide_index=True, use_container_width=True)
-        
-    with tab3:
-        st.subheader("CLASSEMENT GENERAL Division 4")
-        st.dataframe(df_asaf4, hide_index=True, use_container_width=True)
-
-with col_droite:
-    st.markdown("### ⏱️ DERNIERS PASSAGES LIVE")
-    st.dataframe(df_live, hide_index=True, use_container_width=True)
-    
-    st.markdown("### 📝 HISTORIQUE GLOBAL DES ESSAIS")
-    st.dataframe(df_hist, hide_index=True, use_container_width=True)
-
-# Boucle native de rafraîchissement d'arrière-plan de 10 secondes
-st.info("Actualisation automatique active (10s)")
-import time
-time.sleep(10)
-st.rerun()
