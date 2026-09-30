@@ -33,6 +33,7 @@ def convertir_en_secondes(valeur):
             return (int(parts[0]) * 60) + float(parts[1].replace(",", "."))
         except Exception: pass
     if s.endswith(".0"): s = s[:-2]
+    # Si la valeur contient une lettre (comme N), on nettoie uniquement les espaces
     if any(c.isalpha() for c in s):
         s_clean = s
     else:
@@ -51,7 +52,8 @@ def convertir_en_secondes(valeur):
 def nettoyer_numero(valeur):
     if pd.isna(valeur): return "nan"
     s = str(valeur).strip().upper()
-    return s[:-2] if s.endswith(".0") else s
+    if s.endswith(".0"): s = s[:-2]
+    return s
 
 def format_final_chrono(total_sec, fallback_statut="No Time"):
     if total_sec is None or pd.isna(total_sec) or total_sec < 0: return fallback_statut
@@ -96,20 +98,17 @@ def recuperer_donnees_course():
         df_arr = pd.DataFrame({"N°": df_arr_raw.iloc[2:, idx_arr].apply(nettoyer_numero), "Heure_Arrivee": df_arr_raw.iloc[2:, idx_arr + 2], "Chrono_Excel": df_arr_raw.iloc[2:, idx_arr + 3]}) if idx_arr is not None else pd.DataFrame(columns=["N°", "Heure_Arrivee", "Chrono_Excel"])
 
         df_eng_raw.columns = df_eng_raw.columns.astype(str).str.strip().str.upper()
-        
-        df_eng = pd.DataFrame({
-            "N°": df_eng_raw.iloc[:, 0].apply(nettoyer_numero), 
-            "Nom_Prenom": df_eng_raw.iloc[:, 1].fillna("Pilote Inconnu").astype(str).str.strip(),
-            "Voiture": df_eng_raw.iloc[:, 4].fillna("").astype(str).str.strip(),
-            "Division": df_eng_raw.iloc[:, 5].apply(lambda x: "-" if pd.isna(x) else str(x).strip()[:-2] if str(x).strip().endswith(".0") else str(x).strip()),
-            "Classe": df_eng_raw.iloc[:, 6]
-        })
+        df_eng = pd.DataFrame({"N°": df_eng_raw.iloc[:, 0].apply(nettoyer_numero), 
+                               "Nom_Prenom": df_eng_raw.iloc[:, 1].fillna("Pilote Inconnu").astype(str).str.strip(),
+                               "Voiture": df_eng_raw.iloc[:, 4].fillna("").astype(str).str.strip(),
+                               "Division": df_eng_raw.iloc[:, 5].apply(lambda x: "-" if pd.isna(x) else str(x).strip()[:-2] if str(x).strip().endswith(".0") else str(x).strip()),
+                               "Classe": df_eng_raw.iloc[:, 6].fillna("-").astype(str).str.strip().apply(lambda x: x[:-2] if x.endswith(".0") else x)})
 
         df_eng = df_eng[df_eng["N°"] != "NAN"].drop_duplicates(subset=["N°"])
         df_dep = df_dep[(df_dep["N°"] != "NAN") & (df_dep["N°"] != "")]
 
         for d in [df_dep, df_arr]:
-            if len(d) > 0: d["N°"] = d["N°"].astype(str).str.strip().str.upper(); d["Run_Index"] = d.groupby("N°").cumcount() + 1
+            if len(d) > 0: d["N°"] = d["N°"].astype(str); d["Run_Index"] = d.groupby("N°").cumcount() + 1
 
         if len(df_dep) > 0: df_dep["Sec_Dep"] = df_dep["Heure_Depart"].apply(convertir_en_secondes)
         if len(df_arr) > 0: df_arr["Sec_Arr"] = df_arr["Heure_Arrivee"].apply(convertir_en_secondes); df_arr["Sec_Excel"] = df_arr["Chrono_Excel"].apply(convertir_en_secondes)
@@ -137,84 +136,38 @@ def recuperer_donnees_course():
             base["Ordre_Saisie"] = range(len(base))
             df_hist = base.sort_values(by="Ordre_Saisie", ascending=False)[["N°", "Nom_Prenom", "Voiture", "Division", "Classe", "Chrono_Visual_Hist"]].rename(columns={"Chrono_Visual_Hist": "Chrono réalisé"})
 
+            # --- LOGIQUE DES CLASSEMENTS ---
             df_valides = base[base["Calc_Sec"].notna() & (base["Calc_Sec"] > 0)].copy()
             idx_meilleur = df_valides.groupby("N°")["Calc_Sec"].idxmin()
             df_meilleurs = df_valides.loc[idx_meilleur].copy()
 
-            df_meilleurs["N°_Txt"] = df_meilleurs["N°"].astype(str).str.strip().str.upper()
-            mask_racb = df_meilleurs["N°_Txt"].str.startswith("N", na=False)
-
-            # 1. CLASSEMENT EVOLUTIF DES ESSAIS RACB (Top 20) : Numéros commençant par N
+            # Séparation RACB (commence par N ou contient des lettres) VS ASAF
+            mask_racb = df_meilleurs["N°"].str.startswith("N") | df_meilleurs["N°"].str.contains("[A-Z]", regex=True)
             df_m_racb = df_meilleurs[mask_racb].copy()
+            df_m_asaf = df_meilleurs[~mask_racb].copy()
+
+            # RACB Tri & Format
             if len(df_m_racb) > 0:
-                df_m_racb = df_m_racb.sort_values(by="Calc_Sec").head(20)
+                df_m_racb = df_m_racb.sort_values(by="Calc_Sec")
                 df_m_racb["Pos"] = range(1, len(df_m_racb) + 1)
                 df_m_racb["Chrono"] = df_m_racb["Calc_Sec"].apply(lambda x: format_final_chrono(x))
                 df_racb = df_m_racb[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]]
 
-            # Pour les classements ASAF, exclusion absolue de la lettre N
-            df_m_non_n = df_meilleurs[~mask_racb].copy()
-
-            if len(df_m_non_n) > 0:
-                df_m_non_n["Classe_Num"] = pd.to_numeric(df_m_non_n["Classe"], errors='coerce')
-
-                # 2. Division 123 (Top 25) : Sans N + Classe standard vaut 1, 2 ou 3
-                mask_123 = df_m_non_n["Classe_Num"].isin([1, 2, 3])
-                df_m_asaf123 = df_m_non_n[mask_123].sort_values(by="Calc_Sec").head(25)
+            # ASAF 1-2-3 et ASAF 4
+            if len(df_m_asaf) > 0:
+                df_m_asaf123 = df_m_asaf[df_m_asaf["Division"].isin(["1", "2", "3", 1, 2, 3])].sort_values(by="Calc_Sec")
                 if len(df_m_asaf123) > 0:
                     df_m_asaf123["Pos"] = range(1, len(df_m_asaf123) + 1)
                     df_m_asaf123["Chrono"] = df_m_asaf123["Calc_Sec"].apply(lambda x: format_final_chrono(x))
                     df_asaf123 = df_m_asaf123[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]]
 
-                # 3. Division 4 : Sans N + Classe standard vaut 4
-                mask_4 = df_m_non_n["Classe_Num"].isin([4])
-                df_m_asaf4 = df_m_non_n[mask_4].sort_values(by="Calc_Sec")
+                df_m_asaf4 = df_m_asaf[df_m_asaf["Division"].isin(["4", 4])].sort_values(by="Calc_Sec")
                 if len(df_m_asaf4) > 0:
                     df_m_asaf4["Pos"] = range(1, len(df_m_asaf4) + 1)
                     df_m_asaf4["Chrono"] = df_m_asaf4["Calc_Sec"].apply(lambda x: format_final_chrono(x))
                     df_asaf4 = df_m_asaf4[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]]
 
     except Exception as e:
-        pass
+        st.error(f"Erreur technique lors de la synchronisation : {e}")
 
     return df_live, df_hist, df_racb, df_asaf123, df_asaf4
-# --- INITIALISATION ET PRÉSENTATION GRAPHISME D'ORIGINE RESTAURÉE ---
-st.set_page_config(layout="wide")
-
-df_live, df_hist, df_racb, df_asaf123, df_asaf4 = recuperer_donnees_course()
-
-# Layout d'origine en deux colonnes principales
-col_gauche, col_droite = st.columns([1.1, 0.9])
-
-with col_gauche:
-    # Création des 3 onglets (Le premier intègre l'intitulé correct)
-    tab1, tab2, tab3 = st.tabs([
-        "CLASSEMENT EVOLUTIF DES ESSAIS Division 123 (Top 25)", 
-        "CLASSEMENT EVOLUTIF DES ESSAIS RACB (Top 20)", 
-        "CLASSEMENT GENERAL Division 4"
-    ])
-    
-    with tab1:
-        st.subheader("CLASSEMENT EVOLUTIF DES ESSAIS Division 123 (Top 25)")
-        st.dataframe(df_asaf123, hide_index=True, use_container_width=True)
-        
-    with tab2:
-        st.subheader("CLASSEMENT EVOLUTIF DES ESSAIS RACB (Top 20)")
-        st.dataframe(df_racb, hide_index=True, use_container_width=True)
-        
-    with tab3:
-        st.subheader("CLASSEMENT GENERAL Division 4")
-        st.dataframe(df_asaf4, hide_index=True, use_container_width=True)
-
-with col_droite:
-    st.markdown("### ⏱️ DERNIERS PASSAGES LIVE")
-    st.dataframe(df_live, hide_index=True, use_container_width=True)
-    
-    st.markdown("### 📝 HISTORIQUE GLOBAL DES ESSAIS")
-    st.dataframe(df_hist, hide_index=True, use_container_width=True)
-
-# Actualisation toutes les 10 secondes
-st.info("Actualisation automatique active (10s)")
-import time
-time.sleep(10)
-st.rerun()
