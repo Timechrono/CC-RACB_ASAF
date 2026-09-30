@@ -3,11 +3,11 @@ import pandas as pd
 import datetime
 import urllib.request
 
-# --- CONFIGURATION SÉCURISÉE VIA LES SECRETS STREAMLIT ---
-# Le code récupère directement les adresses configurées dans votre espace Streamlit
-FILE_ARRIVEE = st.secrets["url_arrivee"]
-FILE_DEPART = st.secrets["url_depart"]
-FILE_ENGAGES = st.secrets["url_engages"]
+# --- CONFIGURATION VIA LES SECRETS DE L'APPLICATION ---
+# Le script récupère les jetons et les adresses directement depuis la mémoire du serveur
+FILE_ARRIVEE = st.secrets["liens_dropbox"]["arrivee"]
+FILE_DEPART = st.secrets["liens_dropbox"]["depart"]
+FILE_ENGAGES = st.secrets["liens_dropbox"]["engages"]
 
 
 
