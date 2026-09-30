@@ -7,7 +7,7 @@ st.set_page_config(
     layout="wide"
 )
 
-# --- CONFIGURATION STYLE CSS ---
+# --- CONFIGURATION STYLE CSS BLEU FONCÉ ---
 st.markdown("""
 <style>
 [data-testid="stHeader"] {
@@ -44,23 +44,26 @@ div[data-testid="stSelectbox"] {
 div[data-testid="stSelectbox"] label {
     display: none !important;
 }
+
+/* STYLE DU BOUTON FERMÉ : BLEU FONCÉ */
 div[data-testid="stSelectbox"] [role="combobox"],
-div[data-testid="stSelectbox"] div[data-baseweb="select"] > div,
-div[data-testid="stSelectbox"] [data-baseweb="select"] {
-    background-color: #0F172A !important;
-    color: #FFFFFF !important;
-    border: 1px solid #334155 !important;
+div[data-testid="stSelectbox"] div[data-baseweb="select"] > div {
+    background-color: #1E3A8A !important; /* Vrai bleu foncé */
+    color: #FFFFFF !important;             /* Texte blanc pur */
+    border: 1px solid #1D4ED8 !important;  /* Bordure bleue */
     min-height: 26px !important;
     height: 26px !important;
     border-radius: 4px !important;
     font-size: 0.88rem !important;
 }
+
+/* COULEUR DU TEXTE SELECTIONNE & PETITE FLÈCHE EN BLANC */
 div[data-testid="stSelectbox"] [data-testid="stSelectboxValue"] {
     color: #FFFFFF !important;
     line-height: 26px !important;
 }
 div[data-testid="stSelectbox"] svg {
-    fill: #FFFFFF !important;
+    fill: #FFFFFF !important;              /* Triangle blanc */
     color: #FFFFFF !important;
 }
 div[data-testid="stSelectbox"] div[data-baseweb="select"] > div > div {
@@ -68,6 +71,26 @@ div[data-testid="stSelectbox"] div[data-baseweb="select"] > div > div {
     padding-bottom: 0px !important;
     height: 24px !important;
 }
+
+/* STYLE DE LA LISTE QUAND LE MENU EST OUVERT : BLEU FONCÉ */
+div[data-baseweb="popover"] ul,
+div[data-baseweb="menu"] {
+    background-color: #1E3A8A !important;  /* Fond bleu foncé */
+    color: #FFFFFF !important;
+    border: 1px solid #1D4ED8 !important;
+}
+div[data-baseweb="popover"] li,
+div[role="option"] {
+    background-color: #1E3A8A !important;  /* Lignes bleues */
+    color: #FFFFFF !important;
+}
+/* Survol des options à la souris */
+div[data-baseweb="popover"] li:hover,
+div[role="option"]:hover {
+    background-color: #1D4ED8 !important;  /* Bleu plus clair au survol */
+    color: #FFFFFF !important;
+}
+
 .espace-sous-menu {
     height: 12px !important;
     clear: both !important;
@@ -218,8 +241,7 @@ st.markdown(
 def afficher_tableaux():
     st.cache_data.clear()
     
-    # Lecture par défaut du fichier Essais
-    d_liv, d_his, d_rb, d_as1, d_as4 = (
+    df_live, df_hist, df_racb, df_asaf123, df_asaf4 = (
         Essais.recuperer_donnees_course()
     )
 
@@ -232,7 +254,7 @@ def afficher_tableaux():
             unsafe_allow_html=True
         )
         st.markdown(
-            gen_html(d_liv, "table-live"),
+            gen_html(df_live, "table-live"),
             unsafe_allow_html=True
         )
         
@@ -247,7 +269,7 @@ def afficher_tableaux():
             unsafe_allow_html=True
         )
         st.markdown(
-            gen_html(d_his, "table-hist"),
+            gen_html(df_hist, "table-hist"),
             unsafe_allow_html=True
         )
     with cd:
@@ -258,7 +280,7 @@ def afficher_tableaux():
             unsafe_allow_html=True
         )
         st.markdown(
-            gen_html(d_rb, "table-class-robuste"),
+            gen_html(df_racb, "table-class-robuste"),
             unsafe_allow_html=True
         )
         
@@ -268,12 +290,12 @@ def afficher_tableaux():
         )
         st.markdown(
             "<span class='titre-classement'>"
-            "🏆 CLASSEMENT ASAF DIV 1-2-3 (Top 25)"
+            "🏆 CLASSEMENT ASAF DIV 1-2-3 (Top 25) "
             "</span>",
             unsafe_allow_html=True
         )
         st.markdown(
-            gen_html(d_as1, "table-class-robuste"),
+            gen_html(df_asaf123, "table-class-robuste"),
             unsafe_allow_html=True
         )
         
@@ -288,7 +310,7 @@ def afficher_tableaux():
             unsafe_allow_html=True
         )
         st.markdown(
-            gen_html(d_as4, "table-class-robuste"),
+            gen_html(df_asaf4, "table-class-robuste"),
             unsafe_allow_html=True
         )
 
