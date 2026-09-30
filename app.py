@@ -13,6 +13,12 @@ button:focus, div:focus, input:focus, select:focus {
     outline: none !important; border-color: transparent !important; box-shadow: none !important;
 }
 
+/* --- AJOUTÉ : Force la couleur bleu foncé au clic (focus) sur le sélecteur à la place du rouge --- */
+div[data-baseweb="select"]:focus-within {
+    border-color: #1E3A8A !important;
+    box-shadow: 0 0 0 2px rgba(30, 58, 138, 0.2) !important;
+}
+
 /* Alignement du texte à gauche avec une marge supérieure propre */
 .texte-menu {
     font-size: 1.05rem !important; 
@@ -25,9 +31,9 @@ button:focus, div:focus, input:focus, select:focus {
     padding-right: 5px !important;
 }
 
-/* Écriture du bouton sélecteur plus grande et en gras */
+/* --- MODIFIÉ : Écriture du bouton sélecteur plus grande (1.15rem) et en gras --- */
 div[data-testid="stSelectbox"] div[data-baseweb="select"] {
-    font-size: 1.05rem !important;
+    font-size: 1.15rem !important;
     font-weight: bold !important;
 }
 
@@ -80,7 +86,6 @@ def gen_html(df, cl):
     return df.to_html(index=False, classes=f"table-compacte {cl}", escape=False, border=0)
 
 # --- CONFIGURATION SÉLECTEUR AJUSTÉE ---
-# La colonne du sélecteur passe de 0.9 à 1.4 pour agrandir la largeur du bouton
 col_texte, col_select, col_reste = st.columns([1.3, 1.4, 3.3], vertical_alignment="center")
 with col_texte:
     st.markdown('<p class="texte-menu">Sélectionnez la session à afficher :</p>', unsafe_allow_html=True)
