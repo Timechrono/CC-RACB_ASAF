@@ -4,12 +4,12 @@ import datetime
 import requests
 import io
 
-# --- ENCODAGE NUMÉRIQUE INTERNE ANTI-CENSURE D'ORIGINE RESTAURÉ ---
+# --- ENCODAGE NUMÉRIQUE INTERNE ANTI-CENSURE (VOS VALEURS VALIDÉES) ---
 C = [100, 108, 46, 100, 114, 111, 112, 98, 111, 120, 117, 115, 101, 114]
 D = [99, 111, 110, 116, 101, 110, 116, 46, 99, 111, 109]
 HOTE_PROT = "".join(chr(x) for x in (C + D))
 
-# Liens d'origine exacts de votre session fonctionnelle
+# Restauration stricte de vos adresses d'origine avec le bon fichier ENGAGES des Essais
 FILE_ARRIVEE = f"https://{HOTE_PROT}/scl/fi/7uu9cmlpzglx0ngvbklpt/LIVE_Temps_ARRIVEE.xlsm?rlkey=g9urz4v3jr36h0apzt45ognm6&dl=1"
 FILE_DEPART  = f"https://{HOTE_PROT}/scl/fi/gbkaq01qzjujc8nq3zj28/LIVE_Temps_DEPART.xlsm?rlkey=4x4rvvlfyzz8v59gqbxn80a4d&dl=1"
 FILE_ENGAGES = f"https://{HOTE_PROT}/scl/fi/sqrqinksco1am700s27h4/LIVE_Liste_ENGAGES.xlsm?rlkey=8p0n8jyeuiivaa375bh3p608n&dl=1"
@@ -30,7 +30,7 @@ def convertir_en_secondes(valeur):
     if ":" in s:
         try:
             parts = s.split(":")
-            return (int(parts) * 60) + float(parts[1].replace(",", "."))
+            return (int(parts[0]) * 60) + float(parts[1].replace(",", "."))
         except Exception: pass
     if s.endswith(".0"): s = s[:-2]
     if any(c.isalpha() for c in s):
@@ -142,11 +142,10 @@ def recuperer_donnees_course():
             idx_meilleur = df_valides.groupby("N°")["Calc_Sec"].idxmin()
             df_meilleurs = df_valides.loc[idx_meilleur].copy()
 
-            # ISOLATION STRICTE ET PHONÉTIQUE DE LA LETTRE N
             df_meilleurs["N°_Txt"] = df_meilleurs["N°"].astype(str).str.strip().str.upper()
-            mask_racb = df_meilleurs["N°_Txt"].str.startswith("N", na=False) | df_meilleurs["N°_Txt"].str.contains("N", na=False)
+            mask_racb = df_meilleurs["N°_Txt"].str.startswith("N", na=False)
 
-            # 1. TABLEAU RACB : On force l'envoi de tous les numéros avec un N ici
+            # 1. CLASSEMENT RACB (Top 20) : Uniquement si commence par N (Peu importe la classe)
             df_m_racb = df_meilleurs[mask_racb].copy()
             if len(df_m_racb) > 0:
                 df_m_racb = df_m_racb.sort_values(by="Calc_Sec").head(20)
@@ -154,13 +153,13 @@ def recuperer_donnees_course():
                 df_m_racb["Chrono"] = df_m_racb["Calc_Sec"].apply(lambda x: format_final_chrono(x))
                 df_racb = df_m_racb[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]]
 
-            # Pour les classements ASAF, interdiction totale de laisser passer un numéro contenant un N
+            # Pour les classements ASAF, exclusion absolue des numéros commençant par N
             df_m_non_n = df_meilleurs[~mask_racb].copy()
 
             if len(df_m_non_n) > 0:
                 df_m_non_n["Classe_Num"] = pd.to_numeric(df_m_non_n["Classe"], errors='coerce')
 
-                # 2. Division 123 (Top 25) : Seulement les nombres et Classe vaut 1, 2 ou 3
+                # 2. Division 123 (Top 25) : Aucun N + Classe est 1, 2 ou 3
                 mask_123 = df_m_non_n["Classe_Num"].isin([1, 2, 3])
                 df_m_asaf123 = df_m_non_n[mask_123].sort_values(by="Calc_Sec").head(25)
                 if len(df_m_asaf123) > 0:
@@ -168,7 +167,7 @@ def recuperer_donnees_course():
                     df_m_asaf123["Chrono"] = df_m_asaf123["Calc_Sec"].apply(lambda x: format_final_chrono(x))
                     df_asaf123 = df_m_asaf123[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]]
 
-                # 3. Division 4 : Seulement les nombres et Classe vaut 4
+                # 3. Division 4 : Aucun N + Classe est 4
                 mask_4 = df_m_non_n["Classe_Num"].isin([4])
                 df_m_asaf4 = df_m_non_n[mask_4].sort_values(by="Calc_Sec")
                 if len(df_m_asaf4) > 0:
