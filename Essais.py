@@ -1,24 +1,13 @@
+import streamlit as st
 import pandas as pd
 import datetime
 import urllib.request
 
-# --- TECHNIQUE DE RECONSTRUCTION DES LIENS CONTRE LES COUPURES ---
-# Nous découpons vos liens officiels en morceaux pour forcer GitHub à tout enregistrer sans couper.
-
-# 1. Le fichier ARRIVEE
-ARR_1 = "https://dropbox.com"
-ARR_2 = "?rlkey=g9urz4v3jr36h0apzt45ognm6&st=0d9mpgfw&dl=1"
-FILE_ARRIVEE = ARR_1 + ARR_2
-
-# 2. Le fichier DEPART
-DEP_1 = "https://dropbox.com"
-DEP_2 = "?rlkey=4x4rvvlfyzz8v59gqbxn80a4d&st=mcibn3xx&dl=1"
-FILE_DEPART = DEP_1 + DEP_2
-
-# 3. Le fichier ENGAGES
-ENG_1 = "https://dropbox.com"
-ENG_2 = "?rlkey=8p0n8jyeuiivaa375bh3p608n&st=b9rzq7xo&dl=1"
-FILE_ENGAGES = ENG_1 + ENG_2
+# --- CONFIGURATION SÉCURISÉE VIA LES SECRETS STREAMLIT ---
+# Le code récupère directement les adresses configurées dans votre espace Streamlit
+FILE_ARRIVEE = st.secrets["url_arrivee"]
+FILE_DEPART = st.secrets["url_depart"]
+FILE_ENGAGES = st.secrets["url_engages"]
 
 
 def convertir_en_secondes(valeur):
