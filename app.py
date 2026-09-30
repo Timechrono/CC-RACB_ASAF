@@ -3,16 +3,19 @@ import pandas as pd
 import time
 import Essais
 
+# ISOLATION SÉCURISÉE DES IMPORTS POUR ÉVITER LE ROND DE CHARGEMENT INFI
 try:
     import Course_1_ASAF
-except Exception: pass
+except Exception:
+    pass
+
 try:
     import Course_2_ASAF
-except Exception: pass
+except Exception:
+    pass
 
 st.set_page_config(page_title="Live", layout="wide")
 
-# --- STYLE CSS DE VOS BANDEAUX ET TABLEAUX ---
 st.markdown("""
 <style>
 [data-testid="stHeader"] { display: none !important; }
@@ -47,7 +50,6 @@ button:focus, div:focus, input:focus, select:focus {
 .table-live td:last-child, .table-hist td:last-child, .table-class-robuste td:last-child { font-weight: bold !important; font-size: 0.94rem !important; color: #0F172A !important; }
 .table-hist tr:nth-child(odd) td { background-color: #E0F2FE !important; }
 
-/* REGLAGES EXACTS DES COLONNES DE GAUCHE */
 .table-live th:nth-child(1), .table-live td:nth-child(1) { width: 8% !important; }
 .table-live th:nth-child(2), .table-live td:nth-child(2) { width: 26% !important; }
 .table-live th:nth-child(3), .table-live td:nth-child(3) { width: 18% !important; }
@@ -55,7 +57,6 @@ button:focus, div:focus, input:focus, select:focus {
 .table-live th:nth-child(5), .table-live td:nth-child(5) { width: 13% !important; }
 .table-live th:nth-child(6), .table-live td:nth-child(6) { width: 22% !important; }
 
-/* REGLAGES EXACTS DE VOS CLASSEMENTS DE DROITE */
 .table-class-robuste th:nth-child(1), .table-class-robuste td:nth-child(1) { width: 9% !important; }
 .table-class-robuste th:nth-child(2), .table-class-robuste td:nth-child(2) { width: 11% !important; }
 .table-class-robuste th:nth-child(3), .table-class-robuste td:nth-child(3) { width: 33% !important; }
@@ -67,13 +68,11 @@ button:focus, div:focus, input:focus, select:focus {
 div[data-testid="stVerticalBlock"] { gap: 0rem !important; }
 </style>
 """, unsafe_allow_html=True)
-
 def gen_html(df, cl):
     if df.empty:
         return f"<table class='table-compacte {cl}'><tr><td style='text-align: center; padding: 10px;'>Aucune donnée disponible</td></tr></table>"
     return df.to_html(index=False, classes=f"table-compacte {cl}", escape=False, border=0)
 
-# --- SÉLECTEUR CENTRAL ---
 col_vide, col_texte, col_select = st.columns([0.6, 1.5, 1.3])
 with col_texte:
     st.markdown('<p class="texte-menu" style="margin-top:28px;">Sélectionnez la session à afficher :</p>', unsafe_allow_html=True)
@@ -82,17 +81,22 @@ with col_select:
 
 st.markdown("<div style='height:12px;'></div>", unsafe_allow_html=True)
 
-# --- REFRESH AUTOMATIQUE INTERNE (30 SECONDES) ---
 @st.fragment(run_every=30)
 def afficher_tableaux():
     st.cache_data.clear()
     
     if choix_course == "Course 1 ASAF":
-        d_liv, d_his, d_as123, d_as4, d_div = Course_1_ASAF.recuperer_donnees_course()
+        try:
+            d_liv, d_his, d_as123, d_as4, d_div = Course_1_ASAF.recuperer_donnees_course()
+        except Exception:
+            d_liv, d_his, d_as123, d_as4, d_div = pd.DataFrame(), pd.DataFrame(), pd.DataFrame(), pd.DataFrame(), pd.DataFrame()
         titre_historique = "🕒 HISTORIQUE DES TEMPS / 1er COURSE / Concurrents ASAF"
         st.markdown("<style>.table-hist th:nth-child(1), .table-hist td:nth-child(1) { width: 8% !important; } .table-hist th:nth-child(2), .table-hist td:nth-child(2) { width: 30% !important; } .table-hist th:nth-child(3), .table-hist td:nth-child(3) { width: 26% !important; } .table-hist th:nth-child(4), .table-hist td:nth-child(4) { width: 11% !important; } .table-hist th:nth-child(5), .table-hist td:nth-child(5) { width: 8% !important; } .table-hist th:nth-child(6), .table-hist td:nth-child(6) { width: 17% !important; }</style>", unsafe_allow_html=True)
     elif choix_course == "Course 2 ASAF":
-        d_liv, d_his, d_as123, d_as4, d_div = Course_2_ASAF.recuperer_donnees_course()
+        try:
+            d_liv, d_his, d_as123, d_as4, d_div = Course_2_ASAF.recuperer_donnees_course()
+        except Exception:
+            d_liv, d_his, d_as123, d_as4, d_div = pd.DataFrame(), pd.DataFrame(), pd.DataFrame(), pd.DataFrame(), pd.DataFrame()
         titre_historique = "🕒 HISTORIQUE DES TEMPS / 2ème COURSE / Concurrents ASAF"
         st.markdown("<style>.table-hist th:nth-child(1), .table-hist td:nth-child(1) { width: 7% !important; } .table-hist th:nth-child(2), .table-hist td:nth-child(2) { width: 23% !important; } .table-hist th:nth-child(3), .table-hist td:nth-child(3) { width: 25% !important; } .table-hist th:nth-child(4), .table-hist td:nth-child(4) { width: 10% !important; } .table-hist th:nth-child(5), .table-hist td:nth-child(5) { width: 7% !important; } .table-hist th:nth-child(6), .table-hist td:nth-child(6) { width: 14% !important; } .table-hist th:nth-child(7), .table-hist td:nth-child(7) { width: 14% !important; }</style>", unsafe_allow_html=True)
     else:
@@ -112,7 +116,7 @@ def afficher_tableaux():
         if choix_course == "Essais / Entraînements":
             st.markdown("<span class='titre-classement'>🏆 CLASSEMENT EVOLUTIF DES ESSAIS RACB (Top 20)</span>", unsafe_allow_html=True)
             st.markdown(gen_html(d_racb, "table-class-robuste"), unsafe_allow_html=True)
-            st.markdown("<div style='height: 55px;'></div>")
+            st.markdown("<div style='height: 55px;'></div>", unsafe_allow_html=True)
         
         st.markdown("<span class='titre-classement'>🏆 CLASSEMENT GENERAL Division 123 (Top 25)</span>", unsafe_allow_html=True)
         st.markdown(gen_html(d_as123, "table-class-robuste"), unsafe_allow_html=True)
@@ -122,4 +126,4 @@ def afficher_tableaux():
 
 afficher_tableaux()
 
-# --- FIN DU SCRIPT APP.PY ---
+# --- FIN DU SCRIPT ---
