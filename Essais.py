@@ -1,14 +1,20 @@
 import pandas as pd
 import datetime
 
-# --- CONFIGURATION DES LIENS DROPBOX DIRECTS ---
-# Base fixe de téléchargement qui force Dropbox à délivrer le fichier brut
-BASE_URL = "https://dropboxusercontent.com"
+# --- CONFIGURATION DES LIENS DROPBOX DIRECTS (AVEC PARAMS EMBARQUÉS EN TEXTE BRUT) ---
+# Séparation stricte pour contourner tout masquage ou rabotage d'adresse internet
+BASE_DL = "https://dropbox.com"
 
-# Reconstruction par assemblage pour éviter le masquage et garantir la précision des jetons
-FILE_ENGAGES = f"{BASE_URL}/sqrqinksco1am700s27h4/LIVE_Liste_ENGAGES.xlsm?rlkey=8p0n8jyeuiivaa375bh3p608n&st=b9rzq7xo&dl=0"
-FILE_ARRIVEE = f"{BASE_URL}/7uu9cmlpzglx0ngvbklpt/LIVE_Temps_ARRIVEE.xlsm?rlkey=g9urz4v3jr36h0apzt45ognm6&st=0d9mpgfw&dl=0"
-FILE_DEPART = f"{BASE_URL}/gbkaq01qzjujc8nq3zj28/LIVE_Temps_DEPART.xlsm?rlkey=4x4rvvlfyzz8v59gqbxn80a4d&st=mcibn3xx&dl=0"
+# Utilisation du paramètre officiel dl=1 (force le téléchargement brut sans passer par l'interface web)
+URL_ENG = f"{BASE_DL}/sqrqinksco1am700s27h4/LIVE_Liste_ENGAGES.xlsm?rlkey=8p0n8jyeuiivaa375bh3p608n&dl=1"
+URL_ARR = f"{BASE_DL}/7uu9cmlpzglx0ngvbklpt/LIVE_Temps_ARRIVEE.xlsm?rlkey=g9urz4v3jr36h0apzt45ognm6&dl=1"
+URL_DEP = f"{BASE_DL}/gbkaq01qzjujc8nq3zj28/LIVE_Temps_DEPART.xlsm?rlkey=4x4rvvlfyzz8v59gqbxn80a4d&dl=1"
+
+# On remplace les variables globales pour le moteur
+FILE_ENGAGES = URL_ENG
+FILE_ARRIVEE = URL_ARR
+FILE_DEPART = URL_DEP
+
 
 
 def convertir_en_secondes(valeur):
