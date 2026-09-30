@@ -4,16 +4,13 @@ import datetime
 import requests
 import io
 
-# --- CONFIGURATION RÉSEAU SECURISEE EXTRACTIVE ---
 HOTE = "://dropboxusercontent.com"
-
-# Reconstruction automatique des liens Dropbox d'origine
 FILE_ARRIVEE = f"https://{HOTE}/scl/fi/7uu9cmlpzglx0ngvbklpt/LIVE_Temps_ARRIVEE.xlsm?rlkey=g9urz4v3jr36h0apzt45ognm6&st=0d9mpgfw&dl=1"
 FILE_DEPART  = f"https://{HOTE}/scl/fi/gbkaq01qzjujc8nq3zj28/LIVE_Temps_DEPART.xlsm?rlkey=4x4rvvlfyzz8v59gqbxn80a4d&st=mcibn3xx&dl=1"
 FILE_ENGAGES = f"https://{HOTE}/scl/fi/sqrqinksco1am700s27h4/LIVE_Liste_ENGAGES.xlsm?rlkey=8p0n8jyeuiivaa375bh3p608n&st=b9rzq7xo&dl=1"
 
 def telecharger_excel(url):
-    entetes = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'}
+    entetes = {'User-Agent': 'Mozilla/5.0'}
     reponse = requests.get(url, headers=entetes, timeout=12)
     reponse.raise_for_status()
     return io.BytesIO(reponse.content)
@@ -28,9 +25,9 @@ def convertir_en_secondes(valeur):
     if ":" in s:
         try:
             parts = s.split(":")
-            minutes = int(parts[0])
-            secondes_centièmes = float(parts[1].replace(",", "."))
-            return (minutes * 60) + secondes_centièmes
+            m = int(parts)
+            sec = float(parts.replace(",", "."))
+            return (m * 60) + sec
         except Exception: pass
     if s.endswith(".0"): s = s[:-2]
     s_clean = "".join([c for c in s if c.isdigit()])
@@ -68,27 +65,7 @@ def calculer_statut_chrono(row, est_dans_le_live=True):
     if "Heure_Depart" in row and pd.notna(row["Heure_Depart"]) and ("Heure_Arrivee" in row and pd.isna(row["Heure_Arrivee"])):
         return "<span class='vrai-gyrophare'>🚨</span> EN PISTE" if est_dans_le_live else "En Piste"
     return "No Time"
-
-def generer_tableau_html(df, classe_specifique):
-    if df.empty: 
-        return f"<table class='table-compacte {classe_specifique}'><tr><td style='text-align: center; padding: 10px;'>Aucune donnée disponible</td></tr></table>"
-    
-    if classe_specifique == "table-class-groupes" and "Classe" in df.columns and "Division" in df.columns:
-        html = f"<table class='table-compacte table-class-robuste'><thead><tr>"
-        for col in df.columns: html += f"<th>{col}</th>"
-        html += "</tr></thead><tbody>"
-        for idx in range(len(df)):
-            classe_row = ""
-            if idx < len(df) - 1:
-                if str(df.iloc[idx]["Classe"]) != str(df.iloc[idx + 1]["Classe"]) or str(df.iloc[idx]["Division"]) != str(df.iloc[idx + 1]["Division"]):
-                    classe_row = "class='ligne-separation-classe'"
-            html += f"<tr {classe_row}>"
-            for col in df.columns: html += f"<td>{df.iloc[idx][col]}</td>"
-            html += "</tr>"
-        html += "</tbody></table>"
-        return html
-    return df.to_html(index=False, classes=f"table-compacte {classe_specifique}", escape=False, border=0)
-def executer_affichage_essais():
+def recuperer_donnees_course():
     cols_live = ["N°", "Nom_Prenom", "Voiture", "Départ", "Arrivée", "Chrono réalisé"]
     cols_hist = ["N°", "Nom_Prenom", "Voiture", "Division", "Classe", "Chrono réalisé"]
     
@@ -169,7 +146,6 @@ def executer_affichage_essais():
                 scr = valides.sort_values(by="Calc_Sec").drop_duplicates(subset=["N°"], keep="first").copy()
                 scr["Division_Clean"] = scr["Division"].astype(str).str.strip()
                 
-                # REPARTITION RIGOUREUSE DES MARQUES LOCALES
                 racb = scr[scr["Division_Clean"].str.upper() == "RACB"].head(20).copy()
                 if len(racb) > 0:
                     racb["Pos"] = range(1, len(racb) + 1)
@@ -189,27 +165,5 @@ def executer_affichage_essais():
                     df_asaf4 = asaf4[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]]
     except Exception: pass
 
-    # --- INJECTION STRICTE DE VOS TITRES ET LARGEURS LOCALES MILLIMÉTRÉES ---
-    st.markdown("<style>.table-hist th:nth-child(1), .table-hist td:nth-child(1) { width: 7% !important; } .table-hist th:nth-child(2), .table-hist td:nth-child(2) { width: 23% !important; } .table-hist th:nth-child(3), .table-hist td:nth-child(3) { width: 22% !important; } .table-hist th:nth-child(4), .table-hist td:nth-child(4) { width: 10% !important; } .table-hist th:nth-child(5), .table-hist td:nth-child(5) { width: 10% !important; } .table-hist th:nth-child(6), .table-hist td:nth-child(6) { width: 14% !important; }</style>", unsafe_allow_html=True)
-    
-    cg, cd = st.columns([1.3, 0.9])
-    with cg:
-        st.markdown("<span class='titre-live'>🏎️ EN DIRECT / Derniers concurrents partis</span>", unsafe_allow_html=True)
-        st.markdown(generer_tableau_html(df_live, "table-live"), unsafe_allow_html=True)
-        st.markdown("<div style='height: 35px;'></div>", unsafe_allow_html=True)
-        st.markdown("<span class='titre-hist'>🕒 HISTORIQUE DES TEMPS / ENTRAINEMENTS ASAF & RACB</span>", unsafe_allow_html=True)
-        st.markdown(generer_tableau_html(df_hist, "table-hist"), unsafe_allow_html=True)
-    with cd:
-        st.markdown("<span class='titre-classement'>🏆 CLASSEMENT EVOLUTIF DES ESSAIS RACB (Top 20)</span>", unsafe_allow_html=True)
-        st.markdown(generer_tableau_html(df_racb, "table-class-robuste"), unsafe_allow_html=True)
-        st.markdown("<div style='height: 55px;'></div>", unsafe_allow_html=True)
-        st.markdown("<span class='titre-classement'>🏆 CLASSEMENT EVOLUTIF DES ESSAIS ASAF DIV 1-2-3 (Top 25)</span>", unsafe_allow_html=True)
-        st.markdown(generer_tableau_html(df_asaf123, "table-class-robuste"), unsafe_allow_html=True)
-        st.markdown("<div style='height: 55px;'></div>", unsafe_allow_html=True)
-        st.markdown("<span class='titre-classement'>🏆 CLASSEMENT EVOLUTIF DES ESSAIS ASAF DIV 4 (Top 10)</span>", unsafe_allow_html=True)
-        st.markdown(generer_tableau_html(df_asaf4, "table-class-robuste"), unsafe_allow_html=True)
-            except Exception: pass
-
-    # CORRECTION CRITIQUE DU RETOUR D'ATTRIBUTS POUR APP.PY
+    # ALIGNEMENT DES VARIABLES ATTENDUES POUR APP.PY SANS INDENTATIONERROR
     return df_live, df_hist, df_asaf123, df_asaf4, df_racb
-
