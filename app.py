@@ -3,7 +3,6 @@ import pandas as pd
 import time
 import Essais
 
-# CONNEXION SÉCURISÉE AVEC LES SCRIPTS DE COURSE
 try:
     import Course_1_ASAF
 except Exception: pass
@@ -16,12 +15,11 @@ except Exception: pass
 
 st.set_page_config(page_title="Live", layout="wide")
 
-# --- FEUILLE DE STYLE CSS DE L'APPLICATION ---
+# --- STYLE CSS RESTAURÉ AVEC PRISE EN CHARGE DE LA COLONNE COURSE 1 ---
 st.markdown("""
 <style>
 [data-testid="stHeader"] { display: none !important; }
 
-/* REJET DU ROUGE ET DES CONTOURS DE SÉLECTION */
 button:focus, div:focus, input:focus, select:focus {
     outline: none !important;
     border-color: transparent !important;
@@ -63,22 +61,23 @@ div[data-testid="stFragment"] {
 .badge-piste { background-color: #FEE2E2 !important; color: #DC2626 !important; padding: 1px 4px !important; border-radius: 3px !important; font-weight: bold; }
 .table-hist tr:nth-child(odd) td { background-color: #E0F2FE !important; }
 
-/* FIXATION LARGEURS DU TABLEAU EN DIRECT (TOTAL = 100%) */
+/* FIXATION ETANCHE DU TABLEAU EN DIRECT (TOTAL = 100%) */
 .table-live th:nth-child(1), .table-live td:nth-child(1) { width: 8% !important; }
 .table-live th:nth-child(2), .table-live td:nth-child(2) { width: 25% !important; }
 .table-live th:nth-child(3), .table-live td:nth-child(3) { width: 17% !important; }
 .table-live th:nth-child(4), .table-live td:nth-child(4) { width: 12% !important; }
 .table-live th:nth-child(5), .table-live td:nth-child(5) { width: 13% !important; }
 .table-live th:nth-child(6), .table-live td:nth-child(6) { width: 25% !important; }
-/* RE-REPARTITION IDEALE DES LARGEURS DE L'HISTORIQUE (TOTAL = 100%) */
+/* RE-REPARTITION SÉCURISÉE DE L'HISTORIQUE AVEC PRISE EN CHARGE DU FORMAT 6 OU 7 COLONNES (TOTAL = 100%) */
 .table-hist th:nth-child(1), .table-hist td:nth-child(1) { width: 8% !important; }   
-.table-hist th:nth-child(2), .table-hist td:nth-child(2) { width: 32% !important; }  
-.table-hist th:nth-child(3), .table-hist td:nth-child(3) { width: 26% !important; }  
+.table-hist th:nth-child(2), .table-hist td:nth-child(2) { width: 24% !important; }  
+.table-hist th:nth-child(3), .table-hist td:nth-child(3) { width: 22% !important; }  
 .table-hist th:nth-child(4), .table-hist td:nth-child(4) { width: 10% !important; }  
 .table-hist th:nth-child(5), .table-hist td:nth-child(5) { width: 8% !important; }   
-.table-hist th:nth-child(6), .table-hist td:nth-child(6) { width: 16% !important; }  
+.table-hist th:nth-child(6), .table-hist td:nth-child(6) { width: 14% !important; }  
+.table-hist th:nth-child(7), .table-hist td:nth-child(7) { width: 14% !important; }  
 
-/* OPTIMISATION DES TABLEAUX CLASSEMENTS A DROITE (TOTAL = 100%) */
+/* RESTAURATION DE LA LARGEUR CLASSEMENT DE DROITE D'ORIGINE */
 .table-class-robuste th:nth-child(1), .table-class-robuste td:nth-child(1) { width: 9% !important; }
 .table-class-robuste th:nth-child(2), .table-class-robuste td:nth-child(2) { width: 11% !important; }
 .table-class-robuste th:nth-child(3), .table-class-robuste td:nth-child(3) { width: 33% !important; }
@@ -96,7 +95,7 @@ def gen_html(df, cl):
         return f"<table class='table-compacte {cl}'><tr><td style='text-align: center; padding: 10px;'>Aucune donnée disponible</td></tr></table>"
     return df.to_html(index=False, classes=f"table-compacte {cl}", escape=False, border=0)
 
-# --- SÉLECTEUR CENTRAL UNIQUE ---
+# --- SÉLECTEUR CENTRAL ---
 col_vide, col_texte, col_select = st.columns([0.6, 1.5, 1.3])
 
 with col_texte:
@@ -107,7 +106,7 @@ with col_select:
 
 st.markdown("<div style='height:12px;'></div>", unsafe_allow_html=True)
 
-# --- BLOC DE REFRESH DYNAMIQUE (30 SECONDES) ---
+# --- BLOC DE REFRESH DYNAMIQUE ---
 @st.fragment(run_every=30)
 def afficher_tableaux():
     st.cache_data.clear()
@@ -129,8 +128,8 @@ def afficher_tableaux():
         d_div, d_racb = pd.DataFrame(), pd.DataFrame()
         titre_historique = "🕒 HISTORIQUE DES TEMPS"
 
-    # CORRECTION ARCHITECTURALE : DEPLOYAGE DU BLOC GAUCHE A 72% ET COMPRESSION DROITE A 28%
-    cg, cd = st.columns([2.6, 1.0])
+    # RESTAURATION DES PROPORTIONS D'ECRAN DE BASE PARTICULIEREMENT COMPACTES ET BELLES
+    cg, cd = st.columns([1.3, 0.9])
     with cg:
         st.markdown("<span class='titre-live'>🏎️ EN DIRECT / Derniers concurrents partis</span>", unsafe_allow_html=True)
         st.markdown(gen_html(d_liv, "table-live"), unsafe_allow_html=True)
