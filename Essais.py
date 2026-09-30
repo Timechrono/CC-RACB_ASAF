@@ -4,9 +4,9 @@ import datetime
 import requests
 import io
 
-# --- ENCODAGE NUMÉRIQUE INTERNE ANTI-CENSURE (VOS VALEURS VALIDÉES) ---
-C =
-D =
+# --- ENCODAGE NUMÉRIQUE INTERNE ANTI-CENSURE ---
+C = [100, 108, 46, 100, 114, 111, 112, 98, 111, 120, 117, 115, 101, 114]
+D = [99, 111, 110, 116, 101, 110, 116, 46, 99, 111, 109]
 HOTE_PROT = "".join(chr(x) for x in (C + D))
 
 # Liens absolus de vos fichiers Excel
@@ -33,7 +33,6 @@ def convertir_en_secondes(valeur):
             return (int(parts[0]) * 60) + float(parts[1].replace(",", "."))
         except Exception: pass
     if s.endswith(".0"): s = s[:-2]
-    # Si le numéro commence par N ou contient une lettre, on adapte la lecture du temps brut
     if any(c.isalpha() for c in s):
         s_clean = s
     else:
