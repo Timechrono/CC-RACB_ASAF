@@ -12,10 +12,24 @@ st.markdown("""
 button:focus, div:focus, input:focus, select:focus {
     outline: none !important; border-color: transparent !important; box-shadow: none !important;
 }
+
+/* Modifié : Texte plus grand, en gras et alignement vertical */
 .texte-menu {
-    font-size: 0.95rem !important; font-weight: bold !important;
-    color: #1E293B !important; text-align: right; padding-right: 15px;
+    font-size: 1.05rem !important; 
+    font-weight: bold !important;
+    color: #1E293B !important; 
+    text-align: right; 
+    padding-right: 15px;
+    margin: 0 !important;
+    line-height: 42px; /* Aligne parfaitement à hauteur du milieu du sélecteur */
 }
+
+/* Ajouté : Écriture du bouton sélecteur plus grande et en gras */
+div[data-testid="stSelectbox"] div[data-baseweb="select"] {
+    font-size: 1.05rem !important;
+    font-weight: bold !important;
+}
+
 .titre-live, .titre-hist, .titre-classement {
     color: #FFFFFF !important; font-size: 1.05rem !important; font-weight: bold !important;
     padding: 4px 8px !important; border-radius: 3px !important; margin-bottom: 6px !important;
@@ -64,10 +78,10 @@ def gen_html(df, cl):
         return f"<table class='table-compacte {cl}'><tr><td style='text-align: center; padding: 10px;'>Aucune donnée disponible</td></tr></table>"
     return df.to_html(index=False, classes=f"table-compacte {cl}", escape=False, border=0)
 
-# --- CONFIGURATION SÉLECTEUR ---
-col_vide, col_texte, col_select = st.columns([0.6, 1.5, 1.3])
+# --- CONFIGURATION SÉLECTEUR AJUSTÉE ---
+col_vide, col_texte, col_select = st.columns([0.6, 1.5, 1.3], vertical_alignment="center")
 with col_texte:
-    st.markdown('<p class="texte-menu" style="margin-top:28px;">Sélectionnez la session à afficher :</p>', unsafe_allow_html=True)
+    st.markdown('<p class="texte-menu">Sélectionnez la session à afficher :</p>', unsafe_allow_html=True)
 with col_select:
     choix_course = st.selectbox("Session_Label", ["Essais / Entraînements"], label_visibility="collapsed")
 
@@ -78,7 +92,6 @@ st.markdown("<div style='height:12px;'></div>", unsafe_allow_html=True)
 def afficher_tableaux():
     st.cache_data.clear()
     
-    # Extraction des 5 tables et des 3 titres provenant directement d'Essais.py
     d_liv, d_his, d_as123, d_as4, d_racb, t_racb, t_as123, t_as4 = Essais.recuperer_donnees_course()
     titre_historique = "🕒 HISTORIQUE DES TEMPS / ENTRAINEMENTS ASAF & RACB"
     
@@ -92,7 +105,6 @@ def afficher_tableaux():
         st.markdown(f"<span class='titre-hist'>{titre_historique}</span>", unsafe_allow_html=True)
         st.markdown(gen_html(d_his, "table-hist"), unsafe_allow_html=True)
     with cd:
-        # Injection dynamique des chaînes HTML générées par Essais.py
         st.markdown(f"<span class='titre-classement'>{t_racb}</span>", unsafe_allow_html=True)
         st.markdown(gen_html(d_racb, "table-class-robuste"), unsafe_allow_html=True)
         st.markdown("<div style='height: 55px;'></div>", unsafe_allow_html=True)
