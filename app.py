@@ -1,4 +1,24 @@
-CLASSEMENT EVOLUTIF DES ESSAIS RACB (Top 20)# --- DESIGN COMPACT DU SÉLECTEUR ---
+import streamlit as st
+import pandas as pd
+import time
+
+# --- NAVETTES INTERNES ENTRE SESSIONS ---
+try:
+    import Essais
+except Exception: pass
+try:
+    import Course_1_ASAF
+except Exception: pass
+try:
+    import Course_1_RACB
+except Exception: pass
+try:
+    import Course_2_ASAF
+except Exception: pass
+
+st.set_page_config(layout="wide")
+st.cache_data.clear()
+# --- DESIGN COMPACT DU SÉLECTEUR SANS PARASITE ---
 st.markdown("""
     <style>
     [data-testid="stHeader"] { display: none !important; }
@@ -32,5 +52,5 @@ elif choix_course == "Course 1 RACB":
 elif choix_course == "Course 2 ASAF":
     pass
 else:
-    # Appel de la fonction autonome complète que vous venez de coller dans Essais.py
+    # Les Essais reprennent le contrôle total de leur affichage et de leurs données
     Essais.afficher_ecran_complet()
