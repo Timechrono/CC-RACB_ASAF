@@ -1,3 +1,50 @@
+import streamlit as st
+import pandas as pd
+import datetime
+import requests
+import io
+
+# --- EXTENSION DE RECONSTRUCTION DES LIENS ---
+# Codes ASCII pour reconstituer de force l'adresse "://dropboxusercontent.com"
+AA = [100, 108, 46, 100, 114, 111, 112, 98, 111, 120, 117, 115, 101, 114, 99]
+BB = [111, 110, 116, 101, 110, 116, 46, 99, 111, 109]
+DOMAINE_PROT = "".join(chr(x) for x in (AA + BB))
+
+# Liens internet protégés contre le rabotage visuel du navigateur
+FILE_ARRIVEE = f"https://{DOMAINE_PROT}/scl/fi/7uu9cmlpzglx0ngvbklpt/LIVE_Temps_ARRIVEE.xlsm?rlkey=g9urz4v3jr36h0apzt45ognm6&st=0d9mpgfw&dl=1"
+FILE_DEPART  = f"https://{DOMAINE_PROT}/scl/fi/gbkaq01qzjujc8nq3zj28/LIVE_Temps_DEPART.xlsm?rlkey=4x4rvvlfyzz8v59gqbxn80a4d&st=mcibn3xx&dl=1"
+FILE_ENGAGES = f"https://{DOMAINE_PROT}/scl/fi/69zkwsb45bpiw3ys3kk4c/LIVE_Liste_ENGAGES_RACB.xlsm?rlkey=qpjrlmbxhcskifnabs84veqh8&st=0snuv3e7&dl=1"
+
+def telecharger_excel(url):
+    entetes = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'}
+    reponse = requests.get(url, headers=entetes, timeout=12)
+    reponse.raise_for_status()
+    return io.BytesIO(reponse.content)
+
+def convertir_en_secondes(valeur):
+    if pd.isna(valeur) or valeur is None: return None
+    if isinstance(valeur, pd.Timedelta): return valeur.total_seconds()
+    if isinstance(valeur, (datetime.time, datetime.datetime)):
+        return (valeur.minute * 60) + valeur.second + (valeur.microsecond / 1000000)
+    s = str(valeur).strip()
+    if not s or s.lower() == "nan": return None
+    if ":" in s:
+        try:
+            parts = s.split(":")
+            m = int(parts[0])
+            sec = float(parts[1].replace(",", "."))
+            return (m * 60) + sec
+        except Exception: pass
+    if s.endswith(".0"): s = s[:-2]
+    s_clean = "".join([c for c in s if c.isdigit()])
+    if not s_clean: return None
+    num = int(s_clean)
+    centiemes = num % 100
+    secondes = (num // 100) % 100
+    minutes = num // 10000
+    if minutes >= 60: minutes = minutes % 60
+    return (minutes * 60) + secondes + (centiemes / 100)
+
 def nettoyer_numero(valeur):
     if pd.isna(valeur): return "nan"
     s = str(valeur).strip().upper()
@@ -53,61 +100,7 @@ def recuperer_donnees_course():
 
         df_dep = pd.DataFrame({"N°": df_dep_raw.iloc[2:, idx_dep_1].apply(nettoyer_numero), "Heure_Depart": df_dep_raw.iloc[2:, idx_dep_1 + 1]}) if idx_dep_1 is not None else pd.DataFrame(columns=["N°", "Heure_Depart"])
         df_arr = pd.DataFrame({"N°": df_arr_raw.iloc[2:, idx_arr_1].apply(nettoyer_numero), "Heure_Arrivee": df_arr_raw.iloc[2:, idx_arr_1 + 2], "Chrono_Excel": df_arr_raw.iloc[2:, idx_arr_1 + 3]}) if idx_arr_1 is not None else pd.DataFrame(columns=["N°", "Heure_Arrivee", "Chrono_Excel"])
-def nettoyer_numero(valeur):
-    if pd.isna(valeur): return "nan"
-    s = str(valeur).strip().upper()
-    return s[:-2] if s.endswith(".0") else s
 
-def format_final_chrono(total_sec, fallback_statut="No Time"):
-    if total_sec is None or pd.isna(total_sec) or total_sec < 0: return fallback_statut
-    m, reste_sec = divmod(round(total_sec, 2), 60)
-    s = int(reste_sec // 1)
-    c = int(round((reste_sec % 1) * 100))
-    if c == 100: s += 1; c = 0
-    if s == 60: m += 1; s = 0
-    return f"{int(m):02d}:{s:02d}.{c:02d}"
-
-def formater_heure_ecran(val):
-    if pd.isna(val) or val == "" or str(val).lower() == "nan": return "-"
-    s = str(val).strip()
-    if s.endswith(".0"): s = s[:-2]
-    s = s.zfill(6)
-    return f"{s[0:2]}:{s[2:4]}.{s[4:6]}" if len(s) == 6 else str(val)
-
-def calculer_statut_chrono(row, est_dans_le_live=True):
-    if "Calc_Sec" in row and pd.notna(row["Calc_Sec"]) and row["Calc_Sec"] > 0:
-        return format_final_chrono(row["Calc_Sec"])
-    if "Heure_Depart" in row and pd.notna(row["Heure_Depart"]) and ("Heure_Arrivee" in row and pd.isna(row["Heure_Arrivee"])):
-        return "<span class='vrai-gyrophare'>🚨</span> EN PISTE" if est_dans_le_live else "En Piste"
-    return "No Time"
-
-def recuperer_donnees_course():
-    cols_live = ["N°", "Nom_Prenom", "Voiture", "Départ", "Arrivée", "Chrono réalisé"]
-    cols_hist = ["N°", "Nom_Prenom", "Voiture", "Groupe", "Classe", "Chrono réalisé"]
-    df_live = pd.DataFrame(columns=cols_live)
-    df_hist = pd.DataFrame(columns=cols_hist)
-    df_racb = pd.DataFrame(columns=["Pos", "N°", "Nom_Prenom", "Groupe", "Classe", "Chrono"])
-    df_divisions = pd.DataFrame(columns=["Pos", "N°", "Nom_Prenom", "Groupe", "Classe", "Chrono"])
-
-    try:
-        flux_eng = telecharger_excel(FILE_ENGAGES)
-        flux_dep = telecharger_excel(FILE_DEPART)
-        flux_arr = telecharger_excel(FILE_ARRIVEE)
-        
-        df_eng_raw = pd.read_excel(flux_eng, skiprows=1, engine='openpyxl')
-        df_dep_raw = pd.read_excel(flux_dep, header=None, engine='openpyxl')
-        df_arr_raw = pd.read_excel(flux_arr, header=None, engine='openpyxl')
-
-        idx_dep_1, idx_arr_1 = None, None
-        for c_idx in range(len(df_dep_raw.columns)):
-            val = str(df_dep_raw.iloc[1, c_idx]).strip().upper()
-            if "COURSE 1 RACB" in val: idx_dep_1 = c_idx
-        for c_idx in range(len(df_arr_raw.columns)):
-            val = str(df_arr_raw.iloc[1, c_idx]).strip().upper()
-            if "COURSE 1 RACB" in val: idx_arr_1 = c_idx
-
-        df_dep = pd.DataFrame({"N°": df_dep_raw.iloc[2:, idx_dep_1].apply(nettoyer_numero), "Heure_Depart": df_dep_raw.iloc[2:, idx_dep_1 + 1]}) if idx_dep_1 is not None else pd.DataFrame(columns=["N°", "Heure_Depart"])
-        df_arr = pd.DataFrame({"N°": df_arr_raw.iloc[2:, idx_arr_1].apply(nettoyer_numero), "Heure_Arrivee": df_arr_raw.iloc[2:, idx_arr_1 + 2], "Chrono_Excel": df_arr_raw.iloc[2:, idx_arr_1 + 3]}) if idx_arr_1 is not None else pd.DataFrame(columns=["N°", "Heure_Arrivee", "Chrono_Excel"])
         df_eng_raw.columns = df_eng_raw.columns.astype(str).str.strip().str.upper()
         df_eng = pd.DataFrame({"N°": df_eng_raw.iloc[:, 0].apply(nettoyer_numero), 
                                "Nom_Prenom": df_eng_raw.iloc[:, 1].fillna("Pilote Inconnu").astype(str).str.strip(),
