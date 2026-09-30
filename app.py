@@ -4,12 +4,12 @@ import Essais
 
 st.set_page_config(page_title="Live Chrono - RACB & ASAF", layout="wide")
 
-# --- STYLE CSS ÉPURÉ ET LARGEUR MAXIMALE POUR TOUT PASSER SUR UNE SEULE LIGNE ---
+# --- STYLE CSS INJECTÉ DE FORCE PAR ATTRIBUTS ---
 st.markdown("""
     <style>
     [data-testid="stHeader"] { display: none !important; }
     
-    /* Force l'alignement horizontal parfait du texte et du sélecteur sans forcer de petite largeur */
+    /* ALIGNEMENT HORIZONTAL PARFAIT SUR UNE SEULE LIGNE */
     .bloc-menu-horizontal {
         display: flex;
         align-items: center;
@@ -26,25 +26,12 @@ st.markdown("""
         margin: 0 !important;
     }
     
-    /* Élargissement du cadre du sélecteur pour qu'il s'étire proprement sur la ligne */
+    /* ÉLARGISSEMENT DU SÉLECTEUR SANS FORCER DE COULEUR INTERNE */
     div[data-testid="stSelectbox"] {
         width: 400px !important;
         margin: 0 !important;
     }
     div[data-testid="stSelectbox"] label { display: none !important; }
-    
-    /* Application du style bleu foncé sur le sélecteur d'origine */
-    div[data-testid="stSelectbox"] [role="combobox"],
-    div[data-testid="stSelectbox"] div[data-baseweb="select"] > div {
-        background-color: #1E3A8A !important;
-        color: #FFFFFF !important;
-        border: 1px solid #1D4ED8 !important;
-        border-radius: 4px !important;
-    }
-    div[data-testid="stSelectbox"] [data-testid="stSelectboxValue"], div[data-testid="stSelectbox"] svg {
-        color: #FFFFFF !important;
-        fill: #FFFFFF !important;
-    }
     
     /* Petit décalage sous le menu */
     .espace-sous-menu { height: 15px !important; clear: both !important; }
@@ -108,9 +95,20 @@ def gen_html(df, classe):
 st.markdown('<div class="bloc-menu-horizontal">', unsafe_allow_html=True)
 col_gauche, col_droite = st.columns([1.2, 1.0])
 with col_gauche:
-    st.markdown('<p class="texte-menu" style="text-align: right;">Sélectionnez la session à afficher :</p>', unsafe_allow_html=True)
+    st.markdown('<div class="texte-menu" style="text-align: right;">Sélectionnez la session à afficher :</div>', unsafe_allow_html=True)
 with col_droite:
-    choix_course = st.selectbox("Session", ["Essais / Entraînements", "Course 1 ASAF", "Course 1 RACB", "Course 2 ASAF", "Course 2 RACB", "Course 3 ASAF", "Course 3 RACB"])
+    # L'ASTUCE : On force le bouton à afficher une flèche blanche texte (▼) directement à la fin du texte pour qu'elle soit visible
+    choix_texte = st.selectbox("Session", [
+        "⏱️ Essais / Entraînements          ▼", 
+        "🚗 Course 1 ASAF          ▼", 
+        "🏆 Course 1 RACB          ▼", 
+        "🚗 Course 2 ASAF          ▼", 
+        "🏆 Course 2 RACB          ▼", 
+        "🚗 Course 3 ASAF          ▼", 
+        "🏆 Course 3 RACB          ▼"
+    ])
+    # Extraction du nom épuré sans la flèche pour faire tourner le moteur de calcul
+    choix_course = choix_texte.replace("          ▼", "").replace("⏱️ ", "").replace("🚗 ", "").replace("🏆 ", "").strip()
 st.markdown('</div>', unsafe_allow_html=True)
 
 st.markdown('<div class="espace-sous-menu"></div>', unsafe_allow_html=True)
