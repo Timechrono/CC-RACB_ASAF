@@ -1,22 +1,27 @@
 import pandas as pd
 import datetime
-import os
+import requests
+import io
 
-# --- LOGIQUE DE DOUBLE CHEMIN COMPATIBLE PC ET WEB ---
-# Si le dossier Dropbox local existe (votre PC), on l'utilise. Sinon (Web GitHub), on lit le dossier local du serveur.
-BASE_DIR_PC = "C:/Dropbox/Dropbox"
+# --- ADRESSES IP BRUTES DROPBOX POUR CONTOURNER LE BUG DNS ---
+# Nous utilisons l'IP publique directe de Dropbox pour forcer la connexion internet du serveur
+IP_DROPBOX = "162.125.2.15" 
 
-if os.path.exists(BASE_DIR_PC):
-    FILE_ENGAGES = os.path.join(BASE_DIR_PC, "LIVE_Liste_ENGAGES.xlsm")
-    FILE_ARRIVEE = os.path.join(BASE_DIR_PC, "LIVE_Temps_ARRIVEE.xlsm")
-    FILE_DEPART  = os.path.join(BASE_DIR_PC, "LIVE_Temps_DEPART.xlsm")
-    skip_lignes = 2
-else:
-    # Lecture directe des fichiers que vous avez déposés sur GitHub (Zéro dépendance réseau)
-    FILE_ENGAGES = "LIVE_Liste_ENGAGES.xlsm"
-    FILE_ARRIVEE = "LIVE_Temps_ARRIVEE.xlsm"
-    FILE_DEPART  = "LIVE_Temps_DEPART.xlsm"
-    skip_lignes = 2
+# Reconstruction des requêtes brutes de téléchargement direct (dl=1)
+FILE_ENGAGES = f"https://{IP_DROPBOX}/scl/fi/sqrqinksco1am700s27h4/LIVE_Liste_ENGAGES.xlsm?rlkey=8p0n8jyeuiivaa375bh3p608n&dl=1"
+FILE_ARRIVEE = f"https://{IP_DROPBOX}/scl/fi/7uu9cmlpzglx0ngvbklpt/LIVE_Temps_ARRIVEE.xlsm?rlkey=g9urz4v3jr36h0apzt45ognm6&dl=1"
+FILE_DEPART  = f"https://{IP_DROPBOX}/scl/fi/gbkaq01qzjujc8nq3zj28/LIVE_Temps_DEPART.xlsm?rlkey=4x4rvvlfyzz8v59gqbxn80a4d&dl=1"
+
+def telecharger_excel_force(url):
+    """Télécharge le fichier en transmettant le nom d'hôte attendu par le certificat de sécurité"""
+    entetes = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
+        'Host': '://dropboxusercontent.com' # Indique à Dropbox quel domaine on cible réellement
+    }
+    # verify=False évite le blocage si le certificat SSL ne correspond pas à l'IP brute
+    reponse = requests.get(url, headers=entetes, timeout=10, verify=False)
+    reponse.raise_for_status()
+    return io.BytesIO(reponse.content)
 
 def convertir_en_secondes(valeur):
     if pd.isna(valeur) or valeur is None: return None
@@ -72,10 +77,14 @@ def recuperer_donnees_course():
     df_asaf4 = pd.DataFrame(columns=["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"])
 
     try:
-        # Ouverture locale instantanée (Sur PC ou depuis l'espace de stockage GitHub)
-        df_eng_raw = pd.read_excel(FILE_ENGAGES, engine='openpyxl')
-        df_dep_raw = pd.read_excel(FILE_DEPART, skiprows=skip_lignes, engine='openpyxl')
-        df_arr_raw = pd.read_excel(FILE_ARRIVEE, skiprows=skip_lignes, engine='openpyxl')
+        # Téléchargement forcé par adresse IP via la mémoire vive
+        flux_eng = telecharger_excel_force(FILE_ENGAGES)
+        flux_dep = telecharger_excel_force(FILE_DEPART)
+        flux_arr = telecharger_excel_force(FILE_ARRIVEE)
+
+        df_eng_raw = pd.read_excel(flux_eng, engine='openpyxl')
+        df_dep_raw = pd.read_excel(flux_dep, skiprows=2, engine='openpyxl')
+        df_arr_raw = pd.read_excel(flux_arr, skiprows=2, engine='openpyxl')
 
         df_eng_raw.columns = df_eng_raw.columns.astype(str).str.strip().str.upper()
         df_dep_raw.columns = df_dep_raw.columns.astype(str).str.strip().str.upper()
@@ -169,6 +178,7 @@ def recuperer_donnees_course():
                         asaf4["Chrono"] = asaf4["Calc_Sec"].apply(format_final_chrono)
                         df_asaf4 = asaf4[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]]
     except Exception as e:
-        pass
+        # Permet de renvoyer l'erreur en rouge si Dropbox rejette l'en-tête IP brute
+        st.error(f"Erreur de téléchargement direct : {e}")
 
     return df_live, df_hist, df_racb, df_asaf123, df_asaf4
