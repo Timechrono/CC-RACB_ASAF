@@ -7,9 +7,17 @@ st.set_page_config(
     layout="wide"
 )
 
-# --- CONFIGURATION STYLE CSS DES BOUTONS BLEUS ---
+# --- THEME GLOBAL FORCE ET DESIGN CSS ---
 st.markdown("""
 <style>
+/* FORCE LES COULEURS DE BASE DE STREAMLIT SUR LE MENU */
+:root {
+    --primary-color: #1E3A8A !important;
+    --background-color: #FFFFFF !important;
+    --secondary-background-color: #1E3A8A !important;
+    --text-color: #FFFFFF !important;
+}
+
 [data-testid="stHeader"] {
     display: none !important;
 }
@@ -23,14 +31,14 @@ div[data-testid="stFragment"] {
     animation: none !important;
 }
 
-/* STYLE DE LA LIGNE HORIZONTALE DE BOUTONS */
+/* BLOC HORIZONTAL ALIGNÉ ET ULTRA-COMPACT */
 .bloc-menu-horizontal {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 15px;
-    margin: 0 auto 5px auto;
-    max-width: 1000px;
+    gap: 12px;
+    margin: 0 auto 0px auto;
+    max-width: 850px;
 }
 .texte-menu {
     font-size: 0.92rem !important;
@@ -40,28 +48,54 @@ div[data-testid="stFragment"] {
     margin-bottom: 0px !important;
 }
 
-/* CARACTÉRISTIQUES DU BOUTON SÉLECTIONNÉ (BLEU FONCÉ & TEXTE BLANC) */
-div[data-testid="stWidgetLabel"] {
+/* TAILLE DU BOUTON UNIQUE DE SÉLECTION */
+div[data-testid="stSelectbox"] {
+    width: 260px !important;
+    margin-bottom: 0px !important;
+}
+div[data-testid="stSelectbox"] label {
     display: none !important;
 }
-div[data-testid="stPills"] button[aria-checked="true"] {
-    background-color: #1E3A8A !important; /* Bleu foncé RACB */
-    color: #FFFFFF !important;             /* Texte blanc pur */
-    border: 1px solid #1D4ED8 !important;
-}
 
-/* CARACTÉRISTIQUES DES BOUTONS NON SÉLECTIONNÉS */
-div[data-testid="stPills"] button[aria-checked="false"] {
-    background-color: #F1F5F9 !important;
-    color: #0F172A !important;
-    border: 1px solid #CBD5E1 !important;
-}
-/* Hauteur ultra-réduite pour gagner de la place */
-div[data-testid="stPills"] button {
-    padding: 2px 10px !important;
+/* FORÇAGE COULEUR DU BOUTON FERMÉ : BLEU FONCÉ & BLANC */
+div[data-testid="stSelectbox"] [role="combobox"],
+div[data-testid="stSelectbox"] div[data-baseweb="select"] > div {
+    background-color: #1E3A8A !important;
+    color: #FFFFFF !important;
+    border: 1px solid #1D4ED8 !important;
     min-height: 26px !important;
     height: 26px !important;
-    font-size: 0.85rem !important;
+    border-radius: 4px !important;
+    font-size: 0.88rem !important;
+}
+
+/* COULEUR DU TEXTE ET DU TRIANGLE EN BLANC PUR */
+div[data-testid="stSelectbox"] [data-testid="stSelectboxValue"] {
+    color: #FFFFFF !important;
+    line-height: 26px !important;
+}
+div[data-testid="stSelectbox"] svg {
+    fill: #FFFFFF !important;
+    color: #FFFFFF !important;
+}
+div[data-testid="stSelectbox"] div[data-baseweb="select"] > div > div {
+    padding-top: 0px !important;
+    padding-bottom: 0px !important;
+    height: 24px !important;
+}
+
+/* INTERDICTION STRICTE DU BLEU CIEL LORS DU CLIC (MENU OUVERT) */
+div[data-baseweb="popover"] ul,
+div[data-baseweb="menu"],
+[role="listbox"],
+[role="option"] {
+    background-color: #1E3A8A !important;
+    color: #FFFFFF !important;
+}
+[role="option"]:hover,
+[aria-selected="true"] {
+    background-color: #1D4ED8 !important;
+    color: #FFFFFF !important;
 }
 
 .espace-sous-menu {
@@ -176,29 +210,28 @@ def gen_html(df, classe):
         border=0
     )
 
-# --- RECONSTRUCTION HORIZONTALE DU SÉLECTEUR AVEC DES BOUTONS COMPACTS ---
+# --- MENU DÉROULANT COMPACT EN LIGNE ---
 st.markdown(
     '<div class="bloc-menu-horizontal">',
     unsafe_allow_html=True
 )
-c_txt, c_sel = st.columns([0.8, 2.0])
+c_txt, c_sel = st.columns([1.3, 1.0])
 with c_txt:
     st.markdown(
-        '<p class="texte-menu" style="margin-top:4px;text-align:right;">'
-        'Session en cours :</p>',
+        '<p class="texte-menu" '
+        'style="margin-top:4px;text-align:right;">'
+        'Sélectionnez la session à afficher :</p>',
         unsafe_allow_html=True
     )
 with c_sel:
-    # Des pastilles cliquables remplacent le sélecteur défectueux
-    choix_course = st.pills(
+    choix_course = st.selectbox(
         "Session",
         [
             "Essais / Entraînements",
-            "C1 ASAF", "Course 1 RACB",
-            "C2 ASAF", "Course 2 RACB",
-            "C3 ASAF", "Course 3 RACB"
-        ],
-        default="Essais / Entraînements"
+            "Course 1 ASAF", "Course 1 RACB",
+            "Course 2 ASAF", "Course 2 RACB",
+            "Course 3 ASAF", "Course 3 RACB"
+        ]
     )
 st.markdown(
     '</div>',
