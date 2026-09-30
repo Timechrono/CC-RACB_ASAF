@@ -97,13 +97,12 @@ def recuperer_donnees_course():
 
         df_eng_raw.columns = df_eng_raw.columns.astype(str).str.strip().str.upper()
         
-        # Récupération directe de la 7ème colonne (index 6) sans forcer une conversion en texte destructrice
         df_eng = pd.DataFrame({
             "N°": df_eng_raw.iloc[:, 0].apply(nettoyer_numero), 
             "Nom_Prenom": df_eng_raw.iloc[:, 1].fillna("Pilote Inconnu").astype(str).str.strip(),
             "Voiture": df_eng_raw.iloc[:, 4].fillna("").astype(str).str.strip(),
             "Division": df_eng_raw.iloc[:, 5].apply(lambda x: "-" if pd.isna(x) else str(x).strip()[:-2] if str(x).strip().endswith(".0") else str(x).strip()),
-            "Classe": df_eng_raw.iloc[:, 6]  # Conservé au format natif (Standard / Numérique Excel)
+            "Classe": df_eng_raw.iloc[:, 6]
         })
 
         df_eng = df_eng[df_eng["N°"] != "NAN"].drop_duplicates(subset=["N°"])
@@ -114,7 +113,6 @@ def recuperer_donnees_course():
 
         if len(df_dep) > 0: df_dep["Sec_Dep"] = df_dep["Heure_Depart"].apply(convertir_en_secondes)
         if len(df_arr) > 0: df_arr["Sec_Arr"] = df_arr["Heure_Arrivee"].apply(convertir_en_secondes); df_arr["Sec_Excel"] = df_arr["Chrono_Excel"].apply(convertir_en_secondes)
-
         base_runs = pd.DataFrame(columns=["N°", "Run_Index"])
         if len(df_dep) > 0: base_runs = pd.concat([base_runs, df_dep[["N°", "Run_Index"]]], ignore_index=True)
         if len(base_runs) == 0: base_runs = df_eng[["N°"]].copy(); base_runs["Run_Index"] = 1
@@ -123,6 +121,7 @@ def recuperer_donnees_course():
         base = pd.merge(base_runs, df_eng, on="N°", how="inner")
         if len(df_dep) > 0: base = pd.merge(base, df_dep, on=["N°", "Run_Index"], how="left")
         if len(df_arr) > 0: base = pd.merge(base, df_arr, on=["N°", "Run_Index"], how="left")
+        
         if len(base) > 0:
             base["Calc_Sec"] = base["Sec_Excel"].fillna((base["Sec_Arr"] - base["Sec_Dep"]).apply(lambda x: x + 3600 if (x is not None and x < 0) else x))
             
@@ -137,31 +136,31 @@ def recuperer_donnees_course():
             base["Ordre_Saisie"] = range(len(base))
             df_hist = base.sort_values(by="Ordre_Saisie", ascending=False)[["N°", "Nom_Prenom", "Voiture", "Division", "Classe", "Chrono_Visual_Hist"]].rename(columns={"Chrono_Visual_Hist": "Chrono réalisé"})
 
-            # Traitement des meilleurs temps valides
+            # Traitement des classements
             df_valides = base[base["Calc_Sec"].notna() & (base["Calc_Sec"] > 0)].copy()
             idx_meilleur = df_valides.groupby("N°")["Calc_Sec"].idxmin()
             df_meilleurs = df_valides.loc[idx_meilleur].copy()
 
-            # Séparation par le "N" de départ du numéro
-            df_meilleurs["N°_Check"] = df_meilleurs["N°"].astype(str).str.strip().str.upper()
-            mask_racb = df_meilleurs["N°_Check"].str.startswith("N", na=False)
+            # SÉCURITÉ ABSOLUE : Détection textuelle de la lettre N n'importe où dans le numéro
+            df_meilleurs["N°_Txt"] = df_meilleurs["N°"].astype(str).str.strip().str.upper()
+            mask_contient_n = df_meilleurs["N°_Txt"].str.contains("N", na=False)
 
-            # Onglet 2 : CLASSEMENT RACB (Top 20) -> Uniquement les numéros commençant par N
-            df_m_racb = df_meilleurs[mask_racb].copy()
+            # 1. CLASSEMENT RACB (Top 20) : Tout numéro contenant un N va ICI, peu importe sa classe
+            df_m_racb = df_meilleurs[mask_contient_n].copy()
             if len(df_m_racb) > 0:
                 df_m_racb = df_m_racb.sort_values(by="Calc_Sec").head(20)
                 df_m_racb["Pos"] = range(1, len(df_m_racb) + 1)
                 df_m_racb["Chrono"] = df_m_racb["Calc_Sec"].apply(lambda x: format_final_chrono(x))
                 df_racb = df_m_racb[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]]
 
-            # Pour les classements ASAF (Pas de numéro commençant par N)
-            df_m_non_n = df_meilleurs[~mask_racb].copy()
+            # Pour les classements ASAF, exclusion définitive de TOUT numéro contenant un N
+            df_m_non_n = df_meilleurs[~mask_contient_n].copy()
 
             if len(df_m_non_n) > 0:
-                # Conversion numérique sécurisée pour éviter les conflits de types (int/float)
+                # Conversion numérique propre de la colonne Classe
                 df_m_non_n["Classe_Num"] = pd.to_numeric(df_m_non_n["Classe"], errors='coerce')
 
-                # Onglet 1 : Division 123 (Top 25) -> Classe numérique vaut 1, 2 ou 3
+                # 2. CLASSEMENT GENERAL Division 123 (Top 25) : Aucun N + Classe numérique vaut 1, 2 ou 3
                 mask_123 = df_m_non_n["Classe_Num"].isin([1, 2, 3])
                 df_m_asaf123 = df_m_non_n[mask_123].sort_values(by="Calc_Sec").head(25)
                 if len(df_m_asaf123) > 0:
@@ -169,7 +168,7 @@ def recuperer_donnees_course():
                     df_m_asaf123["Chrono"] = df_m_asaf123["Calc_Sec"].apply(lambda x: format_final_chrono(x))
                     df_asaf123 = df_m_asaf123[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]]
 
-                # Onglet 3 : Division 4 -> Classe numérique vaut 4
+                # 3. CLASSEMENT GENERAL Division 4 : Aucun N + Classe numérique vaut 4
                 mask_4 = df_m_non_n["Classe_Num"].isin([4])
                 df_m_asaf4 = df_m_non_n[mask_4].sort_values(by="Calc_Sec")
                 if len(df_m_asaf4) > 0:
