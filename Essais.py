@@ -2,24 +2,18 @@ import pandas as pd
 import datetime
 import requests
 import io
+import streamlit as st  # CORRECTION : Ajout de l'importation manquante pour éviter la NameError
 
-# --- ADRESSES IP BRUTES DROPBOX POUR CONTOURNER LE BUG DNS ---
-# Nous utilisons l'IP publique directe de Dropbox pour forcer la connexion internet du serveur
-IP_DROPBOX = "162.125.2.15" 
+# --- ADRESSES DROPBOX OFFICIELLES EN TÉLÉCHARGEMENT DIRECT ---
+# Utilisation de ://dropboxusercontent.com avec dl=1 pour forcer l'envoi du fichier Excel brut
+FILE_ENGAGES = "https://://dropboxusercontent.com/scl/fi/sqrqinksco1am700s27h4/LIVE_Liste_ENGAGES.xlsm?rlkey=8p0n8jyeuiivaa375bh3p608n&dl=1"
+FILE_ARRIVEE = "https://://dropboxusercontent.com/scl/fi/7uu9cmlpzglx0ngvbklpt/LIVE_Temps_ARRIVEE.xlsm?rlkey=g9urz4v3jr36h0apzt45ognm6&st=0d9mpgfw&dl=1"
+FILE_DEPART  = "https://://dropboxusercontent.com/scl/fi/gbkaq01qzjujc8nq3zj28/LIVE_Temps_DEPART.xlsm?rlkey=4x4rvvlfyzz8v59gqbxn80a4d&st=mcibn3xx&dl=1"
 
-# Reconstruction des requêtes brutes de téléchargement direct (dl=1)
-FILE_ENGAGES = f"https://{IP_DROPBOX}/scl/fi/sqrqinksco1am700s27h4/LIVE_Liste_ENGAGES.xlsm?rlkey=8p0n8jyeuiivaa375bh3p608n&dl=1"
-FILE_ARRIVEE = f"https://{IP_DROPBOX}/scl/fi/7uu9cmlpzglx0ngvbklpt/LIVE_Temps_ARRIVEE.xlsm?rlkey=g9urz4v3jr36h0apzt45ognm6&dl=1"
-FILE_DEPART  = f"https://{IP_DROPBOX}/scl/fi/gbkaq01qzjujc8nq3zj28/LIVE_Temps_DEPART.xlsm?rlkey=4x4rvvlfyzz8v59gqbxn80a4d&dl=1"
-
-def telecharger_excel_force(url):
-    """Télécharge le fichier en transmettant le nom d'hôte attendu par le certificat de sécurité"""
-    entetes = {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
-        'Host': '://dropboxusercontent.com' # Indique à Dropbox quel domaine on cible réellement
-    }
-    # verify=False évite le blocage si le certificat SSL ne correspond pas à l'IP brute
-    reponse = requests.get(url, headers=entetes, timeout=10, verify=False)
+def telecharger_excel(url):
+    """Télécharge le fichier en mémoire vive de manière propre et sécurisée"""
+    entetes = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'}
+    reponse = requests.get(url, headers=entetes, timeout=12)
     reponse.raise_for_status()
     return io.BytesIO(reponse.content)
 
@@ -77,10 +71,10 @@ def recuperer_donnees_course():
     df_asaf4 = pd.DataFrame(columns=["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"])
 
     try:
-        # Téléchargement forcé par adresse IP via la mémoire vive
-        flux_eng = telecharger_excel_force(FILE_ENGAGES)
-        flux_dep = telecharger_excel_force(FILE_DEPART)
-        flux_arr = telecharger_excel_force(FILE_ARRIVEE)
+        # Téléchargement via les URLs officielles sécurisées réactivées
+        flux_eng = telecharger_excel(FILE_ENGAGES)
+        flux_dep = telecharger_excel(FILE_DEPART)
+        flux_arr = telecharger_excel(FILE_ARRIVEE)
 
         df_eng_raw = pd.read_excel(flux_eng, engine='openpyxl')
         df_dep_raw = pd.read_excel(flux_dep, skiprows=2, engine='openpyxl')
@@ -178,7 +172,7 @@ def recuperer_donnees_course():
                         asaf4["Chrono"] = asaf4["Calc_Sec"].apply(format_final_chrono)
                         df_asaf4 = asaf4[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]]
     except Exception as e:
-        # Permet de renvoyer l'erreur en rouge si Dropbox rejette l'en-tête IP brute
-        st.error(f"Erreur de téléchargement direct : {e}")
+        # Affiche proprement l'erreur sur l'écran Streamlit si le fichier refuse de s'ouvrir
+        st.error(f"Erreur de synchronisation en direct : {e}")
 
     return df_live, df_hist, df_racb, df_asaf123, df_asaf4
