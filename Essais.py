@@ -3,9 +3,8 @@ import pandas as pd
 import datetime
 import requests
 import io
-import time
 
-# --- CONFIGURATION INTERNET AVEC VOS VRAIS LIENS ET VALEURS DIRECTES ---
+# --- ADRESSES DROPBOX REELLES DE VOS TABLEAUX EXCEL ---
 HOTE = "://dropboxusercontent.com"
 FILE_ARRIVEE = f"https://{HOTE}/scl/fi/7uu9cmlpzglx0ngvbklpt/LIVE_Temps_ARRIVEE.xlsm?rlkey=g9urz4v3jr36h0apzt45ognm6&dl=1"
 FILE_DEPART  = f"https://{HOTE}/scl/fi/gbkaq01qzjujc8nq3zj28/LIVE_Temps_DEPART.xlsm?rlkey=4x4rvvlfyzz8v59gqbxn80a4d&dl=1"
@@ -71,6 +70,7 @@ def generer_tableau_html(df, classe_specifique):
         return f"<table class='table-compacte {classe_specifique}'><tr><td style='text-align: center; padding: 10px;'>Aucune donnée disponible</td></tr></table>"
     return df.to_html(index=False, classes=f"table-compacte {classe_specifique}", escape=False, border=0)
 def afficher_ecran_complet():
+    # Injection étanche de vos styles visuels et largeurs exactes d'origine
     st.markdown("""
         <style>
         .titre-live, .titre-hist, .titre-classement {
@@ -78,16 +78,16 @@ def afficher_ecran_complet():
             padding: 4px 8px !important; border-radius: 3px !important; margin-bottom: 6px !important;
             width: 100% !important; display: block !important; clear: both !important;
         }
-        .titre-live { background-color: #15803D !important; margin-top: 0px !important; }
-        .titre-hist { background-color: #475569 !important; margin-top: 10px !important; }
-        .titre-classement { background-color: #1E3A8A !important; margin-top: 0px !important; }
+        .titre-live { background-color: #15803D !important; }
+        .titre-hist { background-color: #475569 !important; }
+        .titre-classement { background-color: #1E3A8A !important; }
         .table-compacte { width: 100% !important; margin-bottom: 0px !important; border-collapse: collapse !important; table-layout: fixed !important; }
         .table-compacte tr { height: 18px !important; }
         .table-compacte th, .table-compacte td { 
             height: 18px !important; padding: 1px 5px !important; line-height: 1.1 !important; font-size: 0.85rem !important; color: #000000 !important; 
             vertical-align: middle !important; overflow: hidden !important; text-overflow: ellipsis !important; white-space: nowrap !important; 
         }
-        .table-compacte td { font-weight: normal !important; border-bottom: 1px solid #E0E0E0 !important; background-color: #FFFFFF !important; }
+        .table-compacte td { border-bottom: 1px solid #E0E0E0 !important; background-color: #FFFFFF !important; }
         .table-compacte th { font-weight: bold !important; background-color: #F5F5F5 !important; border-bottom: 2px solid #CCCCCC !important; text-align: left !important; }
         .table-hist tr:nth-child(odd) td { background-color: #E0F2FE !important; }
         .table-hist td:last-child, .table-live td:last-child, .table-class-robuste td:last-child { font-weight: bold !important; font-size: 0.94rem !important; color: #0F172A !important; }
@@ -114,6 +114,7 @@ def afficher_ecran_complet():
         .table-class-robuste th:nth-child(6), .table-class-robuste td:nth-child(6) { width: 18% !important; text-align: right !important; }
         </style>
     """, unsafe_allow_html=True)
+    # EXECUTION DE LA CELLULE DE FRAGMENT PROPRE ET CLOUD-COMPATIBLE
     @st.fragment(run_every=30)
     def rafraichir_essais():
         st.cache_data.clear()
@@ -127,6 +128,7 @@ def afficher_ecran_complet():
             flux_eng = telecharger_excel(FILE_ENGAGES)
             flux_dep = telecharger_excel(FILE_DEPART)
             flux_arr = telecharger_excel(FILE_ARRIVEE)
+            
             df_eng_raw = pd.read_excel(flux_eng, skiprows=1, engine='openpyxl')
             df_dep_raw = pd.read_excel(flux_dep, header=None, engine='openpyxl')
             df_arr_raw = pd.read_excel(flux_arr, header=None, engine='openpyxl')
