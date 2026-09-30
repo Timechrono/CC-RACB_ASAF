@@ -4,17 +4,17 @@ import datetime
 import requests
 import io
 
-# --- PROTECTION CONTRE LE SÉCURISATEUR DE LIENS GITHUB ---
-DOMAINE_SECURE = "://dropboxusercontent.com"
+# --- CONFIGURATION INTERNET STRICTE (METHODE ESSAIS.PY) ---
+HOTE = "://dropboxusercontent.com"
 
-# Reconstruction par le code pour éviter le bug visuel
-FILE_ARRIVEE = f"https://{DOMAINE_SECURE}/scl/fi/7uu9cmlpzglx0ngvbklpt/LIVE_Temps_ARRIVEE.xlsm?rlkey=g9urz4v3jr36h0apzt45ognm6&st=0d9mpgfw&dl=1"
-FILE_DEPART  = f"https://{DOMAINE_SECURE}/scl/fi/gbkaq01qzjujc8nq3zj28/LIVE_Temps_DEPART.xlsm?rlkey=4x4rvvlfyzz8v59gqbxn80a4d&st=mcibn3xx&dl=1"
-FILE_ENGAGES = f"https://{DOMAINE_SECURE}/scl/fi/wyof20d4bg4lbmnv0c7m5/LIVE_Liste_ENGAGES_ASAF.xlsm?rlkey=8q59lu88046nxu8mr8gs5ufvc&st=vny281ln&dl=1"
-FILE_RACB    = f"https://{DOMAINE_SECURE}/scl/fi/69zkwsb45bpiw3ys3kk4c/LIVE_Liste_ENGAGES_RACB.xlsm?rlkey=qpjrlmbxhcskifnabs84veqh8&st=0snuv3e7&dl=1"
+# Reconstruction des URLs avec le domaine éclaté anti-coupure
+FILE_ARRIVEE = f"https://{HOTE}/scl/fi/7uu9cmlpzglx0ngvbklpt/LIVE_Temps_ARRIVEE.xlsm?rlkey=g9urz4v3jr36h0apzt45ognm6&st=0d9mpgfw&dl=1"
+FILE_DEPART  = f"https://{HOTE}/scl/fi/gbkaq01qzjujc8nq3zj28/LIVE_Temps_DEPART.xlsm?rlkey=4x4rvvlfyzz8v59gqbxn80a4d&st=mcibn3xx&dl=1"
+FILE_ENGAGES = f"https://{HOTE}/scl/fi/wyof20d4bg4lbmnv0c7m5/LIVE_Liste_ENGAGES_ASAF.xlsm?rlkey=8q59lu88046nxu8mr8gs5ufvc&st=vny281ln&dl=1"
 
 def telecharger_excel(url):
-    entetes = {'User-Agent': 'Mozilla/5.0'}
+    """Télécharge le fichier en mémoire vive de manière propre et sécurisée"""
+    entetes = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'}
     reponse = requests.get(url, headers=entetes, timeout=12)
     reponse.raise_for_status()
     return io.BytesIO(reponse.content)
@@ -81,31 +81,25 @@ def recuperer_donnees_course():
     df_divisions = pd.DataFrame(columns=["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"])
 
     try:
+        # Téléchargement via la fonction robuste validée
         flux_eng = telecharger_excel(FILE_ENGAGES)
         flux_dep = telecharger_excel(FILE_DEPART)
         flux_arr = telecharger_excel(FILE_ARRIVEE)
+        
         df_eng_raw = pd.read_excel(flux_eng, skiprows=1, engine='openpyxl')
         df_dep_raw = pd.read_excel(flux_dep, header=None, engine='openpyxl')
         df_arr_raw = pd.read_excel(flux_arr, header=None, engine='openpyxl')
 
         idx_dep_1_asaf, idx_arr_1_asaf = None, None
-        idx_dep_1_racb, idx_arr_1_racb = None, None
         for c_idx in range(len(df_dep_raw.columns)):
             val = str(df_dep_raw.iloc[1, c_idx]).strip().upper()
             if "COURSE 1 ASAF" in val: idx_dep_1_asaf = c_idx
-            elif "COURSE 1 RACB" in val: idx_dep_1_racb = c_idx
         for c_idx in range(len(df_arr_raw.columns)):
             val = str(df_arr_raw.iloc[1, c_idx]).strip().upper()
             if "COURSE 1 ASAF" in val: idx_arr_1_asaf = c_idx
-            elif "COURSE 1 RACB" in val: idx_arr_1_racb = c_idx
 
-        df_dep_asaf = pd.DataFrame({"N°": df_dep_raw.iloc[2:, idx_dep_1_asaf].apply(nettoyer_numero), "Heure_Depart": df_dep_raw.iloc[2:, idx_dep_1_asaf + 1]}) if idx_dep_1_asaf is not None else pd.DataFrame(columns=["N°", "Heure_Depart"])
-        df_arr_asaf = pd.DataFrame({"N°": df_arr_raw.iloc[2:, idx_arr_1_asaf].apply(nettoyer_numero), "Heure_Arrivee": df_arr_raw.iloc[2:, idx_arr_1_asaf + 2], "Chrono_Excel": df_arr_raw.iloc[2:, idx_arr_1_asaf + 3]}) if idx_arr_1_asaf is not None else pd.DataFrame(columns=["N°", "Heure_Arrivee", "Chrono_Excel"])
-        df_dep_racb = pd.DataFrame({"N°": df_dep_raw.iloc[2:, idx_dep_1_racb].apply(nettoyer_numero), "Heure_Depart": df_dep_raw.iloc[2:, idx_dep_1_racb + 1]}) if idx_dep_1_racb is not None else pd.DataFrame(columns=["N°", "Heure_Depart"])
-        df_arr_racb = pd.DataFrame({"N°": df_arr_raw.iloc[2:, idx_arr_1_racb].apply(nettoyer_numero), "Heure_Arrivee": df_arr_raw.iloc[2:, idx_arr_1_racb + 2], "Chrono_Excel": df_arr_raw.iloc[2:, idx_arr_1_racb + 3]}) if idx_arr_1_racb is not None else pd.DataFrame(columns=["N°", "Heure_Arrivee", "Chrono_Excel"])
-
-        df_dep = pd.concat([df_dep_asaf, df_dep_racb], ignore_index=True).reset_index(drop=True)
-        df_arr = pd.concat([df_arr_asaf, df_arr_racb], ignore_index=True).reset_index(drop=True)
+        df_dep = pd.DataFrame({"N°": df_dep_raw.iloc[2:, idx_dep_1_asaf].apply(nettoyer_numero), "Heure_Depart": df_dep_raw.iloc[2:, idx_dep_1_asaf + 1]}) if idx_dep_1_asaf is not None else pd.DataFrame(columns=["N°", "Heure_Depart"])
+        df_arr = pd.DataFrame({"N°": df_arr_raw.iloc[2:, idx_arr_1_asaf].apply(nettoyer_numero), "Heure_Arrivee": df_arr_raw.iloc[2:, idx_arr_1_asaf + 2], "Chrono_Excel": df_arr_raw.iloc[2:, idx_arr_1_asaf + 3]}) if idx_arr_1_asaf is not None else pd.DataFrame(columns=["N°", "Heure_Arrivee", "Chrono_Excel"])
         df_eng_raw.columns = df_eng_raw.columns.astype(str).str.strip().str.upper()
         df_eng = pd.DataFrame({"N°": df_eng_raw.iloc[:, 0].apply(nettoyer_numero), 
                                "Nom_Prenom": df_eng_raw.iloc[:, 1].fillna("Pilote Inconnu").astype(str).str.strip(),
