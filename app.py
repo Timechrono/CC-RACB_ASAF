@@ -7,14 +7,12 @@ st.set_page_config(
     layout="wide"
 )
 
-# --- CONFIGURATION STYLE CSS DES BOUTONS BLEUS ---
+# --- STYLE CSS DESIGN COMPACT ---
 st.markdown("""
 <style>
 [data-testid="stHeader"] {
     display: none !important;
 }
-
-/* SUPPRESSION DU CONTOUR ROUGE ET DU FLASH */
 button:focus, 
 button:active, 
 div:focus {
@@ -23,7 +21,7 @@ div:focus {
     box-shadow: none !important;
 }
 [data-testid="stForm"], 
-data-testid="stVerticalBlock"] > div {
+[data-testid="stVerticalBlock"] > div {
     opacity: 1 !important;
     transition: none !important;
 }
@@ -31,8 +29,6 @@ div[data-testid="stFragment"] {
     opacity: 1 !important;
     animation: none !important;
 }
-
-/* ALIGNEMENT HORIZONTAL PARFAIT SUR UNE LIGNE */
 .bloc-menu-horizontal {
     display: flex;
     align-items: center;
@@ -48,23 +44,17 @@ div[data-testid="stFragment"] {
     white-space: nowrap;
     margin: 0 !important;
 }
-
-/* STYLE UNIQUE DU BOUTON ALLUMÉ (VRAI BLEU FONCÉ DE COURSE) */
 .btn-actif {
     background-color: #1E3A8A !important;
     color: #FFFFFF !important;
     border: 1px solid #1D4ED8 !important;
     font-weight: bold !important;
 }
-
-/* STYLE UNIQUE DES BOUTONS CLASSIQUES ÉTEINTS */
 .btn-eteint {
     background-color: #F8FAFC !important;
     color: #334155 !important;
     border: 1px solid #E2E8F0 !important;
 }
-
-/* COMPACITÉ MAXIMALE EN HAUTEUR (HAUTEUR FIXÉE À 26PX) */
 div[data-testid="stHorizontalBlock"] button {
     padding: 1px 8px !important;
     min-height: 26px !important;
@@ -78,7 +68,6 @@ div[data-testid="stHorizontalBlock"] button:hover {
     color: #FFFFFF !important;
     border-color: #1D4ED8 !important;
 }
-
 .espace-sous-menu {
     height: 12px !important;
     clear: both !important;
@@ -147,29 +136,48 @@ div[data-testid="stHorizontalBlock"] button:hover {
 .table-hist tr:nth-child(odd) td {
     background-color: #E0F2FE !important;
 }
+.table-live th:nth-child(1), 
+.table-live td:nth-child(1) { width: 8% !important; }
+.table-live th:nth-child(2), 
+.table-live td:nth-child(2) { width: 25% !important; }
+.table-live th:nth-child(3), 
+.table-live td:nth-child(3) { width: 17% !important; }
+.table-live th:nth-child(4), 
+.table-live td:nth-child(4) { width: 12% !important; }
+.table-live th:nth-child(5), 
+.table-live td:nth-child(5) { width: 13% !important; }
+.table-live th:nth-child(6), 
+.table-live td:nth-child(6) { width: 25% !important; }
 
-.table-live th:nth-child(1), .table-live td:nth-child(1) { width: 8% !important; }
-.table-live th:nth-child(2), .table-live td:nth-child(2) { width: 25% !important; }
-.table-live th:nth-child(3), .table-live td:nth-child(3) { width: 17% !important; }
-.table-live th:nth-child(4), .table-live td:nth-child(4) { width: 12% !important; }
-.table-live th:nth-child(5), .table-live td:nth-child(5) { width: 13% !important; }
-.table-live th:nth-child(6), .table-live td:nth-child(6) { width: 25% !important; }
+.table-hist th:nth-child(1), 
+.table-hist td:nth-child(1) { width: 7% !important; }
+.table-hist th:nth-child(2), 
+.table-hist td:nth-child(2) { width: 23% !important; }
+.table-hist th:nth-child(3), 
+.table-hist td:nth-child(3) { width: 22% !important; }
+.table-hist th:nth-child(4), 
+.table-hist td:nth-child(4) { width: 7% !important; }
+.table-hist th:nth-child(5), 
+.table-hist td:nth-child(5) { width: 7% !important; }
+.table-hist th:nth-child(6), 
+.table-hist td:nth-child(6) { width: 10% !important; }
+.table-hist th:nth-child(7), 
+.table-hist td:nth-child(7) { width: 10% !important; }
+.table-hist th:nth-child(8), 
+.table-hist td:nth-child(8) { width: 14% !important; }
 
-.table-hist th:nth-child(1), .table-hist td:nth-child(1) { width: 7% !important; }
-.table-hist th:nth-child(2), .table-hist td:nth-child(2) { width: 23% !important; }
-.table-hist th:nth-child(3), .table-hist td:nth-child(3) { width: 22% !important; }
-.table-hist th:nth-child(4), .table-hist td:nth-child(4) { width: 7% !important; }
-.table-hist th:nth-child(5), .table-hist td:nth-child(5) { width: 7% !important; }
-.table-hist th:nth-child(6), .table-hist td:nth-child(6) { width: 10% !important; }
-.table-hist th:nth-child(7), .table-hist td:nth-child(7) { width: 10% !important; }
-.table-hist th:nth-child(8), .table-hist td:nth-child(8) { width: 14% !important; }
-
-.table-class-robuste th:nth-child(1), .table-class-robuste td:nth-child(1) { width: 9% !important; }
-.table-class-robuste th:nth-child(2), .table-class-robuste td:nth-child(2) { width: 11% !important; }
-.table-class-robuste th:nth-child(3), .table-class-robuste td:nth-child(3) { width: 33% !important; }
-.table-class-robuste th:nth-child(4), .table-class-robuste td:nth-child(4) { width: 23% !important; }
-.table-class-robuste th:nth-child(5), .table-class-robuste td:nth-child(5) { width: 6% !important; }
-.table-class-robuste th:nth-child(6), .table-class-robuste td:nth-child(6) { width: 18% !important; text-align: right !important; }
+.table-class-robuste th:nth-child(1), 
+.table-class-robuste td:nth-child(1) { width: 9% !important; }
+.table-class-robuste th:nth-child(2), 
+.table-class-robuste td:nth-child(2) { width: 11% !important; }
+.table-class-robuste th:nth-child(3), 
+.table-class-robuste td:nth-child(3) { width: 33% !important; }
+.table-class-robuste th:nth-child(4), 
+.table-class-robuste td:nth-child(4) { width: 23% !important; }
+.table-class-robuste th:nth-child(5), 
+.table-class-robuste td:nth-child(5) { width: 6% !important; }
+.table-class-robuste th:nth-child(6), 
+.table-class-robuste td:nth-child(6) { width: 18% !important; text-align: right !important; }
 
 .block-container {
     padding-top: 0.4rem !important;
@@ -191,19 +199,28 @@ def gen_html(df, cl):
         border=0
     )
 
-# --- INITIALISATION DE LA SESSION ACTIVED DE COURSE ---
+# --- CONFIGURATION INITIALE ---
 if "session_live" not in st.session_state:
     st.session_state.session_live = "Essais"
 
-# --- CRÉATION DE LA BARRE DE NAVIGATION EN LIGNE ---
-st.markdown('<div class="bloc-menu-horizontal">', unsafe_allow_html=True)
-col_txt, col_b1, col_b2, col_b3, col_b4 = st.columns([0.8, 1.0, 1.0, 1.0, 1.0])
+# --- BARRE DE MENU HORIZONTALE ---
+st.markdown(
+    '<div class="bloc-menu-horizontal">', 
+    unsafe_allow_html=True
+)
+col_txt, col_b1, col_b2, col_b3, col_b4 = st.columns(
+    [0.8, 1.0, 1.0, 1.0, 1.0]
+)
 
 with col_txt:
-    st.markdown('<p class="texte-menu" style="margin-top:4px;">Session :</p>', unsafe_allow_html=True)
+    st.markdown(
+        '<p class="texte-menu" '
+        'style="margin-top:4px;">'
+        'Session :</p>', 
+        unsafe_allow_html=True
+    )
 
 with col_b1:
-    # Bouton Essais
     txt_e = "⏱️ Essais ▼" if st.session_state.session_live == "Essais" else "Essais"
     cl_e = "btn-actif" if st.session_state.session_live == "Essais" else "btn-eteint"
     if st.button(txt_e, key="btn_ess", class_name=cl_e):
@@ -211,7 +228,6 @@ with col_b1:
         st.rerun()
 
 with col_b2:
-    # Bouton Course 1 (Regroupe ASAF / RACB pour économiser de la place)
     txt_c1 = "🏆 Course 1 ▼" if st.session_state.session_live == "C1" else "Course 1"
     cl_c1 = "btn-actif" if st.session_state.session_live == "C1" else "btn-eteint"
     if st.button(txt_c1, key="btn_c1", class_name=cl_c1):
@@ -219,7 +235,6 @@ with col_b2:
         st.rerun()
 
 with col_b3:
-    # Bouton Course 2
     txt_c2 = "🏆 Course 2 ▼" if st.session_state.session_live == "C2" else "Course 2"
     cl_c2 = "btn-actif" if st.session_state.session_live == "C2" else "btn-eteint"
     if st.button(txt_c2, key="btn_c2", class_name=cl_c2):
@@ -227,7 +242,6 @@ with col_b3:
         st.rerun()
 
 with col_b4:
-    # Bouton Course 3
     txt_c3 = "🏆 Course 3 ▼" if st.session_state.session_live == "C3" else "Course 3"
     cl_c3 = "btn-actif" if st.session_state.session_live == "C3" else "btn-eteint"
     if st.button(txt_c3, key="btn_c3", class_name=cl_c3):
@@ -235,14 +249,16 @@ with col_b4:
         st.rerun()
 
 st.markdown('</div>', unsafe_allow_html=True)
-st.markdown('<div class="espace-sous-menu"></div>', unsafe_allow_html=True)
+st.markdown(
+    '<div class="espace-sous-menu"></div>', 
+    unsafe_allow_html=True
+)
 
-# --- REFRESH AUTOMATIQUE DES TABLEAUX (30 SECONDES) ---
+# --- TRAITEMENT ET AFFICHAGE AUTOMATIQUE ---
 @st.fragment(run_every=30)
 def afficher_tableaux():
     st.cache_data.clear()
     
-    # Moteur de calcul unique
     df_live, df_hist, df_racb, df_asaf123, df_asaf4 = (
         Essais.recuperer_donnees_course()
     )
@@ -302,3 +318,18 @@ def afficher_tableaux():
         )
         
         st.markdown(
+            "<div style='height:55px;'></div>",
+            unsafe_allow_html=True
+        )
+        st.markdown(
+            "<span class='titre-classement'>"
+            "🏆 CLASSEMENT ASAF DIV 4 (Top 10)"
+            "</span>",
+            unsafe_allow_html=True
+        )
+        st.markdown(
+            gen_html(df_asaf4, "table-class-robuste"),
+            unsafe_allow_html=True
+        )
+
+afficher_tableaux()
