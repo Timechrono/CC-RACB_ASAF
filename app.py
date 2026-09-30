@@ -8,7 +8,7 @@ st.set_page_config(
     layout="wide"
 )
 
-# --- DESIGN VISUEL CSS UNIQUE & SUPPRESSION DU FLASH ---
+# --- DESIGN VISUEL CSS UNIQUE & STYLE DU BOUTON SOMBRE ---
 st.markdown("""
     <style>
     /* Supprime le bandeau blanc Streamlit tout en haut */
@@ -29,24 +29,53 @@ st.markdown("""
         display: flex;
         align-items: center;
         justify-content: center;
-        gap: 15px;
-        margin: 0 auto 10px auto;
-        max-width: 800px;
+        gap: 12px;
+        margin: 0 auto 0px auto;
+        max-width: 850px;
     }
     .texte-menu {
-        font-size: 0.95rem !important;
+        font-size: 0.92rem !important;
         font-weight: bold !important;
-        color: #334155 !important;
+        color: #1E293B !important;
         white-space: nowrap;
-    }
-    /* Largeur forcée du sélecteur pour qu'il reste compact */
-    div[data-testid="stSelectbox"] {
-        width: 300px !important;
         margin-bottom: 0px !important;
     }
-    /* Masque le titre natif de Streamlit pour ne garder que notre texte à gauche */
+    
+    /* MODIFICATION STRICTE DU BOUTON (SÉLECTEUR) : SOMBRE, TEXTE BLANC & HAUTEUR RÉDUITE */
+    div[data-testid="stSelectbox"] {
+        width: 260px !important;
+        margin-bottom: 0px !important;
+    }
+    /* Supprime l'étiquette native */
     div[data-testid="stSelectbox"] label {
         display: none !important;
+    }
+    /* Customisation du bouton fermé */
+    div[data-testid="stSelectbox"] div[data-baseweb="select"] > div {
+        background-color: #0F172A !important; /* Couleur foncée bleu nuit/noir */
+        color: #FFFFFF !important;             /* Texte blanc pur */
+        border: 1px solid #334155 !important;
+        min-height: 26px !important;           /* Hauteur ultra réduite */
+        height: 26px !important;
+        border-radius: 4px !important;
+        font-size: 0.88rem !important;
+    }
+    /* Ajustement de l'alignement du texte interne et de la petite flèche */
+    div[data-testid="stSelectbox"] div[data-baseweb="select"] [data-testid="stSelectboxValue"],
+    div[data-testid="stSelectbox"] div[data-baseweb="select"] svg {
+        color: #FFFFFF !important;
+        line-height: 26px !important;
+    }
+    div[data-testid="stSelectbox"] div[data-baseweb="select"] > div > div {
+        padding-top: 0px !important;
+        padding-bottom: 0px !important;
+        height: 24px !important;
+    }
+
+    /* PETIT DÉCALAGE EN DESSOUS DU MENU */
+    .espace-sous-menu {
+        height: 12px !important;
+        clear: both !important;
     }
     
     /* Styles des tableaux et titres */
@@ -83,7 +112,7 @@ st.markdown("""
 
     .table-hist th:nth-child(1), .table-hist td:nth-child(1) { width: 7% !important; }   
     .table-hist th:nth-child(2), .table-hist td:nth-child(2) { width: 23% !important; }  
-    .table-hist th:nth-child(3), .table-hist td:nth-child(3) { width: 22% !important; }  
+    .table-hist th:nth-child(3), .table-hist td:xlink-child(3) { width: 22% !important; }  
     .table-hist th:nth-child(4), .table-hist td:nth-child(4) { width: 7% !important; }   
     .table-hist th:nth-child(5), .table-hist td:nth-child(5) { width: 7% !important; }   
     .table-hist th:nth-child(6), .table-hist td:nth-child(6) { width: 10% !important; }  
@@ -97,7 +126,7 @@ st.markdown("""
     .table-class-robuste th:nth-child(5), .table-class-robuste td:nth-child(5) { width: 6% !important; }
     .table-class-robuste th:nth-child(6), .table-class-robuste td:nth-child(6) { width: 18% !important; text-align: right !important; }
 
-    .block-container { padding-top: 0.5rem !important; padding-bottom: 0rem !important; }
+    .block-container { padding-top: 0.4rem !important; padding-bottom: 0rem !important; }
     div[data-testid="stVerticalBlock"] { gap: 0rem !important; }
     </style>
 """, unsafe_allow_html=True)
@@ -108,14 +137,14 @@ def generer_tableau_html(df, classe_specifique):
     return df.to_html(index=False, classes=f"table-compacte {classe_specifique}", escape=False, border=0)
 
 
-# --- CRÉATION DE LA LIGNE HORIZONTALE UNIQUE POUR LE MENU ---
+# --- ZONE DU MENU ALIGNÉ ET ULTRA-COMPACT ---
 conteneur_menu = st.container()
 with conteneur_menu:
     st.markdown('<div class="bloc-menu-horizontal">', unsafe_allow_html=True)
     
-    col_texte, col_select = st.columns([1.1, 1.0])
+    col_texte, col_select = st.columns([1.3, 1.0])
     with col_texte:
-        st.markdown('<p class="texte-menu" style="margin-top: 8px; text-align: right;">Sélectionnez la session à afficher :</p>', unsafe_allow_html=True)
+        st.markdown('<p class="texte-menu" style="margin-top: 4px; text-align: right;">Sélectionnez la session à afficher :</p>', unsafe_allow_html=True)
     
     with col_select:
         choix_course = st.selectbox(
@@ -128,6 +157,9 @@ with conteneur_menu:
             ]
         )
     st.markdown('</div>', unsafe_allow_html=True)
+
+# Application du micro-décalage sous la ligne de sélection
+st.markdown('<div class="espace-sous-menu"></div>', unsafe_allow_html=True)
 
 
 # --- ZONE D'AFFICHAGE DYNAMIQUE AUTOMATIQUE (FIXÉE À 30 SECONDES) ---
