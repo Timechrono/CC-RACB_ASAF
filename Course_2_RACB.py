@@ -1,3 +1,30 @@
+import streamlit as st
+import pandas as pd
+import datetime
+import os
+import requests
+import io
+
+CSS_RACB = """
+<style>
+.table-hist th:nth-child(1), .table-hist td:nth-child(1) { width: 7% !important; }   
+.table-hist th:nth-child(2), .table-hist td:nth-child(2) { width: 23% !important; }  
+.table-hist th:nth-child(3), .table-hist td:nth-child(3) { width: 25% !important; }  
+.table-hist th:nth-child(4), .table-hist td:nth-child(4) { width: 10% !important; }   
+.table-hist th:nth-child(5), .table-hist td:nth-child(5) { width: 7% !important; }   
+.table-hist th:nth-child(6), .table-hist td:nth-child(6) { width: 14% !important; }  
+.table-hist th:nth-child(7), .table-hist td:nth-child(7) { width: 14% !important; }  
+</style>
+"""
+
+C = [100, 108, 46, 100, 114, 111, 112, 98, 111, 120, 117, 115, 101, 114]
+D = [99, 111, 110, 116, 101, 110, 116, 46, 99, 111, 109]
+HOTE_PROT = "".join(chr(x) for x in (C + D))
+
+FILE_ARRIVEE = f"https://{HOTE_PROT}/scl/fi/7uu9cmlpzglx0ngvbklpt/LIVE_Temps_ARRIVEE.xlsm?rlkey=g9urz4v3jr36h0apzt45ognm6&st=0d9mpgfw&dl=1"
+FILE_DEPART  = f"https://{HOTE_PROT}/scl/fi/gbkaq01qzjujc8nq3zj28/LIVE_Temps_DEPART.xlsm?rlkey=4x4rvvlfyzz8v59gqbxn80a4d&st=mcibn3xx&dl=1"
+FILE_ENGAGES_RACB = f"https://{HOTE_PROT}/scl/fi/69zkwsb45bpiw3ys3kk4c/LIVE_Liste_ENGAGES_RACB.xlsm?rlkey=qpjrlmbxhcskifnabs84veqh8&st=0snuv3e7&dl=1"
+
 def telecharger_excel(url):
     try:
         entetes = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'}
@@ -123,8 +150,6 @@ def recuperer_donnees_course():
                     df_live = df_live_base[["N°", "Nom_Prenom", "Voiture", "Départ_C2", "Arrivée_C2", "Chrono réalisé"]].rename(columns={"Départ_C2": "Départ", "Arrivée_C2": "Arrivée"})
 
                 df_hist_base = base.sort_values(by="Run_Index", ascending=False).copy()
-                
-                # RE-INJECTION DES LARGEURS DE LA C2 DANS L'HISTORIQUE HTML
                 html_hist = CSS_RACB + "<table class='table-compacte table-hist'><thead><tr><th>N°</th><th>Nom_Prenom</th><th>Voiture</th><th>Groupe</th><th>Classe</th><th>Course 1</th><th>Chrono réalisé</th></tr></thead><tbody>"
 
                 for idx, row in df_hist_base.iterrows():
