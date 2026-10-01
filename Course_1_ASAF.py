@@ -151,6 +151,7 @@ def recuperer_donnees_course():
         df_dep = df_dep[(df_dep["N°"] != "NAN") & (df_dep["N°"] != "")]
         for d in [df_dep, df_arr]:
             if len(d) > 0: d["N°"] = d["N°"].astype(str); d["Run_Index"] = d.groupby("N°").cumcount() + 1
+# fin 2A
         if len(df_dep) > 0: df_dep["Sec_Dep"] = df_dep["Heure_Depart"].apply(convertir_en_secondes)
         if len(df_arr) > 0: df_arr["Sec_Arr"] = df_arr["Heure_Arrivee"].apply(convertir_en_secondes); df_arr["Sec_Excel"] = df_arr["Chrono_Excel"].apply(convertir_en_secondes)
 
