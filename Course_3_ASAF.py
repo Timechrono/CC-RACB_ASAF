@@ -232,7 +232,7 @@ def recuperer_donnees_course():
     except Exception: pass
 
 # fin 2 A
-    if not df_eng.empty:
+        if not df_eng.empty:
         try:
             rows_data = []
             for _, pilot in df_eng.iterrows():
@@ -300,6 +300,7 @@ def recuperer_donnees_course():
                     if len(asaf4) > 0: asaf4["Pos"] = range(1, len(asaf4) + 1); asaf4["Chrono"] = asaf4["Cumul_Sec"].apply(format_final_chrono); df_asaf4 = asaf4[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]]
                     
                     scr["Classe_Num"] = pd.to_numeric(scr["Classe"], errors='coerce').fillna(999)
+                    # CORRECTION : Utilisation cohérente de Classe_Num pour le tri et le regroupement
                     df_grouped = scr.sort_values(by=["Division", "Classe_Num", "Cumul_Sec"]).groupby(["Division", "Classe_Num"]).head(3).copy()
                     
                     if len(df_grouped) > 0:
@@ -308,7 +309,7 @@ def recuperer_donnees_course():
                         total_groups, current_group = len(grouped_objs), 0
                         for (div, cl_num), group in grouped_objs:
                             current_group += 1
-                            group = group.copy(); group["Pos"] = range(1, len(group) + 1); group["Chrono"] = group["Calc_Sec"].apply(format_final_chrono)
+                            group = group.copy(); group["Pos"] = range(1, len(group) + 1); group["Chrono"] = group["Cumul_Sec"].apply(format_final_chrono)
                             sub_html = group[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]].to_html(index=False, header=(current_group==1), classes='table-compacte table-class-groupes', escape=False, border=0)
                             if current_group == 1: html_blocs.append(sub_html.replace("</tbody>\n</table>", ""))
                             else: html_blocs.append(sub_html.split("<tbody>")[-1].replace("</tbody>\n</table>", ""))
