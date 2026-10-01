@@ -117,7 +117,7 @@ def afficher_tableaux():
 
     st.markdown("<style>.table-hist th:nth-child(1), .table-hist td:nth-child(1) { width: 7% !important; } .table-hist th:nth-child(2), .table-hist td:nth-child(2) { width: 23% !important; } .table-hist th:nth-child(3), .table-hist td:nth-child(3) { width: 22% !important; } .table-hist th:nth-child(4), .table-hist td:nth-child(4) { width: 10% !important; } .table-hist th:nth-child(5), .table-hist td:nth-child(5) { width: 10% !important; } .table-hist th:nth-child(6), .table-hist td:nth-child(6) { width: 14% !important; }</style>", unsafe_allow_html=True)
 
-        cg, cd = st.columns([1.3, 0.9])
+    cg, cd = st.columns([1.3, 0.9])
     with cg:
         st.markdown(f"<span class='titre-live'>{t_live}</span>", unsafe_allow_html=True)
         st.markdown(gen_html(d_liv, "table-live"), unsafe_allow_html=True)
@@ -149,7 +149,6 @@ def afficher_tableaux():
             st.markdown(f"<span class='titre-classement'>{t_bas}</span>", unsafe_allow_html=True)
             st.markdown(gen_html(d_milieu, "table-class-robuste"), unsafe_allow_html=True)
 
-    # Zone de confort en dehors du if/else pour s'appliquer également aux Essais
     st.markdown("<br><br><br><div style='height:30px;'></div>", unsafe_allow_html=True)
 
     time.sleep(30)
