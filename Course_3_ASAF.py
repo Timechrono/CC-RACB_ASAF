@@ -164,7 +164,7 @@ def recuperer_donnees_course():
     df_asaf4 = pd.DataFrame(columns=["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"])
     df_divisions = pd.DataFrame(columns=["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"])
     html_hist = "<table class='table-compacte table-hist'><tr><td style='text-align: center; padding: 10px;'>Aucune donnée disponible</td></tr></table>"
-    df_eng = pd.DataFrame() # Sécurité Anti-Crash
+    df_eng = pd.DataFrame() 
 
     try:
         df_eng_raw = pd.read_excel(telecharger_excel(FILE_ENGAGES), skiprows=1, engine='openpyxl')
@@ -210,10 +210,27 @@ def recuperer_donnees_course():
                 d_manche[nv] = {"h_dep": val_dep if pd.notna(val_dep) else None, "h_arr": val_arr if pd.notna(val_arr) else None, "sec": convertir_en_secondes(val_calc)}
             return d_manche
 
-        dict_c1 = extraire_manche_selon_regles_asaf(df_arr_raw, "COURSE 1", "ASAF")
-        dict_c2 = extraire_manche_selon_regles_asaf(df_arr_raw, "COURSE 2", "ASAF")
-        dict_c3 = extraire_manche_selon_regles_asaf(df_arr_raw, "COURSE 3", "ASAF")
+        dict_c1_asaf = extraire_manche_selon_regles_asaf(df_arr_raw, "COURSE 1", "ASAF")
+        dict_c1_racb = extraire_manche_selon_regles_asaf(df_arr_raw, "COURSE 1", "RACB")
+        dict_c2_asaf = extraire_manche_selon_regles_asaf(df_arr_raw, "COURSE 2", "ASAF")
+        dict_c2_racb = extraire_manche_selon_regles_asaf(df_arr_raw, "COURSE 2", "RACB")
+        
+        # Extraction des deux colonnes pour la Manche 3
+        dict_c3_asaf = extraire_manche_selon_regles_asaf(df_arr_raw, "COURSE 3", "ASAF")
+        dict_c3_racb = extraire_manche_selon_regles_asaf(df_arr_raw, "COURSE 3", "RACB")
+
+        def fusionner_temps_manches(dict_asaf, dict_racb):
+            d_fusion = dict_asaf.copy()
+            for k, v in dict_racb.items():
+                if k not in d_fusion or d_fusion[k]["sec"] is None: d_fusion[k] = v
+            return d_fusion
+
+        dict_c1 = fusionner_temps_manches(dict_c1_asaf, dict_c1_racb)
+        dict_c2 = fusionner_temps_manches(dict_c2_asaf, dict_c2_racb)
+        # CORRECTION : Fusion étanche des données ASAF et RACB pour la Manche 3
+        dict_c3 = fusionner_temps_manches(dict_c3_asaf, dict_c3_racb)
     except Exception: pass
+
 # fin 2 A
     if not df_eng.empty:
         try:
