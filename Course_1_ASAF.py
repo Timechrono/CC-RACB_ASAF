@@ -209,14 +209,14 @@ def recuperer_donnees_course():
                             if current_group == 1: html_blocs.append(sub_html.replace("</tbody>\n</table>", ""))
                             else: html_blocs.append(sub_html.split("<tbody>")[-1].replace("</tbody>\n</table>", ""))
                             
+                            # --- MODIFIÉ : Injection d'une ligne de séparation BLEU FONCÉ unifiée continue (colspan=6) ---
                             if current_group < total_groups:
-                                html_blocs.append("<tr style='border-top: 2px solid #CBD5E1 !important; height:6px !important;'><td colspan='6' style='border:none !important; padding:0 !important;'></td></tr>")
+                                html_blocs.append("<tr style='border-top: 2.5px solid #1E3A8A !important; height:6px !important;'><td colspan='6' style='border:none !important; padding:0 !important;'></td></tr>")
                         
                         html_blocs.append("</tbody>\n</table>")
                         html_divisions = "".join(html_blocs)
     except Exception: pass
 
-    # --- ENTIÈREMENT CENTRALISÉ ET ALIGNÉ SUR APP.PY SANS LOGIQUE EXTERNE ---
     t_live = "🏎️ EN DIRECT / 1er Course / Concurrents ASAF"
     t_his = "🕒 HISTORIQUE DES TEMPS / 1er Course / Concurrents ASAF"
     
@@ -225,3 +225,4 @@ def recuperer_donnees_course():
     t_bas = "🏆 CLASSEMENT PAR DIVISIONS / CLASSES (Course 1)"
 
     return df_live, df_hist, df_asaf123, df_asaf4, html_divisions, t_live, t_his, t_haut, t_milieu, t_bas
+        
