@@ -90,6 +90,8 @@ div[data-testid="stVerticalBlock"] { gap: 0rem !important; }
 def gen_html(df, cl):
     if df.empty:
         return f"<table class='table-compacte {cl}'><tr><td style='text-align: center; padding: 10px;'>Aucune donnée disponible</td></tr></table>"
+    return df.to_html(index=False, classes=f"table-compacte {cl}", escape=False, border=0)
+
     
     # Si c'est le tableau des classes, on intercepte la ligne intercalaire pour dessiner une vraie bordure solide continue
     if cl == "table-class-robuste" and "Pos" in df.columns:
