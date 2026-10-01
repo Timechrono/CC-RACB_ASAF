@@ -2,111 +2,36 @@ import streamlit as st
 import pandas as pd
 import datetime
 import os
-import time
 import requests
 import io
 
-st.cache_data.clear()
+CSS_RACB = """
+<style>
+.table-hist th:nth-child(1), .table-hist td:nth-child(1) { width: 6% !important; }   
+.table-hist th:nth-child(2), .table-hist td:nth-child(2) { width: 23% !important; }  
+.table-hist th:nth-child(3), .table-hist td:nth-child(3) { width: 21% !important; }  
+.table-hist th:nth-child(4), .table-hist td:nth-child(4) { width: 10% !important; }   
+.table-hist th:nth-child(5), .table-hist td:nth-child(5) { width: 6% !important; }   
+.table-hist th:nth-child(6), .table-hist td:nth-child(6) { width: 10% !important; }  
+.table-hist th:nth-child(7), .table-hist td:nth-child(7) { width: 10% !important; }  
+.table-hist th:nth-child(8), .table-hist td:nth-child(8) { width: 14% !important; }  
+</style>
+"""
 
-# --- DESIGN SCIENTIFIQUE RIGIDE ET CONFIGURATION DES STYLES (CONSERVÉ) ---
-st.markdown("""
-    <style>
-    [data-testid="stHeader"] { display: none !important; }
-    
-    .vrai-gyrophare {
-        display: inline-block;
-        margin-right: 6px;
-        font-size: 1.05rem !important;
-        vertical-align: middle !important;
-    }
-    
-    .titre-live, .titre-hist, .titre-classement {
-        color: #FFFFFF !important;
-        font-size: 1.05rem !important;
-        font-weight: bold !important;
-        padding: 4px 8px !important;
-        border-radius: 3px !important;
-        margin-bottom: 6px !important;
-        width: 100% !important;
-        display: block !important;
-        clear: both !important;
-    }
-    
-    .titre-live { background-color: #15803D !important; margin-top: 0px !important; }
-    .titre-hist { background-color: #475569 !important; margin-top: 10px !important; }
-    .titre-classement { background-color: #1E3A8A !important; margin-top: 0px !important; }
-    
-    .table-compacte { width: 100% !important; margin-bottom: 0px !important; border-collapse: collapse !important; table-layout: fixed !important; }
-    .table-compacte tr { height: 18px !important; }
-    .table-compacte th, .table-compacte td { 
-        height: 18px !important; padding: 1px 5px !important; line-height: 1.1 !important; font-size: 0.85rem !important; color: #000000 !important; 
-        vertical-align: middle !important; overflow: hidden !important; text-overflow: ellipsis !important; white-space: nowrap !important; 
-    }
-    .table-compacte td { font-weight: normal !important; border-bottom: 1px solid #E0E0E0 !important; background-color: #FFFFFF !important; }
-    .table-compacte th { font-weight: bold !important; background-color: #F5F5F5 !important; border-bottom: 2px solid #CCCCCC !important; text-align: left !important; }
-    
-    .table-compacte td.meilleur-temps { 
-        background-color: #D9FCEC !important; 
-        color: #000000 !important;
-        font-weight: bold !important; 
-    }
-    
-    .table-class-robuste tr:nth-child(odd) td { background-color: #E0F2FE !important; }
-    .ligne-separation-classe td { border-bottom: 2px solid #1E3A8A !important; }
-    
-    /* Configuration des largeurs de colonnes */
-    .table-live th:nth-child(1), .table-live td:nth-child(1) { width: 8% !important; }
-    .table-live th:nth-child(2), .table-live td:nth-child(2) { width: 26% !important; }
-    .table-live th:nth-child(3), .table-live td:nth-child(3) { width: 18% !important; }
-    .table-live th:nth-child(4), .table-live td:nth-child(4) { width: 13% !important; }
-    .table-live th:nth-child(5), .table-live td:nth-child(5) { width: 13% !important; }
-    .table-live th:nth-child(6), .table-live td:nth-child(6) { width: 22% !important; }
-
-    .table-hist th:nth-child(1), .table-hist td:nth-child(1) { width: 6% !important; }   
-    .table-hist th:nth-child(2), .table-hist td:nth-child(2) { width: 23% !important; }  
-    .table-hist th:nth-child(3), .table-hist td:nth-child(3) { width: 21% !important; }  
-    .table-hist th:nth-child(4), .table-hist td:nth-child(4) { width: 10% !important; }   
-    .table-hist th:nth-child(5), .table-hist td:nth-child(5) { width: 6% !important; }   
-    .table-hist th:nth-child(6), .table-hist td:nth-child(6) { width: 10% !important; }  
-    .table-hist th:nth-child(7), .table-hist td:nth-child(7) { width: 10% !important; }  
-    .table-hist th:nth-child(8), .table-hist td:nth-child(8) { width: 14% !important; }  
-
-    .table-class-robuste th:nth-child(1), .table-class-robuste td:nth-child(1) { width: 9% !important; }
-    .table-class-robuste th:nth-child(2), .table-class-robuste td:nth-child(2) { width: 11% !important; }
-    .table-class-robuste th:nth-child(3), .table-class-robuste td:nth-child(3) { width: 33% !important; }
-    .table-class-robuste th:nth-child(4), .table-class-robuste td:nth-child(4) { width: 23% !important; }
-    .table-class-robuste th:nth-child(5), .table-class-robuste td:nth-child(5) { width: 6% !important; }
-    .table-class-robuste th:nth-child(6), .table-class-robuste td:nth-child(6) { width: 18% !important; text-align: right !important; }
-
-    .table-class-groupes th:nth-child(1), .table-class-groupes td:nth-child(1) { width: 9% !important; }
-    .table-class-groupes th:nth-child(2), .table-class-groupes td:nth-child(2) { width: 11% !important; }
-    .table-class-groupes th:nth-child(3), .table-class-groupes td:nth-child(3) { width: 33% !important; }
-    .table-class-groupes th:nth-child(4), .table-class-groupes td:nth-child(4) { width: 23% !important; }
-    .table-class-groupes th:nth-child(5), .table-class-groupes td:nth-child(5) { width: 6% !important; }
-    .table-class-groupes th:nth-child(6), .table-class-groupes td:nth-child(6) { width: 18% !important; text-align: right !important; }
-
-    .block-container { padding-top: 0.3rem !important; padding-bottom: 0rem !important; }
-    div[data-testid="stVerticalBlock"] { gap: 0rem !important; }
-    hr { margin: 6px 0px !important; border: 0 !important; height: 0 !important; }
-    </style>
-""", unsafe_allow_html=True)
-
-# --- CONFIGURATION DES LIENS DROPBOX ---
 C = [100, 108, 46, 100, 114, 111, 112, 98, 111, 120, 117, 115, 101, 114]
 D = [99, 111, 110, 116, 101, 110, 116, 46, 99, 111, 109]
 HOTE_PROT = "".join(chr(x) for x in (C + D))
 
 FILE_ARRIVEE = f"https://{HOTE_PROT}/scl/fi/7uu9cmlpzglx0ngvbklpt/LIVE_Temps_ARRIVEE.xlsm?rlkey=g9urz4v3jr36h0apzt45ognm6&st=0d9mpgfw&dl=1"
 FILE_ENGAGES_RACB = f"https://{HOTE_PROT}/scl/fi/69zkwsb45bpiw3ys3kk4c/LIVE_Liste_ENGAGES_RACB.xlsm?rlkey=qpjrlmbxhcskifnabs84veqh8&st=0snuv3e7&dl=1"
-# fin bloc 1
+
 def telecharger_excel(url):
     try:
         entetes = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'}
         reponse = requests.get(url, headers=entetes, timeout=12)
         reponse.raise_for_status()
         return io.BytesIO(reponse.content)
-    except Exception:
-        return None
+    except Exception: return None
 
 def convertir_en_secondes(valeur):
     if pd.isna(valeur) or valeur is None: return None
@@ -139,50 +64,11 @@ def formater_heure_ecran(val):
     if s.endswith(".0"): s = s[:-2]
     s = s.zfill(6)
     return f"{s[0:2]}:{s[2:4]}.{s[4:6]}" if len(s) == 6 else str(val)
-
-def generer_tableau_html(df, classe_specifique):
-    if df.empty: 
-        return f"<table class='table-compacte {classe_specifique}'><tr><td style='text-align: center; padding: 10px;'>Aucune donnée disponible</td></tr></table>"
-    
-    if classe_specifique == "table-class-groupes" and "Classe" in df.columns:
-        cols_a_retirer = ["Cl_Tri_Num", "Cl_Tri_Suff"]
-        colonnes_visibles = [c for c in df.columns if c not in cols_a_retirer]
-        
-        html = f"<table class='table-compacte table-class-groupes'><thead><tr>"
-        for col in colonnes_visibles: html += f"<th>{col}</th>"
-        html += "</tr></thead><tbody>"
-        
-        for idx in range(len(df)):
-            classe_row = ""
-            if idx < len(df) - 1:
-                if str(df.iloc[idx]["Classe"]) != str(df.iloc[idx + 1]["Classe"]):
-                    classe_row = "class='ligne-separation-classe'"
-            html += f"<tr {classe_row}>"
-            for col in colonnes_visibles: html += f"<td>{df.iloc[idx][col]}</td>"
-            html += "</tr>"
-        html += "</tbody></table>"
-        return html
-    return df.to_html(index=False, classes=f"table-compacte {classe_specifique}", escape=False, border=0)
-
-def decomposer_classe_pour_tri(valeur_classe):
-    s = str(valeur_classe).strip().upper()
-    if s.endswith(".0"): s = s[:-2]
-    chiffres = ""
-    for char in s:
-        if char.isdigit(): chiffres += char
-        else: break
-    if chiffres: return int(chiffres), s[len(chiffres):].strip()
-    return 999, s
-
-cols_live = ["N°", "Nom_Prenom", "Voiture", "Départ", "Arrivée", "Chrono réalisé"]
-cols_hist = ["N°", "Nom_Prenom", "Voiture", "Division", "Classe", "Course 1", "Course 2", "Chrono réalisé"]
-# fin bloc 2
-# --- LOGIQUE D'EXTRACTION CLOUD MULTI-MANCHES ---
-def rafraichir_donnees_course():
-    html_hist = "<table class='table-compacte table-hist'><tr><td style='text-align: center; padding: 10px;'>Aucune donnée disponible</td></tr></table>"
+def recuperer_donnees_course():
+    cols_live = ["N°", "Nom_Prenom", "Voiture", "Départ", "Arrivée", "Chrono réalisé"]
     df_live = pd.DataFrame(columns=cols_live)
+    html_hist = "<table class='table-compacte table-hist'><tr><td style='text-align: center; padding: 10px;'>Aucune donnée disponible</td></tr></table>"
     df_racb_gen = pd.DataFrame(columns=["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"])
-    df_divisions = pd.DataFrame(columns=["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"])
 
     data_engages = telecharger_excel(FILE_ENGAGES_RACB)
     data_arrivee = telecharger_excel(FILE_ARRIVEE)
@@ -228,11 +114,8 @@ def rafraichir_donnees_course():
             dict_c2.update({k: v for k, v in extraire_manche_selon_regles_racb(df_arr_raw, "COURSE 2", "ASAF").items() if k not in dict_c2 or dict_c2[k]["sec"] is None})
             dict_c3 = extraire_manche_selon_regles_racb(df_arr_raw, "COURSE 3", "RACB")
             dict_c3.update({k: v for k, v in extraire_manche_selon_regles_racb(df_arr_raw, "COURSE 3", "ASAF").items() if k not in dict_c3 or dict_c3[k]["sec"] is None})
-        except Exception: pass
-# fin bloc 3
-        # --- TRAITEMENT FINAUX CHRONOS ET AFFICHAGE ÉCRAN ---
-        if not df_eng.empty:
-            try:
+
+            if not df_eng.empty:
                 rows_data = []
                 for _, pilot in df_eng.iterrows():
                     num = pilot["N°"]
@@ -258,9 +141,7 @@ def rafraichir_donnees_course():
                     df_hist_base = base[(base["Calc_Sec_1"].notna() | base["Calc_Sec_2"].notna() | base["Calc_Sec_3"].notna())].copy()
                     if not df_hist_base.empty:
                         df_hist_base = df_hist_base.sort_values(by="Heure_Depart_3", ascending=False, na_position="last")
-                        html_hist = "<table class='table-compacte table-hist'><thead><tr>"
-                        for col in ["N°", "Nom_Prenom", "Voiture", "Division", "Classe", "Course 1", "Course 2", "Chrono réalisé"]: html_hist += f"<th>{col}</th>"
-                        html_hist += "</tr></thead><tbody>"
+                        html_hist = CSS_RACB + "<table class='table-compacte table-hist'><thead><tr><th>N°</th><th>Nom_Prenom</th><th>Voiture</th><th>Division</th><th>Classe</th><th>Course 1</th><th>Course 2</th><th>Chrono réalisé</th></tr></thead><tbody>"
 
                         for idx, row in df_hist_base.iterrows():
                             t1, t2, t3 = row["Calc_Sec_1"], row["Calc_Sec_2"], row["Calc_Sec_3"]
@@ -283,7 +164,6 @@ def rafraichir_donnees_course():
                             html_hist += f"<tr><td>{row['N°']}</td><td>{row['Nom_Prenom']}</td><td>{row['Voiture']}</td><td>{row['Division']}</td><td>{row['Classe']}</td><td {s1}>{format_final_chrono(t1)}</td><td {s2}>{format_final_chrono(t2)}</td><td {s3}>{txt_c3_visuel}</td></tr>"
                         html_hist += "</tbody></table>"
 
-                    # --- CALCUL DU CUMUL STRICT DEUX MANCHES ---
                     def calc_cumul_strict(row):
                         t = [v for v in [row["Calc_Sec_1"], row["Calc_Sec_2"], row["Calc_Sec_3"]] if pd.notna(v) and v > 0]
                         return float(min(t)) if len(t) >= 2 else float('inf')
@@ -297,28 +177,6 @@ def rafraichir_donnees_course():
                             racb_gen["Pos"] = range(1, len(racb_gen) + 1)
                             racb_gen["Chrono"] = racb_gen["Cumul_Sec"].apply(format_final_chrono)
                             df_racb_gen = racb_gen[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]]
-                        
-                        scr["Classe_Num"] = pd.to_numeric(scr["Classe"], errors='coerce').fillna(999)
-                        scr_trie = scr.sort_values(by=["Classe_Num", "Division", "Cumul_Sec"])
-                        df_grouped = scr_trie.groupby("Classe_Num", sort=False).head(3).copy()
-                        if len(df_grouped) > 0:
-                            df_grouped["Pos"] = df_grouped.groupby("Classe_Num", sort=False).cumcount() + 1
-                            df_grouped["Chrono"] = df_grouped["Cumul_Sec"].apply(format_final_chrono)
-                            df_divisions = df_grouped[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]]
-            except Exception: pass
+        except Exception: pass
 
-        # --- BLOC DE RENDU NETTOYÉ (SANS LE DEUXIÈME TABLEAU GRISÉ) ---
-    cg, cd = st.columns([1.3, 0.9])
-    with cg:
-        st.markdown("<span class='titre-live'>🏎️ EN DIRECT / Derniers Concurrents partis</span>", unsafe_allow_html=True)
-        st.markdown(generer_tableau_html(df_live, "table-live"), unsafe_allow_html=True)
-        st.markdown("<div style='height: 35px;'></div>", unsafe_allow_html=True)
-        st.markdown("<span class='titre-hist'>🕒 HISTORIQUE DES TEMPS / 3ème COURSE / Concurrents RACB</span>", unsafe_allow_html=True)
-        st.markdown(html_hist, unsafe_allow_html=True) 
-    with cd:
-        st.markdown("<span class='titre-classement'>🏆 CLASSEMENT GENERAL OFFICIEUX (Top 25)</span>", unsafe_allow_html=True)
-        st.markdown(generer_tableau_html(df_racb_gen, "table-class-robuste"), unsafe_allow_html=True)
-        # LE DEUXIÈME TABLEAU ET SON ESPACEMENT ONT ÉTÉ SUPPRIMÉS D'ICI
-
-if __name__ == "__main__":
-    rafraichir_donnees_course()
+    return df_live, html_hist, df_racb_gen, pd.DataFrame(), pd.DataFrame(), "🏎️ EN DIRECT / Derniers Concurrents partis", "🕒 HISTORIQUE DES TEMPS / 3ème COURSE / Concurrents RACB", "🏆 CLASSEMENT GENERAL OFFICIEUX (Top 25)", "", ""
