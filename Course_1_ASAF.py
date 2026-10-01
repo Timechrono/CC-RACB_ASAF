@@ -105,48 +105,52 @@ def recuperer_donnees_course():
         df_dep_raw = pd.read_excel(flux_dep, header=None, engine='openpyxl')
         df_arr_raw = pd.read_excel(flux_arr, header=None, engine='openpyxl')
 
-        idx_dep_asaf, idx_arr_asaf = None, None
-        idx_dep_racb, idx_arr_racb = None, None
-
-        for r in range(min(5, len(df_dep_raw))):
-            for c in range(len(df_dep_raw.columns)):
-                val = str(df_dep_raw.iloc[r, c]).strip().upper()
-                if "COURSE 1 ASAF" in val: idx_dep_asaf = c
-                elif "COURSE 1 RACB" in val: idx_dep_racb = c
-
-        for r in range(min(5, len(df_arr_raw))):
-            for c in range(len(df_arr_raw.columns)):
-                val = str(df_arr_raw.iloc[r, c]).strip().upper()
-                if "COURSE 1 ASAF" in val: idx_arr_asaf = c
-                elif "COURSE 1 RACB" in val: idx_arr_racb = c
-
-        deps = []
-        if idx_dep_asaf is not None:
-            deps.append(pd.DataFrame({"N°": df_dep_raw.iloc[2:, idx_dep_asaf].apply(nettoyer_numero), "Heure_Depart": df_dep_raw.iloc[2:, idx_dep_asaf + 1]}))
-        if idx_dep_racb is not None:
-            deps.append(pd.DataFrame({"N°": df_dep_raw.iloc[2:, idx_dep_racb].apply(nettoyer_numero), "Heure_Depart": df_dep_raw.iloc[2:, idx_dep_racb + 1]}))
-        df_dep = pd.concat(deps).drop_duplicates(subset=["N°", "Heure_Depart"]) if deps else pd.DataFrame(columns=["N°", "Heure_Depart"])
-
-        arrs = []
-        if idx_arr_asaf is not None:
-            arrs.append(pd.DataFrame({"N°": df_arr_raw.iloc[2:, idx_arr_asaf].apply(nettoyer_numero), "Heure_Arrivee": df_arr_raw.iloc[2:, idx_arr_asaf + 2], "Chrono_Excel": df_arr_raw.iloc[2:, idx_arr_asaf + 3]}))
-        if idx_arr_racb is not None:
-            arrs.append(pd.DataFrame({"N°": df_arr_raw.iloc[2:, idx_arr_racb].apply(nettoyer_numero), "Heure_Arrivee": df_arr_raw.iloc[2:, idx_arr_racb + 2], "Chrono_Excel": df_arr_raw.iloc[2:, idx_arr_racb + 3]}))
-        df_arr = pd.concat(arrs).drop_duplicates(subset=["N°", "Heure_Arrivee"]) if arrs else pd.DataFrame(columns=["N°", "Heure_Arrivee", "Chrono_Excel"])
-        
+        # 1. Extraction et nettoyage de la liste stricte des engagés ASAF
         df_eng_raw.columns = df_eng_raw.columns.astype(str).str.strip().str.upper()
         df_eng = pd.DataFrame({"N°": df_eng_raw.iloc[:, 0].apply(nettoyer_numero), 
                                "Nom_Prenom": df_eng_raw.iloc[:, 1].fillna("Pilote Inconnu").astype(str).str.strip(),
                                "Voiture": df_eng_raw.iloc[:, 4].fillna("").astype(str).str.strip(),
                                "Division": df_eng_raw.iloc[:, 5].apply(lambda x: "-" if pd.isna(x) else str(x).strip()[:-2] if str(x).strip().endswith(".0") else str(x).strip()),
                                "Classe": df_eng_raw.iloc[:, 6].fillna("-").astype(str).str.strip().apply(lambda x: x[:-2] if x.endswith(".0") else x)})
-
         df_eng = df_eng[df_eng["N°"] != "NAN"].drop_duplicates(subset=["N°"])
-        df_dep = df_dep[(df_dep["N°"] != "NAN") & (df_dep["N°"] != "")]
+        liste_numeros_asaf = set(df_eng["N°"].tolist())
 
+        # 2. Localisation des colonnes Course 1 ASAF et RACB
+        idx_dep_asaf, idx_arr_asaf = None, None
+        idx_dep_racb, idx_arr_racb = None, None
+        for r in range(min(5, len(df_dep_raw))):
+            for c in range(len(df_dep_raw.columns)):
+                val = str(df_dep_raw.iloc[r, c]).strip().upper()
+                if "COURSE 1 ASAF" in val: idx_dep_asaf = c
+                elif "COURSE 1 RACB" in val: idx_dep_racb = c
+        for r in range(min(5, len(df_arr_raw))):
+            for c in range(len(df_arr_raw.columns)):
+                val = str(df_arr_raw.iloc[r, c]).strip().upper()
+                if "COURSE 1 ASAF" in val: idx_arr_asaf = c
+                elif "COURSE 1 RACB" in val: idx_arr_racb = c
+
+        # 3. Extraction filtrée : On ne prend QUE les lignes de temps qui concernent un numéro inscrit en ASAF
+        deps_list = []
+        if idx_dep_asaf is not None:
+            d_asaf = pd.DataFrame({"N°": df_dep_raw.iloc[2:, idx_dep_asaf].apply(nettoyer_numero), "Heure_Depart": df_dep_raw.iloc[2:, idx_dep_asaf + 1]})
+            deps_list.append(d_asaf[d_asaf["N°"].isin(liste_numeros_asaf)])
+        if idx_dep_racb is not None:
+            d_racb = pd.DataFrame({"N°": df_dep_raw.iloc[2:, idx_dep_racb].apply(nettoyer_numero), "Heure_Depart": df_dep_raw.iloc[2:, idx_dep_racb + 1]})
+            deps_list.append(d_racb[d_racb["N°"].isin(liste_numeros_asaf)])
+        df_dep = pd.concat(deps_list).drop_duplicates(subset=["N°", "Heure_Depart"]) if deps_list else pd.DataFrame(columns=["N°", "Heure_Depart"])
+
+        arrs_list = []
+        if idx_arr_asaf is not None:
+            a_asaf = pd.DataFrame({"N°": df_arr_raw.iloc[2:, idx_arr_asaf].apply(nettoyer_numero), "Heure_Arrivee": df_arr_raw.iloc[2:, idx_arr_asaf + 2], "Chrono_Excel": df_arr_raw.iloc[2:, idx_arr_asaf + 3]})
+            arrs_list.append(a_asaf[a_asaf["N°"].isin(liste_numeros_asaf)])
+        if idx_arr_racb is not None:
+            a_racb = pd.DataFrame({"N°": df_arr_raw.iloc[2:, idx_arr_racb].apply(nettoyer_numero), "Heure_Arrivee": df_arr_raw.iloc[2:, idx_arr_racb + 2], "Chrono_Excel": df_arr_raw.iloc[2:, idx_arr_racb + 3]})
+            arrs_list.append(a_racb[a_racb["N°"].isin(liste_numeros_asaf)])
+        df_arr = pd.concat(arrs_list).drop_duplicates(subset=["N°", "Heure_Arrivee"]) if arrs_list else pd.DataFrame(columns=["N°", "Heure_Arrivee", "Chrono_Excel"])
+
+        df_dep = df_dep[(df_dep["N°"] != "NAN") & (df_dep["N°"] != "")]
         for d in [df_dep, df_arr]:
             if len(d) > 0: d["N°"] = d["N°"].astype(str); d["Run_Index"] = d.groupby("N°").cumcount() + 1
-# fin 2A
         if len(df_dep) > 0: df_dep["Sec_Dep"] = df_dep["Heure_Depart"].apply(convertir_en_secondes)
         if len(df_arr) > 0: df_arr["Sec_Arr"] = df_arr["Heure_Arrivee"].apply(convertir_en_secondes); df_arr["Sec_Excel"] = df_arr["Chrono_Excel"].apply(convertir_en_secondes)
 
@@ -209,9 +213,9 @@ def recuperer_donnees_course():
                             if current_group == 1: html_blocs.append(sub_html.replace("</tbody>\n</table>", ""))
                             else: html_blocs.append(sub_html.split("<tbody>")[-1].replace("</tbody>\n</table>", ""))
                             
-                            # --- MODIFIÉ : Injection d'une ligne de séparation BLEU FONCÉ unifiée continue (colspan=6) ---
+                            # TRACÉ DE LA LIGNE BLEUE PARFAITE ET CONTINUE ENTRE CHAQUE CLASSE
                             if current_group < total_groups:
-                                html_blocs.append("<tr style='border-top: 2.5px solid #1E3A8A !important; height:6px !important;'><td colspan='6' style='border:none !important; padding:0 !important;'></td></tr>")
+                                html_blocs.append("<tr><td colspan='6' style='padding:0 !important; border:none !important; background-color:transparent !important;'><div style='border-top: 3px solid #1E3A8A !important; margin: 4px 0; width:100%;'></div></td></tr>")
                         
                         html_blocs.append("</tbody>\n</table>")
                         html_divisions = "".join(html_blocs)
@@ -219,10 +223,8 @@ def recuperer_donnees_course():
 
     t_live = "🏎️ EN DIRECT / 1er Course / Concurrents ASAF"
     t_his = "🕒 HISTORIQUE DES TEMPS / 1er Course / Concurrents ASAF"
-    
     t_haut = "🏆 CLASSEMENT GENERAL Division 123 (Course 1)"
     t_milieu = "🏆 CLASSEMENT GENERAL Division 4 (Course 1)"
     t_bas = "🏆 CLASSEMENT PAR DIVISIONS / CLASSES (Course 1)"
 
     return df_live, df_hist, df_asaf123, df_asaf4, html_divisions, t_live, t_his, t_haut, t_milieu, t_bas
-        
