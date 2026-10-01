@@ -214,9 +214,10 @@ def recuperer_donnees_course():
                             if current_group == 1: html_blocs.append(sub_html.replace("</tbody>\n</table>", ""))
                             else: html_blocs.append(sub_html.split("<tbody>")[-1].replace("</tbody>\n</table>", ""))
                             
-                            # TRACÉ DE LA LIGNE BLEUE PARFAITE ET CONTINUE ENTRE CHAQUE CLASSE
+                            # --- MODIFIÉ : Séparateur textuel bleu à l'aide de caractères gras colorés par balise span ---
                             if current_group < total_groups:
-                                html_blocs.append("<tr><td colspan='6' style='padding:0 !important; border:none !important; background-color:transparent !important;'><div style='border-top: 3px solid #1E3A8A !important; margin: 4px 0; width:100%;'></div></td></tr>")
+                                ligne_bleue_texte = "<span style='color:#1E3A8A !important; font-weight:bold;'>____________________________________________________</span>"
+                                html_blocs.append(f"<tr><td>{ligne_bleue_texte}</td><td></td><td></td><td></td><td></td><td></td></tr>")
                         
                         html_blocs.append("</tbody>\n</table>")
                         html_divisions = "".join(html_blocs)
@@ -229,3 +230,4 @@ def recuperer_donnees_course():
     t_bas = "🏆 CLASSEMENT PAR DIVISIONS / CLASSES (Course 1)"
 
     return df_live, df_hist, df_asaf123, df_asaf4, html_divisions, t_live, t_his, t_haut, t_milieu, t_bas
+        
