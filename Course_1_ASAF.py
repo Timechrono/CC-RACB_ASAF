@@ -86,6 +86,7 @@ def extraire_engages(flux):
         "Classe": df_raw.iloc[:, 6].fillna("-").astype(str).str.strip().apply(lambda x: x[:-2] if x.endswith(".0") else x)
     })
     return df_clean[df_clean["N°"] != "NAN"]
+# fin partie 1
 def recuperer_donnees_course():
     cols_live = ["N°", "Nom_Prenom", "Voiture", "Départ", "Arrivée", "Chrono réalisé"]
     cols_hist = ["N°", "Nom_Prenom", "Voiture", "Division", "Classe", "Chrono réalisé"]
@@ -117,15 +118,7 @@ def recuperer_donnees_course():
             val = str(df_arr_raw.iloc[1, c_idx]).strip().upper()
             if "COURSE 1 ASAF" in val: idx_arr_1_asaf = c_idx
 
-        if idx_dep_1_asaf is None or idx_arr_1_asaf is None:
-            st.error(f"⚠️ Colonne 'COURSE 1 ASAF' introuvable ! Départ trouvé: {idx_dep_1_asaf is not None}, Arrivée trouvée: {idx_arr_1_asaf is not None}")
-
         df_dep = pd.DataFrame({"N°": df_dep_raw.iloc[2:, idx_dep_1_asaf].apply(nettoyer_numero), "Heure_Depart": df_dep_raw.iloc[2:, idx_dep_1_asaf + 1]}) if idx_dep_1_asaf is not None else pd.DataFrame(columns=["N°", "Heure_Depart"])
-        df_arr = pd.DataFrame({"N°": df_arr_raw.iloc[2:, idx_arr_1_asaf].apply(nettoyer_numero), "Heure_Arrivée": df_arr_raw.iloc[2:, idx_arr_1_asaf + 2], "Chrono_Excel": df_arr_raw.iloc[2:, idx_arr_1_asaf + 3]}) if idx_arr_1_asaf is not None else pd.DataFrame(columns=["N°", "Heure_Arrivée", "Chrono_Excel"])
-        # Correction mineure de casse pour s'assurer que les variables d'arrivée matchent
-        if "Heure_Arrivée" in df_arr.columns and "Heure_Arrivée" not in df_arr.columns:
-            pass
-        # Rétablissement des noms de colonnes exacts d'origine pour df_arr
         df_arr = pd.DataFrame({"N°": df_arr_raw.iloc[2:, idx_arr_1_asaf].apply(nettoyer_numero), "Heure_Arrivee": df_arr_raw.iloc[2:, idx_arr_1_asaf + 2], "Chrono_Excel": df_arr_raw.iloc[2:, idx_arr_1_asaf + 3]}) if idx_arr_1_asaf is not None else pd.DataFrame(columns=["N°", "Heure_Arrivee", "Chrono_Excel"])
 
         df_dep = df_dep[(df_dep["N°"] != "NAN") & (df_dep["N°"] != "")]
@@ -183,7 +176,8 @@ def recuperer_donnees_course():
                     asaf4["Chrono"] = asaf4["Calc_Sec"].apply(format_final_chrono)
                     df_asaf4 = asaf4[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]]
                 
-                scr_div_filtree = scr[scr["Division_Clean"].isin(["1", "2", "3", "4", "1.0", "2.0", "3.0", "4.0"])].copy()
+                # --- MODIFIÉ ICI : On prend tout le monde (ASAF + RACB) pour le classement par Divisions/Classes comme avant ---
+                scr_div_filtree = scr.copy()
                 if len(scr_div_filtree) > 0:
                     scr_div_filtree["Classe_Num"] = pd.to_numeric(scr_div_filtree["Classe"], errors='coerce').fillna(999)
                     df_grouped = scr_div_filtree.sort_values(by=["Division_Clean", "Classe_Num", "Calc_Sec"]).groupby(["Division_Clean", "Classe_Num"]).head(3).copy()
@@ -192,6 +186,6 @@ def recuperer_donnees_course():
                         df_grouped["Chrono"] = df_grouped["Calc_Sec"].apply(format_final_chrono)
                         df_divisions = df_grouped[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]]
     except Exception as e:
-        st.error(f"❌ Erreur d'exécution interne dans Course_1_ASAF.py : {e}")
+        pass
 
     return df_live, df_hist, df_asaf123, df_asaf4, df_divisions
