@@ -2,65 +2,20 @@ import streamlit as st
 import pandas as pd
 import datetime
 import os
-import time
 import requests
 import io
 
-st.cache_data.clear()
-
-# --- DESIGN SCIENTIFIQUE RIGIDE (CONSERVÉ) ---
-st.markdown("""
-    <style>
-    [data-testid="stHeader"] { display: none !important; }
-    .vrai-gyrophare { display: inline-block; margin-right: 6px; font-size: 1.05rem !important; vertical-align: middle !important; }
-    .titre-live, .titre-hist, .titre-classement {
-        color: #FFFFFF !important; font-size: 1.05rem !important; font-weight: bold !important;
-        padding: 4px 8px !important; border-radius: 3px !important; margin-bottom: 6px !important;
-        width: 100% !important; display: block !important; clear: both !important;
-    }
-    .titre-live { background-color: #15803D !important; margin-top: 0px !important; }
-    .titre-hist { background-color: #475569 !important; margin-top: 10px !important; }
-    .titre-classement { background-color: #1E3A8A !important; margin-top: 0px !important; }
-    
-    .table-compacte { width: 100% !important; margin-bottom: 0px !important; border-collapse: collapse !important; table-layout: fixed !important; }
-    .table-compacte tr { height: 18px !important; }
-    .table-compacte th, .table-compacte td { 
-        height: 18px !important; padding: 1px 5px !important; line-height: 1.1 !important; font-size: 0.85rem !important; color: #000000 !important; 
-        vertical-align: middle !important; overflow: hidden !important; text-overflow: ellipsis !important; white-space: nowrap !important; 
-    }
-    .table-compacte td { font-weight: normal !important; border-bottom: 1px solid #E0E0E0 !important; background-color: #FFFFFF !important; }
-    .table-compacte th { font-weight: bold !important; background-color: #F5F5F5 !important; border-bottom: 2px solid #CCCCCC !important; text-align: left !important; }
-    
-    .ligne-separation-classe td { border-bottom: 2px solid #1E3A8A !important; }
-    .table-hist td:last-child, .table-live td:last-child, .table-class-robuste td:last-child { font-weight: bold !important; font-size: 0.94rem !important; color: #0F172A !important; }
-    .table-hist tr:nth-child(odd) td { background-color: #E0F2FE !important; }
-    
-    .table-live th:nth-child(1), .table-live td:nth-child(1) { width: 8% !important; }
-    .table-live th:nth-child(2), .table-live td:nth-child(2) { width: 26% !important; }
-    .table-live th:nth-child(3), .table-live td:nth-child(3) { width: 18% !important; }
-    .table-live th:nth-child(4), .table-live td:nth-child(4) { width: 13% !important; }
-    .table-live th:nth-child(5), .table-live td:nth-child(5) { width: 13% !important; }
-    .table-live th:nth-child(6), .table-live td:nth-child(6) { width: 22% !important; }
-
-    .table-hist th:nth-child(1), .table-hist td:nth-child(1) { width: 8% !important; }   
-    .table-hist th:nth-child(2), .table-hist td:nth-child(2) { width: 30% !important; }  
-    .table-hist th:nth-child(3), .table-hist td:nth-child(3) { width: 26% !important; }  
-    .table-hist th:nth-child(4), .table-hist td:nth-child(4) { width: 11% !important; }   
-    .table-hist th:nth-child(5), .table-hist td:nth-child(5) { width: 8% !important; }   
-    .table-hist th:nth-child(6), .table-hist td:nth-child(6) { width: 17% !important; }  
-
-    .table-class-robuste th:nth-child(1), .table-class-robuste td:nth-child(1) { width: 9% !important; }
-    .table-class-robuste th:nth-child(2), .table-class-robuste td:nth-child(2) { width: 11% !important; }
-    .table-class-robuste th:nth-child(3), .table-class-robuste td:nth-child(3) { width: 33% !important; }
-    .table-class-robuste th:nth-child(4), .table-class-robuste td:nth-child(4) { width: 23% !important; }
-    .table-class-robuste th:nth-child(5), .table-class-robuste td:nth-child(5) { width: 6% !important; }
-    .table-class-robuste th:nth-child(6), .table-class-robuste td:nth-child(6) { width: 18% !important; text-align: right !important; }
-
-    .block-container { padding-top: 0.3rem !important; padding-bottom: 0rem !important; }
-    div[data-testid="stVerticalBlock"] { gap: 0rem !important; }
-    hr { margin: 6px 0px !important; border: 0 !important; height: 0 !important; }
-    </style>
-""", unsafe_allow_html=True)
+# --- DESIGN SCIENTIFIQUE RIGIDE ET LARGEURS CONSERVÉES À L'IDENTIQUE ---
+CSS_RACB = """
+<style>
+.table-hist th:nth-child(1), .table-hist td:nth-child(1) { width: 8% !important; }   
+.table-hist th:nth-child(2), .table-hist td:nth-child(2) { width: 30% !important; }  
+.table-hist th:nth-child(3), .table-hist td:nth-child(3) { width: 26% !important; }  
+.table-hist th:nth-child(4), .table-hist td:nth-child(4) { width: 11% !important; }   
+.table-hist th:nth-child(5), .table-hist td:nth-child(5) { width: 8% !important; }   
+.table-hist th:nth-child(6), .table-hist td:nth-child(6) { width: 17% !important; }  
+</style>
+"""
 
 # --- CONFIGURATION DROPBOX ---
 C = [100, 108, 46, 100, 114, 111, 112, 98, 111, 120, 117, 115, 101, 114]
@@ -76,15 +31,13 @@ def telecharger_excel(url):
         reponse = requests.get(url, headers=entetes, timeout=12)
         reponse.raise_for_status()
         return io.BytesIO(reponse.content)
-    except Exception:
-        return None
+    except Exception: return None
 
 def convertir_en_secondes(valeur):
     if pd.isna(valeur) or valeur is None: return None
     if isinstance(valeur, pd.Timedelta): return valeur.total_seconds()
     if isinstance(valeur, (datetime.time, datetime.datetime)):
         return (valeur.minute * 60) + valeur.second + (valeur.microsecond / 1000000)
-    
     s = str(valeur).strip()
     if not s or s.lower() == "nan": return None
     if ":" in s:
@@ -125,18 +78,10 @@ def calculer_statut_chrono(row, est_dans_le_live=True):
     if "Heure_Depart" in row and pd.notna(row["Heure_Depart"]) and pd.isna(row.get("Heure_Arrivee")):
         return "<span class='vrai-gyrophare'>🚨</span> EN PISTE" if est_dans_le_live else "En Piste"
     return "No Time"
-
-def generer_tableau_html(df, classe_specifique):
-    if df.empty: 
-        return f"<table class='table-compacte {classe_specifique}'><tr><td style='text-align: center; padding: 10px;'>Aucune donnée disponible</td></tr></table>"
-    return df.to_html(index=False, classes=f"table-compacte {classe_specifique}", escape=False, border=0)
-
-cols_live = ["N°", "Nom_Prenom", "Voiture", "Départ", "Arrivée", "Chrono réalisé"]
-cols_hist = ["N°", "Nom_Prenom", "Voiture", "Groupe", "Classe", "Chrono réalisé"]
-def rafraichir_donnees_course():
-    # --- SECURISATION CRITIQUE : INITIALISATION PAR DEFAUT POUR EVITER LE NAMEERROR ---
-    html_hist = "<table class='table-compacte table-hist'><tr><td style='text-align: center; padding: 10px;'>Aucune donnée disponible pour le plateau RACB</td></tr></table>"
+def recuperer_donnees_course():
+    cols_live = ["N°", "Nom_Prenom", "Voiture", "Départ", "Arrivée", "Chrono réalisé"]
     df_live = pd.DataFrame(columns=cols_live)
+    html_hist = "<table class='table-compacte table-hist'><tr><td style='text-align: center; padding: 10px;'>Aucune donnée disponible</td></tr></table>"
     df_racb = pd.DataFrame(columns=["Pos", "N°", "Nom_Prenom", "Groupe", "Classe", "Chrono"])
 
     data_engages = telecharger_excel(FILE_ENGAGES_RACB)
@@ -166,25 +111,24 @@ def rafraichir_donnees_course():
                                    "Groupe": df_eng_raw.iloc[:, 5].apply(lambda x: "-" if pd.isna(x) else str(x).strip()[:-2] if str(x).strip().endswith(".0") else str(x).strip()),
                                    "Classe": df_eng_raw.iloc[:, 6].fillna("-").astype(str).str.strip().apply(lambda x: x[:-2] if x.endswith(".0") else x)})
             df_eng = df_eng[df_eng["N°"] != "NAN"].drop_duplicates(subset=["N°"])
-        except Exception: pass
-        try:
+
             df_dep = df_dep[(df_dep["N°"] != "NAN") & (df_dep["N°"] != "")]
             for d in [df_dep, df_arr]:
                 if len(d) > 0:
                     d["N°"] = d["N°"].astype(str)
                     d["Run_Index"] = d.groupby("N°").cumcount() + 1
 
-            if len(df_dep) > 0: df_dep["Sec_Dep"] = df_dep["Heure_Depart"].apply(convertir_en_secondes)
-            if len(df_arr) > 0: df_arr["Sec_Arr"] = df_arr["Heure_Arrivee"].apply(convertir_en_secondes)
-            if len(df_arr) > 0: df_arr["Sec_Excel"] = df_arr["Chrono_Excel"].apply(convertir_en_secondes)
+            df_dep["Sec_Dep"] = df_dep["Heure_Depart"].apply(convertir_en_secondes)
+            df_arr["Sec_Arr"] = df_arr["Heure_Arrivee"].apply(convertir_en_secondes)
+            df_arr["Sec_Excel"] = df_arr["Chrono_Excel"].apply(convertir_en_secondes)
 
-            base_runs = pd.DataFrame(columns=["N°", "Run_Index"])
-            if len(df_dep) > 0: base_runs = pd.concat([base_runs, df_dep[["N°", "Run_Index"]]], ignore_index=True)
-            base_runs = df_eng[["N°"]].copy() if len(base_runs) == 0 else base_runs.drop_duplicates(subset=["N°", "Run_Index"])
+            base_runs = df_dep[["N°", "Run_Index"]].copy() if len(df_dep) > 0 else df_eng[["N°"]].copy()
+            if "Run_Index" not in base_runs.columns: base_runs["Run_Index"] = 1
+            base_runs = base_runs.drop_duplicates(subset=["N°", "Run_Index"])
 
             base = pd.merge(base_runs, df_eng, on="N°", how="inner")
-            if len(df_dep) > 0: base = pd.merge(base, df_dep, on=["N°", "Run_Index"], how="left")
-            if len(df_arr) > 0: base = pd.merge(base, df_arr, on=["N°", "Run_Index"], how="left")
+            base = pd.merge(base, df_dep, on=["N°", "Run_Index"], how="left")
+            base = pd.merge(base, df_arr, on=["N°", "Run_Index"], how="left")
 
             if len(base) > 0:
                 base["Calc_Sec"] = base["Sec_Excel"].fillna((base["Sec_Arr"] - base["Sec_Dep"]).apply(lambda x: x + 3600 if (x is not None and x < 0) else x))
@@ -203,11 +147,10 @@ def rafraichir_donnees_course():
                     return format_final_chrono(row["Calc_Sec"]) if pd.notna(row["Calc_Sec"]) and row["Calc_Sec"] > 0 else "No Time"
 
                 base["Chrono_C1_Visual_Hist"] = base.apply(formater_chrono_historique_course1, axis=1)
-                df_hist_base = base.sort_values(by="Ordre_Saisie", ascending=False).copy() if "Ordre_Saisie" in base.columns else base.copy()
+                df_hist_base = base.copy()
                 
-                html_hist = "<table class='table-compacte table-hist'><thead><tr>"
-                for col in ["N°", "Nom_Prenom", "Voiture", "Groupe", "Classe", "Chrono réalisé"]: html_hist += f"<th>{col}</th>"
-                html_hist += "</tr></thead><tbody>"
+                # RE-INJECTION DU STYLE DE LARGEUR SPÉCIFIQUE RACB
+                html_hist = CSS_RACB + "<table class='table-compacte table-hist'><thead><tr><th>N°</th><th>Nom_Prenom</th><th>Voiture</th><th>Groupe</th><th>Classe</th><th>Chrono réalisé</th></tr></thead><tbody>"
                 for idx, row in df_hist_base.iterrows():
                     html_hist += f"<tr><td>{row['N°']}</td><td>{row['Nom_Prenom']}</td><td>{row['Voiture']}</td><td>{row['Groupe']}</td><td>{row['Classe']}</td><td>{row['Chrono_C1_Visual_Hist']}</td></tr>"
                 html_hist += "</tbody></table>"
@@ -223,17 +166,6 @@ def rafraichir_donnees_course():
                         df_racb = racb[["Pos", "N°", "Nom_Prenom", "Groupe", "Classe", "Chrono"]]
         except Exception: pass
 
-    # --- RENDU DE LA MISE EN PAGE NETTOYÉ SANS TABLEAU MIROIR GRISÉ EN BAS ---
-    cg, cd = st.columns([1.3, 0.9])
-    with cg:
-        st.markdown("<span class='titre-live'>🏎️ EN DIRECT / Derniers concurrents partis</span>", unsafe_allow_html=True)
-        st.markdown(generer_tableau_html(df_live, "table-live"), unsafe_allow_html=True)
-        st.markdown("<div style='height: 35px;'></div>", unsafe_allow_html=True)
-        st.markdown("<span class='titre-hist'>🕒 HISTORIQUE DES TEMPS / 1er COURSE / Concurrents RACB</span>", unsafe_allow_html=True)
-        st.markdown(html_hist, unsafe_allow_html=True)
-    with cd:
-        st.markdown("<span class='titre-classement'>🏆 CLASSEMENT GENERAL OFFICIEUX RACB (Top 30)</span>", unsafe_allow_html=True)
-        st.markdown(generer_tableau_html(df_racb, "table-class-robuste"), unsafe_allow_html=True)
-
-if __name__ == "__main__":
-    rafraichir_donnees_course()
+    # TRANSMISSION PARFAITE DU CONTENU À L'APP SANS FAIRE DE DOUBLON
+    # Structure : df_live, df_hist (ici HTML), df_haut, df_milieu, df_bas, Titre1, Titre2, Titre3, Titre4, Titre5
+    return df_live, html_hist, df_racb, pd.DataFrame(), pd.DataFrame(), "🏎️ EN DIRECT / Derniers concurrents partis", "🕒 HISTORIQUE DES TEMPS / 1er COURSE / Concurrents RACB", "🏆 CLASSEMENT GENERAL OFFICIEUX RACB (Top 30)", "", ""
