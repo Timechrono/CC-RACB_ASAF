@@ -262,20 +262,18 @@ def rafraichir_donnees_course():
                         df_divisions = df_grouped[["Pos", "N°", "Nom_Prenom", "Groupe", "Classe", "Chrono"]]
         except Exception: pass
 
+        # --- BLOC DE RENDU NETTOYÉ (SANS LE DEUXIÈME TABLEAU GRISÉ) ---
     cg, cd = st.columns([1.3, 0.9])
     with cg:
         st.markdown("<span class='titre-live'>🏎️ EN DIRECT / Derniers concurrents partis</span>", unsafe_allow_html=True)
         st.markdown(generer_tableau_html(df_live, "table-live"), unsafe_allow_html=True)
         st.markdown("<div style='height: 35px;'></div>", unsafe_allow_html=True)
-        st.markdown("<span class='titre-hist'>🕒 HISTORIQUE DES TEMPS / 1er COURSE / Concurrents RACB</span>", unsafe_allow_html=True)
-        st.markdown(generer_tableau_html(df_hist, "table-hist"), unsafe_allow_html=True)
+        st.markdown("<span class='titre-hist'>🕒 HISTORIQUE DES TEMPS / Concurrents RACB</span>", unsafe_allow_html=True)
+        st.markdown(html_hist, unsafe_allow_html=True)
     with cd:
-        st.markdown("<span class='titre-classement'>🏆 CLASSEMENT GENERAL OFFICIEUX RACB (Top 30)</span>", unsafe_allow_html=True)
+        st.markdown("<span class='titre-classement'>🏆 CLASSEMENT EVOLUTIF OFFICIEUX RACB (Top 30)</span>", unsafe_allow_html=True)
         st.markdown(generer_tableau_html(df_racb, "table-class-robuste"), unsafe_allow_html=True)
-        st.markdown("<div style='height: 30px;'></div>", unsafe_allow_html=True)
-        st.markdown("<span class='titre-classement'>📊 CLASSEMENT OFFICIEUX PAR Classe / Groupe (Top 3)</span>", unsafe_allow_html=True)
-        st.markdown(generer_tableau_html(df_divisions, "table-class-groupes"), unsafe_allow_html=True)
+        # LE DEUXIÈME TABLEAU ET SON ESPACEMENT ONT ÉTÉ SUPPRIMÉS D'ICI
 
-# Lancement uniquement si le script est exécuté seul (en mode test)
 if __name__ == "__main__":
     rafraichir_donnees_course()
