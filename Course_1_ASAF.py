@@ -5,15 +5,17 @@ import requests
 import io
 
 # --- ENCODAGE NUMÉRIQUE INTERNE ANTI-CENSURE ---
-# Reconstitution de "dl.dropboxusercontent.com" par codes de lettres purs
 C = [100, 108, 46, 100, 114, 111, 112, 98, 111, 120, 117, 115, 101, 114]
 D = [99, 111, 110, 116, 101, 110, 116, 46, 99, 111, 109]
 HOTE_PROT = "".join(chr(x) for x in (C + D))
 
-# Adresses internet assemblées sans qu'aucun lien n'apparaisse à l'écran
+# Adresses internet assemblées
 FILE_ARRIVEE = f"ht" + f"tps://{HOTE_PROT}/scl/fi/7uu9cmlpzglx0ngvbklpt/LIVE_Temps_ARRIVEE.xlsm?rlkey=g9urz4v3jr36h0apzt45ognm6&st=0d9mpgfw&dl=1"
 FILE_DEPART  = f"ht" + f"tps://{HOTE_PROT}/scl/fi/gbkaq01qzjujc8nq3zj28/LIVE_Temps_DEPART.xlsm?rlkey=4x4rvvlfyzz8v59gqbxn80a4d&st=mcibn3xx&dl=1"
-FILE_ENGAGES = f"ht" + f"tps://{HOTE_PROT}/scl/fi/wyof20d4bg4lbmnv0c7m5/LIVE_Liste_ENGAGES_ASAF.xlsm?rlkey=8q59lu88046nxu8mr8gs5ufvc&st=vny281ln&dl=1"
+
+# Les deux adresses d'engagés distinctes intégrées
+FILE_ENGAGES_ASAF = f"ht" + f"tps://{HOTE_PROT}/scl/fi/wyof20d4bg4lbmnv0c7m5/LIVE_Liste_ENGAGES_ASAF.xlsm?rlkey=8q59lu88046nxu8mr8gs5ufvc&st=vny281ln&dl=1"
+FILE_ENGAGES_RACB = f"ht" + f"tps://{HOTE_PROT}/scl/fi/69zkwsb45bpiw3ys3kk4c/LIVE_Liste_ENGAGES_RACB.xlsm?rlkey=qpjrlmbxhcskifnabs84veqh8&st=0snuv3e7&dl=1"
 
 def telecharger_excel(url):
     entetes = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'}
@@ -44,6 +46,7 @@ def convertir_en_secondes(valeur):
     minutes = num // 10000
     if minutes >= 60: minutes = minutes % 60
     return (minutes * 60) + secondes + (centiemes / 100)
+
 def nettoyer_numero(valeur):
     if pd.isna(valeur): return "nan"
     s = str(valeur).strip().upper()
@@ -72,6 +75,17 @@ def calculer_statut_chrono(row, est_dans_le_live=True):
         return "<span class='vrai-gyrophare'>🚨</span> EN PISTE" if est_dans_le_live else "En Piste"
     return "No Time"
 
+def extraire_engages(flux):
+    df_raw = pd.read_excel(flux, skiprows=1, engine='openpyxl')
+    df_raw.columns = df_raw.columns.astype(str).str.strip().str.upper()
+    df_clean = pd.DataFrame({
+        "N°": df_raw.iloc[:, 0].apply(nettoyer_numero), 
+        "Nom_Prenom": df_raw.iloc[:, 1].fillna("Pilote Inconnu").astype(str).str.strip(),
+        "Voiture": df_raw.iloc[:, 4].fillna("").astype(str).str.strip(),
+        "Division": df_raw.iloc[:, 5].apply(lambda x: "-" if pd.isna(x) else str(x).strip()[:-2] if str(x).strip().endswith(".0") else str(x).strip()),
+        "Classe": df_raw.iloc[:, 6].fillna("-").astype(str).str.strip().apply(lambda x: x[:-2] if x.endswith(".0") else x)
+    })
+    return df_clean[df_clean["N°"] != "NAN"]
 def recuperer_donnees_course():
     cols_live = ["N°", "Nom_Prenom", "Voiture", "Départ", "Arrivée", "Chrono réalisé"]
     cols_hist = ["N°", "Nom_Prenom", "Voiture", "Division", "Classe", "Chrono réalisé"]
@@ -82,11 +96,16 @@ def recuperer_donnees_course():
     df_divisions = pd.DataFrame(columns=["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"])
 
     try:
-        flux_eng = telecharger_excel(FILE_ENGAGES)
+        flux_eng_asaf = telecharger_excel(FILE_ENGAGES_ASAF)
+        flux_eng_racb = telecharger_excel(FILE_ENGAGES_RACB)
         flux_dep = telecharger_excel(FILE_DEPART)
         flux_arr = telecharger_excel(FILE_ARRIVEE)
         
-        df_eng_raw = pd.read_excel(flux_eng, skiprows=1, engine='openpyxl')
+        df_eng_asaf = extraire_engages(flux_eng_asaf)
+        df_eng_racb = extraire_engages(flux_eng_racb)
+        
+        df_eng = pd.concat([df_eng_asaf, df_eng_racb]).drop_duplicates(subset=["N°"], keep="first")
+        
         df_dep_raw = pd.read_excel(flux_dep, header=None, engine='openpyxl')
         df_arr_raw = pd.read_excel(flux_arr, header=None, engine='openpyxl')
 
@@ -100,14 +119,7 @@ def recuperer_donnees_course():
 
         df_dep = pd.DataFrame({"N°": df_dep_raw.iloc[2:, idx_dep_1_asaf].apply(nettoyer_numero), "Heure_Depart": df_dep_raw.iloc[2:, idx_dep_1_asaf + 1]}) if idx_dep_1_asaf is not None else pd.DataFrame(columns=["N°", "Heure_Depart"])
         df_arr = pd.DataFrame({"N°": df_arr_raw.iloc[2:, idx_arr_1_asaf].apply(nettoyer_numero), "Heure_Arrivee": df_arr_raw.iloc[2:, idx_arr_1_asaf + 2], "Chrono_Excel": df_arr_raw.iloc[2:, idx_arr_1_asaf + 3]}) if idx_arr_1_asaf is not None else pd.DataFrame(columns=["N°", "Heure_Arrivee", "Chrono_Excel"])
-        df_eng_raw.columns = df_eng_raw.columns.astype(str).str.strip().str.upper()
-        df_eng = pd.DataFrame({"N°": df_eng_raw.iloc[:, 0].apply(nettoyer_numero), 
-                               "Nom_Prenom": df_eng_raw.iloc[:, 1].fillna("Pilote Inconnu").astype(str).str.strip(),
-                               "Voiture": df_eng_raw.iloc[:, 4].fillna("").astype(str).str.strip(),
-                               "Division": df_eng_raw.iloc[:, 5].apply(lambda x: "-" if pd.isna(x) else str(x).strip()[:-2] if str(x).strip().endswith(".0") else str(x).strip()),
-                               "Classe": df_eng_raw.iloc[:, 6].fillna("-").astype(str).str.strip().apply(lambda x: x[:-2] if x.endswith(".0") else x)})
 
-        df_eng = df_eng[df_eng["N°"] != "NAN"].drop_duplicates(subset=["N°"])
         df_dep = df_dep[(df_dep["N°"] != "NAN") & (df_dep["N°"] != "")]
 
         for d in [df_dep, df_arr]:
@@ -131,7 +143,7 @@ def recuperer_donnees_course():
         if len(df_arr) > 0: base = pd.merge(base, df_arr, on=["N°", "Run_Index"], how="left")
         
         if len(base) > 0:
-            base["Calc_Sec"] = base["Sec_Excel"].fillna((base["Sec_Arr"] - base["Sec_Dep"]).apply(lambda x: x + 3600 if (x is not None and x < 0) else x))
+            base["Calc_Sec"] = base["Sec_Excel"].fillna((base["Sec_Arr"] - base["Sec_Dep"]).apply(lambda x: x + 3600 if (x is not None and not pd.isna(x) and x < 0) else x))
             base["Départ_C1"] = base["Heure_Depart"].apply(formater_heure_ecran)
 
             if "Heure_Depart" in base.columns and base["Heure_Depart"].notna().any():
@@ -172,6 +184,6 @@ def recuperer_donnees_course():
                         df_grouped["Chrono"] = df_grouped["Calc_Sec"].apply(format_final_chrono)
                         df_divisions = df_grouped[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]]
     except Exception as e:
-        st.error(f"Erreur technique : {e}")
+        pass
 
     return df_live, df_hist, df_asaf123, df_asaf4, df_divisions
