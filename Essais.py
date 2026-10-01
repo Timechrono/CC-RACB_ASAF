@@ -62,6 +62,8 @@ def formater_heure_ecran(val):
     if s.endswith(".0"): s = s[:-2]
     s = s.zfill(6)
     return f"{s[0:2]}:{s[2:4]}.{s[4:6]}" if len(s) == 6 else str(val)
+
+#fin partie 1
 def recuperer_donnees_course():
     df_live = pd.DataFrame(columns=["N°", "Nom_Prenom", "Voiture", "Départ", "Arrivée", "Chrono réalisé"])
     df_hist = pd.DataFrame(columns=["N°", "Nom_Prenom", "Voiture", "Division", "Classe", "Chrono réalisé"])
@@ -133,7 +135,6 @@ def recuperer_donnees_course():
                 scr = valides.sort_values(by="Calc_Sec").drop_duplicates(subset=["N°"], keep="first").copy()
                 scr["Division_Clean"] = scr["Division"].astype(str).str.strip()
                 
-                # --- RACB (Top 15 centralisé) ---
                 exclus_asaf = ["1", "2", "3", "4", "1.0", "2.0", "3.0", "4.0"]
                 racb = scr[~scr["Division_Clean"].isin(exclus_asaf)].head(15).copy()
                 if len(racb) > 0: 
@@ -141,15 +142,12 @@ def recuperer_donnees_course():
                     racb["Chrono"] = racb["Calc_Sec"].apply(format_final_chrono)
                     df_racb = racb[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]]
                 
-                # --- ASAF 123 (Top 15 centralisé) ---
                 asaf123 = scr[scr["Division_Clean"].isin(["1", "2", "3", "1.0", "2.0", "3.0"])].head(15).copy()
                 if len(asaf123) > 0: asaf123["Pos"] = range(1, len(asaf123) + 1); asaf123["Chrono"] = asaf123["Calc_Sec"].apply(format_final_chrono); df_asaf123 = asaf123[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]]
                 
-                # --- ASAF 4 (Top 10 centralisé) ---
                 asaf4 = scr[scr["Division_Clean"].isin(["4", "4.0"])].head(10).copy()
                 if len(asaf4) > 0: asaf4["Pos"] = range(1, len(asaf4) + 1); asaf4["Chrono"] = asaf4["Calc_Sec"].apply(format_final_chrono); df_asaf4 = asaf4[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]]
-                except Exception:
-        pass
+    except Exception: pass
 
     # --- TITRES ENTIÈREMENT CENTRALISÉS POUR LES ESSAIS ---
     t_live = "🏎️ EN DIRECT / Derniers concurrents partis"
@@ -159,4 +157,3 @@ def recuperer_donnees_course():
     t_as4 = "🏆 CLASSEMENT EVOLUTIF DES ESSAIS Division 4 (Top 10)"
 
     return df_live, df_hist, df_asaf123, df_asaf4, df_racb, t_live, t_hist, t_racb, t_as123, t_as4
-
