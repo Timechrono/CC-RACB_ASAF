@@ -74,7 +74,88 @@ def recuperer_donnees_course():
         dict_c2 = fusionner_temps_manches(dict_c2_asaf, dict_c2_racb)
         dict_c3 = fusionner_temps_manches(dict_c3_asaf, dict_c3_racb)
     except Exception: pass
-# fin bloc 1
+# fin bloc 1 ou A
+def recuperer_donnees_course():
+    # Injection explicite des dépendances pour éviter le NameError sur le serveur
+    import pandas as pd
+    import datetime
+    
+    df_live = pd.DataFrame(columns=cols_live)
+    df_hist = pd.DataFrame(columns=cols_hist)
+    df_asaf123 = pd.DataFrame(columns=["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"])
+    df_asaf4 = pd.DataFrame(columns=["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"])
+    df_divisions = pd.DataFrame(columns=["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"])
+    html_hist = "<table class='table-compacte table-hist'><tr><td style='text-align: center; padding: 10px;'>Aucune donnée disponible</td></tr></table>"
+
+    try:
+        flux_eng = telecharger_excel(FILE_ENGAGES)
+        flux_arr = telecharger_excel(FILE_ARRIVEE)
+        
+        df_eng_raw = pd.read_excel(flux_eng, skiprows=1, engine='openpyxl')
+        df_arr_raw = pd.read_excel(flux_arr, header=None, engine='openpyxl')
+
+        def extraire_chiffre_division(txt):
+            if pd.isna(txt) or txt is None: return "-"
+            s = str(txt).strip()
+            if s.endswith(".0"): s = s[:-2]
+            chiffres = [c for c in s if c.isdigit()]
+            return "".join(chiffres) if chiffres else s
+
+        df_eng = pd.DataFrame({
+            "N°": df_eng_raw.iloc[:, 0].apply(nettoyer_numero), 
+            "Nom_Prenom": df_eng_raw.iloc[:, 1].fillna("Pilote Inconnu").astype(str).str.strip(),
+            "Voiture": df_eng_raw.iloc[:, 4].fillna("").astype(str).str.strip(),
+            "Division": df_eng_raw.iloc[:, 5].apply(extraire_chiffre_division),
+            "Classe": df_eng_raw.iloc[:, 6].fillna("-").astype(str).str.strip().apply(lambda x: x[:-2] if x.endswith(".0") else x)
+        })
+        df_eng = df_eng[df_eng["N°"] != "NAN"].drop_duplicates(subset=["N°"])
+        df_eng = df_eng[df_eng["Division"].isin(["1", "2", "3", "4"])].copy()
+        
+        numeros_autorises_123 = set(df_eng[df_eng["Division"].isin(["1", "2", "3"])]["N°"].unique())
+        numeros_autorises_4 = set(df_eng[df_eng["Division"] == "4"]["N°"].unique())
+        tous_numeros_autorises_asaf = numeros_autorises_123.union(numeros_autorises_4)
+
+        def trouver_index_colonne_titre(df, chaine_recherche):
+            for c_idx in range(len(df.columns)):
+                val = str(df.iloc[1, c_idx]).strip().upper()
+                if chaine_recherche.upper() in val: return c_idx
+            return None
+
+        def extraire_manche_selon_regles_asaf(df_arr_raw, nom_manche, label_categorie):
+            d_manche = {}
+            col_dossard = trouver_index_colonne_titre(df_arr_raw, f"{nom_manche} {label_categorie}")
+            if col_dossard is None: return d_manche
+            
+            for r_idx in range(2, len(df_arr_raw)):
+                nv = nettoyer_numero(df_arr_raw.iloc[r_idx, col_dossard])
+                if nv == "" or nv == "NAN" or nv == "NONE": continue
+                if nv not in tous_numeros_autorises_asaf: continue
+                    
+                val_dep = df_arr_raw.iloc[r_idx, col_dossard + 1]
+                val_arr = df_arr_raw.iloc[r_idx, col_dossard + 2]
+                val_calc = df_arr_raw.iloc[r_idx, col_dossard + 3]
+                s_calc = convertir_en_secondes(val_calc)
+                d_manche[nv] = {"h_dep": val_dep if pd.notna(val_dep) else None, "h_arr": val_arr if pd.notna(val_arr) else None, "sec": s_calc}
+            return d_manche
+
+        dict_c1_asaf = extraire_manche_selon_regles_asaf(df_arr_raw, "COURSE 1", "ASAF")
+        dict_c1_racb = extraire_manche_selon_regles_asaf(df_arr_raw, "COURSE 1", "RACB")
+        dict_c2_asaf = extraire_manche_selon_regles_asaf(df_arr_raw, "COURSE 2", "ASAF")
+        dict_c2_racb = extraire_manche_selon_regles_asaf(df_arr_raw, "COURSE 2", "RACB")
+        dict_c3_asaf = extraire_manche_selon_regles_asaf(df_arr_raw, "COURSE 3", "ASAF")
+        dict_c3_racb = extraire_manche_selon_regles_asaf(df_arr_raw, "COURSE 3", "RACB")
+
+        def fusionner_temps_manches(dict_asaf, dict_racb):
+            d_fusion = dict_asaf.copy()
+            for k, v in dict_racb.items():
+                if k not in d_fusion or d_fusion[k]["sec"] is None: d_fusion[k] = v
+            return d_fusion
+
+        dict_c1 = fusionner_temps_manches(dict_c1_asaf, dict_c1_racb)
+        dict_c2 = fusionner_temps_manches(dict_c2_asaf, dict_c2_racb)
+        dict_c3 = fusionner_temps_manches(dict_c3_asaf, dict_c3_racb)
+    except Exception: pass
+# fin bloc 2 A
     if not df_eng.empty:
         try:
             rows_data = []
