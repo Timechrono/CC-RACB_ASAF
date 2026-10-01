@@ -8,30 +8,15 @@ import io
 
 st.cache_data.clear()
 
-# --- DESIGN SCIENTIFIQUE RIGIDE (CONSERVÉ À L'IDENTIQUE) ---
 st.markdown("""
     <style>
     [data-testid="stHeader"] { display: none !important; }
-    
-    .vrai-gyrophare {
-        display: inline-block;
-        margin-right: 6px;
-        font-size: 1.05rem !important;
-        vertical-align: middle !important;
-    }
-    
+    .vrai-gyrophare { display: inline-block; margin-right: 6px; font-size: 1.05rem !important; vertical-align: middle !important; }
     .titre-live, .titre-hist, .titre-classement {
-        color: #FFFFFF !important;
-        font-size: 1.05rem !important;
-        font-weight: bold !important;
-        padding: 4px 8px !important;
-        border-radius: 3px !important;
-        margin-bottom: 6px !important;
-        width: 100% !important;
-        display: block !important;
-        clear: both !important;
+        color: #FFFFFF !important; font-size: 1.05rem !important; font-weight: bold !important;
+        padding: 4px 8px !important; border-radius: 3px !important; margin-bottom: 6px !important;
+        width: 100% !important; display: block !important; clear: both !important;
     }
-    
     .titre-live { background-color: #15803D !important; margin-top: 0px !important; }
     .titre-hist { background-color: #475569 !important; margin-top: 10px !important; }
     .titre-classement { background-color: #1E3A8A !important; margin-top: 0px !important; }
@@ -45,21 +30,13 @@ st.markdown("""
     .table-compacte td { font-weight: normal !important; border-bottom: 1px solid #E0E0E0 !important; background-color: #FFFFFF !important; }
     .table-compacte th { font-weight: bold !important; background-color: #F5F5F5 !important; border-bottom: 2px solid #CCCCCC !important; text-align: left !important; }
     
-    .table-compacte td.meilleur-temps { 
-        background-color: #d9fcec !important; 
-        color: #000000 !important;
-        font-weight: bold !important; 
-    }
-    
+    .table-compacte td.meilleur-temps { background-color: #d9fcec !important; color: #000000 !important; font-weight: bold !important; }
     .table-class-robuste tr:nth-child(odd) td { background-color: #E0F2FE !important; }
     .ligne-separation-classe td { border-bottom: 2px solid #1E3A8A !important; }
     
     .table-hist td:nth-last-child(2), .table-hist td:last-child,
-    .table-live td:last-child, .table-class-robuste td:last-child {
-        font-weight: bold !important; font-size: 0.94rem !important; color: #0F172A !important;
-    }
+    .table-live td:last-child, .table-class-robuste td:last-child { font-weight: bold !important; font-size: 0.94rem !important; color: #0F172A !important; }
     
-    /* Colonnes Live */
     .table-live th:nth-child(1), .table-live td:nth-child(1) { width: 8% !important; }
     .table-live th:nth-child(2), .table-live td:nth-child(2) { width: 26% !important; }
     .table-live th:nth-child(3), .table-live td:nth-child(3) { width: 18% !important; }
@@ -67,7 +44,6 @@ st.markdown("""
     .table-live th:nth-child(5), .table-live td:nth-child(5) { width: 13% !important; }
     .table-live th:nth-child(6), .table-live td:nth-child(6) { width: 22% !important; }
 
-    /* Colonnes Historique C2 */
     .table-hist th:nth-child(1), .table-hist td:nth-child(1) { width: 7% !important; }   
     .table-hist th:nth-child(2), .table-hist td:nth-child(2) { width: 23% !important; }  
     .table-hist th:nth-child(3), .table-hist td:nth-child(3) { width: 25% !important; }  
@@ -76,30 +52,15 @@ st.markdown("""
     .table-hist th:nth-child(6), .table-hist td:nth-child(6) { width: 14% !important; }  
     .table-hist th:nth-child(7), .table-hist td:nth-child(7) { width: 14% !important; }  
 
-    /* Colonnes Class Top 30 */
     .table-class-robuste th:nth-child(1), .table-class-robuste td:nth-child(1) { width: 9% !important; }
     .table-class-robuste th:nth-child(2), .table-class-robuste td:nth-child(2) { width: 11% !important; }
     .table-class-robuste th:nth-child(3), .table-class-robuste td:nth-child(3) { width: 33% !important; }
     .table-class-robuste th:nth-child(4), .table-class-robuste td:nth-child(4) { width: 23% !important; }
     .table-class-robuste th:nth-child(5), .table-class-robuste td:nth-child(5) { width: 6% !important; }
     .table-class-robuste th:nth-child(6), .table-class-robuste td:nth-child(6) { width: 18% !important; text-align: right !important; }
-
-    /* Colonnes Groupes & Classes */
-    .table-class-groupes th:nth-child(1), .table-class-groupes td:nth-child(1) { width: 5% !important; }
-    .table-class-groupes th:nth-child(2), .table-class-groupes td:nth-child(2) { width: 8% !important; }
-    .table-class-groupes th:nth-child(3), .table-class-groupes td:nth-child(3) { width: 35% !important; }
-    .table-class-groupes th:nth-child(4), .table-class-groupes td:nth-child(4) { width: 21% !important; }
-    .table-class-groupes th:nth-child(5), .table-class-groupes td:nth-child(5) { width: 11% !important; }
-    .table-class-groupes th:nth-child(6), .table-class-groupes td:nth-child(6) { width: 14% !important; text-align: right !important; }
-
-    .table-class-groupes tr td { background-color: #FFFFFF !important; }
-    .block-container { padding-top: 0.3rem !important; padding-bottom: 0rem !important; }
-    div[data-testid="stVerticalBlock"] { gap: 0rem !important; }
-    hr { margin: 6px 0px !important; border: 0 !important; height: 0 !important; }
     </style>
 """, unsafe_allow_html=True)
 
-# --- CONFIGURATION DES LIENS SÉCURISÉS DROPBOX ---
 C = [100, 108, 46, 100, 114, 111, 112, 98, 111, 120, 117, 115, 101, 114]
 D = [99, 111, 110, 116, 101, 110, 116, 46, 99, 111, 109]
 HOTE_PROT = "".join(chr(x) for x in (C + D))
@@ -107,15 +68,13 @@ HOTE_PROT = "".join(chr(x) for x in (C + D))
 FILE_ARRIVEE = f"https://{HOTE_PROT}/scl/fi/7uu9cmlpzglx0ngvbklpt/LIVE_Temps_ARRIVEE.xlsm?rlkey=g9urz4v3jr36h0apzt45ognm6&st=0d9mpgfw&dl=1"
 FILE_DEPART  = f"https://{HOTE_PROT}/scl/fi/gbkaq01qzjujc8nq3zj28/LIVE_Temps_DEPART.xlsm?rlkey=4x4rvvlfyzz8v59gqbxn80a4d&st=mcibn3xx&dl=1"
 FILE_ENGAGES_RACB = f"https://{HOTE_PROT}/scl/fi/69zkwsb45bpiw3ys3kk4c/LIVE_Liste_ENGAGES_RACB.xlsm?rlkey=qpjrlmbxhcskifnabs84veqh8&st=0snuv3e7&dl=1"
-# fin bloc 1
 def telecharger_excel(url):
     try:
         entetes = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'}
         reponse = requests.get(url, headers=entetes, timeout=12)
         reponse.raise_for_status()
         return io.BytesIO(reponse.content)
-    except Exception:
-        return None
+    except Exception: return None
 
 def convertir_en_secondes(valeur):
     if pd.isna(valeur) or valeur is None: return None
@@ -150,44 +109,22 @@ def formater_heure_ecran(val):
     return f"{s[0:2]}:{s[2:4]}.{s[4:6]}" if len(s) == 6 else str(val)
 
 def calculer_statut_chrono(row, est_dans_le_live=True):
-    if "Calc_Sec_2" in row and pd.notna(row["Calc_Sec_2"]) and row["Calc_Sec_2"] > 0:
-        return format_final_chrono(row["Calc_Sec_2"])
+    if "Calc_Sec_2" in row and pd.notna(row["Calc_Sec_2"]) and row["Calc_Sec_2"] > 0: return format_final_chrono(row["Calc_Sec_2"])
     if "Heure_Depart_2" in row and pd.notna(row["Heure_Depart_2"]) and pd.isna(row.get("Heure_Arrivee_2")):
         return "<span class='vrai-gyrophare'>🚨</span> EN PISTE" if est_dans_le_live else "En Piste"
     return "No Time"
 
 def generer_tableau_html(df, classe_specifique):
-    if df.empty: 
-        return f"<table class='table-compacte {classe_specifique}'><tr><td style='text-align: center; padding: 10px;'>Aucune donnée disponible</td></tr></table>"
-    
-    if classe_specifique == "table-class-groupes" and "Classe" in df.columns:
-        cols_a_retirer = ["Cl_Tri_Num", "Cl_Tri_Suff"]
-        colonnes_visibles = [c for c in df.columns if c not in cols_a_retirer]
-        
-        html = f"<table class='table-compacte table-class-groupes'><thead><tr>"
-        for col in colonnes_visibles: html += f"<th>{col}</th>"
-        html += "</tr></thead><tbody>"
-        for idx in range(len(df)):
-            classe_row = ""
-            if idx < len(df) - 1:
-                if str(df.iloc[idx]["Classe"]) != str(df.iloc[idx + 1]["Classe"]):
-                    classe_row = "class='ligne-separation-classe'"
-            html += f"<tr {classe_row}>"
-            for col in colonnes_visibles: html += f"<td>{df.iloc[idx][col]}</td>"
-            html += "</tr>"
-        html += "</tbody></table>"
-        return html
+    if df.empty: return f"<table class='table-compacte {classe_specifique}'><tr><td style='text-align: center; padding: 10px;'>Aucune donnée disponible</td></tr></table>"
     return df.to_html(index=False, classes=f"table-compacte {classe_specifique}", escape=False, border=0)
 
 cols_live = ["N°", "Nom_Prenom", "Voiture", "Départ", "Arrivée", "Chrono réalisé"]
 cols_hist = ["N°", "Nom_Prenom", "Voiture", "Groupe", "Classe", "Course 1", "Chrono réalisé"]
-# fin loc 2
-# --- SOU-PARTIE DE TRAITEMENT ET DE CHARGEMENT DROPBOX ---
 def rafraichir_donnees_course():
+    # --- SECURISATION CRITIQUE : INITIALISATION POUR EVITER TOUT NAMEERROR ---
     html_hist = "<table class='table-compacte table-hist'><tr><td style='text-align: center; padding: 10px;'>Aucune donnée disponible</td></tr></table>"
     df_live = pd.DataFrame(columns=cols_live)
     df_racb = pd.DataFrame(columns=["Pos", "N°", "Nom_Prenom", "Groupe", "Classe", "Chrono"])
-    df_divisions = pd.DataFrame(columns=["Pos", "N°", "Nom_Prenom", "Groupe", "Classe", "Chrono"])
 
     data_engages = telecharger_excel(FILE_ENGAGES_RACB)
     data_depart = telecharger_excel(FILE_DEPART)
@@ -201,12 +138,10 @@ def rafraichir_donnees_course():
 
             idx_dep_1, idx_arr_1 = None, None
             idx_dep_2, idx_arr_2 = None, None
-            
             for c_idx in range(len(df_dep_raw.columns)):
                 val = str(df_dep_raw.iloc[1, c_idx]).strip().upper()
                 if "COURSE 1 RACB" in val: idx_dep_1 = c_idx
                 elif "COURSE 2 RACB" in val: idx_dep_2 = c_idx
-
             for c_idx in range(len(df_arr_raw.columns)):
                 val = str(df_arr_raw.iloc[1, c_idx]).strip().upper()
                 if "COURSE 1 RACB" in val: idx_arr_1 = c_idx
@@ -225,52 +160,6 @@ def rafraichir_donnees_course():
                                    "Classe": df_eng_raw.iloc[:, 6].fillna("-").astype(str).str.strip().apply(lambda x: x[:-2] if x.endswith(".0") else x)})
             df_eng = df_eng[df_eng["N°"] != "NAN"].drop_duplicates(subset=["N°"])
         except Exception: pass
-# fin bloc 2
-# --- SOU-PARTIE DE TRAITEMENT ET DE CHARGEMENT DROPBOX ---
-def rafraichir_donnees_course():
-    html_hist = "<table class='table-compacte table-hist'><tr><td style='text-align: center; padding: 10px;'>Aucune donnée disponible</td></tr></table>"
-    df_live = pd.DataFrame(columns=cols_live)
-    df_racb = pd.DataFrame(columns=["Pos", "N°", "Nom_Prenom", "Groupe", "Classe", "Chrono"])
-    df_divisions = pd.DataFrame(columns=["Pos", "N°", "Nom_Prenom", "Groupe", "Classe", "Chrono"])
-
-    data_engages = telecharger_excel(FILE_ENGAGES_RACB)
-    data_depart = telecharger_excel(FILE_DEPART)
-    data_arrivee = telecharger_excel(FILE_ARRIVEE)
-
-    if data_engages and data_depart and data_arrivee:
-        try:
-            df_eng_raw = pd.read_excel(data_engages, header=1, engine='openpyxl')
-            df_dep_raw = pd.read_excel(data_depart, header=None, engine='openpyxl')
-            df_arr_raw = pd.read_excel(data_arrivee, header=None, engine='openpyxl')
-
-            idx_dep_1, idx_arr_1 = None, None
-            idx_dep_2, idx_arr_2 = None, None
-            
-            for c_idx in range(len(df_dep_raw.columns)):
-                val = str(df_dep_raw.iloc[1, c_idx]).strip().upper()
-                if "COURSE 1 RACB" in val: idx_dep_1 = c_idx
-                elif "COURSE 2 RACB" in val: idx_dep_2 = c_idx
-
-            for c_idx in range(len(df_arr_raw.columns)):
-                val = str(df_arr_raw.iloc[1, c_idx]).strip().upper()
-                if "COURSE 1 RACB" in val: idx_arr_1 = c_idx
-                elif "COURSE 2 RACB" in val: idx_arr_2 = c_idx
-
-            df_dep2 = pd.DataFrame({"N°": df_dep_raw.iloc[2:, idx_dep_2].apply(nettoyer_numero), "Heure_Depart_2": df_dep_raw.iloc[2:, idx_dep_2 + 1]}) if idx_dep_2 is not None else pd.DataFrame(columns=["N°", "Heure_Depart_2"])
-            df_arr2 = pd.DataFrame({"N°": df_arr_raw.iloc[2:, idx_arr_2].apply(nettoyer_numero), "Heure_Arrivee_2": df_arr_raw.iloc[2:, idx_arr_2 + 2]}) if idx_arr_2 is not None else pd.DataFrame(columns=["N°", "Heure_Arrivee_2"])
-            df_dep1 = pd.DataFrame({"N°": df_dep_raw.iloc[2:, idx_dep_1].apply(nettoyer_numero), "Heure_Depart_1": df_dep_raw.iloc[2:, idx_dep_1 + 1]}) if idx_dep_1 is not None else pd.DataFrame(columns=["N°", "Heure_Depart_1"])
-            df_arr1 = pd.DataFrame({"N°": df_arr_raw.iloc[2:, idx_arr_1].apply(nettoyer_numero), "Heure_Arrivee_1": df_arr_raw.iloc[2:, idx_arr_1 + 2]}) if idx_arr_1 is not None else pd.DataFrame(columns=["N°", "Heure_Arrivee_1"])
-
-            df_eng_raw.columns = df_eng_raw.columns.astype(str).str.strip().str.upper()
-            df_eng = pd.DataFrame({"N°": df_eng_raw.iloc[:, 0].apply(nettoyer_numero), 
-                                   "Nom_Prenom": df_eng_raw.iloc[:, 1].fillna("Pilote Inconnu").astype(str).str.strip(),
-                                   "Voiture": df_eng_raw.iloc[:, 4].fillna("").astype(str).str.strip(),
-                                   "Groupe": df_eng_raw.iloc[:, 5].apply(lambda x: "-" if pd.isna(x) else str(x).strip()[:-2] if str(x).strip().endswith(".0") else str(x).strip()),
-                                   "Classe": df_eng_raw.iloc[:, 6].fillna("-").astype(str).str.strip().apply(lambda x: x[:-2] if x.endswith(".0") else x)})
-            df_eng = df_eng[df_eng["N°"] != "NAN"].drop_duplicates(subset=["N°"])
-        except Exception: pass
-# fin bloc 3A
-        # --- SOUS-PARTIE DE CALCULS DES MARGES ET SECTIONS GRAPHIQUES ---
         try:
             df_dep1 = df_dep1[(df_dep1["N°"] != "NAN") & (df_dep1["N°"] != "")]
             df_dep2 = df_dep2[(df_dep2["N°"] != "NAN") & (df_dep2["N°"] != "")]
@@ -310,7 +199,6 @@ def rafraichir_donnees_course():
                     df_live = df_live_base[["N°", "Nom_Prenom", "Voiture", "Départ_C2", "Arrivée_C2", "Chrono réalisé"]].rename(columns={"Départ_C2": "Départ", "Arrivée_C2": "Arrivée"})
 
                 df_hist_base = base.sort_values(by="Run_Index", ascending=False).copy()
-                
                 html_hist = "<table class='table-compacte table-hist'><thead><tr>"
                 for col in ["N°", "Nom_Prenom", "Voiture", "Groupe", "Classe", "Course 1", "Chrono réalisé"]: html_hist += f"<th>{col}</th>"
                 html_hist += "</tr></thead><tbody>"
@@ -323,10 +211,8 @@ def rafraichir_donnees_course():
                     s1 = "class='meilleur-temps'" if (meilleur_sec and t1 == meilleur_sec) else ""
                     s2 = "class='meilleur-temps'" if (meilleur_sec and t2 == meilleur_sec) else ""
 
-                    if pd.notna(row["Heure_Depart_2"]) and pd.isna(row["Heure_Arrivee_2"]):
-                        txt_c2_visuel, s2 = "En Piste", ""
-                    elif pd.isna(t2) or t2 <= 0:
-                        txt_c2_visuel = "No Time"
+                    if pd.notna(row["Heure_Depart_2"]) and pd.isna(row["Heure_Arrivee_2"]): txt_c2_visuel, s2 = "En Piste", ""
+                    elif pd.isna(t2) or t2 <= 0: txt_c2_visuel = "No Time"
                     else:
                         txt_c2 = format_final_chrono(t2)
                         if pd.notna(t1) and t1 > 0:
@@ -342,37 +228,24 @@ def rafraichir_donnees_course():
                 if len(valides) > 0:
                     valides["Meilleur_Sec"] = valides[["Calc_Sec_1", "Calc_Sec_2"]].min(axis=1, skipna=True)
                     scr = valides.sort_values(by="Meilleur_Sec").drop_duplicates(subset=["N°"], keep="first").copy()
-                    
                     racb = scr.head(30).copy()
                     if len(racb) > 0:
                         racb["Pos"] = range(1, len(racb) + 1)
                         racb["Chrono"] = racb["Meilleur_Sec"].apply(format_final_chrono)
                         df_racb = racb[["Pos", "N°", "Nom_Prenom", "Groupe", "Classe", "Chrono"]]
-                    
-                    scr["Classe_Num"] = pd.to_numeric(scr["Classe"], errors='coerce').fillna(999)
-                    scr_trie = scr.sort_values(by=["Classe_Num", "Groupe", "Meilleur_Sec"])
-                    
-                    df_grouped = scr_trie.groupby("Classe_Num", sort=False).head(3).copy()
-                    if len(df_grouped) > 0:
-                        df_grouped["Pos"] = df_grouped.groupby("Classe_Num", sort=False).cumcount() + 1
-                        df_grouped["Chrono"] = df_grouped["Meilleur_Sec"].apply(format_final_chrono)
-                        df_divisions = df_grouped[["Pos", "N°", "Nom_Prenom", "Groupe", "Classe", "Chrono"]]
         except Exception: pass
 
-        # --- BLOC DE RENDU NETTOYÉ (SANS LE DEUXIÈME TABLEAU GRISÉ) ---
+    # --- RENDU DE LA MISE EN PAGE NETTOYÉ SANS TABLEAU PAR CLASSE EN BAS ---
     cg, cd = st.columns([1.3, 0.9])
     with cg:
         st.markdown("<span class='titre-live'>🏎️ EN DIRECT / Derniers concurrents partis</span>", unsafe_allow_html=True)
         st.markdown(generer_tableau_html(df_live, "table-live"), unsafe_allow_html=True)
         st.markdown("<div style='height: 35px;'></div>", unsafe_allow_html=True)
-        st.markdown("<span class='titre-hist'>🕒 HISTORIQUE DES TEMPS / Concurrents RACB</span>", unsafe_allow_html=True)
+        st.markdown("<span class='titre-hist'>🕒 HISTORIQUE DES TEMPS / 2ème COURSE / Concurrents RACB</span>", unsafe_allow_html=True)
         st.markdown(html_hist, unsafe_allow_html=True)
     with cd:
         st.markdown("<span class='titre-classement'>🏆 CLASSEMENT EVOLUTIF OFFICIEUX RACB (Top 30)</span>", unsafe_allow_html=True)
         st.markdown(generer_tableau_html(df_racb, "table-class-robuste"), unsafe_allow_html=True)
-        # LE DEUXIÈME TABLEAU ET SON ESPACEMENT ONT ÉTÉ SUPPRIMÉS D'ICI
 
 if __name__ == "__main__":
     rafraichir_donnees_course()
-
-
