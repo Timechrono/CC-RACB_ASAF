@@ -233,9 +233,7 @@ def recuperer_donnees_course():
             
             for r_idx in range(2, len(df_arr_raw)):
                 nv = nettoyer_numero(df_arr_raw.iloc[r_idx, col_dossard])
-                if nv == "" or nv == "NAN" or nv == "NONE": continue
-                if nv not in tous_numeros_autorises_asaf: continue
-                    
+                if nv == "" or nv == "NAN" or nv == "NONE" or nv not in tous_numeros_autorises_asaf: continue
                 val_dep = df_arr_raw.iloc[r_idx, col_dossard + 1]
                 val_arr = df_arr_raw.iloc[r_idx, col_dossard + 2]
                 val_calc = df_arr_raw.iloc[r_idx, col_dossard + 3]
@@ -256,10 +254,8 @@ def recuperer_donnees_course():
 
         dict_c1 = fusionner_temps_manches(dict_c1_asaf, dict_c1_racb)
         dict_c2 = fusionner_temps_manches(dict_c2_asaf, dict_c2_racb)
-    except Exception: pass
-# fin 2A
-    if not df_eng.empty:
-        try:
+
+        if not df_eng.empty:
             rows_data = []
             for _, pilot in df_eng.iterrows():
                 num = pilot["N°"]
@@ -317,16 +313,13 @@ def recuperer_donnees_course():
                     scr["Classe_Num"] = pd.to_numeric(scr["Classe"], errors='coerce').fillna(999)
                     df_divisions = scr.sort_values(by=["Division", "Classe_Num", "Cumul_Sec"]).groupby(["Division", "Classe_Num"]).head(3).copy()
                     if len(df_divisions) > 0: df_divisions["Pos"] = df_divisions.groupby(["Division", "Classe_Num"]).cumcount() + 1; df_divisions["Chrono"] = df_divisions["Cumul_Sec"].apply(format_final_chrono); df_divisions = df_divisions[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]]
-        except Exception: pass
+    except Exception: pass
 
-    # --- CONFIGURATION DES TITRES CENTRALISÉS ET DE L'ORDRE POUR APP.PY ---
     t_live = "🏎️ EN DIRECT / 2ème Course / Concurrents ASAF"
     t_his = "🕒 HISTORIQUE DES TEMPS / 2ème COURSE / Concurrents ASAF"
     t_haut = "🏆 CLASSEMENT GENERAL OFFICIEUX Division 123 (Top 25)"
     t_milieu = "🏆 CLASSEMENT GENERAL OFFICIEUX Division 4 (Top 10)"
     t_bas = "📊 CLASSEMENT PAR Division / Classe (Top 3)"
 
-    # CORRIGÉ : On renvoie 'df_hist' au lieu de 'html_hist' pour correspondre aux variables de la Course 2
     return df_live, df_hist, df_asaf123, df_asaf4, df_divisions, t_live, t_his, t_haut, t_milieu, t_bas
-
 
