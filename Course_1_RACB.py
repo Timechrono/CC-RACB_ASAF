@@ -6,33 +6,18 @@ import time
 import requests
 import io
 
-st.set_page_config(layout="wide")
 st.cache_data.clear()
 
 # --- DESIGN SCIENTIFIQUE RIGIDE (CONSERVÉ) ---
 st.markdown("""
     <style>
     [data-testid="stHeader"] { display: none !important; }
-    
-    .vrai-gyrophare {
-        display: inline-block;
-        margin-right: 6px;
-        font-size: 1.05rem !important;
-        vertical-align: middle !important;
-    }
-    
+    .vrai-gyrophare { display: inline-block; margin-right: 6px; font-size: 1.05rem !important; vertical-align: middle !important; }
     .titre-live, .titre-hist, .titre-classement {
-        color: #FFFFFF !important;
-        font-size: 1.05rem !important;
-        font-weight: bold !important;
-        padding: 4px 8px !important;
-        border-radius: 3px !important;
-        margin-bottom: 6px !important;
-        width: 100% !important;
-        display: block !important;
-        clear: both !important;
+        color: #FFFFFF !important; font-size: 1.05rem !important; font-weight: bold !important;
+        padding: 4px 8px !important; border-radius: 3px !important; margin-bottom: 6px !important;
+        width: 100% !important; display: block !important; clear: both !important;
     }
-    
     .titre-live { background-color: #15803D !important; margin-top: 0px !important; }
     .titre-hist { background-color: #475569 !important; margin-top: 10px !important; }
     .titre-classement { background-color: #1E3A8A !important; margin-top: 0px !important; }
@@ -50,7 +35,6 @@ st.markdown("""
     .table-hist td:last-child, .table-live td:last-child, .table-class-robuste td:last-child { font-weight: bold !important; font-size: 0.94rem !important; color: #0F172A !important; }
     .table-hist tr:nth-child(odd) td { background-color: #E0F2FE !important; }
     
-    /* Configuration des largeurs de colonnes */
     .table-live th:nth-child(1), .table-live td:nth-child(1) { width: 8% !important; }
     .table-live th:nth-child(2), .table-live td:nth-child(2) { width: 26% !important; }
     .table-live th:nth-child(3), .table-live td:nth-child(3) { width: 18% !important; }
@@ -78,7 +62,7 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# --- ENCODAGE ANTI-CENSURE ET LIENS ---
+# --- CONFIGURATION DROPBOX ---
 C = [100, 108, 46, 100, 114, 111, 112, 98, 111, 120, 117, 115, 101, 114]
 D = [99, 111, 110, 116, 101, 110, 116, 46, 99, 111, 109]
 HOTE_PROT = "".join(chr(x) for x in (C + D))
@@ -86,14 +70,13 @@ HOTE_PROT = "".join(chr(x) for x in (C + D))
 FILE_ARRIVEE = f"https://{HOTE_PROT}/scl/fi/7uu9cmlpzglx0ngvbklpt/LIVE_Temps_ARRIVEE.xlsm?rlkey=g9urz4v3jr36h0apzt45ognm6&st=0d9mpgfw&dl=1"
 FILE_DEPART  = f"https://{HOTE_PROT}/scl/fi/gbkaq01qzjujc8nq3zj28/LIVE_Temps_DEPART.xlsm?rlkey=4x4rvvlfyzz8v59gqbxn80a4d&st=mcibn3xx&dl=1"
 FILE_ENGAGES_RACB = f"https://{HOTE_PROT}/scl/fi/69zkwsb45bpiw3ys3kk4c/LIVE_Liste_ENGAGES_RACB.xlsm?rlkey=qpjrlmbxhcskifnabs84veqh8&st=0snuv3e7&dl=1"
-# fin bloc 1
 def telecharger_excel(url):
     try:
         entetes = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'}
         reponse = requests.get(url, headers=entetes, timeout=12)
         reponse.raise_for_status()
         return io.BytesIO(reponse.content)
-    except Exception as e:
+    except Exception:
         return None
 
 def convertir_en_secondes(valeur):
@@ -146,32 +129,15 @@ def calculer_statut_chrono(row, est_dans_le_live=True):
 def generer_tableau_html(df, classe_specifique):
     if df.empty: 
         return f"<table class='table-compacte {classe_specifique}'><tr><td style='text-align: center; padding: 10px;'>Aucune donnée disponible</td></tr></table>"
-    
-    if classe_specifique == "table-class-groupes" and "Classe" in df.columns and "Groupe" in df.columns:
-        html = f"<table class='table-compacte table-class-robuste'><thead><tr>"
-        for col in df.columns: html += f"<th>{col}</th>"
-        html += "</tr></thead><tbody>"
-        for idx in range(len(df)):
-            classe_row = ""
-            if idx < len(df) - 1:
-                if df.iloc[idx]["Classe"] != df.iloc[idx + 1]["Classe"] or df.iloc[idx]["Groupe"] != df.iloc[idx + 1]["Groupe"]:
-                    classe_row = "class='ligne-separation-classe'"
-            html += f"<tr {classe_row}>"
-            for col in df.columns: html += f"<td>{df.iloc[idx][col]}</td>"
-            html += "</tr>"
-        html += "</tbody></table>"
-        return html
     return df.to_html(index=False, classes=f"table-compacte {classe_specifique}", escape=False, border=0)
 
 cols_live = ["N°", "Nom_Prenom", "Voiture", "Départ", "Arrivée", "Chrono réalisé"]
 cols_hist = ["N°", "Nom_Prenom", "Voiture", "Groupe", "Classe", "Chrono réalisé"]
-# fin bloc 2
-# --- FONCTION EXÉCUTÉE ET CONTROLLÉE PAR APP.PY TOUTES LES 30 SECONDES ---
 def rafraichir_donnees_course():
+    # --- SECURISATION CRITIQUE : INITIALISATION PAR DEFAUT POUR EVITER LE NAMEERROR ---
+    html_hist = "<table class='table-compacte table-hist'><tr><td style='text-align: center; padding: 10px;'>Aucune donnée disponible pour le plateau RACB</td></tr></table>"
     df_live = pd.DataFrame(columns=cols_live)
-    df_hist = pd.DataFrame(columns=cols_hist)
     df_racb = pd.DataFrame(columns=["Pos", "N°", "Nom_Prenom", "Groupe", "Classe", "Chrono"])
-    df_divisions = pd.DataFrame(columns=["Pos", "N°", "Nom_Prenom", "Groupe", "Classe", "Chrono"])
 
     data_engages = telecharger_excel(FILE_ENGAGES_RACB)
     data_depart = telecharger_excel(FILE_DEPART)
@@ -201,7 +167,6 @@ def rafraichir_donnees_course():
                                    "Classe": df_eng_raw.iloc[:, 6].fillna("-").astype(str).str.strip().apply(lambda x: x[:-2] if x.endswith(".0") else x)})
             df_eng = df_eng[df_eng["N°"] != "NAN"].drop_duplicates(subset=["N°"])
         except Exception: pass
-
         try:
             df_dep = df_dep[(df_dep["N°"] != "NAN") & (df_dep["N°"] != "")]
             for d in [df_dep, df_arr]:
@@ -238,42 +203,37 @@ def rafraichir_donnees_course():
                     return format_final_chrono(row["Calc_Sec"]) if pd.notna(row["Calc_Sec"]) and row["Calc_Sec"] > 0 else "No Time"
 
                 base["Chrono_C1_Visual_Hist"] = base.apply(formater_chrono_historique_course1, axis=1)
-                df_hist = base.sort_values(by="Run_Index", ascending=False)[["N°", "Nom_Prenom", "Voiture", "Groupe", "Classe", "Chrono_C1_Visual_Hist"]].rename(columns={"Chrono_C1_Visual_Hist": "Chrono réalisé"})
+                df_hist_base = base.sort_values(by="Ordre_Saisie", ascending=False).copy() if "Ordre_Saisie" in base.columns else base.copy()
+                
+                html_hist = "<table class='table-compacte table-hist'><thead><tr>"
+                for col in ["N°", "Nom_Prenom", "Voiture", "Groupe", "Classe", "Chrono réalisé"]: html_hist += f"<th>{col}</th>"
+                html_hist += "</tr></thead><tbody>"
+                for idx, row in df_hist_base.iterrows():
+                    html_hist += f"<tr><td>{row['N°']}</td><td>{row['Nom_Prenom']}</td><td>{row['Voiture']}</td><td>{row['Groupe']}</td><td>{row['Classe']}</td><td>{row['Chrono_C1_Visual_Hist']}</td></tr>"
+                html_hist += "</tbody></table>"
 
                 valides = base[base["Calc_Sec"].notna() & (base["Calc_Sec"] > 0)].copy()
                 if len(valides) > 0:
                     scr = valides.sort_values(by="Calc_Sec").drop_duplicates(subset=["N°"], keep="first").copy()
                     scr = scr[~scr["Groupe"].astype(str).str.strip().str.startswith(('1', '2', '3', '4'), na=False)]
-                    
                     racb = scr.head(30).copy()
                     if len(racb) > 0:
                         racb["Pos"] = range(1, len(racb) + 1)
                         racb["Chrono"] = racb["Calc_Sec"].apply(format_final_chrono)
                         df_racb = racb[["Pos", "N°", "Nom_Prenom", "Groupe", "Classe", "Chrono"]]
-                    
-                    # --- TRI RIGIDE ET SÉCURISÉ DES CLASSES DE 1 À 23 ---
-                    scr["Classe_Num"] = pd.to_numeric(scr["Classe"], errors='coerce').fillna(999)
-                    top3_div = scr.sort_values(by=["Classe_Num", "Groupe", "Calc_Sec"])
-                    df_grouped = top3_div.groupby(["Classe_Num", "Groupe"]).head(3).copy()
-                    
-                    if len(df_grouped) > 0:
-                        df_grouped["Pos"] = df_grouped.groupby(["Classe_Num", "Groupe"]).cumcount() + 1
-                        df_grouped["Chrono"] = df_grouped["Calc_Sec"].apply(format_final_chrono)
-                        df_divisions = df_grouped[["Pos", "N°", "Nom_Prenom", "Groupe", "Classe", "Chrono"]]
         except Exception: pass
 
-        # --- BLOC DE RENDU NETTOYÉ (SANS LE DEUXIÈME TABLEAU GRISÉ) ---
+    # --- RENDU DE LA MISE EN PAGE NETTOYÉ SANS TABLEAU MIROIR GRISÉ EN BAS ---
     cg, cd = st.columns([1.3, 0.9])
     with cg:
         st.markdown("<span class='titre-live'>🏎️ EN DIRECT / Derniers concurrents partis</span>", unsafe_allow_html=True)
         st.markdown(generer_tableau_html(df_live, "table-live"), unsafe_allow_html=True)
         st.markdown("<div style='height: 35px;'></div>", unsafe_allow_html=True)
-        st.markdown("<span class='titre-hist'>🕒 HISTORIQUE DES TEMPS / Concurrents RACB</span>", unsafe_allow_html=True)
+        st.markdown("<span class='titre-hist'>🕒 HISTORIQUE DES TEMPS / 1er COURSE / Concurrents RACB</span>", unsafe_allow_html=True)
         st.markdown(html_hist, unsafe_allow_html=True)
     with cd:
-        st.markdown("<span class='titre-classement'>🏆 CLASSEMENT EVOLUTIF OFFICIEUX RACB (Top 30)</span>", unsafe_allow_html=True)
+        st.markdown("<span class='titre-classement'>🏆 CLASSEMENT GENERAL OFFICIEUX RACB (Top 30)</span>", unsafe_allow_html=True)
         st.markdown(generer_tableau_html(df_racb, "table-class-robuste"), unsafe_allow_html=True)
-        # LE DEUXIÈME TABLEAU ET SON ESPACEMENT ONT ÉTÉ SUPPRIMÉS D'ICI
 
 if __name__ == "__main__":
     rafraichir_donnees_course()
