@@ -3,7 +3,6 @@ import pandas as pd
 import time
 import Essais
 
-# Sécurité d'importation stricte
 try:
     import Course_1_ASAF
     course1_disponible = True
@@ -12,38 +11,24 @@ except ModuleNotFoundError:
 
 st.set_page_config(page_title="Live", layout="wide")
 
-# --- DESIGN SCIENTIFIQUE RIGIDE ET FIXE RESTAURÉ ---
 st.markdown("""
 <style>
 [data-testid="stHeader"] { display: none !important; }
 button:focus, div:focus, input:focus, select:focus {
     outline: none !important; border-color: transparent !important; box-shadow: none !important;
 }
-
-/* Force la couleur bleu foncé au clic (focus) sur le sélecteur à la place du rouge */
 div[data-baseweb="select"]:focus-within {
     border-color: #1E3A8A !important;
     box-shadow: 0 0 0 2px rgba(30, 58, 138, 0.2) !important;
 }
-
-/* Alignement du texte à gauche avec une marge supérieure propre */
 .texte-menu {
-    font-size: 1.05rem !important; 
-    font-weight: bold !important;
-    color: #1E293B !important; 
-    text-align: left !important; 
-    margin-top: -16px !important; 
-    margin-bottom: 0px !important;
-    white-space: nowrap !important;
-    padding-right: 5px !important;
+    font-size: 1.05rem !important; font-weight: bold !important; color: #1E293B !important; 
+    text-align: left !important; margin-top: -16px !important; margin-bottom: 0px !important;
+    white-space: nowrap !important; padding-right: 5px !important;
 }
-
-/* Écriture du bouton sélecteur plus grande et en gras */
 div[data-testid="stSelectbox"] div[data-baseweb="select"] {
-    font-size: 1.15rem !important;
-    font-weight: bold !important;
+    font-size: 1.15rem !important; font-weight: bold !important;
 }
-
 .titre-live, .titre-hist, .titre-classement {
     color: #FFFFFF !important; font-size: 1.05rem !important; font-weight: bold !important;
     padding: 4px 8px !important; border-radius: 3px !important; margin-bottom: 6px !important;
@@ -88,81 +73,67 @@ div[data-testid="stVerticalBlock"] { gap: 0rem !important; }
 """, unsafe_allow_html=True)
 
 def gen_html(df, cl):
-    if df.empty:
-        return f"<table class='table-compacte {cl}'><tr><td style='text-align: center; padding: 10px;'>Aucune donnée disponible</td></tr></table>"
+    if isinstance(df, str): return df 
+    if df.empty: return f"<table class='table-compacte {cl}'><tr><td style='text-align: center; padding: 10px;'>Aucune donnée disponible</td></tr></table>"
     return df.to_html(index=False, classes=f"table-compacte {cl}", escape=False, border=0)
 
-    
-    # Si c'est le tableau des classes, on intercepte la ligne intercalaire pour dessiner une vraie bordure solide continue
-    if cl == "table-class-robuste" and "Pos" in df.columns:
-        html = df.to_html(index=False, classes=f"table-compacte {cl}", escape=False, border=0)
-        # Remplace la ligne '---' brute par une vraie ligne de séparation continue solide
-        html_corrigé = html.replace("<tr><td>---</td><td></td><td></td><td></td><td></td><td></td></tr>", "<tr style='border-top: 2px solid #CBD5E1 !important; height:6px !important;'><td colspan='6' style='border:none !important; padding:0 !important;'></td></tr>")
-        return html_corrigé
-        
-    return df.to_html(index=False, classes=f"table-compacte {cl}", escape=False, border=0)
-
-
-# --- CONFIGURATION SÉLECTEUR ---
 col_texte, col_select, col_reste = st.columns([1.3, 1.4, 3.3], vertical_alignment="center")
 with col_texte:
     st.markdown('<p class="texte-menu">Sélectionnez la session à afficher :</p>', unsafe_allow_html=True)
 with col_select:
     options_menu = ["Essais / Entraînements"]
-    if course1_disponible:
-        options_menu.append("Course 1 ASAF")
+    if course1_disponible: options_menu.append("Course 1 ASAF")
     choix_course = st.selectbox("Session_Label", options_menu, label_visibility="collapsed", key="active_session")
 
 st.markdown("<div style='height:25px;'></div>", unsafe_allow_html=True)
 
-# --- LOGIQUE D'AIGUILLAGE GLOBAL ---
-st.cache_data.clear()
-
-if choix_course == "Course 1 ASAF" and course1_disponible:
-    d_liv, d_his, d_as123, d_as4, d_divs = Course_1_ASAF.recuperer_donnees_course()
-    t_racb = "🏆 CLASSEMENT GENERAL Division 123"
-    t_as123 = "🏆 CLASSEMENT GENERAL Division 123"
-    t_as4 = "🏆 CLASSEMENT GENERAL Division 4"
-    # MODIFIÉ : Titre dynamique pour l'historique de la Course 1
-    titre_historique = "🕒 HISTORIQUE DES TEMPS / 1er Course / Concurrents ASAF"
-else:
-    d_liv, d_his, d_as123, d_as4, d_racb, t_racb, t_as123, t_as4 = Essais.recuperer_donnees_course()
-    # Titre d'origine pour les Essais
-    titre_historique = "🕒 HISTORIQUE DES TEMPS / ENTRAINEMENTS ASAF & RACB"
-
-st.markdown("<style>.table-hist th:nth-child(1), .table-hist td:nth-child(1) { width: 7% !important; } .table-hist th:nth-child(2), .table-hist td:nth-child(2) { width: 23% !important; } .table-hist th:nth-child(3), .table-hist td:nth-child(3) { width: 22% !important; } .table-hist th:nth-child(4), .table-hist td:nth-child(4) { width: 10% !important; } .table-hist th:nth-child(5), .table-hist td:nth-child(5) { width: 10% !important; } .table-hist th:nth-child(6), .table-hist td:nth-child(6) { width: 14% !important; }</style>", unsafe_allow_html=True)
-
-# --- STRUCTURE GRAPHIQUE ---
-cg, cd = st.columns([1.3, 0.9])
-with cg:
-    st.markdown("<span class='titre-live'>🏎️ EN DIRECT / Derniers concurrents partis</span>", unsafe_allow_html=True)
-    st.markdown(gen_html(d_liv, "table-live"), unsafe_allow_html=True)
-    st.markdown("<div style='height:35px;'></div>", unsafe_allow_html=True)
-    st.markdown(f"<span class='titre-hist'>{titre_historique}</span>", unsafe_allow_html=True)
-    st.markdown(gen_html(d_his, "table-hist"), unsafe_allow_html=True)
-with cd:
+# --- REFRESH TOUTES LES 30 SECONDES ---
+@st.fragment(run_every=30)
+def afficher_tableaux():
+    st.cache_data.clear()
+    
     if choix_course == "Course 1 ASAF" and course1_disponible:
-        st.markdown(f"<span class='titre-classement'>{t_as123}</span>", unsafe_allow_html=True)
-        st.markdown(gen_html(d_as123, "table-class-robuste"), unsafe_allow_html=True)
-        st.markdown("<div style='height: 55px;'></div>", unsafe_allow_html=True)
-        
-        st.markdown(f"<span class='titre-classement'>{t_as4}</span>", unsafe_allow_html=True)
-        st.markdown(gen_html(d_as4, "table-class-robuste"), unsafe_allow_html=True)
-        st.markdown("<div style='height: 55px;'></div>", unsafe_allow_html=True)
-        
-        st.markdown("<span class='titre-classement'>🏆 CLASSEMENT PAR DIVISIONS / CLASSES</span>", unsafe_allow_html=True)
-        st.markdown(gen_html(d_divs, "table-class-robuste"), unsafe_allow_html=True)
+        # Reçoit désormais 5 titres (dont t_live et t_hist) envoyés par le fichier de course
+        d_liv, d_his, d_as123, d_as4, d_divs, t_live, t_his, t_as123, t_as4, t_divs = Course_1_ASAF.recuperer_donnees_course()
     else:
-        st.markdown(f"<span class='titre-classement'>{t_racb}</span>", unsafe_allow_html=True)
-        st.markdown(gen_html(d_racb, "table-class-robuste"), unsafe_allow_html=True)
-        st.markdown("<div style='height: 55px;'></div>", unsafe_allow_html=True)
-        
-        st.markdown(f"<span class='titre-classement'>{t_as123}</span>", unsafe_allow_html=True)
-        st.markdown(gen_html(d_as123, "table-class-robuste"), unsafe_allow_html=True)
-        st.markdown("<div style='height: 55px;'></div>", unsafe_allow_html=True)
-        
-        st.markdown(f"<span class='titre-classement'>{t_as4}</span>", unsafe_allow_html=True)
-        st.markdown(gen_html(d_as4, "table-class-robuste"), unsafe_allow_html=True)
+        d_liv, d_his, d_as123, d_as4, d_racb, t_racb, t_as123, t_as4 = Essais.recuperer_donnees_course()
+        t_live = "🏎️ EN DIRECT / Derniers concurrents partis"
+        t_his = "🕒 HISTORIQUE DES TEMPS / ENTRAINEMENTS ASAF & RACB"
+        t_divs = "🏆 CLASSEMENT GENERAL Division 4"
+
+    st.markdown("<style>.table-hist th:nth-child(1), .table-hist td:nth-child(1) { width: 7% !important; } .table-hist th:nth-child(2), .table-hist td:nth-child(2) { width: 23% !important; } .table-hist th:nth-child(3), .table-hist td:nth-child(3) { width: 22% !important; } .table-hist th:nth-child(4), .table-hist td:nth-child(4) { width: 10% !important; } .table-hist th:nth-child(5), .table-hist td:nth-child(5) { width: 10% !important; } .table-hist th:nth-child(6), .table-hist td:nth-child(6) { width: 14% !important; }</style>", unsafe_allow_html=True)
+
+    cg, cd = st.columns([1.3, 0.9])
+    with cg:
+        # Titre en direct désormais dynamique
+        st.markdown(f"<span class='titre-live'>{t_live}</span>", unsafe_allow_html=True)
+        st.markdown(gen_html(d_liv, "table-live"), unsafe_allow_html=True)
+        st.markdown("<div style='height:35px;'></div>", unsafe_allow_html=True)
+        st.markdown(f"<span class='titre-hist'>{t_his}</span>", unsafe_allow_html=True)
+        st.markdown(gen_html(d_his, "table-hist"), unsafe_allow_html=True)
+    with cd:
+        if choix_course == "Course 1 ASAF" and course1_disponible:
+            st.markdown(f"<span class='titre-classement'>{t_as123}</span>", unsafe_allow_html=True)
+            st.markdown(gen_html(d_as123, "table-class-robuste"), unsafe_allow_html=True)
+            st.markdown("<div style='height: 55px;'></div>", unsafe_allow_html=True)
+            
+            st.markdown(f"<span class='titre-classement'>{t_as4}</span>", unsafe_allow_html=True)
+            st.markdown(gen_html(d_as4, "table-class-robuste"), unsafe_allow_html=True)
+            st.markdown("<div style='height: 55px;'></div>", unsafe_allow_html=True)
+            
+            st.markdown(f"<span class='titre-classement'>{t_divs}</span>", unsafe_allow_html=True)
+            st.markdown(gen_html(d_divs, "table-class-robuste"), unsafe_allow_html=True)
+        else:
+            st.markdown(f"<span class='titre-classement'>{t_racb}</span>", unsafe_allow_html=True)
+            st.markdown(gen_html(d_racb, "table-class-robuste"), unsafe_allow_html=True)
+            st.markdown("<div style='height: 55px;'></div>", unsafe_allow_html=True)
+            
+            st.markdown(f"<span class='titre-classement'>{t_as123}</span>", unsafe_allow_html=True)
+            st.markdown(gen_html(d_as123, "table-class-robuste"), unsafe_allow_html=True)
+            st.markdown("<div style='height: 55px;'></div>", unsafe_allow_html=True)
+            
+            st.markdown(f"<span class='titre-classement'>{t_divs}</span>", unsafe_allow_html=True)
+            st.markdown(gen_html(d_as4, "table-class-robuste"), unsafe_allow_html=True)
 
 # Attente et rechargement
 time.sleep(30)
