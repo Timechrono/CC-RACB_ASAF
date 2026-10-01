@@ -3,7 +3,7 @@ import pandas as pd
 import time
 import Essais
 
-# Sécurité : Importation de votre script de course
+# Sécurité : Importation de ton script Course_1_ASAF
 try:
     import Course_1_ASAF
     course1_disponible = True
@@ -12,7 +12,7 @@ except ModuleNotFoundError:
 
 st.set_page_config(page_title="Live", layout="wide")
 
-# --- DESIGN SCIENTIFIQUE RIGIDE ET FIXE ---
+# --- DESIGN SCIENTIFIQUE RIGIDE ET FIXE RESTAURÉ ---
 st.markdown("""
 <style>
 [data-testid="stHeader"] { display: none !important; }
@@ -92,12 +92,12 @@ def gen_html(df, cl):
         return f"<table class='table-compacte {cl}'><tr><td style='text-align: center; padding: 10px;'>Aucune donnée disponible</td></tr></table>"
     return df.to_html(index=False, classes=f"table-compacte {cl}", escape=False, border=0)
 
-# --- REFRESH ET APPEL DIRECT (Le menu a été déplacé à l'intérieur pour forcer la mise à jour des données) ---
+# --- REFRESH ET APPEL DIRECT ---
 @st.fragment(run_every=30)
 def afficher_tableaux():
     st.cache_data.clear()
     
-    # Construction du sélecteur à l'intérieur du fragment pour capturer le clic
+    # CORRECTION : Le sélecteur est placé à l'intérieur du fragment pour forcer la mise à jour des données au clic
     col_texte, col_select, col_reste = st.columns([1.3, 1.4, 3.3], vertical_alignment="center")
     with col_texte:
         st.markdown('<p class="texte-menu">Sélectionnez la session à afficher :</p>', unsafe_allow_html=True)
@@ -107,9 +107,10 @@ def afficher_tableaux():
             options_menu.append("Course 1 ASAF")
         choix_course = st.selectbox("Session_Label", options_menu, label_visibility="collapsed")
 
+    # Marge sous la zone de sélection
     st.markdown("<div style='height:25px;'></div>", unsafe_allow_html=True)
     
-    # Logique d'aiguillage des données
+    # Aiguillage des données
     if course1_disponible and choix_course == "Course 1 ASAF":
         d_liv, d_his, d_as123, d_as4, d_divs = Course_1_ASAF.recuperer_donnees_course()
         t_racb = "🏆 CLASSEMENT GENERAL Division 123"
