@@ -94,7 +94,7 @@ def recuperer_donnees_course():
     df_hist = pd.DataFrame(columns=cols_hist)
     df_asaf123 = pd.DataFrame(columns=["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"])
     df_asaf4 = pd.DataFrame(columns=["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"])
-    df_divisions = pd.DataFrame(columns=["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"])
+    html_divisions = "<table class='table-compacte table-class-robuste'><tr><td style='text-align: center; padding: 10px;'>Aucune donnée disponible</td></tr></table>"
 
     try:
         flux_eng = telecharger_excel(FILE_ENGAGES_ASAF)
@@ -105,7 +105,6 @@ def recuperer_donnees_course():
         df_dep_raw = pd.read_excel(flux_dep, header=None, engine='openpyxl')
         df_arr_raw = pd.read_excel(flux_arr, header=None, engine='openpyxl')
 
-        # RECHERCHE LARGE DES ENTÊTES (Lignes 0 à 4) POUR ASAF ET RACB
         idx_dep_asaf, idx_arr_asaf = None, None
         idx_dep_racb, idx_arr_racb = None, None
 
@@ -121,7 +120,6 @@ def recuperer_donnees_course():
                 if "COURSE 1 ASAF" in val: idx_arr_asaf = c
                 elif "COURSE 1 RACB" in val: idx_arr_racb = c
 
-        # EXTRACTION & FUSION SÉCURISÉE DES TEMPS (ASAF + RACB)
         deps = []
         if idx_dep_asaf is not None:
             deps.append(pd.DataFrame({"N°": df_dep_raw.iloc[2:, idx_dep_asaf].apply(nettoyer_numero), "Heure_Depart": df_dep_raw.iloc[2:, idx_dep_asaf + 1]}))
@@ -150,7 +148,7 @@ def recuperer_donnees_course():
             if len(d) > 0:
                 d["N°"] = d["N°"].astype(str)
                 d["Run_Index"] = d.groupby("N°").cumcount() + 1
-
+# fin partie 2A
         if len(df_dep) > 0: df_dep["Sec_Dep"] = df_dep["Heure_Depart"].apply(convertir_en_secondes)
         if len(df_arr) > 0: df_arr["Sec_Arr"] = df_arr["Heure_Arrivee"].apply(convertir_en_secondes)
         if len(df_arr) > 0: df_arr["Sec_Excel"] = df_arr["Chrono_Excel"].apply(convertir_en_secondes)
@@ -205,18 +203,36 @@ def recuperer_donnees_course():
                     df_grouped = scr_div_filtree.sort_values(by=["Division_Clean", "Classe_Num", "Calc_Sec"]).groupby(["Division_Clean", "Classe_Num"]).head(3).copy()
                     
                     if len(df_grouped) > 0:
-                        liste_final = []
-                        for (div, cl_num), group in df_grouped.groupby(["Division_Clean", "Classe_Num"]):
+                        html_blocs = []
+                        grouped_objs = df_grouped.groupby(["Division_Clean", "Classe_Num"])
+                        total_groups = len(grouped_objs)
+                        current_group = 0
+                        
+                        for (div, cl_num), group in grouped_objs:
+                            current_group += 1
                             group = group.copy()
                             group["Pos"] = range(1, len(group) + 1)
                             group["Chrono"] = group["Calc_Sec"].apply(format_final_chrono)
                             sub_df = group[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]]
-                            liste_final.append(sub_df)
-                            ligne_vide = pd.DataFrame([["", "", "", "", "", ""]], columns=["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"])
-                            liste_final.append(ligne_vide)
-                        if liste_final:
-                            df_divisions = pd.concat(liste_final, ignore_index=True).iloc[:-1]
-    except Exception as e:
+                            
+                            sub_html = sub_df.to_html(index=False, header=(current_group==1), classes='table-compacte table-class-robuste', escape=False, border=0)
+                            if current_group == 1:
+                                html_blocs.append(sub_html.replace("</tbody>\n</table>", ""))
+                            else:
+                                html_blocs.append(sub_html.split("<tbody>")[-1].replace("</tbody>\n</table>", ""))
+                            
+                            if current_group < total_groups:
+                                html_blocs.append("<tr style='border-top: 2px solid #CBD5E1 !important; height:6px !important;'><td colspan='6' style='border:none !important; padding:0 !important;'></td></tr>")
+                        
+                        html_blocs.append("</tbody>\n</table>")
+                        html_divisions = "".join(html_blocs)
+    except Exception:
         pass
 
-    return df_live, df_hist, df_asaf123, df_asaf4, df_divisions
+    # --- TITRES ENTIÈREMENT CENTRALISÉS ICI DANS LE SCRIPT DE COURSE ---
+    t_hist = "🕒 HISTORIQUE DES TEMPS / 1er Course / Concurrents ASAF"
+    t_asaf123 = "🏆 CLASSEMENT GENERAL Division 123 (Course 1)"
+    t_asaf4 = "🏆 CLASSEMENT GENERAL Division 4 (Course 1)"
+    t_divs = "🏆 CLASSEMENT PAR DIVISIONS / CLASSES (Course 1)"
+
+    return df_live, df_hist, df_asaf123, df_asaf4, html_divisions, t_hist, t_asaf123, t_asaf4, t_divs
