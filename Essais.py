@@ -148,7 +148,7 @@ def recuperer_donnees_course():
                 # --- ASAF 4 (Top 10 centralisé) ---
                 asaf4 = scr[scr["Division_Clean"].isin(["4", "4.0"])].head(10).copy()
                 if len(asaf4) > 0: asaf4["Pos"] = range(1, len(asaf4) + 1); asaf4["Chrono"] = asaf4["Calc_Sec"].apply(format_final_chrono); df_asaf4 = asaf4[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]]
-        except Exception: 
+                except Exception:
         pass
 
     # --- TITRES ENTIÈREMENT CENTRALISÉS POUR LES ESSAIS ---
@@ -158,6 +158,5 @@ def recuperer_donnees_course():
     t_as123 = "🏆 CLASSEMENT EVOLUTIF DES ESSAIS Division 123 (Top 15)"
     t_as4 = "🏆 CLASSEMENT EVOLUTIF DES ESSAIS Division 4 (Top 10)"
 
-    # Renvoie exactement la même structure de 10 éléments que la Course 1
     return df_live, df_hist, df_asaf123, df_asaf4, df_racb, t_live, t_hist, t_racb, t_as123, t_as4
 
