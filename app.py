@@ -43,7 +43,7 @@ except ModuleNotFoundError:
 
 st.set_page_config(page_title="Live", layout="wide")
 
-# --- STYLE CSS STRUCTURAL ET DESIGN TABLEAUX ---
+# --- CONCEPTION GRAPHIQUE RIGIDE ET AJUSTEMENTS DES BOUTONS ---
 st.markdown("""
 <style>
 [data-testid="stHeader"] { display: none !important; }
@@ -92,17 +92,20 @@ button:focus, div:focus, input:focus, select:focus {
 .block-container { padding-top: 0.4rem !important; padding-bottom: 0rem !important; }
 div[data-testid="stVerticalBlock"] { gap: 0rem !important; }
 
-/* STYLE DES BOUTONS DU MENU HORIZONTAL BLEU TRÈS MARQUÉ */
+/* RECTIFICATION BOUTONS HORIZONTAUX : MOINS HAUTS, TEXTE GRAS ET RESPIRANT */
 div.stButton > button {
     width: 100% !important;
+    min-height: unset !important;
+    height: 28px !important;
     background-color: #F1F5F9 !important;
     color: #475569 !important;
     font-weight: bold !important;
-    font-size: 0.95rem !important;
+    font-size: 0.85rem !important;
     border: 1px solid #CBD5E1 !important;
     border-radius: 4px !important;
-    padding: 6px 0px !important;
+    padding: 0px 12px !important;
     transition: all 0.2s ease !important;
+    line-height: 26px !important;
 }
 div.stButton > button:hover {
     border-color: #1E3A8A !important;
@@ -111,8 +114,8 @@ div.stButton > button:hover {
 }
 </style>
 """, unsafe_allow_html=True)
-# fin partie 1
-# Initialisation de l'état de la session courante si inexistante
+# fin bloc 1
+# Gestion persistante de l'état du menu cliquable
 if "active_session" not in st.session_state:
     st.session_state["active_session"] = "Essais / Entraînements"
 
@@ -121,8 +124,7 @@ def gen_html(df, cl):
     if df.empty: return f"<table class='table-compacte {cl}'><tr><td style='text-align: center; padding: 10px;'>Aucune donnée disponible</td></tr></table>"
     return df.to_html(index=False, classes=f"table-compacte {cl}", escape=False, border=0)
 
-# --- GÉNÉRATION DYNAMIQUE DU MENU HORIZONTAL ---
-# Création automatique du nombre exact de colonnes requises
+# Assemblage dynamique des onglets en fonction des modules détectés
 colonnes_menu = ["Essais / Entraînements"]
 if course1_disponible: colonnes_menu.append("Course 1 ASAF")
 if course1_racb_disponible: colonnes_menu.append("Course 1 RACB")
@@ -133,21 +135,19 @@ if course3_racb_disponible: colonnes_menu.append("Course 3 RACB")
 
 cols = st.columns(len(colonnes_menu))
 
-# Rendu et gestion des clics pour chaque onglet
 for idx, nom_session in enumerate(colonnes_menu):
     with cols[idx]:
-        # Injection d'un style unique temporaire pour marquer très fortement le bouton sélectionné
         if st.session_state["active_session"] == nom_session:
             st.markdown(f"""<style>div[data-testid="stHorizontalBlock"] > div:nth-child({idx+1}) button {{ background-color: #1E3A8A !important; color: white !important; border-color: #1E3A8A !important; box-shadow: 0px 2px 4px rgba(30,58,138,0.3) !important; }}</style>""", unsafe_allow_html=True)
-        
         if st.button(nom_session, key=f"btn_{idx}"):
             st.session_state["active_session"] = nom_session
             st.rerun()
 
-st.markdown("<div style='height:15px;'></div>", unsafe_allow_html=True)
+# INTERLIGNE PROPRE POUR SÉPARER LE MENU DE LA FEUILLE EN DESSOUS
+st.markdown("<div style='height: 25px; border-bottom: 1px solid #E2E8F0; margin-bottom: 20px;'></div>", unsafe_allow_html=True)
 choix_course = st.session_state["active_session"]
 
-# --- REFRESH CENTRALISÉ TOUTES LES 30 SECONDES ---
+# --- MOTEUR DE RAFRAÎCHISSEMENT TOUTES LES 30 SECONDES ---
 @st.fragment
 def afficher_tableaux():
     st.cache_data.clear()
@@ -187,30 +187,17 @@ def afficher_tableaux():
         st.markdown(gen_html(d_his, "table-hist"), unsafe_allow_html=True)
         
     with cd:
-        if choix_course in ["Course 1 ASAF", "Course 2 ASAF", "Course 3 ASAF"]:
-            st.markdown(f"<span class='titre-classement'>{t_haut}</span>", unsafe_allow_html=True)
-            st.markdown(gen_html(d_haut, "table-class-robuste"), unsafe_allow_html=True)
-            st.markdown("<div style='height: 55px;'></div>", unsafe_allow_html=True)
-            
-            st.markdown(f"<span class='titre-classement'>{t_milieu}</span>", unsafe_allow_html=True)
-            st.markdown(gen_html(d_milieu, "table-class-robuste"), unsafe_allow_html=True)
-            st.markdown("<div style='height: 55px;'></div>", unsafe_allow_html=True)
-            
-            st.markdown(f"<span class='titre-classement'>{t_bas}</span>", unsafe_allow_html=True)
-            st.markdown(gen_html(d_bas, "table-class-robuste"), unsafe_allow_html=True)
-        else:
-            st.markdown(f"<span class='titre-classement'>{t_haut}</span>", unsafe_allow_html=True)
-            st.markdown(gen_html(d_bas, "table-class-robuste"), unsafe_allow_html=True)
-            st.markdown("<div style='height: 55px;'></div>", unsafe_allow_html=True)
-            
-            st.markdown(f"<span class='titre-classement'>{t_milieu}</span>", unsafe_allow_html=True)
-            st.markdown(gen_html(d_haut, "table-class-robuste"), unsafe_allow_html=True)
-            st.markdown("<div style='height: 55px;'></div>", unsafe_allow_html=True)
-            
-            st.markdown(f"<span class='titre-classement'>{t_bas}</span>", unsafe_allow_html=True)
-            st.markdown(gen_html(d_milieu, "table-class-robuste"), unsafe_allow_html=True)
-
-    st.markdown("<br><br><br><div style='height:30px;'></div>", unsafe_allow_html=True)
+        # AFFICHAGE NET ET SANS DOUBLONS AVEC DEUX LIGNES DE MARGES CONSTANTES ENTRE LES CLASSEMENTS
+        st.markdown(f"<span class='titre-classement'>{t_haut}</span>", unsafe_allow_html=True)
+        st.markdown(gen_html(d_haut, "table-class-robuste"), unsafe_allow_html=True)
+        st.markdown("<div style='height: 40px;'></div>", unsafe_allow_html=True) # Marge de quelques lignes
+        
+        st.markdown(f"<span class='titre-classement'>{t_milieu}</span>", unsafe_allow_html=True)
+        st.markdown(gen_html(d_milieu, "table-class-robuste"), unsafe_allow_html=True)
+        st.markdown("<div style='height: 40px;'></div>", unsafe_allow_html=True) # Marge de quelques lignes
+        
+        st.markdown(f"<span class='titre-classement'>{t_bas}</span>", unsafe_allow_html=True)
+        st.markdown(gen_html(d_bas, "table-class-robuste"), unsafe_allow_html=True)
 
     time.sleep(30)
     st.rerun()
