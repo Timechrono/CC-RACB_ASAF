@@ -97,7 +97,6 @@ def recuperer_donnees_course():
     df_divisions = pd.DataFrame(columns=["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"])
 
     try:
-        # RESTAURATION DE LA LOGIQUE LOCAL : Lecture stricte du fichier des engagés d'origine
         flux_eng = telecharger_excel(FILE_ENGAGES_ASAF)
         flux_dep = telecharger_excel(FILE_DEPART)
         flux_arr = telecharger_excel(FILE_ARRIVEE)
@@ -184,10 +183,26 @@ def recuperer_donnees_course():
                 if len(scr_div_filtree) > 0:
                     scr_div_filtree["Classe_Num"] = pd.to_numeric(scr_div_filtree["Classe"], errors='coerce').fillna(999)
                     df_grouped = scr_div_filtree.sort_values(by=["Division_Clean", "Classe_Num", "Calc_Sec"]).groupby(["Division_Clean", "Classe_Num"]).head(3).copy()
+                    
                     if len(df_grouped) > 0:
-                        df_grouped["Pos"] = df_grouped.groupby(["Division_Clean", "Classe_Num"]).cumcount() + 1
-                        df_grouped["Chrono"] = df_grouped["Calc_Sec"].apply(format_final_chrono)
-                        df_divisions = df_grouped[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]]
+                        # --- CRÉATION LOGIQUE DES LIGNES DE SÉPARATION PAR CLASSE ---
+                        liste_final = []
+                        for (div, cl_num), group in df_grouped.groupby(["Division_Clean", "Classe_Num"]):
+                            group = group.copy()
+                            group["Pos"] = range(1, len(group) + 1)
+                            group["Chrono"] = group["Calc_Sec"].apply(format_final_chrono)
+                            sub_df = group[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]]
+                            liste_final.append(sub_df)
+                            
+                            # Insertion d'une ligne de séparation vide (sauf un indicateur visuel si désiré)
+                            ligne_vide = pd.DataFrame([["", "", "", "", "", ""]], columns=["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"])
+                            liste_final.append(ligne_vide)
+                        
+                        if liste_final:
+                            df_divisions = pd.concat(liste_final, ignore_index=True)
+                            # On retire la toute dernière ligne de séparation inutile à la fin
+                            if len(df_divisions) > 0:
+                                df_divisions = df_divisions.iloc[:-1]
     except Exception as e:
         pass
 
