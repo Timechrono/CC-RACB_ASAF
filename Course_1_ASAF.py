@@ -86,7 +86,8 @@ def extraire_engages(flux):
         "Classe": df_raw.iloc[:, 6].fillna("-").astype(str).str.strip().apply(lambda x: x[:-2] if x.endswith(".0") else x)
     })
     return df_clean[df_clean["N°"] != "NAN"]
-def recuperer_donnees_course():
+# MODIFIÉ : Nom de fonction unique pour éliminer le conflit avec le fichier Essais
+def recuperer_donnees_course1():
     cols_live = ["N°", "Nom_Prenom", "Voiture", "Départ", "Arrivée", "Chrono réalisé"]
     cols_hist = ["N°", "Nom_Prenom", "Voiture", "Division", "Classe", "Chrono réalisé"]
     df_live = pd.DataFrame(columns=cols_live)
@@ -117,7 +118,6 @@ def recuperer_donnees_course():
             val = str(df_arr_raw.iloc[1, c_idx]).strip().upper()
             if "COURSE 1 ASAF" in val: idx_arr_1_asaf = c_idx
 
-        # Alerte si le mot-clé exact de la colonne pose problème
         if idx_dep_1_asaf is None or idx_arr_1_asaf is None:
             st.error(f"⚠️ Colonne 'COURSE 1 ASAF' introuvable ! Départ trouvé: {idx_dep_1_asaf is not None}, Arrivée trouvée: {idx_arr_1_asaf is not None}")
 
