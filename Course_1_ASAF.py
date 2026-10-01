@@ -97,7 +97,6 @@ def recuperer_donnees_course():
     df_divisions = pd.DataFrame(columns=["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"])
 
     try:
-        # Restauration stricte du fichier d'engagés ASAF unique d'origine
         flux_eng = telecharger_excel(FILE_ENGAGES_ASAF)
         flux_dep = telecharger_excel(FILE_DEPART)
         flux_arr = telecharger_excel(FILE_ARRIVEE)
@@ -106,17 +105,40 @@ def recuperer_donnees_course():
         df_dep_raw = pd.read_excel(flux_dep, header=None, engine='openpyxl')
         df_arr_raw = pd.read_excel(flux_arr, header=None, engine='openpyxl')
 
-        idx_dep_1_asaf, idx_arr_1_asaf = None, None
+        # 1. RECHERCHE DYNAMIQUE DES INDEX POUR ASAF ET RACB
+        idx_dep_asaf, idx_arr_asaf = None, None
+        idx_dep_racb, idx_arr_racb = None, None
+        
         for c_idx in range(len(df_dep_raw.columns)):
             val = str(df_dep_raw.iloc[1, c_idx]).strip().upper()
-            if "COURSE 1 ASAF" in val: idx_dep_1_asaf = c_idx
+            if "COURSE 1 ASAF" in val: idx_dep_asaf = c_idx
+            if "COURSE 1 RACB" in val: idx_dep_racb = c_idx
         for c_idx in range(len(df_arr_raw.columns)):
             val = str(df_arr_raw.iloc[1, c_idx]).strip().upper()
-            if "COURSE 1 ASAF" in val: idx_arr_1_asaf = c_idx
+            if "COURSE 1 ASAF" in val: idx_arr_asaf = c_idx
+            if "COURSE 1 RACB" in val: idx_arr_racb = c_idx
 
-        df_dep = pd.DataFrame({"N°": df_dep_raw.iloc[2:, idx_dep_1_asaf].apply(nettoyer_numero), "Heure_Depart": df_dep_raw.iloc[2:, idx_dep_1_asaf + 1]}) if idx_dep_1_asaf is not None else pd.DataFrame(columns=["N°", "Heure_Depart"])
-        df_arr = pd.DataFrame({"N°": df_arr_raw.iloc[2:, idx_arr_1_asaf].apply(nettoyer_numero), "Heure_Arrivee": df_arr_raw.iloc[2:, idx_arr_1_asaf + 2], "Chrono_Excel": df_arr_raw.iloc[2:, idx_arr_1_asaf + 3]}) if idx_arr_1_asaf is not None else pd.DataFrame(columns=["N°", "Heure_Arrivee", "Chrono_Excel"])
-        
+        # 2. EXTRACTION DES DONNÉES ASAF
+        df_dep_asaf = pd.DataFrame({"N°": df_dep_raw.iloc[2:, idx_dep_asaf].apply(nettoyer_numero), "Heure_Depart": df_dep_raw.iloc[2:, idx_dep_asaf + 1]}) if idx_dep_asaf is not None else pd.DataFrame(columns=["N°", "Heure_Depart"])
+        df_arr_asaf = pd.DataFrame({"N°": df_arr_raw.iloc[2:, idx_arr_asaf].apply(nettoyer_numero), "Heure_Arrivee": df_arr_raw.iloc[2:, idx_arr_asaf + 2], "Chrono_Excel": df_arr_raw.iloc[2:, idx_arr_asaf + 3]}) if idx_arr_asaf is not None else pd.DataFrame(columns=["N°", "Heure_Arrivee", "Chrono_Excel"])
+
+        # 3. EXTRACTION DES DONNÉES RACB COMPLÉMENTAIRES
+        df_dep_racb = pd.DataFrame({"N°": df_dep_raw.iloc[2:, idx_dep_racb].apply(nettoyer_numero), "Heure_Depart": df_dep_raw.iloc[2:, idx_dep_racb + 1]}) if idx_dep_racb is not None else pd.DataFrame(columns=["N°", "Heure_Depart"])
+        df_arr_racb = pd.DataFrame({"N°": df_arr_raw.iloc[2:, idx_arr_racb].apply(nettoyer_numero), "Heure_Arrivee": df_arr_raw.iloc[2:, idx_arr_racb + 2], "Chrono_Excel": df_arr_raw.iloc[2:, idx_arr_racb + 3]}) if idx_arr_racb is not None else pd.DataFrame(columns=["N°", "Heure_Arrivee", "Chrono_Excel"])
+
+        # 4. FUSION DES DEUX SOURCES SANS DOUBLONS DE RUN
+        df_dep = pd.concat([df_dep_asaf, df_dep_racb]).drop_duplicates(subset=["N°", "Heure_Depart"])
+        df_arr = pd.concat([df_arr_asaf, df_arr_racb]).drop_duplicates(subset=["N°", "Heure_Arrivee"])
+
+        df_dep = df_dep[(df_dep["N°"] != "NAN") & (df_dep["N°"] != "")]
+
+        # Structuration des passages (Run_Index)
+        for d in [df_dep, df_arr]:
+            if len(d) > 0:
+                d["N°"] = d["N°"].astype(str)
+                d["Run_Index"] = d.groupby("N°").cumcount() + 1
+
+        # Lecture des engagés d'origine ASAF
         df_eng_raw.columns = df_eng_raw.columns.astype(str).str.strip().str.upper()
         df_eng = pd.DataFrame({"N°": df_eng_raw.iloc[:, 0].apply(nettoyer_numero), 
                                "Nom_Prenom": df_eng_raw.iloc[:, 1].fillna("Pilote Inconnu").astype(str).str.strip(),
@@ -125,12 +147,6 @@ def recuperer_donnees_course():
                                "Classe": df_eng_raw.iloc[:, 6].fillna("-").astype(str).str.strip().apply(lambda x: x[:-2] if x.endswith(".0") else x)})
 
         df_eng = df_eng[df_eng["N°"] != "NAN"].drop_duplicates(subset=["N°"])
-        df_dep = df_dep[(df_dep["N°"] != "NAN") & (df_dep["N°"] != "")]
-
-        for d in [df_dep, df_arr]:
-            if len(d) > 0:
-                d["N°"] = d["N°"].astype(str)
-                d["Run_Index"] = d.groupby("N°").cumcount() + 1
 
         if len(df_dep) > 0: df_dep["Sec_Dep"] = df_dep["Heure_Depart"].apply(convertir_en_secondes)
         if len(df_arr) > 0: df_arr["Sec_Arr"] = df_arr["Heure_Arrivee"].apply(convertir_en_secondes)
@@ -143,15 +159,8 @@ def recuperer_donnees_course():
         else:
             base_runs = base_runs.drop_duplicates(subset=["N°", "Run_Index"])
 
-        # Utilisation d'une jointure left pour être sûr de ne perdre aucun concurrent parti
-        base = pd.merge(base_runs, df_eng, on="N°", how="left")
-        base["Nom_Prenom"] = base["Nom_Prenom"].fillna("Pilote Inconnu")
-        base["Voiture"] = base["Voiture"].fillna("-")
-        base["Division"] = base["Division"].fillna("-")
-        base["Classe"] = base["Classe"].fillna("-")
-
-        if len(df_dep) > 0: base = pd.merge(base, df_dep, on=["N°", "Run_Index"], how="left")
-        if len(df_arr) > 0: base = pd.merge(base, df_arr, on=["N°", "Run_Index"], how="left")
+        # Fusion inner stricte pour filtrer uniquement les concurrents de la liste ASAF
+        base = pd.merge(base_runs, df_eng, on="N°", how="inner")
         
         if len(base) > 0:
             base["Calc_Sec"] = base["Sec_Excel"].fillna((base["Sec_Arr"] - base["Sec_Dep"]).apply(lambda x: x + 3600 if (x is not None and not pd.isna(x) and x < 0) else x))
@@ -199,11 +208,8 @@ def recuperer_donnees_course():
                             group["Chrono"] = group["Calc_Sec"].apply(format_final_chrono)
                             sub_df = group[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]]
                             liste_final.append(sub_df)
-                            
-                            # Insertion d'une ligne d'intercalaire vide propre et saine
                             ligne_vide = pd.DataFrame([["", "", "", "", "", ""]], columns=["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"])
                             liste_final.append(ligne_vide)
-                        
                         if liste_final:
                             df_divisions = pd.concat(liste_final, ignore_index=True).iloc[:-1]
     except Exception as e:
