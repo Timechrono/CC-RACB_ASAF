@@ -43,24 +43,14 @@ except ModuleNotFoundError:
 
 st.set_page_config(page_title="Live", layout="wide")
 
+# --- STYLE CSS STRUCTURAL ET DESIGN TABLEAUX ---
 st.markdown("""
 <style>
 [data-testid="stHeader"] { display: none !important; }
 button:focus, div:focus, input:focus, select:focus {
     outline: none !important; border-color: transparent !important; box-shadow: none !important;
 }
-div[data-baseweb="select"]:focus-within {
-    border-color: #1E3A8A !important;
-    box-shadow: 0 0 0 2px rgba(30, 58, 138, 0.2) !important;
-}
-.texte-menu {
-    font-size: 1.05rem !important; font-weight: bold !important; color: #1E293B !important; 
-    text-align: left !important; margin-top: -16px !important; margin-bottom: 0px !important;
-    white-space: nowrap !important; padding-right: 5px !important;
-}
-div[data-testid="stSelectbox"] div[data-baseweb="select"] {
-    font-size: 1.15rem !important; font-weight: bold !important;
-}
+
 .titre-live, .titre-hist, .titre-classement {
     color: #FFFFFF !important; font-size: 1.05rem !important; font-weight: bold !important;
     padding: 4px 8px !important; border-radius: 3px !important; margin-bottom: 6px !important;
@@ -101,29 +91,63 @@ div[data-testid="stSelectbox"] div[data-baseweb="select"] {
 
 .block-container { padding-top: 0.4rem !important; padding-bottom: 0rem !important; }
 div[data-testid="stVerticalBlock"] { gap: 0rem !important; }
+
+/* STYLE DES BOUTONS DU MENU HORIZONTAL BLEU TRÈS MARQUÉ */
+div.stButton > button {
+    width: 100% !important;
+    background-color: #F1F5F9 !important;
+    color: #475569 !important;
+    font-weight: bold !important;
+    font-size: 0.95rem !important;
+    border: 1px solid #CBD5E1 !important;
+    border-radius: 4px !important;
+    padding: 6px 0px !important;
+    transition: all 0.2s ease !important;
+}
+div.stButton > button:hover {
+    border-color: #1E3A8A !important;
+    color: #1E3A8A !important;
+    background-color: #E0F2FE !important;
+}
 </style>
 """, unsafe_allow_html=True)
+# fin partie 1
+# Initialisation de l'état de la session courante si inexistante
+if "active_session" not in st.session_state:
+    st.session_state["active_session"] = "Essais / Entraînements"
+
 def gen_html(df, cl):
     if isinstance(df, str): return df 
     if df.empty: return f"<table class='table-compacte {cl}'><tr><td style='text-align: center; padding: 10px;'>Aucune donnée disponible</td></tr></table>"
     return df.to_html(index=False, classes=f"table-compacte {cl}", escape=False, border=0)
 
-col_texte, col_select, col_reste = st.columns([1.3, 1.4, 3.3], vertical_alignment="center")
-with col_texte:
-    st.markdown('<p class="texte-menu">Sélectionnez la session à afficher :</p>', unsafe_allow_html=True)
-with col_select:
-    options_menu = ["Essais / Entraînements"]
-    if course1_disponible: options_menu.append("Course 1 ASAF")
-    if course1_racb_disponible: options_menu.append("Course 1 RACB")
-    if course2_disponible: options_menu.append("Course 2 ASAF")
-    if course2_racb_disponible: options_menu.append("Course 2 RACB")
-    if course3_disponible: options_menu.append("Course 3 ASAF")
-    if course3_racb_disponible: options_menu.append("Course 3 RACB")
-    choix_course = st.selectbox("Session_Label", options_menu, label_visibility="collapsed", key="active_session")
+# --- GÉNÉRATION DYNAMIQUE DU MENU HORIZONTAL ---
+# Création automatique du nombre exact de colonnes requises
+colonnes_menu = ["Essais / Entraînements"]
+if course1_disponible: colonnes_menu.append("Course 1 ASAF")
+if course1_racb_disponible: colonnes_menu.append("Course 1 RACB")
+if course2_disponible: colonnes_menu.append("Course 2 ASAF")
+if course2_racb_disponible: colonnes_menu.append("Course 2 RACB")
+if course3_disponible: colonnes_menu.append("Course 3 ASAF")
+if course3_racb_disponible: colonnes_menu.append("Course 3 RACB")
 
-st.markdown("<div style='height:25px;'></div>", unsafe_allow_html=True)
+cols = st.columns(len(colonnes_menu))
 
-# --- REFRESH CENTRALISÉ ET SYNC TOUTES LES 30 SECONDES ---
+# Rendu et gestion des clics pour chaque onglet
+for idx, nom_session in enumerate(colonnes_menu):
+    with cols[idx]:
+        # Injection d'un style unique temporaire pour marquer très fortement le bouton sélectionné
+        if st.session_state["active_session"] == nom_session:
+            st.markdown(f"""<style>div[data-testid="stHorizontalBlock"] > div:nth-child({idx+1}) button {{ background-color: #1E3A8A !important; color: white !important; border-color: #1E3A8A !important; box-shadow: 0px 2px 4px rgba(30,58,138,0.3) !important; }}</style>""", unsafe_allow_html=True)
+        
+        if st.button(nom_session, key=f"btn_{idx}"):
+            st.session_state["active_session"] = nom_session
+            st.rerun()
+
+st.markdown("<div style='height:15px;'></div>", unsafe_allow_html=True)
+choix_course = st.session_state["active_session"]
+
+# --- REFRESH CENTRALISÉ TOUTES LES 30 SECONDES ---
 @st.fragment
 def afficher_tableaux():
     st.cache_data.clear()
