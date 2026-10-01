@@ -326,4 +326,5 @@ def recuperer_donnees_course():
     t_bas = "📊 CLASSEMENT OFFICIEUX par Division / Classe (Top 3)"
 
     return df_live, html_hist, df_asaf123, df_asaf4, df_divisions, t_live, t_his, t_haut, t_milieu, t_bas
+
        
