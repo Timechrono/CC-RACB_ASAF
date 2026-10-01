@@ -92,6 +92,7 @@ button:focus, div:focus, input:focus, select:focus {
 .block-container { padding-top: 0.4rem !important; padding-bottom: 0rem !important; }
 div[data-testid="stVerticalBlock"] { gap: 0rem !important; }
 
+/* BOUTONS HORIZONTAUX OPTIMISÉS : HAUTEUR AJUSTÉE, TEXTE GRAS ET RESPIRANT */
 div.stButton > button {
     width: 100% !important;
     min-height: unset !important;
@@ -113,6 +114,7 @@ div.stButton > button:hover {
 }
 </style>
 """, unsafe_allow_html=True)
+# fin loc 1
 if "active_session" not in st.session_state:
     st.session_state["active_session"] = "Essais / Entraînements"
 
@@ -140,10 +142,11 @@ for idx, nom_session in enumerate(colonnes_menu):
             st.session_state["active_session"] = nom_session
             st.rerun()
 
-st.markdown("<div style='height: 25px; border-bottom: 1px solid #E2E8F0; margin-bottom: 20px;'></div>", unsafe_allow_html=True)
+# INTERLIGNE SERRÉ POUR UN ALIGNEMENT PARFAIT DES TABLEAUX
+st.markdown("<div style='height: 6px; margin-bottom: 8px;'></div>", unsafe_allow_html=True)
 choix_course = st.session_state["active_session"]
 
-# --- CRÉATION DE LA ZONE DE RENDU INTERNE SÉCURISÉE (FORCE LE NETTOYAGE) ---
+# Zone d'affichage pure vidée mécaniquement à chaque itération
 zone_affichage_pure = st.empty()
 
 # --- CYCLAGE AUTOMATIQUE CENTRALISÉ TOUTES LES 30 SECONDES ---
@@ -166,7 +169,7 @@ def afficher_tableaux():
     else:
         d_liv, d_his, d_haut, d_milieu, d_bas, t_live, t_his, t_haut, t_milieu, t_bas = Essais.recuperer_donnees_course()
 
-    # Injection forcée et isolée dans le conteneur préalablement vidé
+    # Rendu propre forcé
     with zone_affichage_pure.container():
         st.markdown("<style>.table-hist th:nth-child(1), .table-hist td:nth-child(1) { width: 7% !important; } .table-hist th:nth-child(2), .table-hist td:nth-child(2) { width: 23% !important; } .table-hist th:nth-child(3), .table-hist td:nth-child(3) { width: 22% !important; } .table-hist th:nth-child(4), .table-hist td:nth-child(4) { width: 10% !important; } .table-hist th:nth-child(5), .table-hist td:nth-child(5) { width: 10% !important; } .table-hist th:nth-child(6), .table-hist td:nth-child(6) { width: 14% !important; }</style>", unsafe_allow_html=True)
 
