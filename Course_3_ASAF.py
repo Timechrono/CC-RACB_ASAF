@@ -166,8 +166,11 @@ def recuperer_donnees_course():
     df_eng = pd.DataFrame()
 
     try:
-        df_eng_raw = pd.read_excel(telecharger_excel(FILE_ENGAGES), skiprows=1, engine='openpyxl')
-        df_arr_raw = pd.read_excel(telecharger_excel(FILE_ARRIVEE), header=None, engine='openpyxl')
+        flux_eng = telecharger_excel(FILE_ENGAGES)
+        flux_arr = telecharger_excel(FILE_ARRIVEE)
+        
+        df_eng_raw = pd.read_excel(flux_eng, skiprows=1, engine='openpyxl')
+        df_arr_raw = pd.read_excel(flux_arr, header=None, engine='openpyxl')
 
         def extraire_chiffre_division(txt):
             if pd.isna(txt) or txt is None: return "-"
@@ -206,10 +209,18 @@ def recuperer_donnees_course():
                 d_manche[nv] = {"h_dep": val_dep if pd.notna(val_dep) else None, "h_arr": val_arr if pd.notna(val_arr) else None, "sec": convertir_en_secondes(val_calc)}
             return d_manche
 
+        # AJOUTÉ ICI : Définition de la fonction de fusion déplacée en amont pour éviter le crash
+        def fusionner_temps_manches(dict_asaf, dict_racb):
+            d_fusion = dict_asaf.copy()
+            for k, v in dict_racb.items():
+                if k not in d_fusion or d_fusion[k]["sec"] is None: d_fusion[k] = v
+            return d_fusion
+
         dict_c1 = fusionner_temps_manches(extraire_manche_selon_regles_asaf(df_arr_raw, "COURSE 1", "ASAF"), extraire_manche_selon_regles_asaf(df_arr_raw, "COURSE 1", "RACB"))
         dict_c2 = fusionner_temps_manches(extraire_manche_selon_regles_asaf(df_arr_raw, "COURSE 2", "ASAF"), extraire_manche_selon_regles_asaf(df_arr_raw, "COURSE 2", "RACB"))
         dict_c3 = fusionner_temps_manches(extraire_manche_selon_regles_asaf(df_arr_raw, "COURSE 3", "ASAF"), extraire_manche_selon_regles_asaf(df_arr_raw, "COURSE 3", "RACB"))
     except Exception: pass
+
 # fin bloc 2A
     if not df_eng.empty:
         try:
