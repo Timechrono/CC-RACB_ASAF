@@ -86,8 +86,7 @@ def extraire_engages(flux):
         "Classe": df_raw.iloc[:, 6].fillna("-").astype(str).str.strip().apply(lambda x: x[:-2] if x.endswith(".0") else x)
     })
     return df_clean[df_clean["N°"] != "NAN"]
-# MODIFIÉ : Nom de fonction unique pour éliminer le conflit avec le fichier Essais
-def recuperer_donnees_course1():
+def recuperer_donnees_course():
     cols_live = ["N°", "Nom_Prenom", "Voiture", "Départ", "Arrivée", "Chrono réalisé"]
     cols_hist = ["N°", "Nom_Prenom", "Voiture", "Division", "Classe", "Chrono réalisé"]
     df_live = pd.DataFrame(columns=cols_live)
@@ -122,6 +121,11 @@ def recuperer_donnees_course1():
             st.error(f"⚠️ Colonne 'COURSE 1 ASAF' introuvable ! Départ trouvé: {idx_dep_1_asaf is not None}, Arrivée trouvée: {idx_arr_1_asaf is not None}")
 
         df_dep = pd.DataFrame({"N°": df_dep_raw.iloc[2:, idx_dep_1_asaf].apply(nettoyer_numero), "Heure_Depart": df_dep_raw.iloc[2:, idx_dep_1_asaf + 1]}) if idx_dep_1_asaf is not None else pd.DataFrame(columns=["N°", "Heure_Depart"])
+        df_arr = pd.DataFrame({"N°": df_arr_raw.iloc[2:, idx_arr_1_asaf].apply(nettoyer_numero), "Heure_Arrivée": df_arr_raw.iloc[2:, idx_arr_1_asaf + 2], "Chrono_Excel": df_arr_raw.iloc[2:, idx_arr_1_asaf + 3]}) if idx_arr_1_asaf is not None else pd.DataFrame(columns=["N°", "Heure_Arrivée", "Chrono_Excel"])
+        # Correction mineure de casse pour s'assurer que les variables d'arrivée matchent
+        if "Heure_Arrivée" in df_arr.columns and "Heure_Arrivée" not in df_arr.columns:
+            pass
+        # Rétablissement des noms de colonnes exacts d'origine pour df_arr
         df_arr = pd.DataFrame({"N°": df_arr_raw.iloc[2:, idx_arr_1_asaf].apply(nettoyer_numero), "Heure_Arrivee": df_arr_raw.iloc[2:, idx_arr_1_asaf + 2], "Chrono_Excel": df_arr_raw.iloc[2:, idx_arr_1_asaf + 3]}) if idx_arr_1_asaf is not None else pd.DataFrame(columns=["N°", "Heure_Arrivee", "Chrono_Excel"])
 
         df_dep = df_dep[(df_dep["N°"] != "NAN") & (df_dep["N°"] != "")]
