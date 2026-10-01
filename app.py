@@ -124,20 +124,32 @@ def afficher_tableaux():
         st.markdown("<div style='height:35px;'></div>", unsafe_allow_html=True)
         st.markdown(f"<span class='titre-hist'>{t_his}</span>", unsafe_allow_html=True)
         st.markdown(gen_html(d_his, "table-hist"), unsafe_allow_html=True)
-    with cd:
-        st.markdown(f"<span class='titre-classement'>{t_haut}</span>", unsafe_allow_html=True)
-        st.markdown(gen_html(d_haut, "table-class-robuste"), unsafe_allow_html=True)
-        st.markdown("<div style='height: 55px;'></div>", unsafe_allow_html=True)
-        
-        st.markdown(f"<span class='titre-classement'>{t_milieu}</span>", unsafe_allow_html=True)
-        st.markdown(gen_html(d_milieu, "table-class-robuste"), unsafe_allow_html=True)
-        st.markdown("<div style='height: 55px;'></div>", unsafe_allow_html=True)
-        
-        st.markdown(f"<span class='titre-classement'>{t_bas}</span>", unsafe_allow_html=True)
-        st.markdown(gen_html(d_bas, "table-class-robuste"), unsafe_allow_html=True)
+        with cd:
+        if choix_course in ["Course 1 ASAF", "Course 2 ASAF", "Course 3 ASAF"]:
+            st.markdown(f"<span class='titre-classement'>{t_c1}</span>", unsafe_allow_html=True)
+            st.markdown(gen_html(d_haut, "table-class-robuste"), unsafe_allow_html=True)
+            st.markdown("<div style='height: 55px;'></div>", unsafe_allow_html=True)
+            
+            st.markdown(f"<span class='titre-classement'>{t_c2}</span>", unsafe_allow_html=True)
+            st.markdown(gen_html(d_milieu, "table-class-robuste"), unsafe_allow_html=True)
+            st.markdown("<div style='height: 55px;'></div>", unsafe_allow_html=True)
+            
+            st.markdown(f"<span class='titre-classement'>{t_bas}</span>", unsafe_allow_html=True)
+            st.markdown(gen_html(d_bas, "table-class-robuste"), unsafe_allow_html=True)
+        else:
+            st.markdown(f"<span class='titre-classement'>{t_c1}</span>", unsafe_allow_html=True)
+            st.markdown(gen_html(d_bas, "table-class-robuste"), unsafe_allow_html=True)
+            st.markdown("<div style='height: 55px;'></div>", unsafe_allow_html=True)
+            
+            st.markdown(f"<span class='titre-classement'>{t_c2}</span>", unsafe_allow_html=True)
+            st.markdown(gen_html(d_haut, "table-class-robuste"), unsafe_allow_html=True)
+            st.markdown("<div style='height: 55px;'></div>", unsafe_allow_html=True)
+            
+            st.markdown(f"<span class='titre-classement'>{t_c3}</span>", unsafe_allow_html=True)
+            st.markdown(gen_html(d_milieu, "table-class-robuste"), unsafe_allow_html=True)
 
-        # Ajout de 3 lignes vides de sécurité pour décoller le texte du bord de l'écran
-        st.markdown("<br><br><br><div style='height:30px;'></div>", unsafe_allow_html=True)
+    # REPOSITIONNÉ ICI : Sorti des blocs 'if/else' pour s'appliquer Obligatoirement à TOUTES les sessions
+    st.markdown("<br><br><br><div style='height:30px;'></div>", unsafe_allow_html=True)
 
     time.sleep(30)
     st.rerun()
