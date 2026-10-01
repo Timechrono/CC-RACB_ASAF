@@ -193,7 +193,8 @@ while True:
     df_asaf4 = pd.DataFrame(columns=["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"])
     df_divisions = pd.DataFrame(columns=["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"])
 
-    fichiers_prets = os.path.exists(FILE_ENGAGES) and os.path.exists(FILE_DEPART) and os.path.exists(FILE_ARRIVEE)
+    fichiers_prets = os.path.exists(FILE_ENGAGES_ASAF) and os.path.exists(FILE_DEPART) and os.path.exists(FILE_ARRIVEE)
+
 
     if fichiers_prets and os.path.getsize(FILE_ENGAGES) > 0 and os.path.getsize(FILE_DEPART) > 0 and os.path.getsize(FILE_ARRIVEE) > 0:
         try:
