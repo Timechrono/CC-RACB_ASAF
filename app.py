@@ -90,7 +90,16 @@ div[data-testid="stVerticalBlock"] { gap: 0rem !important; }
 def gen_html(df, cl):
     if df.empty:
         return f"<table class='table-compacte {cl}'><tr><td style='text-align: center; padding: 10px;'>Aucune donnée disponible</td></tr></table>"
+    
+    # Si c'est le tableau des classes, on intercepte la ligne intercalaire pour dessiner une vraie bordure solide continue
+    if cl == "table-class-robuste" and "Pos" in df.columns:
+        html = df.to_html(index=False, classes=f"table-compacte {cl}", escape=False, border=0)
+        # Remplace la ligne '---' brute par une vraie ligne de séparation continue solide
+        html_corrigé = html.replace("<tr><td>---</td><td></td><td></td><td></td><td></td><td></td></tr>", "<tr style='border-top: 2px solid #CBD5E1 !important; height:6px !important;'><td colspan='6' style='border:none !important; padding:0 !important;'></td></tr>")
+        return html_corrigé
+        
     return df.to_html(index=False, classes=f"table-compacte {cl}", escape=False, border=0)
+
 
 # --- CONFIGURATION SÉLECTEUR ---
 col_texte, col_select, col_reste = st.columns([1.3, 1.4, 3.3], vertical_alignment="center")
