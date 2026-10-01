@@ -92,11 +92,11 @@ st.markdown("<div style='height:25px;'></div>", unsafe_allow_html=True)
 def afficher_tableaux():
     st.cache_data.clear()
     
-    # Structure d'appel unifiée et parfaitement alignée
+    # APPEL STRICTEMENT IDENTIQUE ET NEUTRE
     if choix_course == "Course 1 ASAF" and course1_disponible:
-        d_liv, d_his, d_as123, d_as4, d_divs, t_live, t_his, t_c1, t_c2, t_c3 = Course_1_ASAF.recuperer_donnees_course()
+        d_liv, d_his, d_haut, d_milieu, d_bas, t_live, t_his, t_haut, t_milieu, t_bas = Course_1_ASAF.recuperer_donnees_course()
     else:
-        d_liv, d_his, d_as123, d_as4, d_divs, t_live, t_his, t_c1, t_c2, t_c3 = Essais.recuperer_donnees_course()
+        d_liv, d_his, d_haut, d_milieu, d_bas, t_live, t_his, t_haut, t_milieu, t_bas = Essais.recuperer_donnees_course()
 
     st.markdown("<style>.table-hist th:nth-child(1), .table-hist td:nth-child(1) { width: 7% !important; } .table-hist th:nth-child(2), .table-hist td:nth-child(2) { width: 23% !important; } .table-hist th:nth-child(3), .table-hist td:nth-child(3) { width: 22% !important; } .table-hist th:nth-child(4), .table-hist td:nth-child(4) { width: 10% !important; } .table-hist th:nth-child(5), .table-hist td:nth-child(5) { width: 10% !important; } .table-hist th:nth-child(6), .table-hist td:nth-child(6) { width: 14% !important; }</style>", unsafe_allow_html=True)
 
@@ -108,16 +108,16 @@ def afficher_tableaux():
         st.markdown(f"<span class='titre-hist'>{t_his}</span>", unsafe_allow_html=True)
         st.markdown(gen_html(d_his, "table-hist"), unsafe_allow_html=True)
     with cd:
-        st.markdown(f"<span class='titre-classement'>{t_c1}</span>", unsafe_allow_html=True)
-        st.markdown(gen_html(d_as123 if choix_course == "Course 1 ASAF" else d_divs, "table-class-robuste"), unsafe_allow_html=True)
+        st.markdown(f"<span class='titre-classement'>{t_haut}</span>", unsafe_allow_html=True)
+        st.markdown(gen_html(d_haut, "table-class-robuste"), unsafe_allow_html=True)
         st.markdown("<div style='height: 55px;'></div>", unsafe_allow_html=True)
         
-        st.markdown(f"<span class='titre-classement'>{t_c2}</span>", unsafe_allow_html=True)
-        st.markdown(gen_html(d_as123, "table-class-robuste"), unsafe_allow_html=True)
+        st.markdown(f"<span class='titre-classement'>{t_milieu}</span>", unsafe_allow_html=True)
+        st.markdown(gen_html(d_milieu, "table-class-robuste"), unsafe_allow_html=True)
         st.markdown("<div style='height: 55px;'></div>", unsafe_allow_html=True)
         
-        st.markdown(f"<span class='titre-classement'>{t_c3}</span>", unsafe_allow_html=True)
-        st.markdown(gen_html(d_as4, "table-class-robuste"), unsafe_allow_html=True)
+        st.markdown(f"<span class='titre-classement'>{t_bas}</span>", unsafe_allow_html=True)
+        st.markdown(gen_html(d_bas, "table-class-robuste"), unsafe_allow_html=True)
 
     time.sleep(30)
     st.rerun()
