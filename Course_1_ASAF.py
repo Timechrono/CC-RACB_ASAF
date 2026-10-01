@@ -236,4 +236,5 @@ def recuperer_donnees_course():
     t_bas = "🏆 CLASSEMENT PAR DIVISIONS / CLASSES (Course 1)"
 
     return df_live, df_hist, df_asaf123, df_asaf4, html_divisions, t_live, t_his, t_haut, t_milieu, t_bas
+
         
