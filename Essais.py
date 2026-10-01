@@ -148,9 +148,8 @@ def recuperer_donnees_course():
                 # --- ASAF 4 (Top 10 centralisé) ---
                 asaf4 = scr[scr["Division_Clean"].isin(["4", "4.0"])].head(10).copy()
                 if len(asaf4) > 0: asaf4["Pos"] = range(1, len(asaf4) + 1); asaf4["Chrono"] = asaf4["Calc_Sec"].apply(format_final_chrono); df_asaf4 = asaf4[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]]
-    except Exception: pass
-
-        except Exception: pass
+        except Exception: 
+        pass
 
     # --- TITRES ENTIÈREMENT CENTRALISÉS POUR LES ESSAIS ---
     t_live = "🏎️ EN DIRECT / Derniers concurrents partis"
