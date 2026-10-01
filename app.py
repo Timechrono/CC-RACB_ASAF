@@ -87,13 +87,12 @@ with col_select:
 
 st.markdown("<div style='height:25px;'></div>", unsafe_allow_html=True)
 
-# --- REFRESH TOUTES LES 30 SECONDES ---
-@st.fragment(run_every=30)
+# --- REFRESH TOUTES LES 30 SECONDES (CORRIGÉ : fragment standard asynchrone sans paramètre bloquant) ---
+@st.fragment
 def afficher_tableaux():
     st.cache_data.clear()
     
     if choix_course == "Course 1 ASAF" and course1_disponible:
-        # Reçoit désormais 5 titres (dont t_live et t_hist) envoyés par le fichier de course
         d_liv, d_his, d_as123, d_as4, d_divs, t_live, t_his, t_as123, t_as4, t_divs = Course_1_ASAF.recuperer_donnees_course()
     else:
         d_liv, d_his, d_as123, d_as4, d_racb, t_racb, t_as123, t_as4 = Essais.recuperer_donnees_course()
@@ -105,7 +104,6 @@ def afficher_tableaux():
 
     cg, cd = st.columns([1.3, 0.9])
     with cg:
-        # Titre en direct désormais dynamique
         st.markdown(f"<span class='titre-live'>{t_live}</span>", unsafe_allow_html=True)
         st.markdown(gen_html(d_liv, "table-live"), unsafe_allow_html=True)
         st.markdown("<div style='height:35px;'></div>", unsafe_allow_html=True)
@@ -135,6 +133,7 @@ def afficher_tableaux():
             st.markdown(f"<span class='titre-classement'>{t_divs}</span>", unsafe_allow_html=True)
             st.markdown(gen_html(d_as4, "table-class-robuste"), unsafe_allow_html=True)
 
-# Attente et rechargement
-time.sleep(30)
-st.rerun()
+    time.sleep(30)
+    st.rerun()
+
+afficher_tableaux()
