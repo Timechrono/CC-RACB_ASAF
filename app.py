@@ -43,7 +43,7 @@ except ModuleNotFoundError:
 
 st.set_page_config(page_title="Live", layout="wide")
 
-# --- CONCEPTION GRAPHIQUE RIGIDE ET AJUSTEMENTS DES BOUTONS ---
+# --- CONCEPTION GRAPHIQUE RIGIDE ET BOUTONS BOUTONS ---
 st.markdown("""
 <style>
 [data-testid="stHeader"] { display: none !important; }
@@ -92,7 +92,6 @@ button:focus, div:focus, input:focus, select:focus {
 .block-container { padding-top: 0.4rem !important; padding-bottom: 0rem !important; }
 div[data-testid="stVerticalBlock"] { gap: 0rem !important; }
 
-/* RECTIFICATION BOUTONS HORIZONTAUX : MOINS HAUTS, TEXTE GRAS ET RESPIRANT */
 div.stButton > button {
     width: 100% !important;
     min-height: unset !important;
@@ -114,8 +113,6 @@ div.stButton > button:hover {
 }
 </style>
 """, unsafe_allow_html=True)
-# fin bloc 1
-# Gestion persistante de l'état du menu cliquable
 if "active_session" not in st.session_state:
     st.session_state["active_session"] = "Essais / Entraînements"
 
@@ -124,7 +121,6 @@ def gen_html(df, cl):
     if df.empty: return f"<table class='table-compacte {cl}'><tr><td style='text-align: center; padding: 10px;'>Aucune donnée disponible</td></tr></table>"
     return df.to_html(index=False, classes=f"table-compacte {cl}", escape=False, border=0)
 
-# Assemblage dynamique des onglets en fonction des modules détectés
 colonnes_menu = ["Essais / Entraînements"]
 if course1_disponible: colonnes_menu.append("Course 1 ASAF")
 if course1_racb_disponible: colonnes_menu.append("Course 1 RACB")
@@ -143,11 +139,10 @@ for idx, nom_session in enumerate(colonnes_menu):
             st.session_state["active_session"] = nom_session
             st.rerun()
 
-# INTERLIGNE PROPRE POUR SÉPARER LE MENU DE LA FEUILLE EN DESSOUS
 st.markdown("<div style='height: 25px; border-bottom: 1px solid #E2E8F0; margin-bottom: 20px;'></div>", unsafe_allow_html=True)
 choix_course = st.session_state["active_session"]
 
-# --- MOTEUR DE RAFRAÎCHISSEMENT TOUTES LES 30 SECONDES ---
+# --- REFRESH CENTRALISÉ TOUTES LES 30 SECONDES ---
 @st.fragment
 def afficher_tableaux():
     st.cache_data.clear()
@@ -187,17 +182,30 @@ def afficher_tableaux():
         st.markdown(gen_html(d_his, "table-hist"), unsafe_allow_html=True)
         
     with cd:
-        # AFFICHAGE NET ET SANS DOUBLONS AVEC DEUX LIGNES DE MARGES CONSTANTES ENTRE LES CLASSEMENTS
-        st.markdown(f"<span class='titre-classement'>{t_haut}</span>", unsafe_allow_html=True)
-        st.markdown(gen_html(d_haut, "table-class-robuste"), unsafe_allow_html=True)
-        st.markdown("<div style='height: 40px;'></div>", unsafe_allow_html=True) # Marge de quelques lignes
-        
-        st.markdown(f"<span class='titre-classement'>{t_milieu}</span>", unsafe_allow_html=True)
-        st.markdown(gen_html(d_milieu, "table-class-robuste"), unsafe_allow_html=True)
-        st.markdown("<div style='height: 40px;'></div>", unsafe_allow_html=True) # Marge de quelques lignes
-        
-        st.markdown(f"<span class='titre-classement'>{t_bas}</span>", unsafe_allow_html=True)
-        st.markdown(gen_html(d_bas, "table-class-robuste"), unsafe_allow_html=True)
+        # RECTIFICATION ABSOLUE DE L'EFFET MIROIR PAR SÉPARATION DES STRUCTURES DE DONNÉES
+        if choix_course in ["Course 1 ASAF", "Course 2 ASAF", "Course 3 ASAF"]:
+            st.markdown(f"<span class='titre-classement'>{t_haut}</span>", unsafe_allow_html=True)
+            st.markdown(gen_html(d_haut, "table-class-robuste"), unsafe_allow_html=True)
+            st.markdown("<div style='height: 40px;'></div>", unsafe_allow_html=True)
+            
+            st.markdown(f"<span class='titre-classement'>{t_milieu}</span>", unsafe_allow_html=True)
+            st.markdown(gen_html(d_milieu, "table-class-robuste"), unsafe_allow_html=True)
+            st.markdown("<div style='height: 40px;'></div>", unsafe_allow_html=True)
+            
+            st.markdown(f"<span class='titre-classement'>{t_bas}</span>", unsafe_allow_html=True)
+            st.markdown(gen_html(d_bas, "table-class-robuste"), unsafe_allow_html=True)
+        else:
+            # Ordre d'origine spécifique rétabli pour Essais et Entraînements (Pas de doublon)
+            st.markdown(f"<span class='titre-classement'>{t_haut}</span>", unsafe_allow_html=True)
+            st.markdown(gen_html(d_bas, "table-class-robuste"), unsafe_allow_html=True)
+            st.markdown("<div style='height: 40px;'></div>", unsafe_allow_html=True)
+            
+            st.markdown(f"<span class='titre-classement'>{t_milieu}</span>", unsafe_allow_html=True)
+            st.markdown(gen_html(d_haut, "table-class-robuste"), unsafe_allow_html=True)
+            st.markdown("<div style='height: 40px;'></div>", unsafe_allow_html=True)
+            
+            st.markdown(f"<span class='titre-classement'>{t_bas}</span>", unsafe_allow_html=True)
+            st.markdown(gen_html(d_milieu, "table-class-robuste"), unsafe_allow_html=True)
 
     time.sleep(30)
     st.rerun()
