@@ -307,6 +307,7 @@ def rafraichir_donnees_course():
                             df_divisions = df_grouped[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]]
             except Exception: pass
 
+        # --- BLOC DE RENDU NETTOYÉ (SANS LE DEUXIÈME TABLEAU GRISÉ) ---
     cg, cd = st.columns([1.3, 0.9])
     with cg:
         st.markdown("<span class='titre-live'>🏎️ EN DIRECT / Derniers Concurrents partis</span>", unsafe_allow_html=True)
@@ -317,9 +318,7 @@ def rafraichir_donnees_course():
     with cd:
         st.markdown("<span class='titre-classement'>🏆 CLASSEMENT GENERAL OFFICIEUX (Top 25)</span>", unsafe_allow_html=True)
         st.markdown(generer_tableau_html(df_racb_gen, "table-class-robuste"), unsafe_allow_html=True)
-        st.markdown("<div style='height: 55px;'></div>", unsafe_allow_html=True)
-        st.markdown("<span class='titre-classement'>📊 CLASSEMENT OFFICIEUX PAR Groupe/Classe (Top 3)</span>", unsafe_allow_html=True)
-        st.markdown(generer_tableau_html(df_divisions, "table-class-groupes"), unsafe_allow_html=True)
+        # LE DEUXIÈME TABLEAU ET SON ESPACEMENT ONT ÉTÉ SUPPRIMÉS D'ICI
 
 if __name__ == "__main__":
     rafraichir_donnees_course()
