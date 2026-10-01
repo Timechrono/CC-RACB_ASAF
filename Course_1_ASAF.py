@@ -105,8 +105,8 @@ def recuperer_donnees_course():
         df_eng_asaf = extraire_engages(flux_eng_asaf)
         df_eng_racb = extraire_engages(flux_eng_racb)
         
-        # Fusion sécurisée sans perte : on garde l'ASAF et on ajoute les numéros RACB uniques manquants
-        df_eng = pd.concat([df_eng_asaf, df_eng_racb]).drop_duplicates(subset=["N°"], keep="first")
+        # CORRECTION CONCURRENTS : Fusion complète sans écraser les pilotes s'ils partagent un numéro
+        df_eng = pd.concat([df_eng_asaf, df_eng_racb]).drop_duplicates(subset=["N°", "Nom_Prenom"])
         
         df_dep_raw = pd.read_excel(flux_dep, header=None, engine='openpyxl')
         df_arr_raw = pd.read_excel(flux_arr, header=None, engine='openpyxl')
@@ -177,7 +177,6 @@ def recuperer_donnees_course():
                     asaf4["Chrono"] = asaf4["Calc_Sec"].apply(format_final_chrono)
                     df_asaf4 = asaf4[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]]
                 
-                # Prise en compte de toutes les divisions pour le classement par classes
                 scr_div_filtree = scr.copy()
                 if len(scr_div_filtree) > 0:
                     scr_div_filtree["Classe_Num"] = pd.to_numeric(scr_div_filtree["Classe"], errors='coerce').fillna(999)
@@ -192,9 +191,9 @@ def recuperer_donnees_course():
                             sub_df = group[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]]
                             liste_final.append(sub_df)
                             
-                            # --- MODIFIÉ ICI : Insertion d'un séparateur HTML horizontal (<hr>) ---
-                            separateur_html = "<hr style='border:0; border-top:1px solid #CCCCCC; margin:4px 0;'>"
-                            ligne_tracante = pd.DataFrame([[separateur_html, separateur_html, separateur_html, separateur_html, separateur_html, separateur_html]], columns=["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"])
+                            # --- CORRECTION VISUELLE : Ligne HTML solide unifiée sur toute la largeur (colspan=6) ---
+                            ligne_solide = "</td></tr><tr style='background-color:#E2E8F0 !important; height:4px !important;'><td colspan='6' style='padding:0 !important; border:none !important; height:4px !important;'>"
+                            ligne_tracante = pd.DataFrame([[ligne_solide, "", "", "", "", ""]], columns=["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"])
                             liste_final.append(ligne_tracante)
                         
                         if liste_final:
