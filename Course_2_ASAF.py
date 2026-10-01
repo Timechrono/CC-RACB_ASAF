@@ -320,11 +320,13 @@ def recuperer_donnees_course():
         except Exception: pass
 
     # --- CONFIGURATION DES TITRES CENTRALISÉS ET DE L'ORDRE POUR APP.PY ---
-    t_live = "🏎️ EN DIRECT / Derniers Concurrents partis"
-    t_his = "🕒 HISTORIQUE DES TEMPS / 3ème COURSE / Concurrents ASAF"
+    t_live = "🏎️ EN DIRECT / 2ème Course / Concurrents ASAF"
+    t_his = "🕒 HISTORIQUE DES TEMPS / 2ème COURSE / Concurrents ASAF"
     t_haut = "🏆 CLASSEMENT GENERAL OFFICIEUX Division 123 (Top 25)"
     t_milieu = "🏆 CLASSEMENT GENERAL OFFICIEUX Division 4 (Top 10)"
-    t_bas = "📊 CLASSEMENT OFFICIEUX par Division / Classe (Top 3)"
+    t_bas = "📊 CLASSEMENT PAR Division / Classe (Top 3)"
 
-    return df_live, html_hist, df_asaf123, df_asaf4, df_divisions, t_live, t_his, t_haut, t_milieu, t_bas
+    # CORRIGÉ : On renvoie 'df_hist' au lieu de 'html_hist' pour correspondre aux variables de la Course 2
+    return df_live, df_hist, df_asaf123, df_asaf4, df_divisions, t_live, t_his, t_haut, t_milieu, t_bas
+
 
