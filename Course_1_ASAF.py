@@ -105,7 +105,7 @@ def recuperer_donnees_course():
         df_eng_asaf = extraire_engages(flux_eng_asaf)
         df_eng_racb = extraire_engages(flux_eng_racb)
         
-        # CORRECTION CONCURRENTS : Fusion complète sans écraser les pilotes s'ils partagent un numéro
+        # Fusion complète des engagés sans aucune suppression de doublons risquée
         df_eng = pd.concat([df_eng_asaf, df_eng_racb]).drop_duplicates(subset=["N°", "Nom_Prenom"])
         
         df_dep_raw = pd.read_excel(flux_dep, header=None, engine='openpyxl')
@@ -140,7 +140,15 @@ def recuperer_donnees_course():
         else:
             base_runs = base_runs.drop_duplicates(subset=["N°", "Run_Index"])
 
-        base = pd.merge(base_runs, df_eng, on="N°", how="inner")
+        # CORRECTION CONCURRENTS : Passage en how="left" pour conserver Absolument Tout Le Monde qui prend le départ, même si absent du fichier des engagés
+        base = pd.merge(base_runs, df_eng, on="N°", how="left")
+        
+        # Remplissage des valeurs manquantes pour éviter les lignes blanches textuelles
+        base["Nom_Prenom"] = base["Nom_Prenom"].fillna("Pilote Dossard N°" + base["N°"])
+        base["Voiture"] = base["Voiture"].fillna("-")
+        base["Division"] = base["Division"].fillna("-")
+        base["Classe"] = base["Classe"].fillna("-")
+
         if len(df_dep) > 0: base = pd.merge(base, df_dep, on=["N°", "Run_Index"], how="left")
         if len(df_arr) > 0: base = pd.merge(base, df_arr, on=["N°", "Run_Index"], how="left")
         
@@ -188,18 +196,15 @@ def recuperer_donnees_course():
                             group = group.copy()
                             group["Pos"] = range(1, len(group) + 1)
                             group["Chrono"] = group["Calc_Sec"].apply(format_final_chrono)
-                            sub_df = group[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]]
+                            sub_df = group[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]].astype(str)
                             liste_final.append(sub_df)
                             
-                            # --- CORRECTION VISUELLE : Ligne HTML solide unifiée sur toute la largeur (colspan=6) ---
-                            ligne_solide = "</td></tr><tr style='background-color:#E2E8F0 !important; height:4px !important;'><td colspan='6' style='padding:0 !important; border:none !important; height:4px !important;'>"
-                            ligne_tracante = pd.DataFrame([[ligne_solide, "", "", "", "", ""]], columns=["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"])
-                            liste_final.append(ligne_tracante)
+                            # --- MODIFIÉ ICI : Insertion d'une ligne d'intercalaire propre ---
+                            ligne_intercalaire = pd.DataFrame([["---", "", "", "", "", ""]], columns=["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"])
+                            liste_final.append(ligne_intercalaire)
                         
-                        if liste_final:
-                            df_divisions = pd.concat(liste_final, ignore_index=True)
-                            if len(df_divisions) > 0:
-                                df_divisions = df_divisions.iloc[:-1]
+                        if len(liste_final) > 0:
+                            df_divisions = pd.concat(liste_final, ignore_index=True).iloc[:-1]
     except Exception as e:
         pass
 
