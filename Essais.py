@@ -150,9 +150,15 @@ def recuperer_donnees_course():
                 if len(asaf4) > 0: asaf4["Pos"] = range(1, len(asaf4) + 1); asaf4["Chrono"] = asaf4["Calc_Sec"].apply(format_final_chrono); df_asaf4 = asaf4[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]]
     except Exception: pass
 
-    # Variables de titres générées directement ici
-    titre_racb = "🏆 CLASSEMENT EVOLUTIF DES ESSAIS RACB (Top 15)"
-    titre_asaf123 = "🏆 CLASSEMENT EVOLUTIF DES ESSAIS Division 123 (Top 15)"
-    titre_asaf4 = "🏆 CLASSEMENT EVOLUTIF DES ESSAIS Division 4 (Top 10)"
+        except Exception: pass
 
-    return df_live, df_hist, df_asaf123, df_asaf4, df_racb, titre_racb, titre_asaf123, titre_asaf4
+    # --- TITRES ENTIÈREMENT CENTRALISÉS POUR LES ESSAIS ---
+    t_live = "🏎️ EN DIRECT / Derniers concurrents partis"
+    t_hist = "🕒 HISTORIQUE DES TEMPS / ENTRAINEMENTS ASAF & RACB"
+    t_racb = "🏆 CLASSEMENT EVOLUTIF DES ESSAIS RACB (Top 15)"
+    t_as123 = "🏆 CLASSEMENT EVOLUTIF DES ESSAIS Division 123 (Top 15)"
+    t_as4 = "🏆 CLASSEMENT EVOLUTIF DES ESSAIS Division 4 (Top 10)"
+
+    # Renvoie exactement la même structure de 10 éléments que la Course 1
+    return df_live, df_hist, df_asaf123, df_asaf4, df_racb, t_live, t_hist, t_racb, t_as123, t_as4
+
