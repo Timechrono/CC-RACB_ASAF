@@ -145,20 +145,15 @@ def recuperer_donnees_course():
         df_dep = df_dep[(df_dep["N°"] != "NAN") & (df_dep["N°"] != "")]
 
         for d in [df_dep, df_arr]:
-            if len(d) > 0:
-                d["N°"] = d["N°"].astype(str)
-                d["Run_Index"] = d.groupby("N°").cumcount() + 1
-# fin partie 2A
+            if len(d) > 0: d["N°"] = d["N°"].astype(str); d["Run_Index"] = d.groupby("N°").cumcount() + 1
+# fin 2A
         if len(df_dep) > 0: df_dep["Sec_Dep"] = df_dep["Heure_Depart"].apply(convertir_en_secondes)
-        if len(df_arr) > 0: df_arr["Sec_Arr"] = df_arr["Heure_Arrivee"].apply(convertir_en_secondes)
-        if len(df_arr) > 0: df_arr["Sec_Excel"] = df_arr["Chrono_Excel"].apply(convertir_en_secondes)
+        if len(df_arr) > 0: df_arr["Sec_Arr"] = df_arr["Heure_Arrivee"].apply(convertir_en_secondes); df_arr["Sec_Excel"] = df_arr["Chrono_Excel"].apply(convertir_en_secondes)
 
         base_runs = pd.DataFrame(columns=["N°", "Run_Index"])
         if len(df_dep) > 0: base_runs = pd.concat([base_runs, df_dep[["N°", "Run_Index"]]], ignore_index=True)
-        if len(base_runs) == 0:
-            base_runs = df_eng[["N°"]].copy(); base_runs["Run_Index"] = 1
-        else:
-            base_runs = base_runs.drop_duplicates(subset=["N°", "Run_Index"])
+        if len(base_runs) == 0: base_runs = df_eng[["N°"]].copy(); base_runs["Run_Index"] = 1
+        else: base_runs = base_runs.drop_duplicates(subset=["N°", "Run_Index"])
 
         base = pd.merge(base_runs, df_eng, on="N°", how="inner")
         if len(df_dep) > 0: base = pd.merge(base, df_dep, on=["N°", "Run_Index"], how="left")
@@ -169,8 +164,7 @@ def recuperer_donnees_course():
             base["Départ_C1"] = base["Heure_Depart"].apply(formater_heure_ecran)
 
             if "Heure_Depart" in base.columns and base["Heure_Depart"].notna().any():
-                base_c1 = base[base["Heure_Depart"].notna()].copy()
-                base_c1["Ordre_Live"] = range(len(base_c1))
+                base_c1 = base[base["Heure_Depart"].notna()].copy(); base_c1["Ordre_Live"] = range(len(base_c1))
                 df_live_base = base_c1.sort_values(by="Ordre_Live", ascending=False).head(5).copy()
                 df_live_base["Chrono réalisé"] = df_live_base.apply(lambda r: calculer_statut_chrono(r, est_dans_le_live=True), axis=1)
                 df_live_base["Arrivée_Brute"] = df_live_base["Heure_Arrivee"].apply(formater_heure_ecran)
@@ -185,18 +179,19 @@ def recuperer_donnees_course():
                 scr = valides.sort_values(by="Calc_Sec").drop_duplicates(subset=["N°"], keep="first").copy()
                 scr["Division_Clean"] = scr["Division"].astype(str).str.strip()
                 
+                # Correction Division 123 (Stricte correspondance)
                 asaf123 = scr[scr["Division_Clean"].isin(["1", "2", "3", "1.0", "2.0", "3.0"])].head(25).copy()
                 if len(asaf123) > 0:
-                    asaf123["Pos"] = range(1, len(asaf123) + 1)
-                    asaf123["Chrono"] = asaf123["Calc_Sec"].apply(format_final_chrono)
+                    asaf123["Pos"] = range(1, len(asaf123) + 1); asaf123["Chrono"] = asaf123["Calc_Sec"].apply(format_final_chrono)
                     df_asaf123 = asaf123[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]]
                 
+                # Correction Division 4 (Filtre corrigé à "4" et "4.0" uniquement)
                 asaf4 = scr[scr["Division_Clean"].isin(["4", "4.0"])].head(10).copy()
                 if len(asaf4) > 0:
-                    asaf4["Pos"] = range(1, len(asaf4) + 1)
-                    asaf4["Chrono"] = asaf4["Calc_Sec"].apply(format_final_chrono)
+                    asaf4["Pos"] = range(1, len(asaf4) + 1); asaf4["Chrono"] = asaf4["Calc_Sec"].apply(format_final_chrono)
                     df_asaf4 = asaf4[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]]
                 
+                # Correction Classes : Scan global complet de toutes les classes de 1 à 17
                 scr_div_filtree = scr[scr["Division_Clean"].isin(["1", "2", "3", "4", "1.0", "2.0", "3.0", "4.0"])].copy()
                 if len(scr_div_filtree) > 0:
                     scr_div_filtree["Classe_Num"] = pd.to_numeric(scr_div_filtree["Classe"], errors='coerce').fillna(999)
@@ -210,31 +205,24 @@ def recuperer_donnees_course():
                         
                         for (div, cl_num), group in grouped_objs:
                             current_group += 1
-                            group = group.copy()
-                            group["Pos"] = range(1, len(group) + 1)
-                            group["Chrono"] = group["Calc_Sec"].apply(format_final_chrono)
+                            group = group.copy(); group["Pos"] = range(1, len(group) + 1); group["Chrono"] = group["Calc_Sec"].apply(format_final_chrono)
                             sub_df = group[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]]
                             
                             sub_html = sub_df.to_html(index=False, header=(current_group==1), classes='table-compacte table-class-robuste', escape=False, border=0)
-                            if current_group == 1:
-                                html_blocs.append(sub_html.replace("</tbody>\n</table>", ""))
-                            else:
-                                html_blocs.append(sub_html.split("<tbody>")[-1].replace("</tbody>\n</table>", ""))
+                            if current_group == 1: html_blocs.append(sub_html.replace("</tbody>\n</table>", ""))
+                            else: html_blocs.append(sub_html.split("<tbody>")[-1].replace("</tbody>\n</table>", ""))
                             
                             if current_group < total_groups:
                                 html_blocs.append("<tr style='border-top: 2px solid #CBD5E1 !important; height:6px !important;'><td colspan='6' style='border:none !important; padding:0 !important;'></td></tr>")
                         
                         html_blocs.append("</tbody>\n</table>")
                         html_divisions = "".join(html_blocs)
-    except Exception:
-        pass
+    except Exception: pass
 
-        # --- TITRES ENTIÈREMENT CENTRALISÉS ICI DANS LE SCRIPT DE COURSE ---
     t_live = "🏎️ EN DIRECT / 1er Course / Concurrents ASAF"
-    t_his = "🕒 HISTORIQUE DES TEMPS / 1er Course / Concurrents ASAF"
+    t_hist = "🕒 HISTORIQUE DES TEMPS / 1er Course / Concurrents ASAF"
     t_asaf123 = "🏆 CLASSEMENT GENERAL Division 123 (Course 1)"
     t_asaf4 = "🏆 CLASSEMENT GENERAL Division 4 (Course 1)"
     t_divs = "🏆 CLASSEMENT PAR DIVISIONS / CLASSES (Course 1)"
 
-    # Renvoie rigoureusement les 5 DataFrames/HTML suivis des 5 titres textuels
-    return df_live, df_hist, df_asaf123, df_asaf4, html_divisions, t_live, t_his, t_asaf123, t_asaf4, t_divs
+    return df_live, df_hist, df_asaf123, df_asaf4, html_divisions, t_live, t_hist, t_asaf123, t_asaf4, t_divs
