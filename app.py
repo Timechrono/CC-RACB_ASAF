@@ -122,7 +122,7 @@ def gen_html(df, cl):
     if df.empty: return f"<table class='table-compacte {cl}'><tr><td style='text-align: center; padding: 10px;'>Aucune donnée disponible</td></tr></table>"
     return df.to_html(index=False, classes=f"table-compacte {cl}", escape=False, border=0)
 
-# Construction de la ligne de boutons horizontaux
+# Assemblage dynamique des onglets horizontaux
 colonnes_menu = ["Essais / Entraînements"]
 if course1_disponible: colonnes_menu.append("Course 1 ASAF")
 if course1_racb_disponible: colonnes_menu.append("Course 1 RACB")
@@ -141,7 +141,7 @@ for idx, nom_session in enumerate(colonnes_menu):
             st.session_state["active_session"] = nom_session
             st.rerun()
 
-# Espacement marqué entre les boutons et la zone des résultats
+# Interligne et démarcation nette avec le contenu du dessous
 st.markdown("<div style='height: 25px; border-bottom: 1px solid #E2E8F0; margin-bottom: 20px;'></div>", unsafe_allow_html=True)
 choix_course = st.session_state["active_session"]
 
@@ -165,6 +165,7 @@ def afficher_tableaux():
     elif choix_course == "Course 3 ASAF" and course3_disponible:
         d_liv, d_his, d_haut, d_milieu, d_bas, t_live, t_his, t_haut, t_milieu, t_bas = Course_3_ASAF.recuperer_donnees_course()
     elif choix_course == "Course 3 RACB" and course3_racb_disponible:
+        # INTEGRATION INCORPORÉE DE LA COURSE 3 RACB
         d_liv, d_his, d_haut, d_milieu, d_bas, t_live, t_his, t_haut, t_milieu, t_bas = Course_3_RACB.recuperer_donnees_course()
     else:
         d_liv, d_his, d_haut, d_milieu, d_bas, t_live, t_his, t_haut, t_milieu, t_bas = Essais.recuperer_donnees_course()
@@ -185,7 +186,7 @@ def afficher_tableaux():
             st.markdown(f"<span class='titre-classement'>{t_haut}</span>", unsafe_allow_html=True)
             st.markdown(gen_html(d_haut, "table-class-robuste"), unsafe_allow_html=True)
         
-        # Sécurisation stricte : interdiction d'afficher une boîte si le tableau interne est vide
+        # Sécurisation anti-miroir : interdiction d'afficher une boîte si le tableau interne est vide
         if t_milieu and not (isinstance(d_milieu, pd.DataFrame) and d_milieu.empty):
             st.markdown("<div style='height: 40px;'></div>", unsafe_allow_html=True)
             st.markdown(f"<span class='titre-classement'>{t_milieu}</span>", unsafe_allow_html=True)
