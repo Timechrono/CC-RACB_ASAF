@@ -229,10 +229,12 @@ def recuperer_donnees_course():
     except Exception:
         pass
 
-    # --- TITRES ENTIÈREMENT CENTRALISÉS ICI DANS LE SCRIPT DE COURSE ---
-    t_hist = "🕒 HISTORIQUE DES TEMPS / 1er Course / Concurrents ASAF"
+        # --- TITRES ENTIÈREMENT CENTRALISÉS ICI DANS LE SCRIPT DE COURSE ---
+    t_live = "🏎️ EN DIRECT / 1er Course / Concurrents ASAF"
+    t_his = "🕒 HISTORIQUE DES TEMPS / 1er Course / Concurrents ASAF"
     t_asaf123 = "🏆 CLASSEMENT GENERAL Division 123 (Course 1)"
     t_asaf4 = "🏆 CLASSEMENT GENERAL Division 4 (Course 1)"
     t_divs = "🏆 CLASSEMENT PAR DIVISIONS / CLASSES (Course 1)"
 
-    return df_live, df_hist, df_asaf123, df_asaf4, html_divisions, t_hist, t_asaf123, t_asaf4, t_divs
+    # Renvoie rigoureusement les 5 DataFrames/HTML suivis des 5 titres textuels
+    return df_live, df_hist, df_asaf123, df_asaf4, html_divisions, t_live, t_his, t_asaf123, t_asaf4, t_divs
