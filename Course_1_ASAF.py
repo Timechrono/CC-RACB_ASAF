@@ -117,6 +117,10 @@ def recuperer_donnees_course():
             val = str(df_arr_raw.iloc[1, c_idx]).strip().upper()
             if "COURSE 1 ASAF" in val: idx_arr_1_asaf = c_idx
 
+        # Alerte si le mot-clé exact de la colonne pose problème
+        if idx_dep_1_asaf is None or idx_arr_1_asaf is None:
+            st.error(f"⚠️ Colonne 'COURSE 1 ASAF' introuvable ! Départ trouvé: {idx_dep_1_asaf is not None}, Arrivée trouvée: {idx_arr_1_asaf is not None}")
+
         df_dep = pd.DataFrame({"N°": df_dep_raw.iloc[2:, idx_dep_1_asaf].apply(nettoyer_numero), "Heure_Depart": df_dep_raw.iloc[2:, idx_dep_1_asaf + 1]}) if idx_dep_1_asaf is not None else pd.DataFrame(columns=["N°", "Heure_Depart"])
         df_arr = pd.DataFrame({"N°": df_arr_raw.iloc[2:, idx_arr_1_asaf].apply(nettoyer_numero), "Heure_Arrivee": df_arr_raw.iloc[2:, idx_arr_1_asaf + 2], "Chrono_Excel": df_arr_raw.iloc[2:, idx_arr_1_asaf + 3]}) if idx_arr_1_asaf is not None else pd.DataFrame(columns=["N°", "Heure_Arrivee", "Chrono_Excel"])
 
@@ -184,6 +188,6 @@ def recuperer_donnees_course():
                         df_grouped["Chrono"] = df_grouped["Calc_Sec"].apply(format_final_chrono)
                         df_divisions = df_grouped[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]]
     except Exception as e:
-        pass
+        st.error(f"❌ Erreur d'exécution interne dans Course_1_ASAF.py : {e}")
 
     return df_live, df_hist, df_asaf123, df_asaf4, df_divisions
