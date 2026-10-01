@@ -3,18 +3,12 @@ import pandas as pd
 import time
 import Essais
 
+# --- RECHERCHE ET CHARGEMENT DES LOGICIELS DE SESSIONS ASAF ---
 try:
     import Course_1_ASAF
     course1_disponible = True
 except ModuleNotFoundError:
     course1_disponible = False
-
-# --- AJOUT DE LA SESSIONS RACB ---
-try:
-    import Course_1_RACB
-    course1_racb_disponible = True
-except ModuleNotFoundError:
-    course1_racb_disponible = False
 
 try:
     import Course_2_ASAF
@@ -27,6 +21,19 @@ try:
     course3_disponible = True
 except ModuleNotFoundError:
     course3_disponible = False
+
+# --- RECHERCHE ET CHARGEMENT DES LOGICIELS DE SESSIONS RACB ---
+try:
+    import Course_1_RACB
+    course1_racb_disponible = True
+except ModuleNotFoundError:
+    course1_racb_disponible = False
+
+try:
+    import Course_2_RACB
+    course2_racb_disponible = True
+except ModuleNotFoundError:
+    course2_racb_disponible = False
 
 st.set_page_config(page_title="Live", layout="wide")
 
@@ -81,7 +88,7 @@ div[data-testid="stSelectbox"] div[data-baseweb="select"] {
 
 .table-class-robuste th:nth-child(1), .table-class-robuste td:nth-child(1) { width: 9% !important; }
 .table-class-robuste th:nth-child(2), .table-class-robuste td:nth-child(2) { width: 11% !important; }
-.table-class-robuste th:nth-child(3), .table-class-robuste td:xyz(3) { width: 33% !important; }
+.table-class-robuste th:nth-child(3), .table-class-robuste td:nth-child(3) { width: 33% !important; }
 .table-class-robuste th:nth-child(4), .table-class-robuste td:nth-child(4) { width: 23% !important; }
 .table-class-robuste th:nth-child(5), .table-class-robuste td:nth-child(5) { width: 6% !important; }
 .table-class-robuste th:nth-child(6), .table-class-robuste td:nth-child(6) { width: 18% !important; text-align: right !important; }
@@ -90,7 +97,7 @@ div[data-testid="stSelectbox"] div[data-baseweb="select"] {
 div[data-testid="stVerticalBlock"] { gap: 0rem !important; }
 </style>
 """, unsafe_allow_html=True)
-# fin partie 1
+# fin bloc 1
 def gen_html(df, cl):
     if isinstance(df, str): return df 
     if df.empty: return f"<table class='table-compacte {cl}'><tr><td style='text-align: center; padding: 10px;'>Aucune donnée disponible</td></tr></table>"
@@ -102,14 +109,15 @@ with col_texte:
 with col_select:
     options_menu = ["Essais / Entraînements"]
     if course1_disponible: options_menu.append("Course 1 ASAF")
-    if course1_racb_disponible: options_menu.append("Course 1 RACB")  # Placé juste après Course 1 ASAF
+    if course1_racb_disponible: options_menu.append("Course 1 RACB")
     if course2_disponible: options_menu.append("Course 2 ASAF")
+    if course2_racb_disponible: options_menu.append("Course 2 RACB")
     if course3_disponible: options_menu.append("Course 3 ASAF")
     choix_course = st.selectbox("Session_Label", options_menu, label_visibility="collapsed", key="active_session")
 
 st.markdown("<div style='height:25px;'></div>", unsafe_allow_html=True)
 
-# --- ENGINE GLOBAL DE REFRESH ---
+# --- REFRESH CENTRALISÉ ET SÉCURISÉ TOUTES LES 30 SECONDES ---
 @st.fragment
 def afficher_tableaux():
     st.cache_data.clear()
@@ -117,15 +125,17 @@ def afficher_tableaux():
     if choix_course == "Course 1 ASAF" and course1_disponible:
         d_liv, d_his, d_haut, d_milieu, d_bas, t_live, t_his, t_haut, t_milieu, t_bas = Course_1_ASAF.recuperer_donnees_course()
     elif choix_course == "Course 1 RACB" and course1_racb_disponible:
-        # Note : Votre script RACB actuel génère directement ses tableaux HTML au lieu de renvoyer des DataFrames.
-        # Pour éviter de faire planter l'application à l'affichage, nous passons des chaînes vides ou adaptées.
-        d_liv, d_his, d_haut, d_milieu, d_bas = "", "", "", "", ""
-        t_live, t_his, t_haut, t_milieu, t_bas = "", "", "", "", ""
-        # Appel direct de la fonction interne du script RACB
         Course_1_RACB.rafraichir_donnees_course()
-        return  # On coupe ici car Course_1_RACB gère lui-même son affichage et ses colonnes HTML
+        time.sleep(30)
+        st.rerun()
+        return
     elif choix_course == "Course 2 ASAF" and course2_disponible:
         d_liv, d_his, d_haut, d_milieu, d_bas, t_live, t_his, t_haut, t_milieu, t_bas = Course_2_ASAF.recuperer_donnees_course()
+    elif choix_course == "Course 2 RACB" and course2_racb_disponible:
+        Course_2_RACB.rafraichir_donnees_course()
+        time.sleep(30)
+        st.rerun()
+        return
     elif choix_course == "Course 3 ASAF" and course3_disponible:
         d_liv, d_his, d_haut, d_milieu, d_bas, t_live, t_his, t_haut, t_milieu, t_bas = Course_3_ASAF.recuperer_donnees_course()
     else:
