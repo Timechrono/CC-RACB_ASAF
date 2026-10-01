@@ -43,7 +43,7 @@ except ModuleNotFoundError:
 
 st.set_page_config(page_title="Live", layout="wide")
 
-# --- CONCEPTION GRAPHIQUE RIGIDE ET BOUTONS BOUTONS ---
+# --- CONCEPTION GRAPHIQUE RIGIDE ET BOUTONS HORIZONTAUX ---
 st.markdown("""
 <style>
 [data-testid="stHeader"] { display: none !important; }
@@ -92,6 +92,7 @@ button:focus, div:focus, input:focus, select:focus {
 .block-container { padding-top: 0.4rem !important; padding-bottom: 0rem !important; }
 div[data-testid="stVerticalBlock"] { gap: 0rem !important; }
 
+/* BOUTONS HORIZONTAUX OPTIMISÉS : HAUTEUR AJUSTÉE, TEXTE GRAS ET RESPIRANT */
 div.stButton > button {
     width: 100% !important;
     min-height: unset !important;
@@ -121,6 +122,7 @@ def gen_html(df, cl):
     if df.empty: return f"<table class='table-compacte {cl}'><tr><td style='text-align: center; padding: 10px;'>Aucune donnée disponible</td></tr></table>"
     return df.to_html(index=False, classes=f"table-compacte {cl}", escape=False, border=0)
 
+# Construction de la ligne de boutons horizontaux
 colonnes_menu = ["Essais / Entraînements"]
 if course1_disponible: colonnes_menu.append("Course 1 ASAF")
 if course1_racb_disponible: colonnes_menu.append("Course 1 RACB")
@@ -139,35 +141,31 @@ for idx, nom_session in enumerate(colonnes_menu):
             st.session_state["active_session"] = nom_session
             st.rerun()
 
+# Espacement marqué entre les boutons et la zone des résultats
 st.markdown("<div style='height: 25px; border-bottom: 1px solid #E2E8F0; margin-bottom: 20px;'></div>", unsafe_allow_html=True)
 choix_course = st.session_state["active_session"]
 
-# --- REFRESH CENTRALISÉ TOUTES LES 30 SECONDES ---
+# --- CYCLAGE AUTOMATIQUE CENTRALISÉ TOUTES LES 30 SECONDES ---
 @st.fragment
 def afficher_tableaux():
     st.cache_data.clear()
     
+    # Sécurisation des conteneurs pour tuer tout effet miroir hérité
+    d_liv, d_his, d_haut, d_milieu, d_bas = pd.DataFrame(), "", pd.DataFrame(), pd.DataFrame(), pd.DataFrame()
+    t_live, t_his, t_haut, t_milieu, t_bas = "", "", "", "", ""
+    
     if choix_course == "Course 1 ASAF" and course1_disponible:
         d_liv, d_his, d_haut, d_milieu, d_bas, t_live, t_his, t_haut, t_milieu, t_bas = Course_1_ASAF.recuperer_donnees_course()
     elif choix_course == "Course 1 RACB" and course1_racb_disponible:
-        Course_1_RACB.rafraichir_donnees_course()
-        time.sleep(30)
-        st.rerun()
-        return
+        d_liv, d_his, d_haut, d_milieu, d_bas, t_live, t_his, t_haut, t_milieu, t_bas = Course_1_RACB.recuperer_donnees_course()
     elif choix_course == "Course 2 ASAF" and course2_disponible:
         d_liv, d_his, d_haut, d_milieu, d_bas, t_live, t_his, t_haut, t_milieu, t_bas = Course_2_ASAF.recuperer_donnees_course()
     elif choix_course == "Course 2 RACB" and course2_racb_disponible:
-        Course_2_RACB.rafraichir_donnees_course()
-        time.sleep(30)
-        st.rerun()
-        return
+        d_liv, d_his, d_haut, d_milieu, d_bas, t_live, t_his, t_haut, t_milieu, t_bas = Course_2_RACB.recuperer_donnees_course()
     elif choix_course == "Course 3 ASAF" and course3_disponible:
         d_liv, d_his, d_haut, d_milieu, d_bas, t_live, t_his, t_haut, t_milieu, t_bas = Course_3_ASAF.recuperer_donnees_course()
     elif choix_course == "Course 3 RACB" and course3_racb_disponible:
-        Course_3_RACB.rafraichir_donnees_course()
-        time.sleep(30)
-        st.rerun()
-        return
+        d_liv, d_his, d_haut, d_milieu, d_bas, t_live, t_his, t_haut, t_milieu, t_bas = Course_3_RACB.recuperer_donnees_course()
     else:
         d_liv, d_his, d_haut, d_milieu, d_bas, t_live, t_his, t_haut, t_milieu, t_bas = Essais.recuperer_donnees_course()
 
@@ -175,37 +173,28 @@ def afficher_tableaux():
 
     cg, cd = st.columns([1.3, 0.9])
     with cg:
-        st.markdown(f"<span class='titre-live'>{t_live}</span>", unsafe_allow_html=True)
+        if t_live: st.markdown(f"<span class='titre-live'>{t_live}</span>", unsafe_allow_html=True)
         st.markdown(gen_html(d_liv, "table-live"), unsafe_allow_html=True)
         st.markdown("<div style='height:35px;'></div>", unsafe_allow_html=True)
-        st.markdown(f"<span class='titre-hist'>{t_his}</span>", unsafe_allow_html=True)
+        if t_his: st.markdown(f"<span class='titre-hist'>{t_his}</span>", unsafe_allow_html=True)
         st.markdown(gen_html(d_his, "table-hist"), unsafe_allow_html=True)
         
     with cd:
-        # RECTIFICATION ABSOLUE DE L'EFFET MIROIR PAR SÉPARATION DES STRUCTURES DE DONNÉES
-        if choix_course in ["Course 1 ASAF", "Course 2 ASAF", "Course 3 ASAF"]:
+        # Affichage chirurgical des blocs de droite uniquement si des titres valides existent
+        if t_haut:
             st.markdown(f"<span class='titre-classement'>{t_haut}</span>", unsafe_allow_html=True)
             st.markdown(gen_html(d_haut, "table-class-robuste"), unsafe_allow_html=True)
+        
+        # Sécurisation stricte : interdiction d'afficher une boîte si le tableau interne est vide
+        if t_milieu and not (isinstance(d_milieu, pd.DataFrame) and d_milieu.empty):
             st.markdown("<div style='height: 40px;'></div>", unsafe_allow_html=True)
-            
             st.markdown(f"<span class='titre-classement'>{t_milieu}</span>", unsafe_allow_html=True)
             st.markdown(gen_html(d_milieu, "table-class-robuste"), unsafe_allow_html=True)
-            st.markdown("<div style='height: 40px;'></div>", unsafe_allow_html=True)
             
+        if t_bas and not (isinstance(d_bas, pd.DataFrame) and d_bas.empty):
+            st.markdown("<div style='height: 40px;'></div>", unsafe_allow_html=True)
             st.markdown(f"<span class='titre-classement'>{t_bas}</span>", unsafe_allow_html=True)
             st.markdown(gen_html(d_bas, "table-class-robuste"), unsafe_allow_html=True)
-        else:
-            # Ordre d'origine spécifique rétabli pour Essais et Entraînements (Pas de doublon)
-            st.markdown(f"<span class='titre-classement'>{t_haut}</span>", unsafe_allow_html=True)
-            st.markdown(gen_html(d_bas, "table-class-robuste"), unsafe_allow_html=True)
-            st.markdown("<div style='height: 40px;'></div>", unsafe_allow_html=True)
-            
-            st.markdown(f"<span class='titre-classement'>{t_milieu}</span>", unsafe_allow_html=True)
-            st.markdown(gen_html(d_haut, "table-class-robuste"), unsafe_allow_html=True)
-            st.markdown("<div style='height: 40px;'></div>", unsafe_allow_html=True)
-            
-            st.markdown(f"<span class='titre-classement'>{t_bas}</span>", unsafe_allow_html=True)
-            st.markdown(gen_html(d_milieu, "table-class-robuste"), unsafe_allow_html=True)
 
     time.sleep(30)
     st.rerun()
