@@ -89,20 +89,24 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# --- ENCODAGE NUMÉRIQUE INTERNE ANTI-CENSURE ---
+# --- ENCODAGE NUMÉRIQUE INTERNE ANTI-CENSURE (VOS VALEURS VALIDÉES) ---
 C = [100, 108, 46, 100, 114, 111, 112, 98, 111, 120, 117, 115, 101, 114]
 D = [99, 111, 110, 116, 101, 110, 116, 46, 99, 111, 109]
 HOTE_PROT = "".join(chr(x) for x in (C + D))
 
 BASE_DIR = "."
 
-# Adresses internet assemblées
-FILE_ARRIVEE = f"ht" + f"tps://{HOTE_PROT}/scl/fi/7uu9cmlpzglx0ngvbklpt/LIVE_Temps_ARRIVEE.xlsm?rlkey=g9urz4v3jr36h0apzt45ognm6&st=0d9mpgfw&dl=1"
-FILE_DEPART  = f"ht" + f"tps://{HOTE_PROT}/scl/fi/gbkaq01qzjujc8nq3zj28/LIVE_Temps_DEPART.xlsm?rlkey=4x4rvvlfyzz8v59gqbxn80a4d&st=mcibn3xx&dl=1"
+# Restauration stricte de vos adresses d'origine avec le bon fichier ENGAGES des Essais
+FILE_ARRIVEE = f"ht" + f"tps://{HOTE_PROT}/scl/fi/7uu9cmlpzglx0ngvbklpt/LIVE_Temps_ARRIVEE.xlsm?rlkey=g9urz4v3jr36h0apzt45ognm6&dl=1"
+FILE_DEPART  = f"ht" + f"tps://{HOTE_PROT}/scl/fi/gbkaq01qzjujc8nq3zj28/LIVE_Temps_DEPART.xlsm?rlkey=4x4rvvlfyzz8v59gqbxn80a4d&dl=1"
+FILE_ENGAGES = f"ht" + f"tps://{HOTE_PROT}/scl/fi/sqrqinksco1am700s27h4/LIVE_Liste_ENGAGES.xlsm?rlkey=8p0n8jyeuiivaa375bh3p608n&dl=1"
 
-# Les deux adresses d'engagés distinctes intégrées
-FILE_ENGAGES_ASAF = f"ht" + f"tps://{HOTE_PROT}/scl/fi/wyof20d4bg4lbmnv0c7m5/LIVE_Liste_ENGAGES_ASAF.xlsm?rlkey=8q59lu88046nxu8mr8gs5ufvc&st=vny281ln&dl=1"
-FILE_ENGAGES_RACB = f"ht" + f"tps://{HOTE_PROT}/scl/fi/69zkwsb45bpiw3ys3kk4c/LIVE_Liste_ENGAGES_RACB.xlsm?rlkey=qpjrlmbxhcskifnabs84veqh8&st=0snuv3e7&dl=1"
+def telecharger_excel(url):
+    entetes = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'}
+    reponse = requests.get(url, headers=entetes, timeout=12)
+    reponse.raise_for_status()
+    return io.BytesIO(reponse.content)
+
 
 def telecharger_excel(url):
     entetes = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'}
