@@ -1,4 +1,4 @@
-import streamlit st
+import streamlit as st
 import pandas as pd
 import time
 import Essais
@@ -15,7 +15,6 @@ try:
 except ModuleNotFoundError:
     course2_disponible = False
 
-# AJOUTÉ : Détection automatique de la Course 3
 try:
     import Course_3_ASAF
     course3_disponible = True
