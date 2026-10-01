@@ -97,17 +97,12 @@ def recuperer_donnees_course():
     df_divisions = pd.DataFrame(columns=["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"])
 
     try:
-        flux_eng_asaf = telecharger_excel(FILE_ENGAGES_ASAF)
-        flux_eng_racb = telecharger_excel(FILE_ENGAGES_RACB)
+        # Restauration stricte du fichier d'engagés ASAF unique d'origine
+        flux_eng = telecharger_excel(FILE_ENGAGES_ASAF)
         flux_dep = telecharger_excel(FILE_DEPART)
         flux_arr = telecharger_excel(FILE_ARRIVEE)
         
-        df_eng_asaf = extraire_engages(flux_eng_asaf)
-        df_eng_racb = extraire_engages(flux_eng_racb)
-        
-        # Fusion complète des engagés sans aucune suppression de doublons risquée
-        df_eng = pd.concat([df_eng_asaf, df_eng_racb]).drop_duplicates(subset=["N°", "Nom_Prenom"])
-        
+        df_eng_raw = pd.read_excel(flux_eng, skiprows=1, engine='openpyxl')
         df_dep_raw = pd.read_excel(flux_dep, header=None, engine='openpyxl')
         df_arr_raw = pd.read_excel(flux_arr, header=None, engine='openpyxl')
 
@@ -121,7 +116,15 @@ def recuperer_donnees_course():
 
         df_dep = pd.DataFrame({"N°": df_dep_raw.iloc[2:, idx_dep_1_asaf].apply(nettoyer_numero), "Heure_Depart": df_dep_raw.iloc[2:, idx_dep_1_asaf + 1]}) if idx_dep_1_asaf is not None else pd.DataFrame(columns=["N°", "Heure_Depart"])
         df_arr = pd.DataFrame({"N°": df_arr_raw.iloc[2:, idx_arr_1_asaf].apply(nettoyer_numero), "Heure_Arrivee": df_arr_raw.iloc[2:, idx_arr_1_asaf + 2], "Chrono_Excel": df_arr_raw.iloc[2:, idx_arr_1_asaf + 3]}) if idx_arr_1_asaf is not None else pd.DataFrame(columns=["N°", "Heure_Arrivee", "Chrono_Excel"])
+        
+        df_eng_raw.columns = df_eng_raw.columns.astype(str).str.strip().str.upper()
+        df_eng = pd.DataFrame({"N°": df_eng_raw.iloc[:, 0].apply(nettoyer_numero), 
+                               "Nom_Prenom": df_eng_raw.iloc[:, 1].fillna("Pilote Inconnu").astype(str).str.strip(),
+                               "Voiture": df_eng_raw.iloc[:, 4].fillna("").astype(str).str.strip(),
+                               "Division": df_eng_raw.iloc[:, 5].apply(lambda x: "-" if pd.isna(x) else str(x).strip()[:-2] if str(x).strip().endswith(".0") else str(x).strip()),
+                               "Classe": df_eng_raw.iloc[:, 6].fillna("-").astype(str).str.strip().apply(lambda x: x[:-2] if x.endswith(".0") else x)})
 
+        df_eng = df_eng[df_eng["N°"] != "NAN"].drop_duplicates(subset=["N°"])
         df_dep = df_dep[(df_dep["N°"] != "NAN") & (df_dep["N°"] != "")]
 
         for d in [df_dep, df_arr]:
@@ -140,11 +143,9 @@ def recuperer_donnees_course():
         else:
             base_runs = base_runs.drop_duplicates(subset=["N°", "Run_Index"])
 
-        # CORRECTION CONCURRENTS : Passage en how="left" pour conserver Absolument Tout Le Monde qui prend le départ, même si absent du fichier des engagés
+        # Utilisation d'une jointure left pour être sûr de ne perdre aucun concurrent parti
         base = pd.merge(base_runs, df_eng, on="N°", how="left")
-        
-        # Remplissage des valeurs manquantes pour éviter les lignes blanches textuelles
-        base["Nom_Prenom"] = base["Nom_Prenom"].fillna("Pilote Dossard N°" + base["N°"])
+        base["Nom_Prenom"] = base["Nom_Prenom"].fillna("Pilote Inconnu")
         base["Voiture"] = base["Voiture"].fillna("-")
         base["Division"] = base["Division"].fillna("-")
         base["Classe"] = base["Classe"].fillna("-")
@@ -185,7 +186,7 @@ def recuperer_donnees_course():
                     asaf4["Chrono"] = asaf4["Calc_Sec"].apply(format_final_chrono)
                     df_asaf4 = asaf4[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]]
                 
-                scr_div_filtree = scr.copy()
+                scr_div_filtree = scr[scr["Division_Clean"].isin(["1", "2", "3", "4", "1.0", "2.0", "3.0", "4.0"])].copy()
                 if len(scr_div_filtree) > 0:
                     scr_div_filtree["Classe_Num"] = pd.to_numeric(scr_div_filtree["Classe"], errors='coerce').fillna(999)
                     df_grouped = scr_div_filtree.sort_values(by=["Division_Clean", "Classe_Num", "Calc_Sec"]).groupby(["Division_Clean", "Classe_Num"]).head(3).copy()
@@ -196,14 +197,14 @@ def recuperer_donnees_course():
                             group = group.copy()
                             group["Pos"] = range(1, len(group) + 1)
                             group["Chrono"] = group["Calc_Sec"].apply(format_final_chrono)
-                            sub_df = group[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]].astype(str)
+                            sub_df = group[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]]
                             liste_final.append(sub_df)
                             
-                            # --- MODIFIÉ ICI : Insertion d'une ligne d'intercalaire propre ---
-                            ligne_intercalaire = pd.DataFrame([["---", "", "", "", "", ""]], columns=["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"])
-                            liste_final.append(ligne_intercalaire)
+                            # Insertion d'une ligne d'intercalaire vide propre et saine
+                            ligne_vide = pd.DataFrame([["", "", "", "", "", ""]], columns=["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"])
+                            liste_final.append(ligne_vide)
                         
-                        if len(liste_final) > 0:
+                        if liste_final:
                             df_divisions = pd.concat(liste_final, ignore_index=True).iloc[:-1]
     except Exception as e:
         pass
