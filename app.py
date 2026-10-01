@@ -117,42 +117,42 @@ def afficher_tableaux():
 
     st.markdown("<style>.table-hist th:nth-child(1), .table-hist td:nth-child(1) { width: 7% !important; } .table-hist th:nth-child(2), .table-hist td:nth-child(2) { width: 23% !important; } .table-hist th:nth-child(3), .table-hist td:nth-child(3) { width: 22% !important; } .table-hist th:nth-child(4), .table-hist td:nth-child(4) { width: 10% !important; } .table-hist th:nth-child(5), .table-hist td:nth-child(5) { width: 10% !important; } .table-hist th:nth-child(6), .table-hist td:nth-child(6) { width: 14% !important; }</style>", unsafe_allow_html=True)
 
-    cg, cd = st.columns([1.3, 0.9])
+        cg, cd = st.columns([1.3, 0.9])
     with cg:
         st.markdown(f"<span class='titre-live'>{t_live}</span>", unsafe_allow_html=True)
         st.markdown(gen_html(d_liv, "table-live"), unsafe_allow_html=True)
         st.markdown("<div style='height:35px;'></div>", unsafe_allow_html=True)
         st.markdown(f"<span class='titre-hist'>{t_his}</span>", unsafe_allow_html=True)
         st.markdown(gen_html(d_his, "table-hist"), unsafe_allow_html=True)
-        with cd:
+        
+    with cd:
         if choix_course in ["Course 1 ASAF", "Course 2 ASAF", "Course 3 ASAF"]:
-            st.markdown(f"<span class='titre-classement'>{t_c1}</span>", unsafe_allow_html=True)
+            st.markdown(f"<span class='titre-classement'>{t_haut}</span>", unsafe_allow_html=True)
             st.markdown(gen_html(d_haut, "table-class-robuste"), unsafe_allow_html=True)
             st.markdown("<div style='height: 55px;'></div>", unsafe_allow_html=True)
             
-            st.markdown(f"<span class='titre-classement'>{t_c2}</span>", unsafe_allow_html=True)
+            st.markdown(f"<span class='titre-classement'>{t_milieu}</span>", unsafe_allow_html=True)
             st.markdown(gen_html(d_milieu, "table-class-robuste"), unsafe_allow_html=True)
             st.markdown("<div style='height: 55px;'></div>", unsafe_allow_html=True)
             
             st.markdown(f"<span class='titre-classement'>{t_bas}</span>", unsafe_allow_html=True)
             st.markdown(gen_html(d_bas, "table-class-robuste"), unsafe_allow_html=True)
         else:
-            st.markdown(f"<span class='titre-classement'>{t_c1}</span>", unsafe_allow_html=True)
+            st.markdown(f"<span class='titre-classement'>{t_haut}</span>", unsafe_allow_html=True)
             st.markdown(gen_html(d_bas, "table-class-robuste"), unsafe_allow_html=True)
             st.markdown("<div style='height: 55px;'></div>", unsafe_allow_html=True)
             
-            st.markdown(f"<span class='titre-classement'>{t_c2}</span>", unsafe_allow_html=True)
+            st.markdown(f"<span class='titre-classement'>{t_milieu}</span>", unsafe_allow_html=True)
             st.markdown(gen_html(d_haut, "table-class-robuste"), unsafe_allow_html=True)
             st.markdown("<div style='height: 55px;'></div>", unsafe_allow_html=True)
             
-            st.markdown(f"<span class='titre-classement'>{t_c3}</span>", unsafe_allow_html=True)
+            st.markdown(f"<span class='titre-classement'>{t_bas}</span>", unsafe_allow_html=True)
             st.markdown(gen_html(d_milieu, "table-class-robuste"), unsafe_allow_html=True)
 
-    # REPOSITIONNÉ ICI : Sorti des blocs 'if/else' pour s'appliquer Obligatoirement à TOUTES les sessions
+    # Zone de confort en dehors du if/else pour s'appliquer également aux Essais
     st.markdown("<br><br><br><div style='height:30px;'></div>", unsafe_allow_html=True)
 
     time.sleep(30)
     st.rerun()
 
 afficher_tableaux()
-
