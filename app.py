@@ -142,8 +142,8 @@ for idx, nom_session in enumerate(colonnes_menu):
             st.session_state["active_session"] = nom_session
             st.rerun()
 
-# INTERLIGNE SERRÉ POUR UN ALIGNEMENT PARFAIT DES TABLEAUX
-st.markdown("<div style='height: 6px; margin-bottom: 8px;'></div>", unsafe_allow_html=True)
+# INTERLIGNE RÉAJUSTÉ : 14PX POUR CRÉER UNE SÉPARATION VISUELLE PROPRE ET DISCRÈTE
+st.markdown("<div style='height: 14px; margin-bottom: 4px;'></div>", unsafe_allow_html=True)
 choix_course = st.session_state["active_session"]
 
 # Zone d'affichage pure vidée mécaniquement à chaque itération
