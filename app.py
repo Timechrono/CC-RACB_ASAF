@@ -136,7 +136,11 @@ def afficher_tableaux():
         st.markdown(f"<span class='titre-classement'>{t_bas}</span>", unsafe_allow_html=True)
         st.markdown(gen_html(d_bas, "table-class-robuste"), unsafe_allow_html=True)
 
+        # Ajout de 3 lignes vides de sécurité pour décoller le texte du bord de l'écran
+        st.markdown("<br><br><br><div style='height:30px;'></div>", unsafe_allow_html=True)
+
     time.sleep(30)
     st.rerun()
 
 afficher_tableaux()
+
