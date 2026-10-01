@@ -159,12 +159,11 @@ def recuperer_donnees_course():
     cols_live = ["N°", "Nom_Prenom", "Voiture", "Départ", "Arrivée", "Chrono réalisé"]
     cols_hist = ["N°", "Nom_Prenom", "Voiture", "Division", "Classe", "Course 1", "Course 2", "Chrono réalisé"]
     df_live = pd.DataFrame(columns=cols_live)
-    df_hist = pd.DataFrame(columns=cols_hist)
     df_asaf123 = pd.DataFrame(columns=["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"])
     df_asaf4 = pd.DataFrame(columns=["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"])
     df_divisions = pd.DataFrame(columns=["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"])
     html_hist = "<table class='table-compacte table-hist'><tr><td style='text-align: center; padding: 10px;'>Aucune donnée disponible</td></tr></table>"
-    df_eng = pd.DataFrame() 
+    df_eng = pd.DataFrame()
 
     try:
         df_eng_raw = pd.read_excel(telecharger_excel(FILE_ENGAGES), skiprows=1, engine='openpyxl')
@@ -186,10 +185,7 @@ def recuperer_donnees_course():
         })
         df_eng = df_eng[df_eng["N°"] != "NAN"].drop_duplicates(subset=["N°"])
         df_eng = df_eng[df_eng["Division"].isin(["1", "2", "3", "4"])].copy()
-        
-        numeros_autorises_123 = set(df_eng[df_eng["Division"].isin(["1", "2", "3"])]["N°"].unique())
-        numeros_autorises_4 = set(df_eng[df_eng["Division"] == "4"]["N°"].unique())
-        tous_numeros_autorises_asaf = numeros_autorises_123.union(numeros_autorises_4)
+        tous_numeros_autorises_asaf = set(df_eng["N°"].unique())
 
         def trouver_index_colonne_titre(df, chaine_recherche):
             for c_idx in range(len(df.columns)):
@@ -210,28 +206,11 @@ def recuperer_donnees_course():
                 d_manche[nv] = {"h_dep": val_dep if pd.notna(val_dep) else None, "h_arr": val_arr if pd.notna(val_arr) else None, "sec": convertir_en_secondes(val_calc)}
             return d_manche
 
-        dict_c1_asaf = extraire_manche_selon_regles_asaf(df_arr_raw, "COURSE 1", "ASAF")
-        dict_c1_racb = extraire_manche_selon_regles_asaf(df_arr_raw, "COURSE 1", "RACB")
-        dict_c2_asaf = extraire_manche_selon_regles_asaf(df_arr_raw, "COURSE 2", "ASAF")
-        dict_c2_racb = extraire_manche_selon_regles_asaf(df_arr_raw, "COURSE 2", "RACB")
-        
-        # Extraction des deux colonnes pour la Manche 3
-        dict_c3_asaf = extraire_manche_selon_regles_asaf(df_arr_raw, "COURSE 3", "ASAF")
-        dict_c3_racb = extraire_manche_selon_regles_asaf(df_arr_raw, "COURSE 3", "RACB")
-
-        def fusionner_temps_manches(dict_asaf, dict_racb):
-            d_fusion = dict_asaf.copy()
-            for k, v in dict_racb.items():
-                if k not in d_fusion or d_fusion[k]["sec"] is None: d_fusion[k] = v
-            return d_fusion
-
-        dict_c1 = fusionner_temps_manches(dict_c1_asaf, dict_c1_racb)
-        dict_c2 = fusionner_temps_manches(dict_c2_asaf, dict_c2_racb)
-        # CORRECTION : Fusion étanche des données ASAF et RACB pour la Manche 3
-        dict_c3 = fusionner_temps_manches(dict_c3_asaf, dict_c3_racb)
+        dict_c1 = fusionner_temps_manches(extraire_manche_selon_regles_asaf(df_arr_raw, "COURSE 1", "ASAF"), extraire_manche_selon_regles_asaf(df_arr_raw, "COURSE 1", "RACB"))
+        dict_c2 = fusionner_temps_manches(extraire_manche_selon_regles_asaf(df_arr_raw, "COURSE 2", "ASAF"), extraire_manche_selon_regles_asaf(df_arr_raw, "COURSE 2", "RACB"))
+        dict_c3 = fusionner_temps_manches(extraire_manche_selon_regles_asaf(df_arr_raw, "COURSE 3", "ASAF"), extraire_manche_selon_regles_asaf(df_arr_raw, "COURSE 3", "RACB"))
     except Exception: pass
-
-# fin 2 A
+# fin bloc 2A
     if not df_eng.empty:
         try:
             rows_data = []
@@ -246,77 +225,56 @@ def recuperer_donnees_course():
                 })
             base = pd.DataFrame(rows_data)
             if len(base) > 0:
-                base["Course_1_Txt"] = base["Calc_Sec_1"].apply(lambda x: format_final_chrono(x))
-                base["Course_2_Txt"] = base["Calc_Sec_2"].apply(lambda x: format_final_chrono(x))
-
                 if "Heure_Depart_3" in base.columns and base["Heure_Depart_3"].notna().any():
                     base_c3 = base[base["Heure_Depart_3"].notna()].copy()
-                    def calculer_statut_live(row):
-                        if pd.notna(row["Calc_Sec_3"]) and row["Calc_Sec_3"] > 0: return format_final_chrono(row["Calc_Sec_3"])
-                        if pd.notna(row["Heure_Depart_3"]) and pd.isna(row["Heure_Arrivee_3"]): return "<span class='vrai-gyrophare'>🚨</span> EN PISTE"
-                        return "No Time"
-                    base_c3["Chrono réalisé"] = base_c3.apply(calculer_statut_live, axis=1)
+                    def cal_live(r):
+                        if pd.notna(r["Calc_Sec_3"]) and r["Calc_Sec_3"] > 0: return format_final_chrono(r["Calc_Sec_3"])
+                        return "<span class='vrai-gyrophare'>🚨</span> EN PISTE" if pd.isna(r["Heure_Arrivee_3"]) else "No Time"
+                    base_c3["Chrono réalisé"] = base_c3.apply(cal_live, axis=1)
                     base_c3["Départ"] = base_c3["Heure_Depart_3"].apply(formater_heure_ecran)
                     base_c3["Arrivée"] = base_c3["Heure_Arrivee_3"].apply(formater_heure_ecran)
                     df_live = base_c3.sort_values(by="Heure_Depart_3", ascending=False).head(5)[["N°", "Nom_Prenom", "Voiture", "Départ", "Arrivée", "Chrono réalisé"]]
 
-                df_hist_base = base[base["Calc_Sec_1"].notna() | base["Calc_Sec_2"].notna() | base["Calc_Sec_3"].notna()].copy()
-                df_hist_base = df_hist_base.sort_values(by="Heure_Depart_3", ascending=False, na_position="last")
-                
+                df_hb = base[base["Calc_Sec_1"].notna() | base["Calc_Sec_2"].notna() | base["Calc_Sec_3"].notna()].copy().sort_values(by="Heure_Depart_3", ascending=False, na_position="last")
                 html_hist = "<table class='table-compacte table-hist'><thead><tr><th>N°</th><th>Nom_Prenom</th><th>Voiture</th><th>Division</th><th>Classe</th><th>Course 1</th><th>Course 2</th><th>Chrono réalisé</th></tr></thead><tbody>"
-                for idx, row in df_hist_base.iterrows():
+                for idx, row in df_hb.iterrows():
                     t1, t2, t3 = row["Calc_Sec_1"], row["Calc_Sec_2"], row["Calc_Sec_3"]
-                    valides = [m for m in [t1, t2, t3] if pd.notna(m) and m > 0]
-                    valides.sort()
-                    s1 = "class='meilleur-temps'" if (pd.notna(t1) and t1 in valides[:2]) else ""
-                    s2 = "class='meilleur-temps'" if (pd.notna(t2) and t2 in valides[:2]) else ""
-                    s3 = "class='meilleur-temps'" if (pd.notna(t3) and t3 in valides[:2]) else ""
-
+                    val = sorted([t for t in [t1, t2, t3] if pd.notna(t) and t > 0])
+                    s1 = "class='meilleur-temps'" if (pd.notna(t1) and t1 in val[:2]) else ""
+                    s2 = "class='meilleur-temps'" if (pd.notna(t2) and t2 in val[:2]) else ""
+                    s3 = "class='meilleur-temps'" if (pd.notna(t3) and t3 in val[:2]) else ""
                     if pd.notna(row["Heure_Depart_3"]) and pd.isna(row["Heure_Arrivee_3"]): txt_c3_visuel = "En Piste"; s3 = ""
                     elif pd.isna(t3) or t3 <= 0: txt_c3_visuel = "No Time"
                     else:
-                        txt_c3 = format_final_chrono(t3); temps_precedents = [t for t in [t1, t2] if pd.notna(t) and t > 0]
-                        if temps_precedents and t3 < min(temps_precedents): txt_c3_visuel = f"{txt_c3} <span style='color: #22C55E; font-size: 1.65rem; line-height: 1; vertical-align: -0.15rem;'>▲</span>"
-                        elif temps_precedents and t3 > min(temps_precedents): txt_c3_visuel = f"{txt_c3} <span style='color: #EF4444; font-size: 1.65rem; line-height: 1; vertical-align: -0.15rem;'>▼</span>"
-                        else: txt_c3_visuel = txt_c3
-
+                        txt_c3 = format_final_chrono(t3); pr = [t for t in [t1, t2] if pd.notna(t) and t > 0]
+                        txt_c3_visuel = f"{txt_c3} ▲" if (pr and t3 < min(pr)) else f"{txt_c3} ▼" if (pr and t3 > min(pr)) else txt_c3
                     html_hist += f"<tr><td>{row['N°']}</td><td>{row['Nom_Prenom']}</td><td>{row['Voiture']}</td><td>{row['Division']}</td><td>{row['Classe']}</td><td {s1}>{format_final_chrono(t1)}</td><td {s2}>{format_final_chrono(t2)}</td><td {s3}>{txt_c3_visuel}</td></tr>"
                 html_hist += "</tbody></table>"
 
-                def calculer_cumul_deux_meilleurs(row):
-                    temps = [t for t in [row["Calc_Sec_1"], row["Calc_Sec_2"], row["Calc_Sec_3"]] if pd.notna(t) and t > 0]
-                    if len(temps) < 2: return float('inf')
-                    temps.sort()
-                    return float(sum(temps[:2]))
-
-                base["Cumul_Sec"] = base.apply(calculer_cumul_deux_meilleurs, axis=1)
-                scr = base[base["Cumul_Sec"] < float('inf')].sort_values(by="Cumul_Sec").drop_duplicates(subset=["N°"], keep="first").copy()
-                
+                def cal_cumul(r):
+                    t = sorted([x for x in [r["Calc_Sec_1"], r["Calc_Sec_2"], r["Calc_Sec_3"]] if pd.notna(x) and x > 0])
+                    return float(sum(t[:2])) if len(t) >= 2 else float('inf')
+                base["Cumul_Sec"] = base.apply(cal_cumul, axis=1)
+                scr = base[base["Cumul_Sec"] < float('inf')].sort_values(by="Cumul_Sec").drop_duplicates(subset=["N°"]).copy()
                 if len(scr) > 0:
-                    asaf123 = scr[scr["Division"].isin(["1", "2", "3"])].head(25).copy()
-                    if len(asaf123) > 0: asaf123["Pos"] = range(1, len(asaf123) + 1); asaf123["Chrono"] = asaf123["Cumul_Sec"].apply(format_final_chrono); df_asaf123 = asaf123[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]]
-                    
-                    asaf4 = scr[scr["Division"] == "4"].head(10).copy()
-                    if len(asaf4) > 0: asaf4["Pos"] = range(1, len(asaf4) + 1); asaf4["Chrono"] = asaf4["Cumul_Sec"].apply(format_final_chrono); df_asaf4 = asaf4[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]]
-                    
+                    df_asaf123 = scr[scr["Division"].isin(["1", "2", "3"])].head(25).copy()
+                    if len(df_asaf123) > 0: df_asaf123["Pos"] = range(1, len(df_asaf123) + 1); df_asaf123["Chrono"] = df_asaf123["Cumul_Sec"].apply(format_final_chrono); df_asaf123 = df_asaf123[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]]
+                    df_asaf4 = scr[scr["Division"] == "4"].head(10).copy()
+                    if len(df_asaf4) > 0: df_asaf4["Pos"] = range(1, len(df_asaf4) + 1); df_asaf4["Chrono"] = df_asaf4["Cumul_Sec"].apply(format_final_chrono); df_asaf4 = df_asaf4[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]]
                     scr["Classe_Num"] = pd.to_numeric(scr["Classe"], errors='coerce').fillna(999)
-                    # CORRECTION : Utilisation cohérente de Classe_Num pour le tri et le regroupement
                     df_grouped = scr.sort_values(by=["Division", "Classe_Num", "Cumul_Sec"]).groupby(["Division", "Classe_Num"]).head(3).copy()
-                    
                     if len(df_grouped) > 0:
-                        html_blocs = []
-                        grouped_objs = df_grouped.groupby(["Division", "Classe_Num"])
-                        total_groups, current_group = len(grouped_objs), 0
-                        for (div, cl_num), group in grouped_objs:
-                            current_group += 1
-                            group = group.copy(); group["Pos"] = range(1, len(group) + 1); group["Chrono"] = group["Cumul_Sec"].apply(format_final_chrono)
-                            sub_html = group[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]].to_html(index=False, header=(current_group==1), classes='table-compacte table-class-groupes', escape=False, border=0)
-                            if current_group == 1: html_blocs.append(sub_html.replace("</tbody>\n</table>", ""))
-                            else: html_blocs.append(sub_html.split("<tbody>")[-1].replace("</tbody>\n</table>", ""))
-                            if current_group < total_groups:
-                                html_blocs.append("<tr style='border-top: 2px solid #CBD5E1 !important; height:6px !important;'><td colspan='6' style='border:none !important; padding:0 !important;'></td></tr>")
-                        html_blocs.append("</tbody>\n</table>")
-                        df_divisions = "".join(html_blocs)
+                        hb = []
+                        go = df_grouped.groupby(["Division", "Classe_Num"])
+                        tg, cg = len(go), 0
+                        for (div, cl), g in go:
+                            cg += 1; g = g.copy(); g["Pos"] = range(1, len(g) + 1); g["Chrono"] = g["Calc_Sec_3"].apply(format_final_chrono)
+                            sh = g[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]].to_html(index=False, header=(cg==1), classes='table-compacte table-class-groupes', escape=False, border=0)
+                            if cg == 1: hb.append(sh.replace("</tbody>\n</table>", ""))
+                            else: hb.append(sh.split("<tbody>")[-1].replace("</tbody>\n</table>", ""))
+                            if cg < tg: hb.append("<tr style='border-top: 2px solid #CBD5E1 !important; height:6px !important;'><td colspan='6' style='border:none !important; padding:0 !important;'></td></tr>")
+                        hb.append("</tbody>\n</table>")
+                        df_divisions = "".join(hb)
         except Exception: pass
 
     t_live = "🏎️ EN DIRECT / Derniers Concurrents partis"
@@ -326,5 +284,3 @@ def recuperer_donnees_course():
     t_bas = "📊 CLASSEMENT OFFICIEUX par Division / Classe (Top 3)"
 
     return df_live, html_hist, df_asaf123, df_asaf4, df_divisions, t_live, t_his, t_haut, t_milieu, t_bas
-
-       
