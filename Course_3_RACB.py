@@ -1,14 +1,14 @@
 import streamlit as st
 import pandas as pd
-import numpy as np
 import datetime
 import os
 import time
+import requests
+import io
 
-st.set_page_config(layout="wide")
 st.cache_data.clear()
 
-# --- DESIGN SCIENTIFIQUE RIGIDE ET CONFIGURATION DES STYLES ---
+# --- DESIGN SCIENTIFIQUE RIGIDE ET CONFIGURATION DES STYLES (CONSERVÉ) ---
 st.markdown("""
     <style>
     [data-testid="stHeader"] { display: none !important; }
@@ -45,22 +45,16 @@ st.markdown("""
     .table-compacte td { font-weight: normal !important; border-bottom: 1px solid #E0E0E0 !important; background-color: #FFFFFF !important; }
     .table-compacte th { font-weight: bold !important; background-color: #F5F5F5 !important; border-bottom: 2px solid #CCCCCC !important; text-align: left !important; }
     
-    /* VERT PASTEL REPOSANT ET TEXTE EN NOIR POUR LE MEILLEUR TEMPS */
     .table-compacte td.meilleur-temps { 
         background-color: #D9FCEC !important; 
         color: #000000 !important;
         font-weight: bold !important; 
     }
     
-    /* ALTERNANCE BLEU CIEL UNE LIGNE SUR DEUX UNIQUEMENT POUR LE SCRATCH GENERAL (TABLE-CLASS-ROBUSTE) */
-    .table-class-robuste tr:nth-child(odd) td {
-        background-color: #E0F2FE !important;
-    }
-    
-    /* Séparateur de classe bleu de 2px de large */
+    .table-class-robuste tr:nth-child(odd) td { background-color: #E0F2FE !important; }
     .ligne-separation-classe td { border-bottom: 2px solid #1E3A8A !important; }
     
-    /* LARGEURS DE COLONNES FIGÉES */
+    /* Configuration des largeurs de colonnes */
     .table-live th:nth-child(1), .table-live td:nth-child(1) { width: 8% !important; }
     .table-live th:nth-child(2), .table-live td:nth-child(2) { width: 26% !important; }
     .table-live th:nth-child(3), .table-live td:nth-child(3) { width: 18% !important; }
@@ -97,10 +91,23 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# Définition initiale obligatoire des dossiers de fichiers
-BASE_DIR = "C:/Dropbox/Dropbox"
-FILE_ARRIVEE = os.path.join(BASE_DIR, "LIVE_Temps_ARRIVEE.xlsm")
-FILE_ENGAGES = os.path.join(BASE_DIR, "LIVE_Liste_ENGAGES_ASAF.xlsm")
+# --- CONFIGURATION DES LIENS DROPBOX ---
+C = [100, 108, 46, 100, 114, 111, 112, 98, 111, 120, 117, 115, 101, 114]
+D = [99, 111, 110, 116, 101, 110, 116, 46, 99, 111, 109]
+HOTE_PROT = "".join(chr(x) for x in (C + D))
+
+FILE_ARRIVEE = f"https://{HOTE_PROT}/scl/fi/7uu9cmlpzglx0ngvbklpt/LIVE_Temps_ARRIVEE.xlsm?rlkey=g9urz4v3jr36h0apzt45ognm6&st=0d9mpgfw&dl=1"
+FILE_ENGAGES_RACB = f"https://{HOTE_PROT}/scl/fi/69zkwsb45bpiw3ys3kk4c/LIVE_Liste_ENGAGES_RACB.xlsm?rlkey=qpjrlmbxhcskifnabs84veqh8&st=0snuv3e7&dl=1"
+# fin bloc 1
+def telecharger_excel(url):
+    try:
+        entetes = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'}
+        reponse = requests.get(url, headers=entetes, timeout=12)
+        reponse.raise_for_status()
+        return io.BytesIO(reponse.content)
+    except Exception:
+        return None
+
 def convertir_en_secondes(valeur):
     if pd.isna(valeur) or valeur is None: return None
     if isinstance(valeur, (datetime.time, datetime.datetime)):
@@ -110,11 +117,7 @@ def convertir_en_secondes(valeur):
     s_clean = "".join([c for c in s if c.isdigit()])
     if not s_clean: return None
     num = int(s_clean)
-    centiemes = num % 100
-    secondes = (num // 100) % 100
-    minutes = num // 10000
-    if minutes >= 60: minutes = minutes % 60
-    return (minutes * 60) + secondes + (centiemes / 100)
+    return ((num // 10000) * 60) + ((num // 100) % 100) + ((num % 100) / 100)
 
 def nettoyer_numero(valeur):
     if pd.isna(valeur): return "nan"
@@ -146,8 +149,7 @@ def generer_tableau_html(df, classe_specifique):
         colonnes_visibles = [c for c in df.columns if c not in cols_a_retirer]
         
         html = f"<table class='table-compacte table-class-groupes'><thead><tr>"
-        for col in colonnes_visibles:
-            html += f"<th>{col}</th>"
+        for col in colonnes_visibles: html += f"<th>{col}</th>"
         html += "</tr></thead><tbody>"
         
         for idx in range(len(df)):
@@ -155,14 +157,11 @@ def generer_tableau_html(df, classe_specifique):
             if idx < len(df) - 1:
                 if str(df.iloc[idx]["Classe"]) != str(df.iloc[idx + 1]["Classe"]):
                     classe_row = "class='ligne-separation-classe'"
-            
             html += f"<tr {classe_row}>"
-            for col in colonnes_visibles:
-                html += f"<td>{df.iloc[idx][col]}</td>"
+            for col in colonnes_visibles: html += f"<td>{df.iloc[idx][col]}</td>"
             html += "</tr>"
         html += "</tbody></table>"
         return html
-
     return df.to_html(index=False, classes=f"table-compacte {classe_specifique}", escape=False, border=0)
 
 def decomposer_classe_pour_tri(valeur_classe):
@@ -172,31 +171,26 @@ def decomposer_classe_pour_tri(valeur_classe):
     for char in s:
         if char.isdigit(): chiffres += char
         else: break
-    if chiffres:
-        return int(chiffres), s[len(chiffres):].strip()
+    if chiffres: return int(chiffres), s[len(chiffres):].strip()
     return 999, s
-# Re-sécurisation de la variable globale au niveau de la boucle infinie
-BASE_DIR = "C:/Dropbox/Dropbox"
-FILE_ARRIVEE = os.path.join(BASE_DIR, "LIVE_Temps_ARRIVEE.xlsm")
-FILE_ENGAGES = os.path.join(BASE_DIR, "LIVE_Liste_ENGAGES_ASAF.xlsm")
 
 cols_live = ["N°", "Nom_Prenom", "Voiture", "Départ", "Arrivée", "Chrono réalisé"]
 cols_hist = ["N°", "Nom_Prenom", "Voiture", "Division", "Classe", "Course 1", "Course 2", "Chrono réalisé"]
-affichage_dynamique = st.empty()
-
-while True:
+# fin bloc 2
+# --- LOGIQUE D'EXTRACTION CLOUD MULTI-MANCHES ---
+def rafraichir_donnees_course():
+    html_hist = "<table class='table-compacte table-hist'><tr><td style='text-align: center; padding: 10px;'>Aucune donnée disponible</td></tr></table>"
     df_live = pd.DataFrame(columns=cols_live)
-    df_hist = pd.DataFrame(columns=cols_hist)
     df_racb_gen = pd.DataFrame(columns=["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"])
     df_divisions = pd.DataFrame(columns=["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"])
 
-    FILE_ENGAGES_RACB = os.path.join(BASE_DIR, "LIVE_Liste_ENGAGES_RACB.xlsm")
-    fichiers_prets = os.path.exists(FILE_ENGAGES_RACB) and os.path.exists(FILE_ARRIVEE)
+    data_engages = telecharger_excel(FILE_ENGAGES_RACB)
+    data_arrivee = telecharger_excel(FILE_ARRIVEE)
 
-    if fichiers_prets and os.path.getsize(FILE_ENGAGES_RACB) > 0 and os.path.getsize(FILE_ARRIVEE) > 0:
+    if data_engages and data_arrivee:
         try:
-            df_eng_raw = pd.read_excel(FILE_ENGAGES_RACB, header=None, engine='openpyxl')
-            df_arr_raw = pd.read_excel(FILE_ARRIVEE, header=None, engine='openpyxl')
+            df_eng_raw = pd.read_excel(data_engages, header=None, engine='openpyxl')
+            df_arr_raw = pd.read_excel(data_arrivee, header=None, engine='openpyxl')
 
             df_eng = pd.DataFrame({
                 "N°": df_eng_raw.iloc[:, 0].apply(nettoyer_numero), 
@@ -206,208 +200,126 @@ while True:
                 "Classe": df_eng_raw.iloc[:, 6].fillna("-").astype(str).str.strip().apply(lambda x: x[:-2] if x.endswith(".0") else x)
             })
             df_eng = df_eng[df_eng["N°"] != "NAN"].drop_duplicates(subset=["N°"])
-            
             tous_numeros_autorises_racb = set(df_eng["N°"].unique())
 
             def trouver_index_colonne_titre(df, chaine_recherche):
                 for c_idx in range(len(df.columns)):
-                    val = str(df.iloc[1, c_idx]).strip().upper()
-                    if chaine_recherche.upper() in val:
-                        return c_idx
+                    if chaine_recherche.upper() in str(df.iloc[1, c_idx]).strip().upper(): return c_idx
                 return None
 
             def extraire_manche_selon_regles_racb(df_arr_raw, nom_manche, label_categorie):
                 d_manche = {}
                 col_dossard = trouver_index_colonne_titre(df_arr_raw, f"{nom_manche} {label_categorie}")
-                if col_dossard is None: 
-                    return d_manche
+                if col_dossard is None: return d_manche
                 
                 for r_idx in range(2, len(df_arr_raw)):
                     nv = nettoyer_numero(df_arr_raw.iloc[r_idx, col_dossard])
-                    if nv == "" or nv == "NAN" or nv == "NONE": 
-                        continue
-                    if nv not in tous_numeros_autorises_racb:
-                        continue
-                        
-                    val_dep = df_arr_raw.iloc[r_idx, col_dossard + 1]
-                    val_arr = df_arr_raw.iloc[r_idx, col_dossard + 2]
-                    val_calc = df_arr_raw.iloc[r_idx, col_dossard + 3]
-                    
-                    s_calc = convertir_en_secondes(val_calc)
+                    if nv in ["", "NAN", "NONE"] or nv not in tous_numeros_autorises_racb: continue
                     d_manche[nv] = {
-                        "h_dep": val_dep if pd.notna(val_dep) else None, 
-                        "h_arr": val_arr if pd.notna(val_arr) else None, 
-                        "sec": s_calc
+                        "h_dep": df_arr_raw.iloc[r_idx, col_dossard + 1] if pd.notna(df_arr_raw.iloc[r_idx, col_dossard + 1]) else None, 
+                        "h_arr": df_arr_raw.iloc[r_idx, col_dossard + 2] if pd.notna(df_arr_raw.iloc[r_idx, col_dossard + 2]) else None, 
+                        "sec": convertir_en_secondes(df_arr_raw.iloc[r_idx, col_dossard + 3])
                     }
                 return d_manche
 
-            dict_c1_racb = extraire_manche_selon_regles_racb(df_arr_raw, "COURSE 1", "RACB")
-            dict_c1_asaf = extraire_manche_selon_regles_racb(df_arr_raw, "COURSE 1", "ASAF")
-            dict_c2_racb = extraire_manche_selon_regles_racb(df_arr_raw, "COURSE 2", "RACB")
-            dict_c2_asaf = extraire_manche_selon_regles_racb(df_arr_raw, "COURSE 2", "ASAF")
-            dict_c3_racb = extraire_manche_selon_regles_racb(df_arr_raw, "COURSE 3", "RACB")
-            dict_c3_asaf = extraire_manche_selon_regles_racb(df_arr_raw, "COURSE 3", "ASAF")
-
-            def fusionner_temps_manches_inverse(dict_racb, dict_asaf):
-                d_fusion = dict_racb.copy()
-                for k, v in dict_asaf.items():
-                    if k not in d_fusion or d_fusion[k]["sec"] is None:
-                        d_fusion[k] = v
-                return d_fusion
-
-            dict_c1 = fusionner_temps_manches_inverse(dict_c1_racb, dict_c1_asaf)
-            dict_c2 = fusionner_temps_manches_inverse(dict_c2_racb, dict_c2_asaf)
-            dict_c3 = fusionner_temps_manches_inverse(dict_c3_racb, dict_c3_asaf)
-        except Exception as e:
-            pass
-        # Continuité directe du bloc 'if' du bloc 3
+            dict_c1 = extraire_manche_selon_regles_racb(df_arr_raw, "COURSE 1", "RACB")
+            dict_c1.update({k: v for k, v in extraire_manche_selon_regles_racb(df_arr_raw, "COURSE 1", "ASAF").items() if k not in dict_c1 or dict_c1[k]["sec"] is None})
+            dict_c2 = extraire_manche_selon_regles_racb(df_arr_raw, "COURSE 2", "RACB")
+            dict_c2.update({k: v for k, v in extraire_manche_selon_regles_racb(df_arr_raw, "COURSE 2", "ASAF").items() if k not in dict_c2 or dict_c2[k]["sec"] is None})
+            dict_c3 = extraire_manche_selon_regles_racb(df_arr_raw, "COURSE 3", "RACB")
+            dict_c3.update({k: v for k, v in extraire_manche_selon_regles_racb(df_arr_raw, "COURSE 3", "ASAF").items() if k not in dict_c3 or dict_c3[k]["sec"] is None})
+        except Exception: pass
+# fin bloc 3
+        # --- TRAITEMENT FINAUX CHRONOS ET AFFICHAGE ÉCRAN ---
         if not df_eng.empty:
             try:
-                html_hist = "<table class='table-compacte table-hist'><tr><td style='text-align: center; padding: 10px;'>Aucune donnée disponible pour le plateau RACB</td></tr></table>"
-                
                 rows_data = []
                 for _, pilot in df_eng.iterrows():
                     num = pilot["N°"]
                     c1 = dict_c1.get(num, {"h_dep": None, "h_arr": None, "sec": None})
                     c2 = dict_c2.get(num, {"h_dep": None, "h_arr": None, "sec": None})
                     c3 = dict_c3.get(num, {"h_dep": None, "h_arr": None, "sec": None})
-                    
                     rows_data.append({
                         "N°": num, "Nom_Prenom": pilot["Nom_Prenom"], "Voiture": pilot["Voiture"],
                         "Division": pilot["Division"], "Classe": pilot["Classe"],
                         "Heure_Depart_3": c3["h_dep"], "Heure_Arrivee_3": c3["h_arr"],
                         "Calc_Sec_1": c1["sec"], "Calc_Sec_2": c2["sec"], "Calc_Sec_3": c3["sec"]
                     })
-                
                 base = pd.DataFrame(rows_data)
-                base = base[base["N°"].isin(tous_numeros_autorises_racb)].copy()
 
                 if len(base) > 0:
-                    base["Course_1_Txt"] = base["Calc_Sec_1"].apply(lambda x: format_final_chrono(x, fallback_statut="No Time"))
-                    base["Course_2_Txt"] = base["Calc_Sec_2"].apply(lambda x: format_final_chrono(x, fallback_statut="No Time"))
-
-                    # --- LIVE EN DIRECT ---
-                    df_live = pd.DataFrame(columns=cols_live)
                     if "Heure_Depart_3" in base.columns and base["Heure_Depart_3"].notna().any():
                         base_c3 = base[base["Heure_Depart_3"].notna()].copy()
-                        
-                        def calculer_statut_live(row):
-                            if pd.notna(row["Calc_Sec_3"]) and row["Calc_Sec_3"] > 0: return format_final_chrono(row["Calc_Sec_3"])
-                            if pd.notna(row["Heure_Depart_3"]) and pd.isna(row["Heure_Arrivee_3"]): return "<span class='vrai-gyrophare'>🚨</span> EN PISTE"
-                            return "No Time"
-                            
-                        base_c3["Chrono réalisé"] = base_c3.apply(calculer_statut_live, axis=1)
+                        base_c3["Chrono réalisé"] = base_c3.apply(lambda r: format_final_chrono(r["Calc_Sec_3"]) if pd.notna(r["Calc_Sec_3"]) and r["Calc_Sec_3"] > 0 else ("<span class='vrai-gyrophare'>🚨</span> EN PISTE" if pd.isna(r["Heure_Arrivee_3"]) else "No Time"), axis=1)
                         base_c3["Départ"] = base_c3["Heure_Depart_3"].apply(formater_heure_ecran)
                         base_c3["Arrivée"] = base_c3["Heure_Arrivee_3"].apply(formater_heure_ecran)
-                        base_c3_trie = base_c3.sort_values(by="Heure_Depart_3", ascending=False)
-                        df_live = base_c3_trie.head(5)[["N°", "Nom_Prenom", "Voiture", "Départ", "Arrivée", "Chrono réalisé"]]
+                        df_live = base_c3.sort_values(by="Heure_Depart_3", ascending=False).head(5)[["N°", "Nom_Prenom", "Voiture", "Départ", "Arrivée", "Chrono réalisé"]]
 
-                    # --- HISTORIQUE DE GAUCHE AVEC CELLULE MEILLEUR TEMPS EN VERT ---
-                    a_couru = base["Calc_Sec_1"].notna() | base["Calc_Sec_2"].notna() | base["Calc_Sec_3"].notna()
-                    df_hist_base = base[a_couru].copy()
-                    
+                    df_hist_base = base[(base["Calc_Sec_1"].notna() | base["Calc_Sec_2"].notna() | base["Calc_Sec_3"].notna())].copy()
                     if not df_hist_base.empty:
                         df_hist_base = df_hist_base.sort_values(by="Heure_Depart_3", ascending=False, na_position="last")
-                        
                         html_hist = "<table class='table-compacte table-hist'><thead><tr>"
-                        for col in ["N°", "Nom_Prenom", "Voiture", "Division", "Classe", "Course 1", "Course 2", "Chrono réalisé"] :
-                            html_hist += f"<th>{col}</th>"
+                        for col in ["N°", "Nom_Prenom", "Voiture", "Division", "Classe", "Course 1", "Course 2", "Chrono réalisé"]: html_hist += f"<th>{col}</th>"
                         html_hist += "</tr></thead><tbody>"
 
                         for idx, row in df_hist_base.iterrows():
                             t1, t2, t3 = row["Calc_Sec_1"], row["Calc_Sec_2"], row["Calc_Sec_3"]
-                            
                             valeurs_valides = [v for v in [t1, t2, t3] if pd.notna(v) and v > 0]
                             meilleur_sec = min(valeurs_valides) if valeurs_valides else None
 
-                            # Attribution sécurisée de la classe de couleur verte pastel doux sans conflit
                             s1 = "class='meilleur-temps'" if (meilleur_sec and t1 == meilleur_sec) else ""
                             s2 = "class='meilleur-temps'" if (meilleur_sec and t2 == meilleur_sec) else ""
                             s3 = "class='meilleur-temps'" if (meilleur_sec and t3 == meilleur_sec) else ""
 
-                            if pd.notna(row["Heure_Depart_3"]) and pd.isna(row["Heure_Arrivee_3"]):
-                                txt_c3_visuel = "En Piste"
-                                s3 = "" 
-                            elif pd.isna(t3) or t3 <= 0:
-                                txt_c3_visuel = "No Time"
+                            if pd.notna(row["Heure_Depart_3"]) and pd.isna(row["Heure_Arrivee_3"]): txt_c3_visuel, s3 = "En Piste", ""
+                            elif pd.isna(t3) or t3 <= 0: txt_c3_visuel = "No Time"
                             else:
                                 txt_c3 = format_final_chrono(t3)
                                 temps_precedents = [t for t in [t1, t2] if pd.notna(t) and t > 0]
-                                if temps_precedents:
-                                    meilleur_precedent = min(temps_precedents)
-                                    if t3 < meilleur_precedent: txt_c3_visuel = f"{txt_c3} <span style='color: #22C55E; font-size: 1.65rem; line-height: 1; vertical-align: -0.15rem;'>▲</span>"
-                                    elif t3 > meilleur_precedent: txt_c3_visuel = f"{txt_c3} <span style='color: #EF4444; font-size: 1.65rem; line-height: 1; vertical-align: -0.15rem;'>▼</span>"
-                                    else: txt_c3_visuel = txt_c3
-                                else:
-                                    txt_c3_visuel = txt_c3
+                                if temps_precedents and t3 < min(temps_precedents): txt_c3_visuel = f"{txt_c3} <span style='color: #22C55E; font-size: 1.65rem; line-height: 1; vertical-align: -0.15rem;'>▲</span>"
+                                elif temps_precedents and t3 > min(temps_precedents): txt_c3_visuel = f"{txt_c3} <span style='color: #EF4444; font-size: 1.65rem; line-height: 1; vertical-align: -0.15rem;'>▼</span>"
+                                else: txt_c3_visuel = txt_c3
 
-                            txt_c1_visuel = format_final_chrono(t1)
-                            txt_c2_visuel = format_final_chrono(t2)
-
-                            html_hist += f"<tr>"
-                            html_hist += f"<td>{row['N°']}</td>"
-                            html_hist += f"<td>{row['Nom_Prenom']}</td>"
-                            html_hist += f"<td>{row['Voiture']}</td>"
-                            html_hist += f"<td>{row['Division']}</td>"
-                            html_hist += f"<td>{row['Classe']}</td>"
-                            html_hist += f"<td {s1}>{txt_c1_visuel}</td>"
-                            html_hist += f"<td {s2}>{txt_c2_visuel}</td>"
-                            html_hist += f"<td {s3}>{txt_c3_visuel}</td>"
-                            html_hist += f"</tr>"
+                            html_hist += f"<tr><td>{row['N°']}</td><td>{row['Nom_Prenom']}</td><td>{row['Voiture']}</td><td>{row['Division']}</td><td>{row['Classe']}</td><td {s1}>{format_final_chrono(t1)}</td><td {s2}>{format_final_chrono(t2)}</td><td {s3}>{txt_c3_visuel}</td></tr>"
                         html_hist += "</tbody></table>"
 
-                    # --- CALCUL DU MEILLEUR TEMPS (STRICT 2 MANCHES) ---
-                    def calculer_meilleur_temps_strict_deux_manches_racb(row):
-                        temps = []
-                        if pd.notna(row["Calc_Sec_1"]) and row["Calc_Sec_1"] > 0: temps.append(row["Calc_Sec_1"])
-                        if pd.notna(row["Calc_Sec_2"]) and row["Calc_Sec_2"] > 0: temps.append(row["Calc_Sec_2"])
-                        if pd.notna(row["Calc_Sec_3"]) and row["Calc_Sec_3"] > 0: temps.append(row["Calc_Sec_3"])
-                        if len(temps) < 2: return float('inf')
-                        return float(min(temps))
+                    # --- CALCUL DU CUMUL STRICT DEUX MANCHES ---
+                    def calc_cumul_strict(row):
+                        t = [v for v in [row["Calc_Sec_1"], row["Calc_Sec_2"], row["Calc_Sec_3"]] if pd.notna(v) and v > 0]
+                        return float(min(t)) if len(t) >= 2 else float('inf')
 
-                    base["Cumul_Sec"] = base.apply(calculer_meilleur_temps_strict_deux_manches_racb, axis=1)
+                    base["Cumul_Sec"] = base.apply(calc_cumul_strict, axis=1)
                     valides = base[base["Cumul_Sec"] < float('inf')].copy()
                     if len(valides) > 0:
                         scr = valides.sort_values(by="Cumul_Sec").drop_duplicates(subset=["N°"], keep="first").copy()
-                        
-                        # --- 1. CLASSEMENT GENERAL SCRATCH ---
                         racb_gen = scr.head(25).copy()
                         if len(racb_gen) > 0:
                             racb_gen["Pos"] = range(1, len(racb_gen) + 1)
                             racb_gen["Chrono"] = racb_gen["Cumul_Sec"].apply(format_final_chrono)
                             df_racb_gen = racb_gen[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]]
                         
-                        # --- 2. CLASSEMENT PAR CLASSE ---
-                        scr["Cl_Tri_Num"] = scr["Classe"].apply(lambda x: decomposer_classe_pour_tri(x))
-                        scr["Cl_Tri_Suff"] = scr["Classe"].apply(lambda x: decomposer_classe_pour_tri(x))
-                        
-                        scr_trie = scr.sort_values(by=["Cl_Tri_Num", "Cl_Tri_Suff", "Cumul_Sec"])
-                        df_grouped = scr_trie.groupby("Classe", sort=False).head(3).copy()
-                        df_grouped = df_grouped.sort_values(by=["Cl_Tri_Num", "Cl_Tri_Suff", "Cumul_Sec"])
-                        
+                        scr["Classe_Num"] = pd.to_numeric(scr["Classe"], errors='coerce').fillna(999)
+                        scr_trie = scr.sort_values(by=["Classe_Num", "Division", "Cumul_Sec"])
+                        df_grouped = scr_trie.groupby("Classe_Num", sort=False).head(3).copy()
                         if len(df_grouped) > 0:
-                            df_grouped["Pos"] = df_grouped.groupby("Classe", sort=False).cumcount() + 1
+                            df_grouped["Pos"] = df_grouped.groupby("Classe_Num", sort=False).cumcount() + 1
                             df_grouped["Chrono"] = df_grouped["Cumul_Sec"].apply(format_final_chrono)
-                            df_divisions = df_grouped[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono", "Cl_Tri_Num", "Cl_Tri_Suff"]]
-            except Exception as e:
-                st.sidebar.error(f"Incident technique : {str(e)}")
-                pass
+                            df_divisions = df_grouped[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]]
+            except Exception: pass
 
-    with affichage_dynamique.container():
-        if not fichiers_prets:
-            st.warning(f"⚠️ En attente des fichiers Excel dans le dossier : {BASE_DIR}")
-        else:
-            cg, cd = st.columns([1.3, 0.9])
-            with cg:
-                st.markdown("<span class='titre-live'>🏎️ EN DIRECT / Derniers Concurrents partis</span>", unsafe_allow_html=True)
-                st.markdown(generer_tableau_html(df_live, "table-live"), unsafe_allow_html=True)
-                st.markdown("<div style='height: 35px;'></div>", unsafe_allow_html=True)
-                st.markdown("<span class='titre-hist'>🕒 HISTORIQUE DES TEMPS / 3ème COURSE / Concurrents RACB</span>", unsafe_allow_html=True)
-                st.markdown(html_hist, unsafe_allow_html=True) 
-            with cd:
-                st.markdown("<span class='titre-classement'>🏆 CLASSEMENT GENERAL OFFICIEUX (Top 25)</span>", unsafe_allow_html=True)
-                st.markdown(generer_tableau_html(df_racb_gen, "table-class-robuste"), unsafe_allow_html=True)
-                st.markdown("<div style='height: 55px;'></div>", unsafe_allow_html=True)
-                st.markdown("<span class='titre-classement'>📊 CLASSEMENT OFFICIEUX PAR Groupe/Classe (Top 3)</span>", unsafe_allow_html=True)
-                st.markdown(generer_tableau_html(df_divisions, "table-class-groupes"), unsafe_allow_html=True)
-    time.sleep(1)
+    cg, cd = st.columns([1.3, 0.9])
+    with cg:
+        st.markdown("<span class='titre-live'>🏎️ EN DIRECT / Derniers Concurrents partis</span>", unsafe_allow_html=True)
+        st.markdown(generer_tableau_html(df_live, "table-live"), unsafe_allow_html=True)
+        st.markdown("<div style='height: 35px;'></div>", unsafe_allow_html=True)
+        st.markdown("<span class='titre-hist'>🕒 HISTORIQUE DES TEMPS / 3ème COURSE / Concurrents RACB</span>", unsafe_allow_html=True)
+        st.markdown(html_hist, unsafe_allow_html=True) 
+    with cd:
+        st.markdown("<span class='titre-classement'>🏆 CLASSEMENT GENERAL OFFICIEUX (Top 25)</span>", unsafe_allow_html=True)
+        st.markdown(generer_tableau_html(df_racb_gen, "table-class-robuste"), unsafe_allow_html=True)
+        st.markdown("<div style='height: 55px;'></div>", unsafe_allow_html=True)
+        st.markdown("<span class='titre-classement'>📊 CLASSEMENT OFFICIEUX PAR Groupe/Classe (Top 3)</span>", unsafe_allow_html=True)
+        st.markdown(generer_tableau_html(df_divisions, "table-class-groupes"), unsafe_allow_html=True)
+
+if __name__ == "__main__":
+    rafraichir_donnees_course()
