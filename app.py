@@ -1,21 +1,26 @@
-import streamlit as st
+import streamlit st
 import pandas as pd
 import time
 import Essais
 
-# Détection automatique de la Course 1
 try:
     import Course_1_ASAF
     course1_disponible = True
 except ModuleNotFoundError:
     course1_disponible = False
 
-# AJOUTÉ : Détection automatique de la Course 2
 try:
     import Course_2_ASAF
     course2_disponible = True
 except ModuleNotFoundError:
     course2_disponible = False
+
+# AJOUTÉ : Détection automatique de la Course 3
+try:
+    import Course_3_ASAF
+    course3_disponible = True
+except ModuleNotFoundError:
+    course3_disponible = False
 
 st.set_page_config(page_title="Live", layout="wide")
 
@@ -91,7 +96,8 @@ with col_texte:
 with col_select:
     options_menu = ["Essais / Entraînements"]
     if course1_disponible: options_menu.append("Course 1 ASAF")
-    if course2_disponible: options_menu.append("Course 2 ASAF") # Ajout dynamique au menu
+    if course2_disponible: options_menu.append("Course 2 ASAF")
+    if course3_disponible: options_menu.append("Course 3 ASAF")
     choix_course = st.selectbox("Session_Label", options_menu, label_visibility="collapsed", key="active_session")
 
 st.markdown("<div style='height:25px;'></div>", unsafe_allow_html=True)
@@ -101,12 +107,12 @@ st.markdown("<div style='height:25px;'></div>", unsafe_allow_html=True)
 def afficher_tableaux():
     st.cache_data.clear()
     
-    # Aiguillage 100% unifié, propre et aligné
     if choix_course == "Course 1 ASAF" and course1_disponible:
         d_liv, d_his, d_haut, d_milieu, d_bas, t_live, t_his, t_haut, t_milieu, t_bas = Course_1_ASAF.recuperer_donnees_course()
     elif choix_course == "Course 2 ASAF" and course2_disponible:
-        # Appelle la même structure de fonction pour la Course 2
         d_liv, d_his, d_haut, d_milieu, d_bas, t_live, t_his, t_haut, t_milieu, t_bas = Course_2_ASAF.recuperer_donnees_course()
+    elif choix_course == "Course 3 ASAF" and course3_disponible:
+        d_liv, d_his, d_haut, d_milieu, d_bas, t_live, t_his, t_haut, t_milieu, t_bas = Course_3_ASAF.recuperer_donnees_course()
     else:
         d_liv, d_his, d_haut, d_milieu, d_bas, t_live, t_his, t_haut, t_milieu, t_bas = Essais.recuperer_donnees_course()
 
