@@ -214,10 +214,16 @@ def recuperer_donnees_course():
                             if current_group == 1: html_blocs.append(sub_html.replace("</tbody>\n</table>", ""))
                             else: html_blocs.append(sub_html.split("<tbody>")[-1].replace("</tbody>\n</table>", ""))
                             
-                            # --- MODIFIÉ : Séparateur textuel bleu à l'aide de caractères gras colorés par balise span ---
+                            # --- MODIFIÉ : Ligne avec bordure bleu foncé (#1E3A8A) forcée directement sur les cellules ---
                             if current_group < total_groups:
-                                ligne_bleue_texte = "<span style='color:#1E3A8A !important; font-weight:bold;'>____________________________________________________</span>"
-                                html_blocs.append(f"<tr><td>{ligne_bleue_texte}</td><td></td><td></td><td></td><td></td><td></td></tr>")
+                                html_blocs.append("<tr>"
+                                                  "<td style='border-top: 3px solid #1E3A8A !important; padding:0 !important; background-color:#FFFFFF !important;'></td>"
+                                                  "<td style='border-top: 3px solid #1E3A8A !important; padding:0 !important; background-color:#FFFFFF !important;'></td>"
+                                                  "<td style='border-top: 3px solid #1E3A8A !important; padding:0 !important; background-color:#FFFFFF !important;'></td>"
+                                                  "<td style='border-top: 3px solid #1E3A8A !important; padding:0 !important; background-color:#FFFFFF !important;'></td>"
+                                                  "<td style='border-top: 3px solid #1E3A8A !important; padding:0 !important; background-color:#FFFFFF !important;'></td>"
+                                                  "<td style='border-top: 3px solid #1E3A8A !important; padding:0 !important; background-color:#FFFFFF !important;'></td>"
+                                                  "</tr>")
                         
                         html_blocs.append("</tbody>\n</table>")
                         html_divisions = "".join(html_blocs)
