@@ -76,9 +76,12 @@ def recuperer_donnees_course():
     except Exception: pass
 # fin bloc 1 ou A
 def recuperer_donnees_course():
-    # Injection explicite des dépendances pour éviter le NameError sur le serveur
     import pandas as pd
     import datetime
+    
+    # Déclaration locale forcée des colonnes pour éviter le NameError
+    cols_live = ["N°", "Nom_Prenom", "Voiture", "Départ", "Arrivée", "Chrono réalisé"]
+    cols_hist = ["N°", "Nom_Prenom", "Voiture", "Division", "Classe", "Course 1", "Course 2", "Chrono réalisé"]
     
     df_live = pd.DataFrame(columns=cols_live)
     df_hist = pd.DataFrame(columns=cols_hist)
@@ -155,6 +158,7 @@ def recuperer_donnees_course():
         dict_c2 = fusionner_temps_manches(dict_c2_asaf, dict_c2_racb)
         dict_c3 = fusionner_temps_manches(dict_c3_asaf, dict_c3_racb)
     except Exception: pass
+
 # fin bloc 2 A
     if not df_eng.empty:
         try:
