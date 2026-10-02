@@ -1,10 +1,55 @@
 import streamlit as st
 import pandas as pd
 import time
+import requests
+import io
+
+# Tentatives de chargement ultra-basiques sans fioritures
+try:
+    import Essais
+    essais_dispo = True
+except Exception:
+    essais_dispo = False
+
+try:
+    import Course_1_ASAF
+    course1_asaf_dispo = True
+except Exception:
+    course1_asaf_dispo = False
+
+try:
+    import Course_2_ASAF
+    course2_asaf_dispo = True
+except Exception:
+    course2_asaf_dispo = False
+
+try:
+    import Course_3_ASAF
+    course3_asaf_dispo = True
+except Exception:
+    course3_asaf_dispo = False
+
+try:
+    import Course_1_RACB
+    course1_racb_dispo = True
+except Exception:
+    course1_racb_dispo = False
+
+try:
+    import Course_2_RACB
+    course2_racb_dispo = True
+except Exception:
+    course2_racb_dispo = False
+
+try:
+    import Course_3_RACB
+    course3_racb_dispo = True
+except Exception:
+    course3_racb_dispo = False
 
 st.set_page_config(page_title="Live", layout="wide")
 
-# --- CONCEPTION GRAPHIQUE STRICTEMENT IDENTIQUE À VOTRE ANCIEN SCRIPT ---
+# --- RESTAURATION DE VOTRE DESIGN ORIGINAL SANS FAILLE ---
 st.markdown("""
 <style>
 [data-testid="stHeader"] { display: none !important; }
@@ -65,62 +110,55 @@ div[data-testid="stSelectbox"] div[data-baseweb="select"] {
 div[data-testid="stVerticalBlock"] { gap: 0rem !important; }
 </style>
 """, unsafe_allow_html=True)
-if "active_session" not in st.session_state:
-    st.session_state["active_session"] = "Essais / Entraînements"
-
 def gen_html(df, cl):
     if isinstance(df, str): return df 
-    if df.empty: return f"<table class='table-compacte {cl}'><tr><td style='text-align: center; padding: 10px;'>Aucune donnée disponible</td></tr></table>"
+    if df is None or (isinstance(df, pd.DataFrame) and df.empty): 
+        return f"<table class='table-compacte {cl}'><tr><td style='text-align: center; padding: 10px;'>Aucune donnée disponible (Attente réseau)</td></tr></table>"
     return df.to_html(index=False, classes=f"table-compacte {cl}", escape=False, border=0)
-
-# --- FONCTION DE CHARGEMENT ISOLEE AVEC CACHE SÉCURISÉ ---
-@st.cache_data(ttl=25, show_spinner=False)
-def extraire_donnees_de_la_session(session_cible):
-    # Les fichiers de calculs ne sont importés QUE s'ils sont appelés à l'écran (évite le freeze)
-    try:
-        if session_cible == "Course 1 ASAF":
-            import Course_1_ASAF
-            return Course_1_ASAF.recuperer_donnees_course()
-        elif session_cible == "Course 1 RACB":
-            import Course_1_RACB
-            return Course_1_RACB.recuperer_donnees_course()
-        elif session_cible == "Course 2 ASAF":
-            import Course_2_ASAF
-            return Course_2_ASAF.recuperer_donnees_course()
-        elif session_cible == "Course 2 RACB":
-            import Course_2_RACB
-            return Course_2_RACB.recuperer_donnees_course()
-        elif session_cible == "Course 3 ASAF":
-            import Course_3_ASAF
-            return Course_3_ASAF.recuperer_donnees_course()
-        elif session_cible == "Course 3 RACB":
-            import Course_3_RACB
-            return Course_3_RACB.recuperer_donnees_course()
-        else:
-            import Essais
-            return Essais.recuperer_donnees_course()
-    except Exception as e:
-        # Si Dropbox sature, renvoie des structures propres vides au lieu de faire tourner le rond
-        df_vide = pd.DataFrame()
-        return df_vide, df_vide, df_vide, df_vide, df_vide, f"⚠️ Liaison Dropbox ralentie ({str(e)})", "Historique", "Classement", "", ""
 
 # Rendu de la boîte de sélection d'origine
 col_texte, col_select, col_reste = st.columns([1.3, 1.4, 3.3], vertical_alignment="center")
 with col_texte:
     st.markdown('<p class="texte-menu">Sélectionnez la session à afficher :</p>', unsafe_allow_html=True)
 with col_select:
-    # On liste toutes les options de manière stable
-    options_menu = ["Essais / Entraînements", "Course 1 ASAF", "Course 1 RACB", "Course 2 ASAF", "Course 2 RACB", "Course 3 ASAF", "Course 3 RACB"]
+    options_menu = ["Essais / Entraînements"]
+    if course1_asaf_dispo: options_menu.append("Course 1 ASAF")
+    if course1_racb_dispo: options_menu.append("Course 1 RACB")
+    if course2_asaf_dispo: options_menu.append("Course 2 ASAF")
+    if course2_racb_dispo: options_menu.append("Course 2 RACB")
+    if course3_asaf_dispo: options_menu.append("Course 3 ASAF")
+    if course3_racb_dispo: options_menu.append("Course 3 RACB")
+    
     choix_course = st.selectbox("Session_Label", options_menu, label_visibility="collapsed", key="active_session")
 
 st.markdown("<div style='height:25px;'></div>", unsafe_allow_html=True)
 
-# Récupération instantanée protégée par le cache
-d_liv, d_his, d_haut, d_milieu, d_bas, t_live, t_his, t_haut, t_milieu, t_bas = extraire_donnees_de_la_session(choix_course)
+# Initialisation de structures par défaut pour forcer l'affichage immédiat sans freeze
+d_liv, d_his, d_haut, d_milieu, d_bas = pd.DataFrame(), pd.DataFrame(), pd.DataFrame(), pd.DataFrame(), pd.DataFrame()
+t_live, t_his, t_haut, t_milieu, t_bas = "Live", "Historique", "Classement Haut", "", ""
+
+# --- APPEL SÉCURISÉ LINÉAIRE : CHAQUE ERREUR RÉSEAU EST INTERCEPTÉE INDIVIDUELLEMENT ---
+try:
+    if choix_course == "Course 1 ASAF" and course1_asaf_dispo:
+        d_liv, d_his, d_haut, d_milieu, d_bas, t_live, t_his, t_haut, t_milieu, t_bas = Course_1_ASAF.recuperer_donnees_course()
+    elif choix_course == "Course 1 RACB" and course1_racb_dispo:
+        d_liv, d_his, d_haut, d_milieu, d_bas, t_live, t_his, t_haut, t_milieu, t_bas = Course_1_RACB.recuperer_donnees_course()
+    elif choix_course == "Course 2 ASAF" and course2_asaf_dispo:
+        d_liv, d_his, d_haut, d_milieu, d_bas, t_live, t_his, t_haut, t_milieu, t_bas = Course_2_ASAF.recuperer_donnees_course()
+    elif choix_course == "Course 2 RACB" and course2_racb_dispo:
+        d_liv, d_his, d_haut, d_milieu, d_bas, t_live, t_his, t_haut, t_milieu, t_bas = Course_2_RACB.recuperer_donnees_course()
+    elif choix_course == "Course 3 ASAF" and course3_asaf_dispo:
+        d_liv, d_his, d_haut, d_milieu, d_bas, t_live, t_his, t_haut, t_milieu, t_bas = Course_3_ASAF.recuperer_donnees_course()
+    elif choix_course == "Course 3 RACB" and course3_racb_dispo:
+        d_liv, d_his, d_haut, d_milieu, d_bas, t_live, t_his, t_haut, t_milieu, t_bas = Course_3_RACB.recuperer_donnees_course()
+    elif essais_dispo:
+        d_liv, d_his, d_haut, d_milieu, d_bas, t_live, t_his, t_haut, t_milieu, t_bas = Essais.recuperer_donnees_course()
+except Exception as e:
+    t_live = f"⚠️ Synchronisation en tâche de fond ({str(e)})"
 
 st.markdown("<style>.table-hist th:nth-child(1), .table-hist td:nth-child(1) { width: 7% !important; } .table-hist th:nth-child(2), .table-hist td:nth-child(2) { width: 23% !important; } .table-hist th:nth-child(3), .table-hist td:nth-child(3) { width: 22% !important; } .table-hist th:nth-child(4), .table-hist td:nth-child(4) { width: 10% !important; } .table-hist th:nth-child(5), .table-hist td:nth-child(5) { width: 10% !important; } .table-hist th:nth-child(6), .table-hist td:nth-child(6) { width: 14% !important; }</style>", unsafe_allow_html=True)
 
-# Affichage de votre grille graphique exacte
+# Affichage géométrique de votre grille d'origine
 cg, cd = st.columns([1.3, 0.9])
 with cg:
     st.markdown(f"<span class='titre-live'>{t_live}</span>", unsafe_allow_html=True)
@@ -157,7 +195,7 @@ else:
 
 st.markdown("<br><br><br><div style='height:30px;'></div>", unsafe_allow_html=True)
 
-# --- REFRÉSH AUTOMATIQUE PAR LE NAVIGATEUR (SANS TOUCHER AU SERVEUR PYTHON) ---
+# --- REFRESH EXÉCUTÉ PAR LE NAVIGATEUR TOUTES LES 30S SANS ENCOMBREMENT ---
 st.markdown("""
     <script>
         if (!window.autoRefreshSet) {
