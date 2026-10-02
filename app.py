@@ -51,16 +51,16 @@ button:focus, div:focus, input:focus, select:focus {
     outline: none !important; border-color: transparent !important; box-shadow: none !important;
 }
 
-/* 1. SUPPRESSION INTÉGRALE DE LA ZONE BLANCHE TOUT EN HAUT */
+/* 1. NETTOYAGE ET REPOSITIONNEMENT PARFAIT EN HAUT DE L'ÉCRAN */
 .block-container { 
-    padding-top: 0px !important; 
+    padding-top: 5px !important; 
     padding-bottom: 0rem !important; 
     padding-left: 1rem !important; 
     padding-right: 1rem !important; 
 }
 div[data-testid="stMainBlockContainer"] {
-    padding-top: 0px !important;
-    margin-top: -18px !important;
+    padding-top: 5px !important;
+    margin-top: 0px !important;
 }
 div[data-testid="stVerticalBlock"] {
     gap: 0rem !important;
@@ -150,6 +150,9 @@ if course2_racb_disponible: colonnes_visibles.append("Course 2 RACB")
 if course3_disponible: colonnes_visibles.append("Course 3 ASAF")
 if course3_racb_disponible: colonnes_visibles.append("Course 3 RACB")
 
+# Léger espacement vertical de sécurité avant les boutons pour éviter le chevauchement
+st.markdown("<div style='height: 10px;'></div>", unsafe_allow_html=True)
+
 proportions_finales = [1.0] * len(colonnes_visibles) + [2.8]
 cols = st.columns(proportions_finales, vertical_alignment="center")
 
@@ -168,6 +171,9 @@ for idx, nom_session in enumerate(colonnes_visibles):
 with cols[-1]:
     st.markdown("<p style='text-align:right; margin:0; font-size:0.85rem; font-weight:bold; color:#475569; line-height:24px;'>🔄 Synchro Live 30s</p>", unsafe_allow_html=True)
 
+# Ligne de démarcation pour isoler proprement le menu
+st.markdown("<div style='height: 15px;'></div>", unsafe_allow_html=True)
+
 choix_course = st.session_state["active_session"]
 zone_affichage_pure = st.empty()
 
@@ -176,7 +182,6 @@ zone_affichage_pure = st.empty()
 def rafraichir_uniquement_tableaux():
     terme_recherche = "Essais / Entraînements" if choix_course == "Essais" else choix_course
     
-    # Valeurs par défaut en cas de plantage du module de données
     d_liv, d_his, d_haut, d_milieu, d_bas = pd.DataFrame(), pd.DataFrame(), pd.DataFrame(), pd.DataFrame(), pd.DataFrame()
     t_live, t_his, t_haut, t_milieu, t_bas = "Live", "Historique", "Classement Haut", "", ""
 
@@ -224,5 +229,5 @@ def rafraichir_uniquement_tableaux():
             
             st.markdown("<div style='height:70px;'></div>", unsafe_allow_html=True)
 
-# Lancement sécurisé
+# Lancement
 rafraichir_uniquement_tableaux()
