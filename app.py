@@ -51,7 +51,7 @@ button:focus, div:focus, input:focus, select:focus {
     outline: none !important; border-color: transparent !important; box-shadow: none !important;
 }
 
-/* 1. RECTIFICATION : SUPPRESSION DE L'ESPACE IMMENSE DU DESSUS DE LA PAGE */
+/* 1. ESPACE DU DESSUS DE LA PAGE (CONSERVÉ À L'IDENTIQUE) */
 .block-container { 
     padding-top: 0px !important; 
     padding-bottom: 0rem !important; 
@@ -60,7 +60,7 @@ button:focus, div:focus, input:focus, select:focus {
 }
 div[data-testid="stMainBlockContainer"] {
     padding-top: 0px !important;
-    margin-top: -18px !important; /* Remonte le menu vers le haut pour supprimer la marge blanche */
+    margin-top: -18px !important;
 }
 
 /* 2. VERROUILLAGE DE LA BARRE DU HAUT */
@@ -72,9 +72,9 @@ div[data-testid="stHorizontalBlock"] {
     height: 28px !important;
 }
 
-/* 3. RECTIFICATION : FEUILLE RAPPROCHÉE AVEC UNE MARGE FILTRÉE ET SÉCURISÉE DE 4PX */
+/* 3. RECTIFICATION : ESPACE SOUS LES BOUTONS RESSERRÉ AU MAXIMUM À 1 PIXEL */
 div[data-testid="stVerticalBlock"] > div:nth-child(2) {
-    margin-top: 4px !important; /* Rapproche proprement la feuille sans recouvrir les boutons */
+    margin-top: 1px !important; /* Colle la feuille directement sous le menu sans espace inutile */
 }
 
 .titre-live, .titre-hist, .titre-classement {
