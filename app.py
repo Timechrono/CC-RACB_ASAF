@@ -43,7 +43,7 @@ except ModuleNotFoundError:
 
 st.set_page_config(page_title="Live", layout="wide")
 
-# --- CONCEPTION GRAPHIQUE RIGIDE ET BLOC BARRE ULTRA-SERRÉE ---
+# --- CONCEPTION GRAPHIQUE RIGIDE ET STRUCTURE DE NAVIGATION FUSIONNÉE ---
 st.markdown("""
 <style>
 [data-testid="stHeader"] { display: none !important; }
@@ -91,23 +91,31 @@ button:focus, div:focus, input:focus, select:focus {
 
 .block-container { padding-top: 0.4rem !important; padding-bottom: 0rem !important; }
 
-/* RECTIFICATION CRITIQUE : FORCE LA DISPARITION DES ESPACES VIDES DES COLONNES STREAMLIT */
+/* BARRE DE NAVIGATION SUR MESURE : REGROUPE EN FLEXBOX TOUS LES ENFANTS DIRECTS */
 div[data-testid="stHorizontalBlock"] {
+    display: none !important; /* On détruit l'ancien système de colonnes défectueux */
+}
+
+.barre-nav-cc-unifiee {
     display: flex !important;
     flex-direction: row !important;
-    justify-content: flex-start !important;
+    flex-wrap: nowrap !important;
     align-items: center !important;
-    gap: 4px !important; /* Distance ultra-courte de 4 pixels entre chaque élément */
+    justify-content: flex-start !important;
+    gap: 6px !important; /* Écartement mathématique constant de 6px entre TOUS les éléments */
     width: 100% !important;
+    height: 26px !important;
+    margin-bottom: 0px !important;
+    padding: 0px !important;
 }
 
-div[data-testid="stHorizontalBlock"] > div {
-    min-width: unset !important;
-    width: max-content !important; /* Adapte la colonne exactement à la taille du bouton */
+/* APPLICATION DU STYLE SUR LA SUITE DE BOUTONS NATIFS INJECTÉS */
+.barre-nav-cc-unifiee div.element-bouton {
+    display: inline-block !important;
+    width: auto !important;
 }
 
-/* STYLE DU BOUTON COMPACT UNIQUE */
-div.stButton > button {
+.barre-nav-cc-unifiee button {
     width: auto !important;
     height: 24px !important;
     background-color: #F1F5F9 !important;
@@ -120,20 +128,23 @@ div.stButton > button {
     line-height: 22px !important;
     white-space: nowrap !important;
 }
-div.stButton > button:hover {
+
+/* BOUTON SÉLECTIONNÉ ACTIF (BLEU MARQUÉ) */
+.barre-nav-cc-unifiee .bouton-actif button {
+    background-color: #1E3A8A !important;
+    color: white !important;
     border-color: #1E3A8A !important;
-    color: #1E3A8A !important;
-    background-color: #E0F2FE !important;
 }
 
-/* DÉCOMPTE SANS BOÎTE REPOUSSÉ TOUT À DROITE */
-.label-decompte-epure {
+/* TEXTE DU DÉCOMPTE PUR SANS CADRE POSITIONNÉ À DROITE */
+.barre-nav-cc-unifiee .label-decompte-epure {
     font-size: 0.85rem !important;
     font-weight: bold !important;
     color: #1E3A8A !important;
-    line-height: 24px !important;
+    line-height: 26px !important;
     white-space: nowrap !important;
-    padding-left: 20px !important; /* Petit décalage pour ne pas toucher le dernier bouton */
+    margin-left: auto !important; /* Repousse automatiquement à l'extrémité droite de la même ligne */
+    padding-right: 4px !important;
 }
 </style>
 """, unsafe_allow_html=True)
@@ -153,21 +164,26 @@ if course2_racb_disponible: colonnes_menu.append("Course 2 RACB")
 if course3_disponible: colonnes_menu.append("Course 3 ASAF")
 if course3_racb_disponible: colonnes_menu.append("Course 3 RACB")
 
-# Création d'une structure horizontale où chaque bouton et le décompte prennent leur place naturelle côte à côte
-toutes_colonnes = st.columns(len(colonnes_menu) + 1)
+# --- CONCEPTION DE LA LIGNE HORIZONTALE PAR INJECTION CONTENEUR ---
+# On crée la structure HTML flexbox en haut de la page
+st.markdown('<div class="barre-nav-cc-unifiee">', unsafe_allow_html=True)
 
+# Pour chaque session du menu, on injecte le bouton dans une div alignée
 for idx, nom_session in enumerate(colonnes_menu):
-    with toutes_colonnes[idx]:
-        if st.session_state["active_session"] == nom_session:
-            st.markdown(f"""<style>div[data-testid="stHorizontalBlock"] > div:nth-child({idx+1}) button {{ background-color: #1E3A8A !important; color: white !important; border-color: #1E3A8A !important; }}</style>""", unsafe_allow_html=True)
-        if st.button(nom_session, key=f"nav_btn_{idx}"):
-            st.session_state["active_session"] = nom_session
-            st.rerun()
+    classe_active = "bouton-actif" if st.session_state["active_session"] == nom_session else ""
+    st.markdown(f'<div class="element-bouton {classe_active}">', unsafe_allow_html=True)
+    if st.button(nom_session, key=f"nav_btn_unifie_{idx}"):
+        st.session_state["active_session"] = nom_session
+        st.rerun()
+    st.markdown('</div>', unsafe_allow_html=True)
 
-# Utilisation de la dernière colonne créée pour le décompte textuel pur
-zone_decompte_epure = toutes_colonnes[-1].empty()
+# Ancre texte pour le décompte (placé dans le même alignement Flexbox)
+zone_decompte_epure = st.empty()
 
-# Marge d'interligne réduite sous la barre compactée
+# Fermeture de la ligne Flexbox
+st.markdown('</div>', unsafe_allow_html=True)
+
+# Interligne constant sous la barre de navigation
 st.markdown("<div style='height: 14px; margin-bottom: 4px;'></div>", unsafe_allow_html=True)
 choix_course = st.session_state["active_session"]
 
@@ -219,7 +235,7 @@ def afficher_tableaux():
                 st.markdown(f"<span class='titre-classement'>{t_bas}</span>", unsafe_allow_html=True)
                 st.markdown(gen_html(d_bas, "table-class-robuste"), unsafe_allow_html=True)
 
-    # REFRESH CONTINU ET TEXTUEL SANS AUCUN CADRE GRAPHIQUE
+    # DÉCOMPTE SÉCURISÉ INJECTÉ DANS L'ALIGNEMENT DE LA LIGNE UNIQUE
     for secondes_restantes in range(30, 0, -1):
         zone_decompte_epure.markdown(f"<span class='label-decompte-epure'>⏱️ Rafraîchissement dans : {secondes_restantes}s</span>", unsafe_allow_html=True)
         time.sleep(1)
