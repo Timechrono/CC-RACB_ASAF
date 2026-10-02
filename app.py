@@ -43,7 +43,7 @@ except ModuleNotFoundError:
 
 st.set_page_config(page_title="Live", layout="wide")
 
-# --- CONCEPTION GRAPHIQUE RIGIDE ET BLOC BARRE DE NAVIGATION ---
+# --- CONCEPTION GRAPHIQUE RIGIDE ET RECTANGLAIRE (AUCUN OVALE, AUCUN ROUGE) ---
 st.markdown("""
 <style>
 [data-testid="stHeader"] { display: none !important; }
@@ -72,47 +72,47 @@ button:focus, div:focus, input:focus, select:focus {
 }
 .table-compacte td { border-bottom: 1px solid #E0E0E0 !important; background-color: #FFFFFF !important; }
 .table-compacte th { font-weight: bold !important; background-color: #F5F5F5 !important; border-bottom: 2px solid #CCCCCC !important; text-align: left !important; }
-.table-live td:last-child, .table-live td:last-child, .table-class-robuste td:last-child { font-weight: bold !important; font-size: 0.94rem !important; color: #0F172A !important; }
+.table-live td:last-child, .table-hist td:last-child, .table-class-robuste td:last-child { font-weight: bold !important; font-size: 0.94rem !important; color: #0F172A !important; }
 .table-hist tr:nth-child(odd) td { background-color: #E0F2FE !important; }
 
-/* RECTIFICATION IMPORTANTE : ALIGNEMENT PARFAIT DE LA LIGNE ST.PILLS + COMPTEUR */
-div[data-testid="stHorizontalBlock"] {
-    display: flex !important;
-    flex-direction: row !important;
-    flex-wrap: nowrap !important;
-    align-items: center !important;
-    justify-content: space-between !important;
+/* LARGEURS ASSIGNÉES AUX TABLEAUX */
+.table-live th:nth-child(1), .table-live td:nth-child(1) { width: 8% !important; }
+.table-live th:nth-child(2), .table-live td:nth-child(2) { width: 26% !important; }
+.table-live th:nth-child(3), .table-live td:nth-child(3) { width: 18% !important; }
+.table-live th:nth-child(4), .table-live td:nth-child(4) { width: 13% !important; }
+.table-live th:nth-child(5), .table-live td:nth-child(5) { width: 13% !important; }
+.table-live th:nth-child(6), .table-live td:nth-child(6) { width: 22% !important; }
+
+.table-class-robuste th:nth-child(1), .table-class-robuste td:nth-child(1) { width: 9% !important; }
+.table-class-robuste th:nth-child(2), .table-class-robuste td:nth-child(2) { width: 11% !important; }
+.table-class-robuste th:nth-child(3), .table-class-robuste td:nth-child(3) { width: 33% !important; }
+.table-class-robuste th:nth-child(4), .table-class-robuste td:nth-child(4) { width: 23% !important; }
+.table-class-robuste th:nth-child(5), .table-class-robuste td:nth-child(5) { width: 6% !important; }
+.table-class-robuste th:nth-child(6), .table-class-robuste td:nth-child(6) { width: 18% !important; text-align: right !important; }
+
+/* RESTAURATION DU BOUTON DROIT RECTANGLAIRE DE COURSE AVEC COULEUR BLEU MARQUÉ EXCLUSIF */
+div.stButton > button {
     width: 100% !important;
-}
-
-/* Force les boutons st.pills à se coller régulièrement avec un écart fixe de 6px */
-div[data-testid="stWidgetLabel"] { display: none !important; }
-div[role="listbox"] {
-    gap: 6px !important;
-}
-
-/* Style uniforme des pilules (hauteur 24px, texte gras et encadré) */
-div[role="option"] {
+    min-height: unset !important;
     height: 24px !important;
-    padding: 0px 14px !important;
-    font-weight: bold !important;
-    font-size: 0.82rem !important;
-    line-height: 22px !important;
-    border-radius: 3px !important;
     background-color: #F1F5F9 !important;
     color: #475569 !important;
+    font-weight: bold !important;
+    font-size: 0.82rem !important;
     border: 1px solid #CBD5E1 !important;
-    transition: all 0.15s ease !important;
+    border-radius: 3px !important; /* Angles droits très légèrement adoucis, pas d'ovale */
+    padding: 0px 4px !important;
+    margin: 0px !important;
+    line-height: 22px !important;
+    white-space: nowrap !important;
 }
-
-/* Changement de couleur de la pilule active (Bleu marqué de course) */
-div[aria-selected="true"] {
-    background-color: #1E3A8A !important;
-    color: white !important;
+div.stButton > button:hover {
     border-color: #1E3A8A !important;
+    color: #1E3A8A !important;
+    background-color: #E0F2FE !important;
 }
 
-/* SÉPARATEUR DE SÉCURITÉ DE 22PX POUR BLOQUER LA FEUILLE EN DESSOUS */
+/* MARGE FIXE DE SÉCURITÉ DE 22PX EN DESSOUS DU MENU */
 .separateur-statique {
     height: 22px !important;
     margin-bottom: 4px !important;
@@ -120,6 +120,7 @@ div[aria-selected="true"] {
     display: block !important;
 }
 
+/* COMPTEUR EN TEXTE BRUT DE COULEUR BLEU SANS AUCUNE BOÎTE AUTOUR */
 .label-decompte-pure-txt {
     font-size: 0.85rem !important;
     font-weight: bold !important;
@@ -140,39 +141,41 @@ def gen_html(df, cl):
     if df.empty: return f"<table class='table-compacte {cl}'><tr><td style='text-align: center; padding: 10px;'>Aucune donnée disponible</td></tr></table>"
     return df.to_html(index=False, classes=f"table-compacte {cl}", escape=False, border=0)
 
-# Assemblage des onglets du menu horizontal
-colonnes_menu = ["Essais"]
-if course1_disponible: colonnes_menu.append("Course 1 ASAF")
-if course1_racb_disponible: colonnes_menu.append("Course 1 RACB")
-if course2_disponible: colonnes_menu.append("Course 2 ASAF")
-if course2_racb_disponible: colonnes_menu.append("Course 2 RACB")
-if course3_disponible: colonnes_menu.append("Course 3 ASAF")
-if course3_racb_disponible: colonnes_menu.append("Course 3 RACB")
+# --- RECTIFICATION DES PROPORTIONS POUR SERRER LES BOUTONS COMPACTEMENT ---
+# Nous passons des valeurs asymétriques pour caler l'espace :
+# - La colonne 'Essais' est étroite (0.6) car le mot est court.
+# - Les colonnes 'Course X XXXX' sont à 1.1.
+# - La colonne finale du décompte est élargie à 2.8 pour interdire le retour à la ligne.
+structure_colonnes = [0.6, 1.1, 1.1, 1.1, 1.1, 1.1, 1.1, 2.8]
 
-# Définition de deux colonnes asymétriques : une grande pour les boutons collés, une petite pour le décompte
-cols = st.columns([4.0, 1.0], vertical_alignment="center")
+# On s'assure d'adapter le nombre de colonnes au nombre réel de sessions chargées
+colonnes_visibles = ["Essais"]
+if course1_disponible: colonnes_visibles.append("Course 1 ASAF")
+if course1_racb_disponible: colonnes_visibles.append("Course 1 RACB")
+if course2_disponible: colonnes_visibles.append("Course 2 ASAF")
+if course2_racb_disponible: colonnes_visibles.append("Course 2 RACB")
+if course3_disponible: colonnes_menu.append("Course 3 ASAF") # Sécurité héritée
+if course3_racb_disponible: colonnes_visibles.append("Course 3 RACB")
 
-with cols[0]:
-    # Utilisation du composant st.pills pour un espacement horizontal natif et rigide au millimètre
-    choix_selectionne = st.pills(
-        "Session_Label", 
-        options=colonnes_menu, 
-        default=st.session_state["active_session"], 
-        label_visibility="collapsed",
-        key="active_pills_nav"
-    )
-    if choix_selectionne != st.session_state["active_session"]:
-        st.session_state["active_session"] = choix_selectionne
-        st.rerun()
+proportions_finales = structure_colonnes[:len(colonnes_visibles)] + [2.8]
+cols = st.columns(proportions_finales, vertical_alignment="center")
 
-# Utilisation de la colonne de droite pour afficher le décompte en texte brut
-zone_decompte_txt = cols[1].empty()
+# Rendu des boutons de course rectangulaires stables
+for idx, nom_session in enumerate(colonnes_visibles):
+    with cols[idx]:
+        if st.session_state["active_session"] == nom_session:
+            st.markdown(f"""<style>div[data-testid="stHorizontalBlock"] > div:nth-child({idx+1}) button {{ background-color: #1E3A8A !important; color: white !important; border-color: #1E3A8A !important; }}</style>""", unsafe_allow_html=True)
+        if st.button(nom_session, key=f"btn_nav_{idx}"):
+            st.session_state["active_session"] = nom_session
+            st.rerun()
 
-# Insertion du séparateur statique de 22px
+# Utilisation exclusive de la dernière colonne à droite pour le texte brut du décompte
+zone_decompte_txt = cols[-1].empty()
+
 st.markdown("<div class='separateur-statique'></div>", unsafe_allow_html=True)
 choix_course = st.session_state["active_session"]
 
-# Conteneur d'affichage pur (Anti-miroir / Anti-reliquat)
+# Conteneur d'affichage pur des classements (Anti-miroir / Anti-reliquat)
 zone_affichage_pure = st.empty()
 
 # --- FRAGMENT CENTRALISÉ DÉDIÉ UNIQUEMENT AUX CLASSEMENTS (Toutes les 30s) ---
