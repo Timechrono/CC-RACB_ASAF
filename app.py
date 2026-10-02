@@ -43,15 +43,13 @@ except ModuleNotFoundError:
 
 st.set_page_config(page_title="Live", layout="wide")
 
-# Gestion de l'onglet actif via les paramètres d'URL pour éviter le cache des boutons
-if "session" not in st.query_params:
-    st.query_params["session"] = "Essais"
-choix_course = st.query_params["session"]
-
-# --- STYLE DU MENU IMMOBILE EN BÉTON ARMÉ (SANS COLONNES STREAMLIT) ---
+# --- CONCEPTION GRAPHIQUE RIGIDE ET STRATIFIÉE ---
 st.markdown("""
 <style>
 [data-testid="stHeader"] { display: none !important; }
+button:focus, div:focus, input:focus, select:focus {
+    outline: none !important; border-color: transparent !important; box-shadow: none !important;
+}
 
 .titre-live, .titre-hist, .titre-classement {
     color: #FFFFFF !important; font-size: 1.05rem !important; font-weight: bold !important;
@@ -77,7 +75,6 @@ st.markdown("""
 .table-live td:last-child, .table-hist td:last-child, .table-class-robuste td:last-child { font-weight: bold !important; font-size: 0.94rem !important; color: #0F172A !important; }
 .table-hist tr:nth-child(odd) td { background-color: #E0F2FE !important; }
 
-/* RECTIFICATION DE SÉCURITÉ POUR LES TABLEAUX GAUCHE / DROITE */
 .table-live th:nth-child(1), .table-live td:nth-child(1) { width: 8% !important; }
 .table-live th:nth-child(2), .table-live td:nth-child(2) { width: 26% !important; }
 .table-live th:nth-child(3), .table-live td:nth-child(3) { width: 18% !important; }
@@ -94,22 +91,10 @@ st.markdown("""
 
 .block-container { padding-top: 0.4rem !important; padding-bottom: 0rem !important; }
 
-/* LA BARRE ULTRA-STATIQUE EN FLEXBOX HTML PURE */
-.barre-horizontale-cc-unique {
-    display: flex !important;
-    flex-direction: row !important;
-    align-items: center !important;
-    justify-content: flex-start !important;
-    gap: 6px !important; /* Fixé à 6px réguliers partout */
+/* FIXATION ET APPLICATION DU DESIGN COMPACT ET UNIQUE SUR TOUS LES BOUTONS */
+div.stButton > button {
     width: 100% !important;
-    height: 26px !important;
-    margin-bottom: 0px !important;
-    padding: 0px !important;
-}
-
-/* LE BOUTON HTML SOUDE */
-.bouton-cc-statique {
-    display: inline-block !important;
+    min-height: unset !important;
     height: 24px !important;
     background-color: #F1F5F9 !important;
     color: #475569 !important;
@@ -118,73 +103,72 @@ st.markdown("""
     border: 1px solid #CBD5E1 !important;
     border-radius: 3px !important;
     padding: 0px 14px !important;
+    margin: 0px !important;
     line-height: 22px !important;
-    text-decoration: none !important;
-    white-space: nowrap !important;
-    text-align: center !important;
-}
-.bouton-cc-statique:hover {
-    border-color: #1E3A8A !important;
-    color: #1E3A8A !important;
-    background-color: #E0F2FE !important;
-}
-
-.bouton-cc-statique.actif {
-    background-color: #1E3A8A !important;
-    color: white !important;
-    border-color: #1E3A8A !important;
-}
-
-/* LE COMPTEUR DEVENU ENTIÈREMENT INDÉPENDANT */
-.compteur-cc-txt {
-    font-size: 0.85rem !important;
-    font-weight: bold !important;
-    color: #1E3A8A !important;
-    line-height: 26px !important;
-    margin-left: auto !important; /* Se cale tout à fait à droite sur l'axe horizontal */
     white-space: nowrap !important;
 }
 
-/* L'ESPACE DE SÉCURITÉ DE 22PX INTERDIT TOUT MOUVEMENT ACCORDÉON */
-.separateur-statique-final {
-    height: 22px !important;
+/* BLOC DE REHAUSSE IMPÉRATIF : INTERDIT PHYSIQUEMENT LE CHEVAUCHEMENT DE LA FEUILLE */
+.zone-rehausse-menu {
+    height: 24px !important;
+    margin-top: 6px !important;
+    margin-bottom: 12px !important;
     display: block !important;
     clear: both !important;
 }
+
+.label-decompte-pure-txt {
+    font-size: 0.85rem !important;
+    font-weight: bold !important;
+    color: #1E3A8A !important;
+    line-height: 24px !important;
+    white-space: nowrap !important;
+    display: inline-block !important;
+    text-align: right !important;
+    width: 100% !important;
+}
 </style>
 """, unsafe_allow_html=True)
+if "active_session" not in st.session_state:
+    st.session_state["active_session"] = "Essais"
+
 def gen_html(df, cl):
     if isinstance(df, str): return df 
     if df.empty: return f"<table class='table-compacte {cl}'><tr><td style='text-align: center; padding: 10px;'>Aucune donnée disponible</td></tr></table>"
     return df.to_html(index=False, classes=f"table-compacte {cl}", escape=False, border=0)
 
-# Définition des onglets (Le premier affiche fièrement "Essais")
-onglets_CC = [("Essais", "Essais")]
-if course1_disponible: onglets_CC.append(("Course 1 ASAF", "Course 1 ASAF"))
-if course1_racb_disponible: onglets_CC.append(("Course 1 RACB", "Course 1 RACB"))
-if course2_disponible: onglets_CC.append(("Course 2 ASAF", "Course 2 ASAF"))
-if course2_racb_disponible: onglets_CC.append(("Course 2 RACB", "Course 2 RACB"))
-if course3_disponible: onglets_CC.append(("Course 3 ASAF", "Course 3 ASAF"))
-if course3_racb_disponible: onglets_CC.append(("Course 3 RACB", "Course 3 RACB"))
+# Assemblage des libellés du menu horizontal ("Essais" en première position)
+colonnes_menu = ["Essais"]
+if course1_disponible: colonnes_menu.append("Course 1 ASAF")
+if course1_racb_disponible: colonnes_menu.append("Course 1 RACB")
+if course2_disponible: colonnes_menu.append("Course 2 ASAF")
+if course2_racb_disponible: colonnes_menu.append("Course 2 RACB")
+if course3_disponible: colonnes_menu.append("Course 3 ASAF")
+if course3_racb_disponible: colonnes_menu.append("Course 3 RACB")
 
-# --- INJECTION UNIQUE DU BARREAU EN HTML PUR (ZÉRO COLONNE STREAMLIT = ZÉRO DROPPING) ---
-html_barre = '<div class="barre-horizontale-cc-unique">'
-for libelle, code_id in onglets_CC:
-    classe_active = "actif" if choix_course == code_id else ""
-    html_barre += f'<a class="bouton-cc-statique {classe_active}" href="?session={code_id}" target="_self">{libelle}</a>'
+# ÉTAPE 1 : RENDU DE LA BARRE EN COLONNES HORS DES FRAGMENTS (GARANTIT L'IMMOBILITÉ)
+structure_colonnes = [1.0] * len(colonnes_menu) + [2.2]
+cols = st.columns(structure_colonnes, vertical_alignment="center")
 
-# Ancre statique pour l'horloge
-html_barre += '<span id="horloge-cc-txt" class="compteur-cc-txt">⏱️ Rafraîchissement dans : 30s</span>'
-html_barre += '</div>'
+for idx, nom_session in enumerate(colonnes_menu):
+    with cols[idx]:
+        if st.session_state["active_session"] == nom_session:
+            st.markdown(f"""<style>div[data-testid="stHorizontalBlock"] > div:nth-child({idx+1}) button {{ background-color: #1E3A8A !important; color: white !important; border-color: #1E3A8A !important; }}</style>""", unsafe_allow_html=True)
+        if st.button(nom_session, key=f"btn_nav_{idx}"):
+            st.session_state["active_session"] = nom_session
+            st.rerun()
 
-st.markdown(html_barre, unsafe_allow_html=True)
-st.markdown('<div class="separateur-statique-final"></div>', unsafe_allow_html=True)
+# Création du conteneur réservé exclusivement à l'écriture textuelle de l'horloge
+zone_decompte_txt = cols[-1].empty()
 
-# Zones tampons d'affichage pur (Éradication définitive de l'effet miroir)
+# Injection de la rehausse physique pour scinder définitivement le menu supérieur de la feuille
+st.markdown("<div class='zone-rehausse-menu'></div>", unsafe_allow_html=True)
+choix_course = st.session_state["active_session"]
+
+# Conteneur d'affichage étanche pour les classements (Anti-miroir)
 zone_affichage_pure = st.empty()
 
-# --- FRAGMENT TECHNIQUE DÉDIÉ EXCLUSIVEMENT AUX CLASSEMENTS (Toutes les 30s) ---
-# Il s'exécute de manière étanche sans jamais toucher ni redessiner le menu supérieur
+# --- ÉTAPE 2 : FRAGMENT SÉPARÉ DÉDIÉ UNIQUEMENT AUX TABLEAUX DE CHRONOS (Toutes les 30s) ---
 @st.fragment(run_every=30)
 def rafraichir_uniquement_tableaux():
     st.cache_data.clear()
@@ -195,13 +179,13 @@ def rafraichir_uniquement_tableaux():
         d_liv, d_his, d_haut, d_milieu, d_bas, t_live, t_his, t_haut, t_milieu, t_bas = Course_1_ASAF.recuperer_donnees_course()
     elif terme_recherche == "Course 1 RACB" and course1_racb_disponible:
         d_liv, d_his, d_haut, d_milieu, d_bas, t_live, t_his, t_haut, t_milieu, t_bas = Course_1_RACB.recuperer_donnees_course()
-    elif terme_recherche == "Course 2 ASAF" and course2_disponible:
+    elif choix_course == "Course 2 ASAF" and course2_disponible:
         d_liv, d_his, d_haut, d_milieu, d_bas, t_live, t_his, t_haut, t_milieu, t_bas = Course_2_ASAF.recuperer_donnees_course()
-    elif terme_recherche == "Course 2 RACB" and course2_racb_disponible:
+    elif choix_course == "Course 2 RACB" and course2_racb_disponible:
         d_liv, d_his, d_haut, d_milieu, d_bas, t_live, t_his, t_haut, t_milieu, t_bas = Course_2_RACB.recuperer_donnees_course()
-    elif terme_recherche == "Course 3 ASAF" and course3_disponible:
+    elif choix_course == "Course 3 ASAF" and course3_disponible:
         d_liv, d_his, d_haut, d_milieu, d_bas, t_live, t_his, t_haut, t_milieu, t_bas = Course_3_ASAF.recuperer_donnees_course()
-    elif terme_recherche == "Course 3 RACB" and course3_racb_disponible:
+    elif choix_course == "Course 3 RACB" and course3_racb_disponible:
         d_liv, d_his, d_haut, d_milieu, d_bas, t_live, t_his, t_haut, t_milieu, t_bas = Course_3_RACB.recuperer_donnees_course()
     else:
         d_liv, d_his, d_haut, d_milieu, d_bas, t_live, t_his, t_haut, t_milieu, t_bas = Essais.recuperer_donnees_course()
@@ -232,18 +216,18 @@ def rafraichir_uniquement_tableaux():
                 st.markdown(f"<span class='titre-classement'>{t_bas}</span>", unsafe_allow_html=True)
                 st.markdown(gen_html(d_bas, "table-class-robuste"), unsafe_allow_html=True)
 
-# --- MINI-FRAGMENT COMPTEUR ISOLE (Toutes les 1s) ---
+# --- ÉTAPE 3 : MINI-FRAGMENT SÉPARÉ DÉDIÉ UNIQUEMENT À L'HORLOGE COMPTEUR (Toutes les 1s) ---
 @st.fragment(run_every=1)
 def faire_tourner_le_compteur():
     if "chrono_sec" not in st.session_state:
         st.session_state["chrono_sec"] = 30
+    
     st.session_state["chrono_sec"] -= 1
     if st.session_state["chrono_sec"] <= 0:
         st.session_state["chrono_sec"] = 30
-    
-    # Injection directe dans le nœud HTML pour un affichage instantané et immobile
-    st.markdown(f"""<script>document.getElementById("horloge-cc-txt").innerText = "⏱️ Rafraîchissement dans : {st.session_state['chrono_sec']}s";</script>""", unsafe_allow_html=True)
+        
+    zone_decompte_txt.markdown(f"<span class='label-decompte-pure-txt'>⏱️ Rafraîchissement dans : {st.session_state['chrono_sec']}s</span>", unsafe_allow_html=True)
 
-# Lancement
+# Exécution asynchrone propre
 rafraichir_uniquement_tableaux()
 faire_tourner_le_compteur()
