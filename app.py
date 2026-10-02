@@ -1,27 +1,48 @@
 import streamlit as st
 import pandas as pd
 import time
+import Essais
 
-def charger_modules_course():
-    modules = {"Essais": None, "C1_ASAF": None, "C2_ASAF": None, "C3_ASAF": None, "C1_RACB": None, "C2_RACB": None, "C3_RACB": None}
-    try: import Essais; modules["Essais"] = Essais
-    except Exception: pass
-    try: import Course_1_ASAF; modules["C1_ASAF"] = Course_1_ASAF
-    except Exception: pass
-    try: import Course_2_ASAF; modules["C2_ASAF"] = Course_2_ASAF
-    except Exception: pass
-    try: import Course_3_ASAF; modules["C3_ASAF"] = Course_3_ASAF
-    except Exception: pass
-    try: import Course_1_RACB; modules["C1_RACB"] = Course_1_RACB
-    except Exception: pass
-    try: import Course_2_RACB; modules["C2_RACB"] = Course_2_RACB
-    except Exception: pass
-    try: import Course_3_RACB; modules["C3_RACB"] = Course_3_RACB
-    except Exception: pass
-    return modules
+# --- CHARGEMENT DES SESSIONS DE COURSE D'ORIGINE ---
+try:
+    import Course_1_ASAF
+    course1_disponible = True
+except ModuleNotFoundError:
+    course1_disponible = False
+
+try:
+    import Course_2_ASAF
+    course2_disponible = True
+except ModuleNotFoundError:
+    course2_disponible = False
+
+try:
+    import Course_3_ASAF
+    course3_disponible = True
+except ModuleNotFoundError:
+    course3_disponible = False
+
+try:
+    import Course_1_RACB
+    course1_racb_disponible = True
+except ModuleNotFoundError:
+    course1_racb_disponible = False
+
+try:
+    import Course_2_RACB
+    course2_racb_disponible = True
+except ModuleNotFoundError:
+    course2_racb_disponible = False
+
+try:
+    import Course_3_RACB
+    course3_racb_disponible = True
+except ModuleNotFoundError:
+    course3_racb_disponible = False
 
 st.set_page_config(page_title="Live", layout="wide")
 
+# --- STYLE GRAPHISME ULTRA-COMPACT ET SERRÉ ---
 st.markdown("""
 <style>
 [data-testid="stHeader"] { display: none !important; }
@@ -44,6 +65,7 @@ div[data-testid="stVerticalBlock"] {
     padding-top: 0px !important;
 }
 
+/* CENTRAGE ET ESPACE COMPACT POUR LES BOUTONS */
 div[data-testid="stHorizontalBlock"] {
     display: flex !important;
     justify-content: center !important;
@@ -87,6 +109,7 @@ div.stElementContainer {
 }
 .table-compacte td { border-bottom: 1px solid #E0E0E0 !important; background-color: #FFFFFF !important; }
 .table-compacte th { font-weight: bold !important; background-color: #F5F5F5 !important; border-bottom: 2px solid #CCCCCC !important; text-align: left !important; }
+.table-live td:last-child, .table-class-robuste td:last-child { font-weight: bold !important; font-size: 0.94rem !important; color: #0F172A !important; }
 .table-hist tr:nth-child(odd) td { background-color: #E0F2FE !important; }
 
 div.stButton > button {
@@ -106,8 +129,6 @@ div.stButton > button {
 }
 </style>
 """, unsafe_allow_html=True)
-mods = charger_modules_course()
-
 if "active_session" not in st.session_state:
     st.session_state["active_session"] = "Essais"
 
@@ -117,14 +138,16 @@ def gen_html(df, cl):
         return f"<table class='table-compacte {cl}'><tr><td style='text-align: center; padding: 10px;'>Aucune donnée disponible</td></tr></table>"
     return df.to_html(index=False, classes=f"table-compacte {cl}", escape=False, border=0)
 
+# Reconstitution stricte de vos boutons
 colonnes_visibles = ["Essais"]
-if mods["C1_ASAF"]: colonnes_visibles.append("Course 1 ASAF")
-if mods["C1_RACB"]: colonnes_visibles.append("Course 1 RACB")
-if mods["C2_ASAF"]: colonnes_visibles.append("Course 2 ASAF")
-if mods["C2_RACB"]: colonnes_visibles.append("Course 2 RACB")
-if mods["C3_ASAF"]: colonnes_visibles.append("Course 3 ASAF")
-if mods["C3_RACB"]: colonnes_visibles.append("Course 3 RACB")
+if course1_disponible: colonnes_visibles.append("Course 1 ASAF")
+if course1_racb_disponible: colonnes_visibles.append("Course 1 RACB")
+if course2_disponible: colonnes_visibles.append("Course 2 ASAF")
+if course2_racb_disponible: colonnes_visibles.append("Course 2 RACB")
+if course3_disponible: colonnes_visibles.append("Course 3 ASAF")
+if course3_racb_disponible: colonnes_visibles.append("Course 3 RACB")
 
+# Marges symétriques parfaites de 10px autour de la ligne de navigation
 st.markdown("<div style='height: 10px;'></div>", unsafe_allow_html=True)
 
 cols = st.columns([1.0] * len(colonnes_visibles))
@@ -141,52 +164,37 @@ for idx, nom_session in enumerate(colonnes_visibles):
 st.markdown("<div style='height: 10px; clear: both;'></div>", unsafe_allow_html=True)
 
 choix_course = st.session_state["active_session"]
+
+# Zone conteneur isolée pour l'injection propre
 zone_affichage_pure = st.empty()
 
+# --- FRAGMENT DE RENDU RESTAURÉ SELON VOTRE LOGIQUE INITIALE ---
 @st.fragment(run_every=30)
 def rafraichir_uniquement_tableaux():
-    d_liv, d_his, d_haut, d_milieu, d_bas = pd.DataFrame(), pd.DataFrame(), pd.DataFrame(), pd.DataFrame(), pd.DataFrame()
-    t_live, t_his, t_haut, t_milieu, t_bas = "Live", "Historique", "Classement", "", ""
-    
-    # Mode diagnostic forcé : on ré-importe le fichier en direct sans bloquer l'application
-    try:
-        if choix_course == "Course 1 ASAF":
-            import Course_1_ASAF
-            res = Course_1_ASAF.recuperer_donnees_course()
-        elif choix_course == "Course 1 RACB":
-            import Course_1_RACB
-            res = Course_1_RACB.recuperer_donnees_course()
-        elif choix_course == "Course 2 ASAF":
-            import Course_2_ASAF
-            res = Course_2_ASAF.recuperer_donnees_course()
-        elif choix_course == "Course 2 RACB":
-            import Course_2_RACB
-            res = Course_2_RACB.recuperer_donnees_course()
-        elif choix_course == "Course 3 ASAF":
-            import Course_3_ASAF
-            res = Course_3_ASAF.recuperer_donnees_course()
-        elif choix_course == "Course 3 RACB":
-            import Course_3_RACB
-            res = Course_3_RACB.recuperer_donnees_course()
-        else:
-            import Essais
-            # --- SUPPRESSION SÉCURISÉE DU TRY/EXCEPT SOURNOIS D'ESSAIS.PY EN LIVE ---
-            # Pour voir l'erreur réelle s'il y en a une
-            res = Essais.recuperer_donnees_course()
+    terme_recherche = "Essais / Entraînements" if choix_course == "Essais" else choix_course
 
-        if res and len(res) == 10:
-            d_liv, d_his, d_haut, d_milieu, d_bas, t_live, t_his, t_haut, t_milieu, t_bas = res
-            
-    except Exception as e:
-        # Affiche le bug exact en rouge vif dans le bandeau du Live au lieu d'une page blanche
-        t_live = f"⚠️ BUG DANS LE SCRIPT DE CALCUL : {str(e)}"
+    # Rétablissement de vos branchements d'origine sans modifications internes
+    if terme_recherche == "Course 1 ASAF" and course1_disponible:
+        d_liv, d_his, d_haut, d_milieu, d_bas, t_live, t_his, t_haut, t_milieu, t_bas = Course_1_ASAF.recuperer_donnees_course()
+    elif terme_recherche == "Course 1 RACB" and course1_racb_disponible:
+        d_liv, d_his, d_haut, d_milieu, d_bas, t_live, t_his, t_haut, t_milieu, t_bas = Course_1_RACB.recuperer_donnees_course()
+    elif terme_recherche == "Course 2 ASAF" and course2_disponible:
+        d_liv, d_his, d_haut, d_milieu, d_bas, t_live, t_his, t_haut, t_milieu, t_bas = Course_2_ASAF.recuperer_donnees_course()
+    elif terme_recherche == "Course 2 RACB" and course2_racb_disponible:
+        d_liv, d_his, d_haut, d_milieu, d_bas, t_live, t_his, t_haut, t_milieu, t_bas = Course_2_RACB.recuperer_donnees_course()
+    elif terme_recherche == "Course 3 ASAF" and course3_disponible:
+        d_liv, d_his, d_haut, d_milieu, d_bas, t_live, t_his, t_haut, t_milieu, t_bas = Course_3_ASAF.recuperer_donnees_course()
+    elif terme_recherche == "Course 3 RACB" and course3_racb_disponible:
+        d_liv, d_his, d_haut, d_milieu, d_bas, t_live, t_his, t_haut, t_milieu, t_bas = Course_3_RACB.recuperer_donnees_course()
+    else:
+        d_liv, d_his, d_haut, d_milieu, d_bas, t_live, t_his, t_haut, t_milieu, t_bas = Essais.recuperer_donnees_course()
 
     with zone_affichage_pure.container():
         st.markdown("<style>.table-hist th:nth-child(1), .table-hist td:nth-child(1) { width: 7% !important; } .table-hist th:nth-child(2), .table-hist td:nth-child(2) { width: 23% !important; } .table-hist th:nth-child(3), .table-hist td:nth-child(3) { width: 22% !important; } .table-hist th:nth-child(4), .table-hist td:nth-child(4) { width: 10% !important; } .table-hist th:nth-child(5), .table-hist td:nth-child(5) { width: 10% !important; } .table-hist th:nth-child(6), .table-hist td:nth-child(6) { width: 14% !important; }</style>", unsafe_allow_html=True)
 
         cg, cd = st.columns([1.3, 0.9])
         with cg:
-            st.markdown(f"<span class='titre-live'>{t_live}</span>", unsafe_allow_html=True)
+            if t_live: st.markdown(f"<span class='titre-live'>{t_live}</span>", unsafe_allow_html=True)
             st.markdown(gen_html(d_liv, "table-live"), unsafe_allow_html=True)
             st.markdown("<div style='height:35px;'></div>", unsafe_allow_html=True)
             if t_his: st.markdown(f"<span class='titre-hist'>{t_his}</span>", unsafe_allow_html=True)
@@ -204,6 +212,8 @@ def rafraichir_uniquement_tableaux():
                 st.markdown("<div style='height: 40px;'></div>", unsafe_allow_html=True)
                 st.markdown(f"<span class='titre-classement'>{t_bas}</span>", unsafe_allow_html=True)
                 st.markdown(gen_html(d_bas, "table-class-robuste"), unsafe_allow_html=True)
+            
             st.markdown("<div style='height:70px;'></div>", unsafe_allow_html=True)
 
+# Lancement propre de la boucle
 rafraichir_uniquement_tableaux()
