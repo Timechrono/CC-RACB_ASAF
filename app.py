@@ -43,7 +43,7 @@ except ModuleNotFoundError:
 
 st.set_page_config(page_title="Live", layout="wide")
 
-# --- CONCEPTION GRAPHIQUE RIGIDE ET RECTANGLAIRE (AUCUN OVALE, AUCUN ROUGE) ---
+# --- CONCEPTION GRAPHIQUE RIGIDE ET ALIGNÉE (ANTI-SECANCE) ---
 st.markdown("""
 <style>
 [data-testid="stHeader"] { display: none !important; }
@@ -75,22 +75,14 @@ button:focus, div:focus, input:focus, select:focus {
 .table-live td:last-child, .table-hist td:last-child, .table-class-robuste td:last-child { font-weight: bold !important; font-size: 0.94rem !important; color: #0F172A !important; }
 .table-hist tr:nth-child(odd) td { background-color: #E0F2FE !important; }
 
-/* LARGEURS ASSIGNÉES AUX TABLEAUX */
-.table-live th:nth-child(1), .table-live td:nth-child(1) { width: 8% !important; }
-.table-live th:nth-child(2), .table-live td:nth-child(2) { width: 26% !important; }
-.table-live th:nth-child(3), .table-live td:nth-child(3) { width: 18% !important; }
-.table-live th:nth-child(4), .table-live td:nth-child(4) { width: 13% !important; }
-.table-live th:nth-child(5), .table-live td:nth-child(5) { width: 13% !important; }
-.table-live th:nth-child(6), .table-live td:nth-child(6) { width: 22% !important; }
+/* RECTIFICATION CRITIQUE DES MARGES : RECALAGE DU BLOC DE COLONNES DU HAUT */
+div[data-testid="stHorizontalBlock"] {
+    margin-top: 0px !important;
+    padding-top: 0px !important;
+    padding-bottom: 0px !important;
+}
 
-.table-class-robuste th:nth-child(1), .table-class-robuste td:nth-child(1) { width: 9% !important; }
-.table-class-robuste th:nth-child(2), .table-class-robuste td:nth-child(2) { width: 11% !important; }
-.table-class-robuste th:nth-child(3), .table-class-robuste td:nth-child(3) { width: 33% !important; }
-.table-class-robuste th:nth-child(4), .table-class-robuste td:nth-child(4) { width: 23% !important; }
-.table-class-robuste th:nth-child(5), .table-class-robuste td:nth-child(5) { width: 6% !important; }
-.table-class-robuste th:nth-child(6), .table-class-robuste td:nth-child(6) { width: 18% !important; text-align: right !important; }
-
-/* RESTAURATION DU BOUTON DROIT RECTANGLAIRE DE COURSE AVEC COULEUR BLEU MARQUÉ EXCLUSIF */
+/* VERROUILLAGE DES BOUTONS RECTANGLAIRES POUR EMPECHER LE SAUT VERS LE BAS */
 div.stButton > button {
     width: 100% !important;
     min-height: unset !important;
@@ -106,21 +98,16 @@ div.stButton > button {
     line-height: 22px !important;
     white-space: nowrap !important;
 }
-div.stButton > button:hover {
-    border-color: #1E3A8A !important;
-    color: #1E3A8A !important;
-    background-color: #E0F2FE !important;
-}
 
-/* MARGE FIXE DE SÉCURITÉ DE 22PX EN DESSOUS DU MENU */
-.separateur-statique {
-    height: 22px !important;
-    margin-bottom: 4px !important;
+/* ESPACE DE SÉPARATION DISCRET ET PROPRE ENTRE LE MENU ET LES FEUILLES */
+.separateur-ajuste {
+    height: 14px !important;
+    margin-top: 2px !important;
+    margin-bottom: 2px !important;
     clear: both !important;
     display: block !important;
 }
 
-/* COMPTEUR EN TEXTE BRUT DE COULEUR BLEU SANS AUCUNE BOÎTE AUTOUR */
 .label-decompte-pure-txt {
     font-size: 0.85rem !important;
     font-weight: bold !important;
@@ -141,7 +128,7 @@ def gen_html(df, cl):
     if df.empty: return f"<table class='table-compacte {cl}'><tr><td style='text-align: center; padding: 10px;'>Aucune donnée disponible</td></tr></table>"
     return df.to_html(index=False, classes=f"table-compacte {cl}", escape=False, border=0)
 
-# Assemblage de la liste finale des boutons
+# Assemblage des boutons du menu
 colonnes_visibles = ["Essais"]
 if course1_disponible: colonnes_visibles.append("Course 1 ASAF")
 if course1_racb_disponible: colonnes_visibles.append("Course 1 RACB")
@@ -150,12 +137,11 @@ if course2_racb_disponible: colonnes_visibles.append("Course 2 RACB")
 if course3_disponible: colonnes_visibles.append("Course 3 ASAF")
 if course3_racb_disponible: colonnes_visibles.append("Course 3 RACB")
 
-# Écarts corrigés au millimètre en fonction des longueurs de mots
-structure_colonnes = [0.6, 1.1, 1.1, 1.1, 1.1, 1.1, 1.1]
-proportions_finales = structure_colonnes[:len(colonnes_visibles)] + [2.8]
-cols = st.columns(proportions_finales, vertical_alignment="center")
+# RESOLUTION DU SAUT VERTICAL : Colonnes strictement identiques (1.0) pour tous les boutons
+proportions_egales = [1.0] * len(colonnes_visibles) + [2.4]
+cols = st.columns(proportions_egales, vertical_alignment="center")
 
-# Rendu des boutons rectangulaires stables
+# Rendu linéaire bloqué géométriquement
 for idx, nom_session in enumerate(colonnes_visibles):
     with cols[idx]:
         if st.session_state["active_session"] == nom_session:
@@ -164,13 +150,14 @@ for idx, nom_session in enumerate(colonnes_visibles):
             st.session_state["active_session"] = nom_session
             st.rerun()
 
-# Zone d'écriture du décompte
+# Zone d'écriture isolée pour le compteur à droite
 zone_decompte_txt = cols[-1].empty()
 
-st.markdown("<div class='separateur-statique'></div>", unsafe_allow_html=True)
+# Insertion du séparateur discret calibré
+st.markdown("<div class='separateur-ajuste'></div>", unsafe_allow_html=True)
 choix_course = st.session_state["active_session"]
 
-# Conteneur d'affichage pur (Anti-miroir)
+# Conteneur d'affichage pur (Éradication des boîtes fantômes)
 zone_affichage_pure = st.empty()
 
 # --- FRAGMENT CENTRALISÉ DÉDIÉ UNIQUEMENT AUX CLASSEMENTS (Toutes les 30s) ---
@@ -221,7 +208,7 @@ def rafraichir_uniquement_tableaux():
                 st.markdown(f"<span class='titre-classement'>{t_bas}</span>", unsafe_allow_html=True)
                 st.markdown(gen_html(d_bas, "table-class-robuste"), unsafe_allow_html=True)
 
-# --- MINI-FRAGMENT COMPTEUR SECONDE PAR SECONDE ---
+# --- MINI-FRAGMENT DÉDIÉ UNIQUEMENT À L'HORLOGE COMPTEUR (Toutes les 1s) ---
 @st.fragment(run_every=1)
 def faire_tourner_le_compteur():
     if "chrono_sec" not in st.session_state:
@@ -233,6 +220,6 @@ def faire_tourner_le_compteur():
         
     zone_decompte_txt.markdown(f"<span class='label-decompte-pure-txt'>⏱️ Rafraîchissement dans : {st.session_state['chrono_sec']}s</span>", unsafe_allow_html=True)
 
-# Lancement
+# Lancement coordonné
 rafraichir_uniquement_tableaux()
 faire_tourner_le_compteur()
