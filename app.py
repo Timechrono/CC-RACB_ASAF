@@ -203,7 +203,7 @@ choix_course = st.session_state["active_session"]
 d_liv, d_his, d_haut, d_milieu, d_bas = pd.DataFrame(), pd.DataFrame(), pd.DataFrame(), pd.DataFrame(), pd.DataFrame()
 t_live, t_his, t_haut, t_milieu, t_bas = "Live", "Historique", "Classement Haut", "", ""
 
-# --- APPEL DIRECT SANS AUCUN COMPOSANT NI ICÔNE STREAMLIT INTERMÉDIAIRE ---
+# --- APPEL DIRECT ET SÉCURISÉ ---
 try:
     if choix_course == "Course 1 ASAF" and course1_asaf_dispo:
         import Course_1_ASAF
@@ -253,23 +253,22 @@ with cd:
         if t_bas:
             st.markdown(f"<span class='titre-classement'>{t_bas}</span>", unsafe_allow_html=True)
             st.markdown(gen_html(d_bas, "table-class-robuste"), unsafe_allow_html=True)
-else:
-    if t_haut:
-        st.markdown(f"<span class='titre-classement'>{t_haut}</span>", unsafe_allow_html=True)
-        st.markdown(gen_html(d_bas, "table-class-robuste"), unsafe_allow_html=True)
-        st.markdown("<div style='height: 55px;'></div>", unsafe_allow_html=True)
-    if t_milieu:
-        st.markdown(f"<span class='titre-classement'>{t_milieu}</span>", unsafe_allow_html=True)
-        st.markdown(gen_html(d_haut, "table-class-robuste"), unsafe_allow_html=True)
-        st.markdown("<div style='height: 55px;'></div>", unsafe_allow_html=True)
-    if t_bas:
-        st.markdown(f"<span class='titre-classement'>{t_bas}</span>", unsafe_allow_html=True)
-        st.markdown(gen_html(d_milieu, "table-class-robuste"), unsafe_allow_html=True)
+    else:
+        if t_haut:
+            st.markdown(f"<span class='titre-classement'>{t_haut}</span>", unsafe_allow_html=True)
+            st.markdown(gen_html(d_bas, "table-class-robuste"), unsafe_allow_html=True)
+            st.markdown("<div style='height: 55px;'></div>", unsafe_allow_html=True)
+        if t_milieu:
+            st.markdown(f"<span class='titre-classement'>{t_milieu}</span>", unsafe_allow_html=True)
+            st.markdown(gen_html(d_haut, "table-class-robuste"), unsafe_allow_html=True)
+            st.markdown("<div style='height: 55px;'></div>", unsafe_allow_html=True)
+        if t_bas:
+            st.markdown(f"<span class='titre-classement'>{t_bas}</span>", unsafe_allow_html=True)
+            st.markdown(gen_html(d_milieu, "table-class-robuste"), unsafe_allow_html=True)
 
 st.markdown("<br><br><br><div style='height:30px;'></div>", unsafe_allow_html=True)
 
-# --- REFRESH AUTOMATIQUE ASYNC SANS AUCUN BOUTON PYTHON (ZÉRO CLIGNOTEMENT) ---
-# Demande directement à la fenêtre d'actualiser son URL de manière transparente toutes les 30 secondes
+# --- REFRESH AUTOMATIQUE PAR LE NAVIGATEUR TOUTES LES 30S SANS ENCOMBREMENT ---
 st.markdown("""
     <script>
         if (!window.autoRefreshSet) {
