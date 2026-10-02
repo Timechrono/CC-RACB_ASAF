@@ -43,7 +43,7 @@ except ModuleNotFoundError:
 
 st.set_page_config(page_title="Live", layout="wide")
 
-# --- CONCEPTION GRAPHIQUE GÉOMÉTRIQUE SANS AUCUNE MARGE BLANCHE ---
+# --- CONCEPTION GRAPHIQUE GÉOMÉTRIQUE COMPACTE ET FIXE ---
 st.markdown("""
 <style>
 [data-testid="stHeader"] { display: none !important; }
@@ -51,7 +51,7 @@ button:focus, div:focus, input:focus, select:focus {
     outline: none !important; border-color: transparent !important; box-shadow: none !important;
 }
 
-/* 1. NETTOYAGE INTÉGRAL DU HAUT ET DE L'ENVELOPPE DE LA PAGE */
+/* 1. NETTOYAGE INTÉGRAL DE LA ZONE BLANCHE TOUT EN HAUT */
 .block-container { 
     padding-top: 0px !important; 
     padding-bottom: 0rem !important; 
@@ -67,22 +67,9 @@ div[data-testid="stVerticalBlock"] {
     padding-top: 0px !important;
 }
 
-/* 2. RECTIFICATION CHIRURGICALE DU FRAGMENT DES TABLEAUX POUR FORCER LE RACHÈTEMENT ACCORDÉON */
-div.stFragment {
-    margin-top: 0px !important;
-    padding-top: 0px !important;
-}
-div.stFragment > div {
-    margin-top: 0px !important;
-    padding-top: 0px !important;
-}
-
-/* Suppression des espaces de la grille de boutons natifs Streamlit */
-div[data-testid="stHorizontalBlock"] {
-    margin-top: 0px !important;
-    margin-bottom: 0px !important;
-    padding-top: 0px !important;
-    padding-bottom: 0px !important;
+/* 2. FORCE LA FEUILLE DE RÉSULTATS A REMONTER TRÈS PRÈS DES BOUTONS */
+div[data-testid="stVerticalBlock"] > div:nth-child(2) {
+    margin-top: -30px !important; /* Marge négative agressive pour supprimer le trou sous les boutons */
 }
 
 .titre-live, .titre-hist, .titre-classement {
@@ -124,7 +111,7 @@ div[data-testid="stHorizontalBlock"] {
 .table-class-robuste th:nth-child(5), .table-class-robuste td:nth-child(5) { width: 6% !important; }
 .table-class-robuste th:nth-child(6), .table-class-robuste td:nth-child(6) { width: 18% !important; text-align: right !important; }
 
-/* STYLE GÉOMÉTRIQUE POUR LES BOUTONS NATIFS RECTANGLAIRES SERRÉS (24PX) */
+/* DESIGN DES BOUTONS SERRÉS RECTANGLAIRES (24PX) SANS BOÎTE DE COULEUR INTERMÉDIAIRE */
 div.stButton > button {
     width: 100% !important;
     min-height: unset !important;
@@ -140,29 +127,23 @@ div.stButton > button {
     line-height: 22px !important;
     white-space: nowrap !important;
 }
+div.stButton > button:hover {
+    border-color: #1E3A8A !important;
+    color: #1E3A8A !important;
+    background-color: #E0F2FE !important;
+}
 
-/* TEXTE DU COMPTEUR ÉPURÉ CALÉ EN HAUT À DROITE */
-.compteur-cc-txt {
+/* APPARENCE DU TEXTE STATIQUE DES 30S FIXÉ À DROITE */
+.label-statique-cc {
     font-size: 0.85rem !important;
     font-weight: bold !important;
-    color: #1E3A8A !important;
+    color: #475569 !important;
     line-height: 24px !important;
     white-space: nowrap !important;
-    font-family: sans-serif !important;
     display: inline-block !important;
     text-align: right !important;
     width: 100% !important;
     margin: 0px !important;
-}
-
-/* 3. COLLEMENT DIRECT : UN PIXEL DE MARGE AVEC LES TABLEAUX DU DESSOUS */
-.separateur-statique-final {
-    height: 1px !important;
-    margin-top: 0px !important;
-    margin-bottom: 0px !important;
-    padding: 0px !important;
-    display: block !important;
-    clear: both !important;
 }
 </style>
 """, unsafe_allow_html=True)
@@ -174,7 +155,7 @@ def gen_html(df, cl):
     if df.empty: return f"<table class='table-compacte {cl}'><tr><td style='text-align: center; padding: 10px;'>Aucune donnée disponible</td></tr></table>"
     return df.to_html(index=False, classes=f"table-compacte {cl}", escape=False, border=0)
 
-# Assemblage de la liste finale des boutons du menu horizontal
+# Assemblage des boutons horizontaux
 colonnes_visibles = ["Essais"]
 if course1_disponible: colonnes_visibles.append("Course 1 ASAF")
 if course1_racb_disponible: colonnes_visibles.append("Course 1 RACB")
@@ -183,11 +164,10 @@ if course2_racb_disponible: colonnes_visibles.append("Course 2 RACB")
 if course3_disponible: colonnes_visibles.append("Course 3 ASAF")
 if course3_racb_disponible: colonnes_visibles.append("Course 3 RACB")
 
-# Répartition des colonnes (Tous les boutons de course à 1.0, la colonne finale du texte à 2.8)
-proportions_finales = [1.0] * len(colonnes_visibles) + [2.8]
-cols = st.columns(proportions_finales, vertical_alignment="center")
+# Distribution géométrique parfaite de la ligne de navigation
+proportions_colonnes = [1.0] * len(colonnes_visibles) + [2.8]
+cols = st.columns(proportions_colonnes, vertical_alignment="center")
 
-# Rendu linéaire des boutons rectangulaires stables
 for idx, nom_session in enumerate(colonnes_visibles):
     with cols[idx]:
         if st.session_state["active_session"] == nom_session:
@@ -196,11 +176,10 @@ for idx, nom_session in enumerate(colonnes_visibles):
             st.session_state["active_session"] = nom_session
             st.rerun()
 
-# Écriture textuelle fixe et sobre du statut à l'extrémité droite
+# Rendu du texte informatif fixe à l'extrémité droite (Allégé à 100% de tout calcul de secondes)
 with cols[-1]:
-    st.markdown("<p class='compteur-cc-txt'>🔄 Mise à jour automatique (30s)</p>", unsafe_allow_html=True)
+    st.markdown("<p class='label-statique-cc'>🔄 Synchro Live 30s</p>", unsafe_allow_html=True)
 
-st.markdown("<div class='separateur-statique-final'></div>", unsafe_allow_html=True)
 choix_course = st.session_state["active_session"]
 
 # Conteneur d'affichage pur (Éradication des boîtes miroir)
@@ -252,8 +231,8 @@ def rafraichir_uniquement_tableaux():
                 st.markdown(f"<span class='titre-classement'>{t_bas}</span>", unsafe_allow_html=True)
                 st.markdown(gen_html(d_bas, "table-class-robuste"), unsafe_allow_html=True)
             
-            # Lignes blanches de respiration placées en fin de page
+            # Deux lignes de fin de page réglementaires
             st.markdown("<div style='height:70px;'></div>", unsafe_allow_html=True)
 
-# Lancement du processus étanche
+# Execution
 rafraichir_uniquement_tableaux()
