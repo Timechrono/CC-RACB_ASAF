@@ -262,6 +262,9 @@ def rafraichir_uniquement_tableaux():
                 st.markdown("<div style='height: 40px;'></div>", unsafe_allow_html=True)
                 st.markdown(f"<span class='titre-classement'>{t_bas}</span>", unsafe_allow_html=True)
                 st.markdown(gen_html(d_bas, "table-class-robuste"), unsafe_allow_html=True)
+                
+            # CORRECTION CRITIQUE : Les deux lignes blanches d'espacement sont injectées ICI tout en bas
+            st.markdown("<div style='height:70px;'></div>", unsafe_allow_html=True)
 
 # --- MINI-FRAGMENT PYTHON NATIF DÉDIÉ EXCLUSIVEMENT AU COMPTEUR (Cadencé à 1s) ---
 @st.fragment(run_every=1)
