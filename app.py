@@ -91,7 +91,7 @@ button:focus, div:focus, input:focus, select:focus {
 
 .block-container { padding-top: 0.4rem !important; padding-bottom: 0rem !important; }
 
-/* RECTIFICATION GÉOMÉTRIQUE : VERROUILLAGE SÉCURISÉ DES BOUTONS */
+/* VERROUILLAGE SÉCURISÉ DES BOUTONS DE NAVIGATION */
 div.stButton > button {
     width: 100% !important;
     min-height: unset !important;
@@ -108,9 +108,9 @@ div.stButton > button {
     white-space: nowrap !important;
 }
 
-/* FIXATION DE L'INTERLIGNE SOUS LE MENU DEVENU TOTALEMENT IMMOBILE */
+/* RECTIFICATION : GRAND ESPACE AUGMENTÉ DE 22PX POUR SÉPARER LE MENU DE LA FEUILLE */
 .separateur-statique {
-    height: 16px !important;
+    height: 22px !important;
     margin-bottom: 4px !important;
     clear: both !important;
     display: block !important;
@@ -128,16 +128,17 @@ div.stButton > button {
 }
 </style>
 """, unsafe_allow_html=True)
+# Initialisation persistante du menu cliquable
 if "active_session" not in st.session_state:
-    st.session_state["active_session"] = "Essais / Entraînements"
+    st.session_state["active_session"] = "Entraînements"
 
 def gen_html(df, cl):
     if isinstance(df, str): return df 
     if df.empty: return f"<table class='table-compacte {cl}'><tr><td style='text-align: center; padding: 10px;'>Aucune donnée disponible</td></tr></table>"
     return df.to_html(index=False, classes=f"table-compacte {cl}", escape=False, border=0)
 
-# Assemblage des onglets de course
-colonnes_menu = ["Essais / Entraînements"]
+# RECTIFICATION : Le texte long est remplacé par "Entraînements" pour ne pas être coupé
+colonnes_menu = ["Entraînements"]
 if course1_disponible: colonnes_menu.append("Course 1 ASAF")
 if course1_racb_disponible: colonnes_menu.append("Course 1 RACB")
 if course2_disponible: colonnes_menu.append("Course 2 ASAF")
@@ -145,7 +146,7 @@ if course2_racb_disponible: colonnes_menu.append("Course 2 RACB")
 if course3_disponible: colonnes_menu.append("Course 3 ASAF")
 if course3_racb_disponible: colonnes_menu.append("Course 3 RACB")
 
-# ÉTAPE 1 : RENDU DU MENU DE MANIÈRE STRICTEMENT FIXE (HORS DU FRAGMENT DE TEMPS)
+# Allocation géométrique stable des colonnes horizontales
 structure_colonnes = [1.0] * len(colonnes_menu) + [2.2]
 cols = st.columns(structure_colonnes, vertical_alignment="center")
 
@@ -157,23 +158,22 @@ for idx, nom_session in enumerate(colonnes_menu):
             st.session_state["active_session"] = nom_session
             st.rerun()
 
-# Zone d'ancrage du texte du compteur
+# Zone d'ancrage textuelle pour le compteur
 zone_decompte_txt = cols[-1].empty()
 
 # Séparateur physique et immobile entre la ligne du haut et les résultats
 st.markdown("<div class='separateur-statique'></div>", unsafe_allow_html=True)
 choix_course = st.session_state["active_session"]
 
-# Conteneur d'affichage pur pour l'injection propre des classements
+# Conteneur d'affichage pur (Anti-reliquat / Anti-miroir)
 zone_affichage_pure = st.empty()
 
-# --- ÉTAPE 2 : FRAGMENT SÉPARÉ DÉDIÉ UNIQUEMENT AUX TABLEAUX DE CHRONOS ---
-# Le paramètre run_every rafraîchit les tableaux automatiquement en tâche de fond (toutes les 30s)
-# SANS redessiner la ligne des boutons, ce qui supprime tout effet de mouvement.
+# --- FRAGMENT SÉPARÉ DÉDIÉ UNIQUEMENT AUX TABLEAUX DE CHRONOS (Toutes les 30s) ---
 @st.fragment(run_every=30)
 def rafraichir_uniquement_tableaux():
     st.cache_data.clear()
     
+    # Rapprochement de l'état "Entraînements" vers le module Essais d'origine
     if choix_course == "Course 1 ASAF" and course1_disponible:
         d_liv, d_his, d_haut, d_milieu, d_bas, t_live, t_his, t_haut, t_milieu, t_bas = Course_1_ASAF.recuperer_donnees_course()
     elif choix_course == "Course 1 RACB" and course1_racb_disponible:
@@ -215,8 +215,7 @@ def rafraichir_uniquement_tableaux():
                 st.markdown(f"<span class='titre-classement'>{t_bas}</span>", unsafe_allow_html=True)
                 st.markdown(gen_html(d_bas, "table-class-robuste"), unsafe_allow_html=True)
 
-# --- ÉTAPE 3 : MINI-FRAGMENT POUR FAIRE TOURNER LE COMPTEUR TEXTUEL SECONDE PAR SECONDE ---
-# Il s'exécute de manière isolée sans jamais perturber la mise en page
+# --- MINI-FRAGMENT COMPTEUR (Cadencé à 1s) ---
 @st.fragment(run_every=1)
 def faire_tourner_le_compteur():
     if "chrono_sec" not in st.session_state:
@@ -228,6 +227,6 @@ def faire_tourner_le_compteur():
         
     zone_decompte_txt.markdown(f"<span class='label-decompte-pure-txt'>⏱️ Rafraîchissement dans : {st.session_state['chrono_sec']}s</span>", unsafe_allow_html=True)
 
-# Lancement coordonné des fonctions
+# Lancement coordonné
 rafraichir_uniquement_tableaux()
 faire_tourner_le_compteur()
