@@ -43,7 +43,7 @@ except ModuleNotFoundError:
 
 st.set_page_config(page_title="Live", layout="wide")
 
-# --- CONCEPTION GRAPHIQUE GÉOMÉTRIQUE COMPACTE ET FIXE ---
+# --- CONCEPTION GRAPHIQUE GÉOMÉTRIQUE SANS AUCUNE MARGE BLANCHE ---
 st.markdown("""
 <style>
 [data-testid="stHeader"] { display: none !important; }
@@ -51,7 +51,7 @@ button:focus, div:focus, input:focus, select:focus {
     outline: none !important; border-color: transparent !important; box-shadow: none !important;
 }
 
-/* 1. NETTOYAGE INTÉGRAL DE LA ZONE BLANCHE TOUT EN HAUT */
+/* 1. SUPPRESSION INTÉGRALE DE LA ZONE BLANCHE TOUT EN HAUT */
 .block-container { 
     padding-top: 0px !important; 
     padding-bottom: 0rem !important; 
@@ -67,9 +67,12 @@ div[data-testid="stVerticalBlock"] {
     padding-top: 0px !important;
 }
 
-/* 2. FORCE LA FEUILLE DE RÉSULTATS A REMONTER TRÈS PRÈS DES BOUTONS */
-div[data-testid="stVerticalBlock"] > div:nth-child(2) {
-    margin-top: -30px !important; /* Supprime le trou sous les boutons */
+/* 2. RAPPROCHEMENT NET ET COLLÉ DES TABLEAUX SOUS LES BOUTONS */
+div.stElementContainer {
+    margin-top: 0px !important;
+    margin-bottom: 0px !important;
+    padding-top: 0px !important;
+    padding-bottom: 0px !important;
 }
 
 .titre-live, .titre-hist, .titre-classement {
@@ -93,7 +96,7 @@ div[data-testid="stVerticalBlock"] > div:nth-child(2) {
 }
 .table-compacte td { border-bottom: 1px solid #E0E0E0 !important; background-color: #FFFFFF !important; }
 .table-compacte th { font-weight: bold !important; background-color: #F5F5F5 !important; border-bottom: 2px solid #CCCCCC !important; text-align: left !important; }
-.table-live td:last-child, .table-hist td:last-child, .table-class-robuste td:last-child { font-weight: bold !important; font-size: 0.94rem !important; color: #0F172A !important; }
+.table-live td:last-child, .table-live td:last-child, .table-class-robuste td:last-child { font-weight: bold !important; font-size: 0.94rem !important; color: #0F172A !important; }
 .table-hist tr:nth-child(odd) td { background-color: #E0F2FE !important; }
 
 /* LARGEURS DES TABLEAUX GAUCHE ET DROITE */
@@ -111,7 +114,7 @@ div[data-testid="stVerticalBlock"] > div:nth-child(2) {
 .table-class-robuste th:nth-child(5), .table-class-robuste td:nth-child(5) { width: 6% !important; }
 .table-class-robuste th:nth-child(6), .table-class-robuste td:nth-child(6) { width: 18% !important; text-align: right !important; }
 
-/* DESIGN DES BOUTONS SERRÉS RECTANGLAIRES (24PX) */
+/* FIXATION GÉOMÉTRIQUE POUR LES BOUTONS NATIFS RECTANGLAIRES SERRÉS (24PX) */
 div.stButton > button {
     width: 100% !important;
     min-height: unset !important;
@@ -127,13 +130,8 @@ div.stButton > button {
     line-height: 22px !important;
     white-space: nowrap !important;
 }
-div.stButton > button:hover {
-    border-color: #1E3A8A !important;
-    color: #1E3A8A !important;
-    background-color: #E0F2FE !important;
-}
 
-/* APPARENCE DU TEXTE STATIQUE DES 30S FIXÉ À DROITE */
+/* STYLE TEXTUEL FIXE POUR LE REVERS DROIT */
 .label-statique-cc {
     font-size: 0.85rem !important;
     font-weight: bold !important;
@@ -155,7 +153,7 @@ def gen_html(df, cl):
     if df.empty: return f"<table class='table-compacte {cl}'><tr><td style='text-align: center; padding: 10px;'>Aucune donnée disponible</td></tr></table>"
     return df.to_html(index=False, classes=f"table-compacte {cl}", escape=False, border=0)
 
-# CORRECTION DU BUG : Re-déclaration saine de la variable de liste
+# Assemblage de la liste finale des boutons du menu horizontal
 colonnes_visibles = ["Essais"]
 if course1_disponible: colonnes_visibles.append("Course 1 ASAF")
 if course1_racb_disponible: colonnes_visibles.append("Course 1 RACB")
@@ -164,21 +162,25 @@ if course2_racb_disponible: colonnes_visibles.append("Course 2 RACB")
 if course3_disponible: colonnes_visibles.append("Course 3 ASAF")
 if course3_racb_disponible: colonnes_visibles.append("Course 3 RACB")
 
-# Distribution géométrique parfaite de la ligne de navigation
-proportions_colonnes = [1.0] * len(colonnes_visibles) + [2.8]
-cols = st.columns(proportions_colonnes, vertical_alignment="center")
+# Répartition des colonnes (Tous les boutons de course à 1.0, la colonne finale du texte à 2.8)
+proportions_finales = [1.0] * len(colonnes_visibles) + [2.8]
+cols = st.columns(proportions_finales, vertical_alignment="center")
 
+# Rendu linéaire des boutons rectangulaires stables
 for idx, nom_session in enumerate(colonnes_visibles):
     with cols[idx]:
-        if st.session_state["active_session"] == nom_session:
-            st.markdown(f"""<style>div[data-testid="stHorizontalBlock"] > div:nth-child({idx+1}) button {{ background-color: #1E3A8A !important; color: white !important; border-color: #1E3A8A !important; }}</style>""", unsafe_allow_html=True)
         if st.button(nom_session, key=f"btn_nav_{idx}"):
             st.session_state["active_session"] = nom_session
             st.rerun()
 
-# Rendu du texte informatif fixe à l'extrémité droite
+# Rendu du style bleu marqué de manière sécurisée uniquement sur le bouton actif
+for idx, nom_session in enumerate(colonnes_visibles):
+    if st.session_state["active_session"] == nom_session:
+        st.markdown(f"""<style>div[data-testid="stHorizontalBlock"] > div:nth-child({idx+1}) button {{ background-color: #1E3A8A !important; color: white !important; border-color: #1E3A8A !important; }}</style>""", unsafe_allow_html=True)
+
+# Écriture textuelle fixe et sobre du statut à l'extrémité droite
 with cols[-1]:
-    st.markdown("<p class='label-statique-cc'>🔄 Synchro Live 30s</p>", unsafe_allow_html=True)
+    st.markdown("<p class='compteur-cc-txt'>🔄 Synchro Live 30s</p>", unsafe_allow_html=True)
 
 choix_course = st.session_state["active_session"]
 
@@ -231,8 +233,8 @@ def rafraichir_uniquement_tableaux():
                 st.markdown(f"<span class='titre-classement'>{t_bas}</span>", unsafe_allow_html=True)
                 st.markdown(gen_html(d_bas, "table-class-robuste"), unsafe_allow_html=True)
             
-            # Deux lignes de fin de page réglementaires
+            # Lignes blanches de respiration placées en fin de page
             st.markdown("<div style='height:70px;'></div>", unsafe_allow_html=True)
 
-# Execution
+# Lancement du processus étanche
 rafraichir_uniquement_tableaux()
