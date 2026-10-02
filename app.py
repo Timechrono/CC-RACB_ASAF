@@ -43,7 +43,7 @@ except ModuleNotFoundError:
 
 st.set_page_config(page_title="Live", layout="wide")
 
-# --- CONCEPTION GRAPHIQUE GÉOMÉTRIQUE COMPACTE SANS MARGES BLANCHES ---
+# --- CONCEPTION GRAPHIQUE GÉOMÉTRIQUE SANS AUCUNE MARGE BLANCHE ---
 st.markdown("""
 <style>
 [data-testid="stHeader"] { display: none !important; }
@@ -51,9 +51,9 @@ button:focus, div:focus, input:focus, select:focus {
     outline: none !important; border-color: transparent !important; box-shadow: none !important;
 }
 
-/* 1. SUPPRESSION DE TOUS LES ESPACES BLANCS TOUT EN HAUT DE LA PAGE APP */
+/* 1. NETTOYAGE ABSOLU DE LA HAUTEUR SUPÉRIEURE DE LA PAGE */
 .block-container { 
-    padding-top: 0.1rem !important; 
+    padding-top: 0px !important; 
     padding-bottom: 0rem !important; 
     padding-left: 1rem !important; 
     padding-right: 1rem !important; 
@@ -61,17 +61,24 @@ button:focus, div:focus, input:focus, select:focus {
 div[data-testid="stMainBlockContainer"] {
     padding-top: 0px !important;
 }
+div[data-testid="stVerticalBlock"] {
+    gap: 0rem !important;
+    padding-top: 0px !important;
+}
 
-/* 2. FORCE LES BLOCS HORIZONTAUX STREAMLIT A SUPPRIMER LEUR PROPRE MARGE INTERNE */
+/* 2. FORCE LA SUPPRESSION DES MARGES DES COLONNES DU MENU ET DU DESSOUS */
 div[data-testid="stHorizontalBlock"] {
     margin-top: 0px !important;
     margin-bottom: 0px !important;
     padding-top: 0px !important;
     padding-bottom: 0px !important;
+    gap: 0rem !important;
 }
-div[data-testid="stHorizontalBlock"] > div {
+div[data-testid="stHorizontalBlock"] > div, .stColumn {
     padding-top: 0px !important;
     padding-bottom: 0px !important;
+    margin-top: 0px !important;
+    margin-bottom: 0px !important;
 }
 
 .titre-live, .titre-hist, .titre-classement {
@@ -98,7 +105,7 @@ div[data-testid="stHorizontalBlock"] > div {
 .table-live td:last-child, .table-hist td:last-child, .table-class-robuste td:last-child { font-weight: bold !important; font-size: 0.94rem !important; color: #0F172A !important; }
 .table-hist tr:nth-child(odd) td { background-color: #E0F2FE !important; }
 
-/* RECTIFICATION DES LARGEURS DE COLONNES DES TABLEAUX */
+/* LARGEURS DES CELLULES */
 .table-live th:nth-child(1), .table-live td:nth-child(1) { width: 8% !important; }
 .table-live th:nth-child(2), .table-live td:nth-child(2) { width: 26% !important; }
 .table-live th:nth-child(3), .table-live td:nth-child(3) { width: 18% !important; }
@@ -113,7 +120,7 @@ div[data-testid="stHorizontalBlock"] > div {
 .table-class-robuste th:nth-child(5), .table-class-robuste td:nth-child(5) { width: 6% !important; }
 .table-class-robuste th:nth-child(6), .table-class-robuste td:nth-child(6) { width: 18% !important; text-align: right !important; }
 
-/* LA BARRE ULTRA-STATIQUE EN FLEXBOX HTML PURE */
+/* BARRE EN FLEXBOX HTML */
 .barre-horizontale-cc-unique {
     display: flex !important;
     flex-direction: row !important;
@@ -121,13 +128,12 @@ div[data-testid="stHorizontalBlock"] > div {
     justify-content: flex-start !important;
     gap: 6px !important;
     width: 100% !important;
-    height: 26px !important;
+    height: 24px !important;
     margin-top: 0px !important;
     margin-bottom: 0px !important;
     padding: 0px !important;
 }
 
-/* FORMAT DU BOUTON EN LIEN HTML GÉOMÉTRIQUEMENT RECTANGLAIRE */
 .bouton-cc-statique {
     display: inline-block !important;
     height: 24px !important;
@@ -156,21 +162,22 @@ div[data-testid="stHorizontalBlock"] > div {
     border-color: #1E3A8A !important;
 }
 
-/* COMPTEUR TEXTUEL EN BRUT REPOUSSÉ TOUT À DROITE */
 .compteur-cc-txt {
     font-size: 0.85rem !important;
     font-weight: bold !important;
     color: #1E3A8A !important;
-    line-height: 26px !important;
+    line-height: 24px !important;
     white-space: nowrap !important;
     font-family: sans-serif !important;
+    margin: 0px !important;
 }
 
-/* 3. RECTIFICATION DU SÉPARATEUR : SERRÉ VISUELLEMENT À SEULEMENT 4 PIXELS */
+/* 3. COLLEMENT MILLIMÉTRÉ : DEUX PIXELS REELS ENTRE LE MENU ET LES TABLEAUX */
 .separateur-statique-final {
-    height: 4px !important;
+    height: 2px !important;
     margin-top: 0px !important;
     margin-bottom: 0px !important;
+    padding: 0px !important;
     display: block !important;
     clear: both !important;
 }
