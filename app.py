@@ -127,6 +127,7 @@ div.stButton[data-testid="stButton"] button.active-btn-css {{
 }
 </style>
 """, unsafe_allow_html=True)
+# fin bloc 1
 if "active_session" not in st.session_state:
     st.session_state["active_session"] = "Essais / Entraînements"
 
@@ -144,11 +145,11 @@ if course2_racb_disponible: colonnes_menu.append("Course 2 RACB")
 if course3_disponible: colonnes_menu.append("Course 3 ASAF")
 if course3_racb_disponible: colonnes_menu.append("Course 3 RACB")
 
-# CRÉATION DE LA BARRE HORIZONTALE PAR COLONNES AJUSTÉES AU CONTENU
-# Le paramètre vertical_alignment aligne le décompte et les boutons sur le même axe
-cols = st.columns([1] * len(colonnes_menu) +, vertical_alignment="center")
+# --- RECTIFICATION CRITIQUE DE LA SYNTAXE DE LA LIGNE 149 ---
+# On combine une liste de colonnes de même taille pour les boutons + 1 colonne pour le décompte
+cols = st.columns([1] * len(colonnes_menu) + [2.2], vertical_alignment="center")
 
-# Rendu sécurisé des boutons horizontaux collés régulièrement
+# Rendu des boutons horizontaux
 for idx, nom_session in enumerate(colonnes_menu):
     with cols[idx]:
         if st.session_state["active_session"] == nom_session:
@@ -157,7 +158,7 @@ for idx, nom_session in enumerate(colonnes_menu):
             st.session_state["active_session"] = nom_session
             st.rerun()
 
-# Utilisation exclusive de la dernière colonne à droite pour le texte brut du décompte
+# Utilisation exclusive de la dernière colonne à droite pour le texte du décompte
 zone_decompte_txt = cols[-1].empty()
 
 # Interligne fin et discret sous la barre d'onglets
