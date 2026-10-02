@@ -170,9 +170,6 @@ st.markdown("<div style='height: 10px;'></div>", unsafe_allow_html=True)
 cols = st.columns([1.0] * len(colonnes_visibles))
 for idx, nom_session in enumerate(colonnes_visibles):
     with cols[idx]:
-        # On utilise le style de lien natif en HTML pur encapsulé pour éviter le rechargement forcé
-        est_actif = "actif" if st.session_state["active_session"] == nom_session else ""
-        # On utilise un st.button customisé par le CSS de la partie 1 pour agir comme un lien texte surligné
         if st.button(nom_session, key=f"lnk_nav_{idx}", help=f"Afficher {nom_session}"):
             st.session_state["active_session"] = nom_session
             st.rerun()
@@ -208,7 +205,7 @@ else:
 
 st.markdown("<style>.table-hist th:nth-child(1), .table-hist td:nth-child(1) { width: 7% !important; } .table-hist th:nth-child(2), .table-hist td:nth-child(2) { width: 23% !important; } .table-hist th:nth-child(3), .table-hist td:nth-child(3) { width: 22% !important; } .table-hist th:nth-child(4), .table-hist td:nth-child(4) { width: 10% !important; } .table-hist th:nth-child(5), .table-hist td:nth-child(5) { width: 10% !important; } .table-hist th:nth-child(6), .table-hist td:nth-child(6) { width: 14% !important; }</style>", unsafe_allow_html=True)
 
-# Rendu de votre présentation graphique exacte
+# Rendu de votre présentation graphique exacte (Alignement structurel corrigé)
 cg, cd = st.columns([1.3, 0.9])
 with cg:
     if t_live: st.markdown(f"<span class='titre-live'>{t_live}</span>", unsafe_allow_html=True)
@@ -230,22 +227,22 @@ with cd:
         if t_bas:
             st.markdown(f"<span class='titre-classement'>{t_bas}</span>", unsafe_allow_html=True)
             st.markdown(gen_html(d_bas, "table-class-robuste"), unsafe_allow_html=True)
-else:
-    if t_haut:
-        st.markdown(f"<span class='titre-classement'>{t_haut}</span>", unsafe_allow_html=True)
-        st.markdown(gen_html(d_bas, "table-class-robuste"), unsafe_allow_html=True)
-        st.markdown("<div style='height: 55px;'></div>", unsafe_allow_html=True)
-    if t_milieu:
-        st.markdown(f"<span class='titre-classement'>{t_milieu}</span>", unsafe_allow_html=True)
-        st.markdown(gen_html(d_haut, "table-class-robuste"), unsafe_allow_html=True)
-        st.markdown("<div style='height: 55px;'></div>", unsafe_allow_html=True)
-    if t_bas:
-        st.markdown(f"<span class='titre-classement'>{t_bas}</span>", unsafe_allow_html=True)
-        st.markdown(gen_html(d_milieu, "table-class-robuste"), unsafe_allow_html=True)
+    else:
+        if t_haut:
+            st.markdown(f"<span class='titre-classement'>{t_haut}</span>", unsafe_allow_html=True)
+            st.markdown(gen_html(d_bas, "table-class-robuste"), unsafe_allow_html=True)
+            st.markdown("<div style='height: 55px;'></div>", unsafe_allow_html=True)
+        if t_milieu:
+            st.markdown(f"<span class='titre-classement'>{t_milieu}</span>", unsafe_allow_html=True)
+            st.markdown(gen_html(d_haut, "table-class-robuste"), unsafe_allow_html=True)
+            st.markdown("<div style='height: 55px;'></div>", unsafe_allow_html=True)
+        if t_bas:
+            st.markdown(f"<span class='titre-classement'>{t_bas}</span>", unsafe_allow_html=True)
+            st.markdown(gen_html(d_milieu, "table-class-robuste"), unsafe_allow_html=True)
 
 st.markdown("<div style='height:30px;'></div>", unsafe_allow_html=True)
 
-# --- REFRESH INVISIBLE DU NAVIGATEUR (ZÉRO UTILISATION DU PROCESSEUR STREAMLIT) ---
+# --- REFRESH INVISIBLE DU NAVIGATEUR GÉRÉ EN COMPORTEMENT PUR ---
 st.markdown("""
     <script>
         if (!window.autoRefreshSet) {
