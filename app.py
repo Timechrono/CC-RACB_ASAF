@@ -43,7 +43,7 @@ except ModuleNotFoundError:
 
 st.set_page_config(page_title="Live", layout="wide")
 
-# --- CONCEPTION GRAPHIQUE FIXE ET ANTI-SÉISME ---
+# --- CONCEPTION GRAPHIQUE STRICTEMENT STATIQUE ---
 st.markdown("""
 <style>
 [data-testid="stHeader"] { display: none !important; }
@@ -91,7 +91,7 @@ button:focus, div:focus, input:focus, select:focus {
 
 .block-container { padding-top: 0.4rem !important; padding-bottom: 0rem !important; }
 
-/* FIXATION GÉOMÉTRIQUE : LES BOUTONS ONT LA MÊME STRUCTURE ET NE BOUGENT PAS */
+/* RECTIFICATION GÉOMÉTRIQUE : VERROUILLAGE SÉCURISÉ DES BOUTONS */
 div.stButton > button {
     width: 100% !important;
     min-height: unset !important;
@@ -108,7 +108,7 @@ div.stButton > button {
     white-space: nowrap !important;
 }
 
-/* FIXATION DE L'INTERLIGNE GLOBAL SOUS LE MENU */
+/* FIXATION DE L'INTERLIGNE SOUS LE MENU DEVENU TOTALEMENT IMMOBILE */
 .separateur-statique {
     height: 16px !important;
     margin-bottom: 4px !important;
@@ -116,7 +116,6 @@ div.stButton > button {
     display: block !important;
 }
 
-/* TEXTE DU DÉCOMPTE STRICTEMENT ALIGNÉ SANS VARIATION DE LARGEUR */
 .label-decompte-pure-txt {
     font-size: 0.85rem !important;
     font-weight: bold !important;
@@ -146,11 +145,10 @@ if course2_racb_disponible: colonnes_menu.append("Course 2 RACB")
 if course3_disponible: colonnes_menu.append("Course 3 ASAF")
 if course3_racb_disponible: colonnes_menu.append("Course 3 RACB")
 
-# Allocation précise des colonnes pour éviter tout saut de ligne
+# ÉTAPE 1 : RENDU DU MENU DE MANIÈRE STRICTEMENT FIXE (HORS DU FRAGMENT DE TEMPS)
 structure_colonnes = [1.0] * len(colonnes_menu) + [2.2]
 cols = st.columns(structure_colonnes, vertical_alignment="center")
 
-# Rendu et blocage dynamique de la couleur du bouton sélectionné
 for idx, nom_session in enumerate(colonnes_menu):
     with cols[idx]:
         if st.session_state["active_session"] == nom_session:
@@ -159,19 +157,21 @@ for idx, nom_session in enumerate(colonnes_menu):
             st.session_state["active_session"] = nom_session
             st.rerun()
 
-# Point d'injection fixe pour le compteur
+# Zone d'ancrage du texte du compteur
 zone_decompte_txt = cols[-1].empty()
 
-# INJECTION DE L'ESPACE SÉPARATEUR PARFAITEMENT STATIQUE
+# Séparateur physique et immobile entre la ligne du haut et les résultats
 st.markdown("<div class='separateur-statique'></div>", unsafe_allow_html=True)
 choix_course = st.session_state["active_session"]
 
-# Conteneur d'affichage sécurisé (Anti-miroir)
+# Conteneur d'affichage pur pour l'injection propre des classements
 zone_affichage_pure = st.empty()
 
-# --- CYCLAGE AUTOMATIQUE CENTRALISÉ TOUTES LES 30 SECONDES ---
-@st.fragment
-def afficher_tableaux():
+# --- ÉTAPE 2 : FRAGMENT SÉPARÉ DÉDIÉ UNIQUEMENT AUX TABLEAUX DE CHRONOS ---
+# Le paramètre run_every rafraîchit les tableaux automatiquement en tâche de fond (toutes les 30s)
+# SANS redessiner la ligne des boutons, ce qui supprime tout effet de mouvement.
+@st.fragment(run_every=30)
+def rafraichir_uniquement_tableaux():
     st.cache_data.clear()
     
     if choix_course == "Course 1 ASAF" and course1_disponible:
@@ -215,11 +215,19 @@ def afficher_tableaux():
                 st.markdown(f"<span class='titre-classement'>{t_bas}</span>", unsafe_allow_html=True)
                 st.markdown(gen_html(d_bas, "table-class-robuste"), unsafe_allow_html=True)
 
-    # DÉCOMPTE FLUIDE SECONDE PAR SECONDE SANS DÉCALAGE DE CADRE
-    for secondes_restantes in range(30, 0, -1):
-        zone_decompte_txt.markdown(f"<span class='label-decompte-pure-txt'>⏱️ Rafraîchissement dans : {secondes_restantes}s</span>", unsafe_allow_html=True)
-        time.sleep(1)
+# --- ÉTAPE 3 : MINI-FRAGMENT POUR FAIRE TOURNER LE COMPTEUR TEXTUEL SECONDE PAR SECONDE ---
+# Il s'exécute de manière isolée sans jamais perturber la mise en page
+@st.fragment(run_every=1)
+def faire_tourner_le_compteur():
+    if "chrono_sec" not in st.session_state:
+        st.session_state["chrono_sec"] = 30
+    
+    st.session_state["chrono_sec"] -= 1
+    if st.session_state["chrono_sec"] <= 0:
+        st.session_state["chrono_sec"] = 30
         
-    st.rerun()
+    zone_decompte_txt.markdown(f"<span class='label-decompte-pure-txt'>⏱️ Rafraîchissement dans : {st.session_state['chrono_sec']}s</span>", unsafe_allow_html=True)
 
-afficher_tableaux()
+# Lancement coordonné des fonctions
+rafraichir_uniquement_tableaux()
+faire_tourner_le_compteur()
