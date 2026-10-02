@@ -29,9 +29,9 @@ except Exception:
 
 try:
     import Course_1_RACB
-    course1_racb_dispo = True
+    course1_racb_disp = True
 except Exception:
-    course1_racb_dispo = False
+    course1_racb_disp = False
 
 try:
     import Course_2_RACB
@@ -47,7 +47,7 @@ except Exception:
 
 st.set_page_config(page_title="Live", layout="wide")
 
-# --- CONCEPTION GRAPHIQUE GÉOMÉTRIQUE ORIGINALE ---
+# --- CONCEPTION GRAPHIQUE GÉOMÉTRIQUE SANS AUCUNE MARGE BLANCHE ---
 st.markdown("""
 <style>
 [data-testid="stHeader"] { display: none !important; }
@@ -55,7 +55,7 @@ button:focus, div:focus, input:focus, select:focus {
     outline: none !important; border-color: transparent !important; box-shadow: none !important;
 }
 
-/* 1. COMPACITÉ ET GESTION DES MARGES EN HAUT DE LA PAGE */
+/* 1. SUPPRESSION INTÉGRALE DE LA ZONE BLANCHE TOUT EN HAUT */
 .block-container { 
     padding-top: 5px !important; 
     padding-bottom: 0rem !important; 
@@ -71,20 +71,39 @@ div[data-testid="stVerticalBlock"] {
     padding-top: 0px !important;
 }
 
-/* ALIGNEMENT STRICT ET CENTRÉ DU BLOC HORIZONTAL DES BOUTONS */
-div[data-testid="stHorizontalBlock"]:has(button) {
+/* GRILLE FLEXBOX EN HTML PUR POUR LE MENU : ÉVITE LE CONFLIT STREAMLIT */
+.menu-horizontal-cc {
     display: flex !important;
+    flex-direction: row !important;
     justify-content: center !important;
     align-items: center !important;
     gap: 10px !important;
+    margin-top: 10px !important;    /* Marge supérieure de 10px exacts */
+    margin-bottom: 10px !important; /* Marge inférieure de 10px exacts */
     width: 100% !important;
-    margin: 0px auto !important;
 }
-div[data-testid="stHorizontalBlock"]:has(button) > div {
-    flex: none !important;
-    width: auto !important;
-    padding: 0px !important;
-    margin: 0px !important;
+
+/* DESIGN UNIQUE DES BOUTONS DU MENU */
+.btn-cc {
+    width: 140px !important;
+    height: 24px !important;
+    background-color: #F1F5F9 !important;
+    color: #475569 !important;
+    font-weight: bold !important;
+    font-size: 0.82rem !important;
+    border: 1px solid #CBD5E1 !important;
+    border-radius: 3px !important;
+    cursor: pointer !important;
+    text-align: center !important;
+    line-height: 22px !important;
+    white-space: nowrap !important;
+    font-family: sans-serif !important;
+    display: inline-block !important;
+}
+.btn-cc.actif {
+    background-color: #1E3A8A !important;
+    color: white !important;
+    border-color: #1E3A8A !important;
 }
 
 /* 2. RAPPROCHEMENT NET ET COLLÉ DES TABLEAUX SOUS LES BOUTONS */
@@ -116,10 +135,10 @@ div.stElementContainer {
 }
 .table-compacte td { border-bottom: 1px solid #E0E0E0 !important; background-color: #FFFFFF !important; }
 .table-compacte th { font-weight: bold !important; background-color: #F5F5F5 !important; border-bottom: 2px solid #CCCCCC !important; text-align: left !important; }
-.table-live td:last-child, .table-hist td:last-child, .table-class-robuste td:last-child { font-weight: bold !important; font-size: 0.94rem !important; color: #0F172A !important; }
+.table-live td:last-child, .table-live td:last-child, .table-class-robuste td:last-child { font-weight: bold !important; font-size: 0.94rem !important; color: #0F172A !important; }
 .table-hist tr:nth-child(odd) td { background-color: #E0F2FE !important; }
 
-/* LARGEURS DES TABLEAUX GAUCHE ET DROITE */
+/* LARGEURS DES TABLEAUX */
 .table-live th:nth-child(1), .table-live td:nth-child(1) { width: 8% !important; }
 .table-live th:nth-child(2), .table-live td:nth-child(2) { width: 26% !important; }
 .table-live th:nth-child(3), .table-live td:nth-child(3) { width: 18% !important; }
@@ -133,24 +152,6 @@ div.stElementContainer {
 .table-class-robuste th:nth-child(4), .table-class-robuste td:nth-child(4) { width: 23% !important; }
 .table-class-robuste th:nth-child(5), .table-class-robuste td:nth-child(5) { width: 6% !important; }
 .table-class-robuste th:nth-child(6), .table-class-robuste td:nth-child(6) { width: 18% !important; text-align: right !important; }
-
-/* BOUTONS RECTANGLAIRES ULTRA-PRÉCIS SANS SURÉTIREMENT */
-div.stButton > button {
-    width: 140px !important;
-    min-height: unset !important;
-    height: 24px !important;
-    background-color: #F1F5F9 !important;
-    color: #475569 !important;
-    font-weight: bold !important;
-    font-size: 0.82rem !important;
-    border: 1px solid #CBD5E1 !important;
-    border-radius: 3px !important;
-    padding: 0px 4px !important;
-    margin: 0px !important;
-    line-height: 22px !important;
-    white-space: nowrap !important;
-    display: inline-block !important;
-}
 </style>
 """, unsafe_allow_html=True)
 if "active_session" not in st.session_state:
@@ -165,30 +166,29 @@ def gen_html(df, cl):
 # Assemblage ordonné des boutons horizontaux disponibles
 options_menu = ["Essais / Entraînements"]
 if course1_asaf_dispo: options_menu.append("Course 1 ASAF")
-if course1_racb_dispo: options_menu.append("Course 1 RACB")
+if 'course1_racb_disp' in locals(): options_menu.append("Course 1 RACB")
 if course2_asaf_dispo: options_menu.append("Course 2 ASAF")
-if course2_racb_dispo: options_menu.append("Course 2 RACB")
+if course2_racb_disponible: options_menu.append("Course 2 RACB")
 if course3_asaf_dispo: options_menu.append("Course 3 ASAF")
-if course3_racb_dispo: options_menu.append("Course 3 RACB")
+if course3_racb_disponible: options_menu.append("Course 3 RACB")
 
-# Marge haute exacte (10px) au-dessus de la navigation
-st.markdown("<div style='height: 10px;'></div>", unsafe_allow_html=True)
+# --- RENDU DE LA BARRE DE BOUTONS EN HTML PUR (ZÉRO UTILISATION DU PROCESSUS COLUMNS) ---
+html_menu = "<div class='menu-horizontal-cc'>"
+for nom_session in options_menu:
+    classe_actif = "actif" if st.session_state["active_session"] == nom_session else ""
+    # Utilise l'API d'URL de base pour rafraîchir proprement la session au clic sans faire freezer Streamlit
+    html_menu += f'<a href="?session={nom_session.replace(" ", "%20")}" target="_self" class="btn-cc {classe_actif}">{nom_session}</a>'
+html_menu += "</div>"
 
-# Création des colonnes de boutons horizontaux
-cols = st.columns([1.0] * len(options_menu))
-for idx, nom_session in enumerate(options_menu):
-    with cols[idx]:
-        if st.button(nom_session, key=f"btn_nav_{idx}"):
-            st.session_state["active_session"] = nom_session
-            st.rerun()
+st.markdown(html_menu, unsafe_allow_html=True)
 
-# Application du style bleu foncé sur le bouton actif
-for idx, nom_session in enumerate(options_menu):
-    if st.session_state["active_session"] == nom_session:
-        st.markdown(f"""<style>div[data-testid="stHorizontalBlock"]:has(button) > div:nth-child({idx+1}) button {{ background-color: #1E3A8A !important; color: white !important; border-color: #1E3A8A !important; }}</style>""", unsafe_allow_html=True)
-
-# Marge basse symétrique exacte (10px) en dessous de la navigation
-st.markdown("<div style='height: 10px; clear: both; display: block;'></div>", unsafe_allow_html=True)
+# Détection instantanée du changement de page par URL (méthode la plus stable existante)
+query_params = st.query_params
+if "session" in query_params:
+    session_cliquee = query_params["session"]
+    if session_cliquee in options_menu and st.session_state["active_session"] != session_cliquee:
+        st.session_state["active_session"] = session_cliquee
+        st.rerun()
 
 choix_course = st.session_state["active_session"]
 
@@ -196,24 +196,24 @@ choix_course = st.session_state["active_session"]
 d_liv, d_his, d_haut, d_milieu, d_bas = pd.DataFrame(), pd.DataFrame(), pd.DataFrame(), pd.DataFrame(), pd.DataFrame()
 t_live, t_his, t_haut, t_milieu, t_bas = "Live", "Historique", "Classement Haut", "", ""
 
-# --- APPEL DIRECT SÉCURISÉ ---
+# --- APPEL DIRECT SÉCURISÉ DES CALCULS ---
 try:
     if choix_course == "Course 1 ASAF" and course1_asaf_dispo:
         d_liv, d_his, d_haut, d_milieu, d_bas, t_live, t_his, t_haut, t_milieu, t_bas = Course_1_ASAF.recuperer_donnees_course()
-    elif choix_course == "Course 1 RACB" and course1_racb_disp:
+    elif choix_course == "Course 1 RACB" and 'course1_racb_disp' in locals():
         d_liv, d_his, d_haut, d_milieu, d_bas, t_live, t_his, t_haut, t_milieu, t_bas = Course_1_RACB.recuperer_donnees_course()
     elif choix_course == "Course 2 ASAF" and course2_asaf_dispo:
         d_liv, d_his, d_haut, d_milieu, d_bas, t_live, t_his, t_haut, t_milieu, t_bas = Course_2_ASAF.recuperer_donnees_course()
-    elif choix_course == "Course 2 RACB" and course2_racb_dispo:
+    elif choix_course == "Course 2 RACB" and course2_racb_disponible:
         d_liv, d_his, d_haut, d_milieu, d_bas, t_live, t_his, t_haut, t_milieu, t_bas = Course_2_RACB.recuperer_donnees_course()
     elif choix_course == "Course 3 ASAF" and course3_asaf_dispo:
         d_liv, d_his, d_haut, d_milieu, d_bas, t_live, t_his, t_haut, t_milieu, t_bas = Course_3_ASAF.recuperer_donnees_course()
-    elif choix_course == "Course 3 RACB" and course3_racb_dispo:
+    elif choix_course == "Course 3 RACB" and course3_racb_disponible:
         d_liv, d_his, d_haut, d_milieu, d_bas, t_live, t_his, t_haut, t_milieu, t_bas = Course_3_RACB.recuperer_donnees_course()
     elif essais_dispo:
         d_liv, d_his, d_haut, d_milieu, d_bas, t_live, t_his, t_haut, t_milieu, t_bas = Essais.recuperer_donnees_course()
 except Exception as e:
-    t_live = f"⚠️ Problème de chargement temporaire ({str(e)})"
+    t_live = f"⚠️ Synchronisation en tâche de fond ({str(e)})"
 
 st.markdown("<style>.table-hist th:nth-child(1), .table-hist td:nth-child(1) { width: 7% !important; } .table-hist th:nth-child(2), .table-hist td:nth-child(2) { width: 23% !important; } .table-hist th:nth-child(3), .table-hist td:nth-child(3) { width: 22% !important; } .table-hist th:nth-child(4), .table-hist td:nth-child(4) { width: 10% !important; } .table-hist th:nth-child(5), .table-hist td:nth-child(5) { width: 10% !important; } .table-hist th:nth-child(6), .table-hist td:nth-child(6) { width: 14% !important; }</style>", unsafe_allow_html=True)
 
@@ -254,7 +254,7 @@ else:
 
 st.markdown("<br><br><br><div style='height:30px;'></div>", unsafe_allow_html=True)
 
-# --- REFRESH AUTOMATIQUE SANS INTERFÉRENCE ---
+# --- REFRESH AUTOMATIQUE PAR LE NAVIGATEUR TOUTES LES 30S SANS ENCOMBREMENT ---
 st.markdown("""
     <script>
         if (!window.autoRefreshSet) {
