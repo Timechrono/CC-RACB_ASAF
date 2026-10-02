@@ -47,7 +47,7 @@ except Exception:
 
 st.set_page_config(page_title="Live", layout="wide")
 
-# --- CONCEPTION GRAPHIQUE GÉOMÉTRIQUE AVEC MASQUAGE DES LIGNES GRISÉES ---
+# --- CONCEPTION GRAPHIQUE GÉOMÉTRIQUE ANTI-CLIGNOTEMENT ---
 st.markdown("""
 <style>
 [data-testid="stHeader"] { display: none !important; }
@@ -55,8 +55,8 @@ button:focus, div:focus, input:focus, select:focus {
     outline: none !important; border-color: transparent !important; box-shadow: none !important;
 }
 
-/* 🛑 BLINDAGE CHOC ANTI-LIGNES GRISÉES : MASQUE TOUS LES SQUELETTES DE CHARGEMENT DE STREAMLIT */
-[data-testid="stSkeleton"], .stSkeleton, [class*="skeleton"] {
+/* 🛑 SÉCURITÉ DE SECOURS ABSOLUE : INTERDIT TOUT RENDER GRIS OU BLANC */
+[data-testid="stSkeleton"], .stSkeleton, [class*="skeleton"], [data-testid="stRefreshSSR"] {
     display: none !important;
     visibility: hidden !important;
     opacity: 0 !important;
@@ -79,7 +79,7 @@ div[data-testid="stVerticalBlock"] {
     padding-top: 0px !important;
 }
 
-/* BARRE DE BOUTONS HORIZONTAUX EN HTML PUR FLEXBOX */
+/* BARRE DE BOUTONS HORIZONTAUX COMPACTE ET CENTRÉE */
 .menu-horizontal-cc {
     display: flex !important;
     flex-direction: row !important;
@@ -146,7 +146,7 @@ div.stElementContainer {
 .table-live td:last-child, .table-live td:last-child, .table-class-robuste td:last-child { font-weight: bold !important; font-size: 0.94rem !important; color: #0F172A !important; }
 .table-hist tr:nth-child(odd) td { background-color: #E0F2FE !important; }
 
-/* LARGEURS DES TABLEAUX GAUCHE ET DROITE */
+/* LARGEURS DES TABLEAUX */
 .table-live th:nth-child(1), .table-live td:nth-child(1) { width: 8% !important; }
 .table-live th:nth-child(2), .table-live td:nth-child(2) { width: 26% !important; }
 .table-live th:nth-child(3), .table-live td:nth-child(3) { width: 18% !important; }
@@ -160,13 +160,18 @@ div.stElementContainer {
 .table-class-robuste th:nth-child(4), .table-class-robuste td:nth-child(4) { width: 23% !important; }
 .table-class-robuste th:nth-child(5), .table-class-robuste td:nth-child(5) { width: 6% !important; }
 .table-class-robuste th:nth-child(6), .table-class-robuste td:nth-child(6) { width: 18% !important; text-align: right !important; }
+
+/* MASQUAGE DISCRET DU BOUTON SYNC REFRESH EN BAS A GAUCHE */
+div.stButton button[key="btn_refresh_cache"] {
+    display: none !important;
+    opacity: 0 !important;
+    width: 0px !important;
+    height: 0px !important;
+}
 </style>
 """, unsafe_allow_html=True)
-# Initialisation de la mémoire tampon locale
 if "active_session" not in st.session_state:
     st.session_state["active_session"] = "Essais"
-if "tampon_tables" not in st.session_state:
-    st.session_state["tampon_tables"] = {}
 
 def gen_html(df, cl):
     if isinstance(df, str): return df 
@@ -183,7 +188,7 @@ if course2_racb_dispo: options_menu.append("Course 2 RACB")
 if course3_asaf_dispo: options_menu.append("Course 3 ASAF")
 if course3_racb_dispo: options_menu.append("Course 3 RACB")
 
-# Rendu de la barre de boutons HTML Flexbox unifiée
+# Rendu de la barre de boutons HTML Flexbox unifiée (Marges haut/bas de 10px figées)
 html_menu = "<div class='menu-horizontal-cc'>"
 for nom_session in options_menu:
     classe_actif = "actif" if st.session_state["active_session"] == nom_session else ""
@@ -192,7 +197,7 @@ html_menu += "</div>"
 
 st.markdown(html_menu, unsafe_allow_html=True)
 
-# Interception instantanée du clic par URL
+# Interception instantanée du clic de manche par URL
 query_params = st.query_params
 if "session" in query_params:
     session_cliquee = query_params["session"]
@@ -202,88 +207,91 @@ if "session" in query_params:
 
 choix_course = st.session_state["active_session"]
 
-# Zone d'injection figée
-zone_affichage_verrouillee = st.empty()
-
-# Structures de données temporaires
+# Initialisation des structures de données
 d_liv, d_his, d_haut, d_milieu, d_bas = pd.DataFrame(), pd.DataFrame(), pd.DataFrame(), pd.DataFrame(), pd.DataFrame()
 t_live, t_his, t_haut, t_milieu, t_bas = "Live", "Historique", "Classement Haut", "", ""
 
-# Restauration immédiate depuis la mémoire tampon locale
-if choix_course in st.session_state["tampon_tables"]:
-    d_liv, d_his, d_haut, d_milieu, d_bas, t_live, t_his, t_haut, t_milieu, t_bas = st.session_state["tampon_tables"][choix_course]
-
-# Exécution des calculs en direct
+# --- APPEL SÉCURISÉ LINÉAIRE EN DIRECT ---
 try:
     if choix_course == "Course 1 ASAF" and course1_asaf_dispo:
-        res = Course_1_ASAF.recuperer_donnees_course()
+        import Course_1_ASAF
+        d_liv, d_his, d_haut, d_milieu, d_bas, t_live, t_his, t_haut, t_milieu, t_bas = Course_1_ASAF.recuperer_donnees_course()
     elif choix_course == "Course 1 RACB" and course1_racb_dispo:
-        res = Course_1_RACB.recuperer_donnees_course()
+        import Course_1_RACB
+        d_liv, d_his, d_haut, d_milieu, d_bas, t_live, t_his, t_haut, t_milieu, t_bas = Course_1_RACB.recuperer_donnees_course()
     elif choix_course == "Course 2 ASAF" and course2_asaf_dispo:
-        res = Course_2_ASAF.recuperer_donnees_course()
+        import Course_2_ASAF
+        d_liv, d_his, d_haut, d_milieu, d_bas, t_live, t_his, t_haut, t_milieu, t_bas = Course_2_ASAF.recuperer_donnees_course()
     elif choix_course == "Course 2 RACB" and course2_racb_dispo:
-        res = Course_2_RACB.recuperer_donnees_course()
+        import Course_2_RACB
+        d_liv, d_his, d_haut, d_milieu, d_bas, t_live, t_his, t_haut, t_milieu, t_bas = Course_2_RACB.recuperer_donnees_course()
     elif choix_course == "Course 3 ASAF" and course3_asaf_dispo:
-        res = Course_3_ASAF.recuperer_donnees_course()
+        import Course_3_ASAF
+        d_liv, d_his, d_haut, d_milieu, d_bas, t_live, t_his, t_haut, t_milieu, t_bas = Course_3_ASAF.recuperer_donnees_course()
     elif choix_course == "Course 3 RACB" and course3_racb_dispo:
-        res = Course_3_RACB.recuperer_donnees_course()
+        import Course_3_RACB
+        d_liv, d_his, d_haut, d_milieu, d_bas, t_live, t_his, t_haut, t_milieu, t_bas = Course_3_RACB.recuperer_donnees_course()
     elif essais_dispo:
-        res = Essais.recuperer_donnees_course()
-    else:
-        res = None
-
-    if res and len(res) == 10:
-        st.session_state["tampon_tables"][choix_course] = res
-        d_liv, d_his, d_haut, d_milieu, d_bas, t_live, t_his, t_haut, t_milieu, t_bas = res
+        import Essais
+        d_liv, d_his, d_haut, d_milieu, d_bas, t_live, t_his, t_haut, t_milieu, t_bas = Essais.recuperer_donnees_course()
 except Exception as e:
-    t_live = f"⚠️ Mise à jour en cours... ({str(e)})"
+    t_live = f"⚠️ Synchronisation réseau en tâche de fond... ({str(e)})"
 
-# Rendu instantané à l'intérieur de la zone conteneur figée
-with zone_affichage_verrouillee.container():
-    st.markdown("<style>.table-hist th:nth-child(1), .table-hist td:nth-child(1) { width: 7% !important; } .table-hist th:nth-child(2), .table-hist td:nth-child(2) { width: 23% !important; } .table-hist th:nth-child(3), .table-hist td:nth-child(3) { width: 22% !important; } .table-hist th:nth-child(4), .table-hist td:nth-child(4) { width: 10% !important; } .table-hist th:nth-child(5), .table-hist td:nth-child(5) { width: 10% !important; } .table-hist th:nth-child(6), .table-hist td:nth-child(6) { width: 14% !important; }</style>", unsafe_allow_html=True)
+st.markdown("<style>.table-hist th:nth-child(1), .table-hist td:nth-child(1) { width: 7% !important; } .table-hist th:nth-child(2), .table-hist td:nth-child(2) { width: 23% !important; } .table-hist th:nth-child(3), .table-hist td:nth-child(3) { width: 22% !important; } .table-hist th:nth-child(4), .table-hist td:nth-child(4) { width: 10% !important; } .table-hist th:nth-child(5), .table-hist td:nth-child(5) { width: 10% !important; } .table-hist th:nth-child(6), .table-hist td:nth-child(6) { width: 14% !important; }</style>", unsafe_allow_html=True)
 
-    cg, cd = st.columns([1.3, 0.9])
-    with cg:
-        st.markdown(f"<span class='titre-live'>{t_live}</span>", unsafe_allow_html=True)
-        st.markdown(gen_html(d_liv, "table-live"), unsafe_allow_html=True)
-        st.markdown("<div style='height:35px;'></div>", unsafe_allow_html=True)
-        if t_his: st.markdown(f"<span class='titre-hist'>{t_his}</span>", unsafe_allow_html=True)
-        st.markdown(gen_html(d_his, "table-hist"), unsafe_allow_html=True)
-        
-    with cd:
-        if choix_course != "Essais":
-            if t_haut:
-                st.markdown(f"<span class='titre-classement'>{t_haut}</span>", unsafe_allow_html=True)
-                st.markdown(gen_html(d_haut, "table-class-robuste"), unsafe_allow_html=True)
-                st.markdown("<div style='height: 55px;'></div>", unsafe_allow_html=True)
-            if t_milieu:
-                st.markdown(f"<span class='titre-classement'>{t_milieu}</span>", unsafe_allow_html=True)
-                st.markdown(gen_html(d_milieu, "table-class-robuste"), unsafe_allow_html=True)
-                st.markdown("<div style='height: 55px;'></div>", unsafe_allow_html=True)
-            if t_bas:
-                st.markdown(f"<span class='titre-classement'>{t_bas}</span>", unsafe_allow_html=True)
-                st.markdown(gen_html(d_bas, "table-class-robuste"), unsafe_allow_html=True)
-        else:
-            if t_haut:
-                st.markdown(f"<span class='titre-classement'>{t_haut}</span>", unsafe_allow_html=True)
-                st.markdown(gen_html(d_bas, "table-class-robuste"), unsafe_allow_html=True)
-                st.markdown("<div style='height: 55px;'></div>", unsafe_allow_html=True)
-            if t_milieu:
-                st.markdown(f"<span class='titre-classement'>{t_milieu}</span>", unsafe_allow_html=True)
-                st.markdown(gen_html(d_haut, "table-class-robuste"), unsafe_allow_html=True)
-                st.markdown("<div style='height: 55px;'></div>", unsafe_allow_html=True)
-            if t_bas:
-                st.markdown(f"<span class='titre-classement'>{t_bas}</span>", unsafe_allow_html=True)
-                st.markdown(gen_html(d_milieu, "table-class-robuste"), unsafe_allow_html=True)
+# Affichage géométrique de votre grille originale
+cg, cd = st.columns([1.3, 0.9])
+with cg:
+    st.markdown(f"<span class='titre-live'>{t_live}</span>", unsafe_allow_html=True)
+    st.markdown(gen_html(d_liv, "table-live"), unsafe_allow_html=True)
+    st.markdown("<div style='height:35px;'></div>", unsafe_allow_html=True)
+    if t_his: st.markdown(f"<span class='titre-hist'>{t_his}</span>", unsafe_allow_html=True)
+    st.markdown(gen_html(d_his, "table-hist"), unsafe_allow_html=True)
+    
+with cd:
+    if choix_course != "Essais":
+        if t_haut:
+            st.markdown(f"<span class='titre-classement'>{t_haut}</span>", unsafe_allow_html=True)
+            st.markdown(gen_html(d_haut, "table-class-robuste"), unsafe_allow_html=True)
+            st.markdown("<div style='height: 55px;'></div>", unsafe_allow_html=True)
+        if t_milieu:
+            st.markdown(f"<span class='titre-classement'>{t_milieu}</span>", unsafe_allow_html=True)
+            st.markdown(gen_html(d_milieu, "table-class-robuste"), unsafe_allow_html=True)
+            st.markdown("<div style='height: 55px;'></div>", unsafe_allow_html=True)
+        if t_bas:
+            st.markdown(f"<span class='titre-classement'>{t_bas}</span>", unsafe_allow_html=True)
+            st.markdown(gen_html(d_bas, "table-class-robuste"), unsafe_allow_html=True)
+    else:
+        if t_haut:
+            st.markdown(f"<span class='titre-classement'>{t_haut}</span>", unsafe_allow_html=True)
+            st.markdown(gen_html(d_bas, "table-class-robuste"), unsafe_allow_html=True)
+            st.markdown("<div style='height: 55px;'></div>", unsafe_allow_html=True)
+        if t_milieu:
+            st.markdown(f"<span class='titre-classement'>{t_milieu}</span>", unsafe_allow_html=True)
+            st.markdown(gen_html(d_haut, "table-class-robuste"), unsafe_allow_html=True)
+            st.markdown("<div style='height: 55px;'></div>", unsafe_allow_html=True)
+        if t_bas:
+            st.markdown(f"<span class='titre-classement'>{t_bas}</span>", unsafe_allow_html=True)
+            st.markdown(gen_html(d_milieu, "table-class-robuste"), unsafe_allow_html=True)
 
-st.markdown("<br><br><br><div style='height:30px;'></div>", unsafe_allow_html=True)
+st.markdown("<div style='height:30px;'></div>", unsafe_allow_html=True)
 
-# --- CONFIGURATION DU TIMEOUT NAVIGATEUR ---
+# --- SÉCURISATION DU REFRESH PAR MICRO-CLIC DISCRET (TUE DÉFINITIVEMENT LE FLICKER GRIS) ---
+# Un bouton invisible Streamlit sert de déclencheur de rafraîchissement local
+if st.button("🔄", key="btn_refresh_cache"):
+    st.rerun()
+
+# Le script JavaScript clique sur ce bouton toutes les 30s de manière 100% invisible en tâche de fond. 
+# Comme la page ne se recharge pas à la racine du navigateur, le squelette de chargement gris reste totalement masqué.
 st.markdown("""
     <script>
-        if (!window.autoRefreshSet) {
-            window.autoRefreshSet = true;
-            setTimeout(function() { window.parent.location.reload(); }, 30000);
+        if (!window.autoRefreshActive) {
+            window.autoRefreshActive = true;
+            setInterval(function() {
+                // Détecte le bouton de rafraîchissement natif par son attribut de clé Streamlit
+                const targetBtn = window.parent.document.querySelector('button[key="btn_refresh_cache"]');
+                if (targetBtn) { targetBtn.click(); }
+            }, 30000);
         }
     </script>
 """, unsafe_allow_html=True)
