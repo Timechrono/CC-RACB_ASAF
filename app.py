@@ -224,31 +224,29 @@ with cd:
         if t_bas:
             st.markdown(f"<span class='titre-classement'>{t_bas}</span>", unsafe_allow_html=True)
             st.markdown(gen_html(d_bas, "table-class-robuste"), unsafe_allow_html=True)
-else:
-    if t_haut:
-        st.markdown(f"<span class='titre-classement'>{t_haut}</span>", unsafe_allow_html=True)
-        st.markdown(gen_html(d_bas, "table-class-robuste"), unsafe_allow_html=True)
-        st.markdown("<div style='height: 55px;'></div>", unsafe_allow_html=True)
-    if t_milieu:
-        st.markdown(f"<span class='titre-classement'>{t_milieu}</span>", unsafe_allow_html=True)
-        st.markdown(gen_html(d_haut, "table-class-robuste"), unsafe_allow_html=True)
-        st.markdown("<div style='height: 55px;'></div>", unsafe_allow_html=True)
-    if t_bas:
-        st.markdown(f"<span class='titre-classement'>{t_bas}</span>", unsafe_allow_html=True)
-        st.markdown(gen_html(d_milieu, "table-class-robuste"), unsafe_allow_html=True)
+    else:
+        if t_haut:
+            st.markdown(f"<span class='titre-classement'>{t_haut}</span>", unsafe_allow_html=True)
+            st.markdown(gen_html(d_bas, "table-class-robuste"), unsafe_allow_html=True)
+            st.markdown("<div style='height: 55px;'></div>", unsafe_allow_html=True)
+        if t_milieu:
+            st.markdown(f"<span class='titre-classement'>{t_milieu}</span>", unsafe_allow_html=True)
+            st.markdown(gen_html(d_haut, "table-class-robuste"), unsafe_allow_html=True)
+            st.markdown("<div style='height: 55px;'></div>", unsafe_allow_html=True)
+        if t_bas:
+            st.markdown(f"<span class='titre-classement'>{t_bas}</span>", unsafe_allow_html=True)
+            st.markdown(gen_html(d_milieu, "table-class-robuste"), unsafe_allow_html=True)
 
 st.markdown("<div style='height:30px;'></div>", unsafe_allow_html=True)
 
 # --- LE SEUL SYSTÈME DE TIMEOUT QUI NE GRISERA JAMAIS LA PAGE ET NE BLOQUERA PAS DROPBOX ---
-# Met à jour la page toutes les 30s de manière 100% transparente en HTML pur (en arrière-plan du navigateur)
 st.markdown("""
     <noscript><meta http-equiv="refresh" content="30"></noscript>
     <script>
         if (!window.autoRefreshSet) {
             window.autoRefreshSet = true;
             setTimeout(function() {
-                const btn = window.parent.document.querySelector('button[kind="secondary"]');
-                if (btn) { btn.click(); } else { window.parent.location.reload(); }
+                window.parent.location.reload();
             }, 30000);
         }
     </script>
