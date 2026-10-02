@@ -43,7 +43,7 @@ except ModuleNotFoundError:
 
 st.set_page_config(page_title="Live", layout="wide")
 
-# --- CONCEPTION GRAPHIQUE GÉOMÉTRIQUEMENT VERROUILLÉE ---
+# --- CONCEPTION GRAPHIQUE GÉOMÉTRIQUEMENT FIXE ---
 st.markdown("""
 <style>
 [data-testid="stHeader"] { display: none !important; }
@@ -75,7 +75,7 @@ button:focus, div:focus, input:focus, select:focus {
 .table-live td:last-child, .table-hist td:last-child, .table-class-robuste td:last-child { font-weight: bold !important; font-size: 0.94rem !important; color: #0F172A !important; }
 .table-hist tr:nth-child(odd) td { background-color: #E0F2FE !important; }
 
-/* RECTIFICATION GÉOMÉTRIQUE : LARGEURS FIXES DES EN-TÊTES DE TABLEAUX */
+/* FIXATION DES LARGEURS DES EN-TÊTES DE TABLEAUX GAUCHE / DROITE */
 .table-live th:nth-child(1), .table-live td:nth-child(1) { width: 8% !important; }
 .table-live th:nth-child(2), .table-live td:nth-child(2) { width: 26% !important; }
 .table-live th:nth-child(3), .table-live td:nth-child(3) { width: 18% !important; }
@@ -90,41 +90,39 @@ button:focus, div:focus, input:focus, select:focus {
 .table-class-robuste th:nth-child(5), .table-class-robuste td:nth-child(5) { width: 6% !important; }
 .table-class-robuste th:nth-child(6), .table-class-robuste td:nth-child(6) { width: 18% !important; text-align: right !important; }
 
-/* BOUTONS RECTANGLAIRES SERRÉS ET COMPACTS (24PX) */
-div.stButton > button {
+.block-container { padding-top: 0.4rem !important; padding-bottom: 0rem !important; }
+
+/* DESIGN DES BOUTONS DE NAVIGATION DANS LA BARRE LATÉRALE LEFT */
+section[data-testid="stSidebar"] div.stButton > button {
     width: 100% !important;
-    min-height: unset !important;
-    height: 24px !important;
+    height: 28px !important;
     background-color: #F1F5F9 !important;
     color: #475569 !important;
     font-weight: bold !important;
-    font-size: 0.82rem !important;
+    font-size: 0.85rem !important;
     border: 1px solid #CBD5E1 !important;
-    border-radius: 3px !important;
-    padding: 0px 4px !important;
-    margin: 0px !important;
-    line-height: 22px !important;
-    white-space: nowrap !important;
-}
-
-/* MARGE DE SÉPARATION DE 22PX ENTRE LE MENU ET LES FEUILLES */
-.separateur-statique-final {
-    height: 22px !important;
-    margin-top: 4px !important;
+    border-radius: 4px !important;
     margin-bottom: 2px !important;
-    display: block !important;
-    clear: both !important;
+    transition: all 0.15s ease !important;
 }
 
+/* MARQUAGE VERTICAL DE LA MANCHE ACTIVE DANS LA SIDEBAR */
+section[data-testid="stSidebar"] div.stButton > button.active-sidebar-btn {
+    background-color: #1E3A8A !important;
+    color: white !important;
+    border-color: #1E3A8A !important;
+}
+
+/* COMPTEUR TEXTUEL EN HAUT À DROITE DE L'ÉCRAN PRINCIPAL */
 .label-decompte-pure-txt {
     font-size: 0.85rem !important;
     font-weight: bold !important;
     color: #1E3A8A !important;
     line-height: 24px !important;
-    white-space: nowrap !important;
-    display: inline-block !important;
     text-align: right !important;
     width: 100% !important;
+    display: block !important;
+    margin-bottom: 10px !important;
 }
 </style>
 """, unsafe_allow_html=True)
@@ -136,38 +134,32 @@ def gen_html(df, cl):
     if df.empty: return f"<table class='table-compacte {cl}'><tr><td style='text-align: center; padding: 10px;'>Aucune donnée disponible</td></tr></table>"
     return df.to_html(index=False, classes=f"table-compacte {cl}", escape=False, border=0)
 
-# Assemblage des onglets du menu horizontal (Affiche bien "Essais" en premier)
+# Assemblage des options d'épreuves de la course
 colonnes_visibles = ["Essais"]
 if course1_disponible: colonnes_visibles.append("Course 1 ASAF")
 if course1_racb_disponible: colonnes_visibles.append("Course 1 RACB")
-if course2_disponible: colonnes_menu.append("Course 2 ASAF") if 'course2_menu' in locals() else colonnes_visibles.append("Course 2 ASAF")
+if course2_disponible: colonnes_visibles.append("Course 2 ASAF")
 if course2_racb_disponible: colonnes_visibles.append("Course 2 RACB")
 if course3_disponible: colonnes_visibles.append("Course 3 ASAF")
 if course3_racb_disponible: colonnes_visibles.append("Course 3 RACB")
 
-# Écarts corrigés au millimètre (Essais est compact à 0.6)
-structure_colonnes = [0.6, 1.2, 1.2, 1.2, 1.2, 1.2, 1.2]
-proportions_finales = structure_colonnes[:len(colonnes_visibles)] + [2.5]
-
-# Construction unique de la ligne de navigation (Emplacement 100% fixe hors des fragments)
-cols = st.columns(proportions_finales, vertical_alignment="center")
-
-for idx, nom_session in enumerate(colonnes_visibles):
-    with cols[idx]:
+# --- CONSTRUTION DU MENU DE NAVIGATION DANS LA SIDEBAR DE GAUCHE (100% DROITE ET IMMOBILE) ---
+with st.sidebar:
+    st.markdown("<p style='font-weight: bold; margin-bottom: 10px; color: #1E3A8A;'>🏁 SELECTION SESSION :</p>", unsafe_allow_html=True)
+    for idx, nom_session in enumerate(colonnes_visibles):
+        # Injection du style bleu marqué pour le bouton actif de la sidebar
         if st.session_state["active_session"] == nom_session:
-            st.markdown(f"""<style>div[data-testid="stHorizontalBlock"] > div:nth-child({idx+1}) button {{ background-color: #1E3A8A !important; color: white !important; border-color: #1E3A8A !important; }}</style>""", unsafe_allow_html=True)
-        if st.button(nom_session, key=f"btn_nav_{idx}"):
+            st.markdown(f"""<style>section[data-testid="stSidebar"] div.stVerticalBlock > div:nth-child({idx+2}) button {{ background-color: #1E3A8A !important; color: white !important; border-color: #1E3A8A !important; }}</style>""", unsafe_allow_html=True)
+        if st.button(nom_session, key=f"sidebar_btn_{idx}"):
             st.session_state["active_session"] = nom_session
             st.rerun()
 
-# Zone d'écriture textuelle isolée pour le décompte à droite
-zone_decompte_txt = cols[-1].empty()
-
-# Insertion du séparateur statique
-st.markdown("<div class='separateur-statique-final'></div>", unsafe_allow_html=True)
+# --- ESPACE ÉCRAN PRINCIPAL ---
+# Placement exclusif du décompte textuel épuré tout en haut à droite de l'écran principal
+zone_decompte_txt = st.empty()
 choix_course = st.session_state["active_session"]
 
-# Conteneur d'affichage pur (Éradication des boîtes miroir)
+# Zone tampon d'affichage pur des feuilles de résultats (Anti-miroir)
 zone_affichage_pure = st.empty()
 
 # --- FRAGMENT CENTRALISÉ DÉDIÉ UNIQUEMENT AUX CLASSEMENTS (Toutes les 30s) ---
@@ -205,7 +197,6 @@ def rafraichir_uniquement_tableaux():
             
         with cd:
             if t_haut:
-                # CORRECTION COMPLÈTE DU NOM DE VARIABLE (Supprime définitivement le NameError et le chargement infini)
                 st.markdown(f"<span class='titre-classement'>{t_haut}</span>", unsafe_allow_html=True)
                 st.markdown(gen_html(d_haut, "table-class-robuste"), unsafe_allow_html=True)
             
@@ -219,7 +210,7 @@ def rafraichir_uniquement_tableaux():
                 st.markdown(f"<span class='titre-classement'>{t_bas}</span>", unsafe_allow_html=True)
                 st.markdown(gen_html(d_bas, "table-class-robuste"), unsafe_allow_html=True)
 
-# --- MINI-FRAGMENT COMPTEUR SECONDE PAR SECONDE ---
+# --- MINI-FRAGMENT COMPTEUR SECONDE PAR SECONDE (Écran principal haut droit) ---
 @st.fragment(run_every=1)
 def faire_tourner_le_compteur():
     if "chrono_sec" not in st.session_state:
@@ -231,6 +222,6 @@ def faire_tourner_le_compteur():
         
     zone_decompte_txt.markdown(f"<span class='label-decompte-pure-txt'>⏱️ Rafraîchissement dans : {st.session_state['chrono_sec']}s</span>", unsafe_allow_html=True)
 
-# Lancement coordonné
+# Lancement synchrone
 rafraichir_uniquement_tableaux()
 faire_tourner_le_compteur()
