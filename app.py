@@ -51,7 +51,7 @@ button:focus, div:focus, input:focus, select:focus {
     outline: none !important; border-color: transparent !important; box-shadow: none !important;
 }
 
-/* 1. NETTOYAGE DES MARGES BLANCHES DE LA PAGE GLOBAL */
+/* 1. RECTIFICATION : SUPPRESSION DE L'ESPACE IMMENSE DU DESSUS DE LA PAGE */
 .block-container { 
     padding-top: 0px !important; 
     padding-bottom: 0rem !important; 
@@ -60,9 +60,10 @@ button:focus, div:focus, input:focus, select:focus {
 }
 div[data-testid="stMainBlockContainer"] {
     padding-top: 0px !important;
+    margin-top: -18px !important; /* Remonte le menu vers le haut pour supprimer la marge blanche */
 }
 
-/* 2. VERROUILLAGE DE LA BARRE DU HAUT : ELLE DEVIENT IMMUABLE */
+/* 2. VERROUILLAGE DE LA BARRE DU HAUT */
 div[data-testid="stHorizontalBlock"] {
     margin-top: 0px !important;
     margin-bottom: 0px !important;
@@ -71,9 +72,9 @@ div[data-testid="stHorizontalBlock"] {
     height: 28px !important;
 }
 
-/* 3. BARRIÈRE CHIRURGICALE ANTI-CHEVAUCHEMENT : FORCE LA FEUILLE À DESCENDRE DE 16 PIXELS */
+/* 3. RECTIFICATION : FEUILLE RAPPROCHÉE AVEC UNE MARGE FILTRÉE ET SÉCURISÉE DE 4PX */
 div[data-testid="stVerticalBlock"] > div:nth-child(2) {
-    margin-top: 16px !important; /* Crée l'espace physique obligatoire sous le menu */
+    margin-top: 4px !important; /* Rapproche proprement la feuille sans recouvrir les boutons */
 }
 
 .titre-live, .titre-hist, .titre-classement {
