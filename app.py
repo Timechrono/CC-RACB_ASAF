@@ -51,7 +51,7 @@ button:focus, div:focus, input:focus, select:focus {
     outline: none !important; border-color: transparent !important; box-shadow: none !important;
 }
 
-/* 1. NETTOYAGE ET REPOSITIONNEMENT PARFAIT EN HAUT DE L'ÉCRAN */
+/* 1. NETTOYAGE ET REPOSITIONNEMENT EN HAUT DE L'ÉCRAN */
 .block-container { 
     padding-top: 5px !important; 
     padding-bottom: 0rem !important; 
@@ -150,13 +150,15 @@ if course2_racb_disponible: colonnes_visibles.append("Course 2 RACB")
 if course3_disponible: colonnes_visibles.append("Course 3 ASAF")
 if course3_racb_disponible: colonnes_visibles.append("Course 3 RACB")
 
-# Léger espacement vertical de sécurité avant les boutons pour éviter le chevauchement
+# Espace au-dessus des boutons
 st.markdown("<div style='height: 10px;'></div>", unsafe_allow_html=True)
 
-proportions_finales = [1.0] * len(colonnes_visibles) + [2.8]
+# Calcul dynamique pour le centrage : on crée des colonnes équilibrées
+nb_boutons = len(colonnes_visibles)
+proportions_finales = [1.0] * nb_boutons
 cols = st.columns(proportions_finales, vertical_alignment="center")
 
-# Rendu des boutons
+# Rendu des boutons directement indexés sur la grille globale
 for idx, nom_session in enumerate(colonnes_visibles):
     with cols[idx]:
         if st.button(nom_session, key=f"btn_nav_{idx}"):
@@ -168,11 +170,8 @@ for idx, nom_session in enumerate(colonnes_visibles):
     if st.session_state["active_session"] == nom_session:
         st.markdown(f"""<style>div[data-testid="stHorizontalBlock"] > div:nth-child({idx+1}) button {{ background-color: #1E3A8A !important; color: white !important; border-color: #1E3A8A !important; }}</style>""", unsafe_allow_html=True)
 
-with cols[-1]:
-    st.markdown("<p style='text-align:right; margin:0; font-size:0.85rem; font-weight:bold; color:#475569; line-height:24px;'>🔄 Synchro Live 30s</p>", unsafe_allow_html=True)
-
-# Ligne de démarcation pour isoler proprement le menu
-st.markdown("<div style='height: 15px;'></div>", unsafe_allow_html=True)
+# Espace en dessous des boutons STRICTEMENT SYMÉTRIQUE à celui du haut (10px)
+st.markdown("<div style='height: 10px;'></div>", unsafe_allow_html=True)
 
 choix_course = st.session_state["active_session"]
 zone_affichage_pure = st.empty()
