@@ -42,7 +42,7 @@ except ModuleNotFoundError:
 
 st.set_page_config(page_title="Live", layout="wide")
 
-# --- CONCEPTION GRAPHIQUE GÉOMÉTRIQUE IMMÉDIATE ---
+# --- CONCEPTION GRAPHIQUE GÉOMÉTRIQUE SANS AUCUNE MARGE BLANCHE ---
 st.markdown("""
 <style>
 [data-testid="stHeader"] { display: none !important; }
@@ -66,19 +66,17 @@ div[data-testid="stVerticalBlock"] {
     padding-top: 0px !important;
 }
 
-/* BLINDAGE DU CONTENEUR POUR S'ASSURER QUE LE MENU RESTE HORIZONTAL */
-div[data-testid="stHorizontalBlock"] {
+/* CONTENEUR FLEXBOX INJECTÉ POUR FORCER LE MENU HORIZONTAL À CENTRER PROPREMENT */
+div[data-testid="stHorizontalBlock"]:has(button) {
     display: flex !important;
-    flex-direction: row !important;
-    flex-wrap: nowrap !important;
     justify-content: center !important;
     align-items: center !important;
     gap: 10px !important;
     width: 100% !important;
     margin: 0px auto !important;
 }
-div[data-testid="stHorizontalBlock"] > div {
-    flex: 0 0 auto !important;
+div[data-testid="stHorizontalBlock"]:has(button) > div {
+    flex: none !important;
     width: auto !important;
     padding: 0px !important;
     margin: 0px !important;
@@ -158,7 +156,7 @@ def gen_html(df, cl):
     if df.empty: return f"<table class='table-compacte {cl}'><tr><td style='text-align: center; padding: 10px;'>Aucune donnée disponible</td></tr></table>"
     return df.to_html(index=False, classes=f"table-compacte {cl}", escape=False, border=0)
 
-# Liste ordonnée
+# Liste ordonnée des boutons du menu horizontal
 colonnes_visibles = ["Essais"]
 if course1_disponible: colonnes_visibles.append("Course 1 ASAF")
 if course1_racb_disponible: colonnes_visibles.append("Course 1 RACB")
@@ -169,77 +167,89 @@ if course3_racb_disponible: colonnes_visibles.append("Course 3 RACB")
 
 st.markdown("<div style='height: 10px;'></div>", unsafe_allow_html=True)
 
-# Changement direct de l'état sans appeler st.rerun() pour briser la boucle du rond
+# Affichage de la ligne horizontale centrée
 cols = st.columns([1.0] * len(colonnes_visibles))
 for idx, nom_session in enumerate(colonnes_visibles):
     with cols[idx]:
         if st.button(nom_session, key=f"btn_nav_{idx}"):
             st.session_state["active_session"] = nom_session
+            st.rerun()
 
 for idx, nom_session in enumerate(colonnes_visibles):
     if st.session_state["active_session"] == nom_session:
         st.markdown(f"""<style>div[data-testid="stHorizontalBlock"] > div:nth-child({idx+1}) button {{ background-color: #1E3A8A !important; color: white !important; border-color: #1E3A8A !important; }}</style>""", unsafe_allow_html=True)
 
+# Espace perfectly symétrique sous le menu (10px)
 st.markdown("<div style='height: 10px; clear: both;'></div>", unsafe_allow_html=True)
 
-# Déclaration à l'extérieur pour alimenter le fragment en direct
 choix_course = st.session_state["active_session"]
 
-# --- FRAGMENT PUREMENT CONCENTRÉ SUR LE RENDU DES CLASSEMENTS ---
-@st.fragment(run_every=30)
-def afficher_tableaux(session_active):
-    if session_active == "Course 1 ASAF" and course1_disponible:
-        d_liv, d_his, d_haut, d_milieu, d_bas, t_live, t_his, t_haut, t_milieu, t_bas = Course_1_ASAF.recuperer_donnees_course()
-    elif session_active == "Course 1 RACB" and course1_racb_disponible:
-        d_liv, d_his, d_haut, d_milieu, d_bas, t_live, t_his, t_haut, t_milieu, t_bas = Course_1_RACB.recuperer_donnees_course()
-    elif session_active == "Course 2 ASAF" and course2_disponible:
-        d_liv, d_his, d_haut, d_milieu, d_bas, t_live, t_his, t_haut, t_milieu, t_bas = Course_2_ASAF.recuperer_donnees_course()
-    elif session_active == "Course 2 RACB" and course2_racb_disponible:
-        d_liv, d_his, d_haut, d_milieu, d_bas, t_live, t_his, t_haut, t_milieu, t_bas = Course_2_RACB.recuperer_donnees_course()
-    elif session_active == "Course 3 ASAF" and course3_disponible:
-        d_liv, d_his, d_haut, d_milieu, d_bas, t_live, t_his, t_haut, t_milieu, t_bas = Course_3_ASAF.recuperer_donnees_course()
-    elif session_active == "Course 3 RACB" and course3_racb_disponible:
-        d_liv, d_his, d_haut, d_milieu, d_bas, t_live, t_his, t_haut, t_milieu, t_bas = Course_3_RACB.recuperer_donnees_course()
-    else:
-        d_liv, d_his, d_haut, d_milieu, d_bas, t_live, t_his, t_haut, t_milieu, t_bas = Essais.recuperer_donnees_course()
+# --- APPEL DIRECT SANS S'EMMÊLER LES PINCEAUX AVEC UN FRAGMENT ---
+if choix_course == "Course 1 ASAF" and course1_disponible:
+    d_liv, d_his, d_haut, d_milieu, d_bas, t_live, t_his, t_haut, t_milieu, t_bas = Course_1_ASAF.recuperer_donnees_course()
+elif choix_course == "Course 1 RACB" and course1_racb_disponible:
+    d_liv, d_his, d_haut, d_milieu, d_bas, t_live, t_his, t_haut, t_milieu, t_bas = Course_1_RACB.recuperer_donnees_course()
+elif choix_course == "Course 2 ASAF" and course2_disponible:
+    d_liv, d_his, d_haut, d_milieu, d_bas, t_live, t_his, t_haut, t_milieu, t_bas = Course_2_ASAF.recuperer_donnees_course()
+elif choix_course == "Course 2 RACB" and course2_racb_disponible:
+    d_liv, d_his, d_haut, d_milieu, d_bas, t_live, t_his, t_haut, t_milieu, t_bas = Course_2_RACB.recuperer_donnees_course()
+elif choix_course == "Course 3 ASAF" and course3_disponible:
+    d_liv, d_his, d_haut, d_milieu, d_bas, t_live, t_his, t_haut, t_milieu, t_bas = Course_3_ASAF.recuperer_donnees_course()
+elif choix_course == "Course 3 RACB" and course3_racb_disponible:
+    d_liv, d_his, d_haut, d_milieu, d_bas, t_live, t_his, t_haut, t_milieu, t_bas = Course_3_RACB.recuperer_donnees_course()
+else:
+    d_liv, d_his, d_haut, d_milieu, d_bas, t_live, t_his, t_haut, t_milieu, t_bas = Essais.recuperer_donnees_course()
 
-    st.markdown("<style>.table-hist th:nth-child(1), .table-hist td:nth-child(1) { width: 7% !important; } .table-hist th:nth-child(2), .table-hist td:nth-child(2) { width: 23% !important; } .table-hist th:nth-child(3), .table-hist td:nth-child(3) { width: 22% !important; } .table-hist th:nth-child(4), .table-hist td:nth-child(4) { width: 10% !important; } .table-hist th:nth-child(5), .table-hist td:nth-child(5) { width: 10% !important; } .table-hist th:nth-child(6), .table-hist td:nth-child(6) { width: 14% !important; }</style>", unsafe_allow_html=True)
+st.markdown("<style>.table-hist th:nth-child(1), .table-hist td:nth-child(1) { width: 7% !important; } .table-hist th:nth-child(2), .table-hist td:nth-child(2) { width: 23% !important; } .table-hist th:nth-child(3), .table-hist td:nth-child(3) { width: 22% !important; } .table-hist th:nth-child(4), .table-hist td:nth-child(4) { width: 10% !important; } .table-hist th:nth-child(5), .table-hist td:nth-child(5) { width: 10% !important; } .table-hist th:nth-child(6), .table-hist td:nth-child(6) { width: 14% !important; }</style>", unsafe_allow_html=True)
 
-    cg, cd = st.columns([1.3, 0.9])
-    with cg:
-        if t_live: st.markdown(f"<span class='titre-live'>{t_live}</span>", unsafe_allow_html=True)
-        st.markdown(gen_html(d_liv, "table-live"), unsafe_allow_html=True)
-        st.markdown("<div style='height:35px;'></div>", unsafe_allow_html=True)
-        if t_his: st.markdown(f"<span class='titre-hist'>{t_his}</span>", unsafe_allow_html=True)
-        st.markdown(gen_html(d_his, "table-hist"), unsafe_allow_html=True)
-        
-    with cd:
-        if session_active != "Essais":
-            if t_haut:
-                st.markdown(f"<span class='titre-classement'>{t_haut}</span>", unsafe_allow_html=True)
-                st.markdown(gen_html(d_haut, "table-class-robuste"), unsafe_allow_html=True)
-                st.markdown("<div style='height: 55px;'></div>", unsafe_allow_html=True)
-            if t_milieu:
-                st.markdown(f"<span class='titre-classement'>{t_milieu}</span>", unsafe_allow_html=True)
-                st.markdown(gen_html(d_milieu, "table-class-robuste"), unsafe_allow_html=True)
-                st.markdown("<div style='height: 55px;'></div>", unsafe_allow_html=True)
-            if t_bas:
-                st.markdown(f"<span class='titre-classement'>{t_bas}</span>", unsafe_allow_html=True)
-                st.markdown(gen_html(d_bas, "table-class-robuste"), unsafe_allow_html=True)
-        else:
-            if t_haut:
-                st.markdown(f"<span class='titre-classement'>{t_haut}</span>", unsafe_allow_html=True)
-                st.markdown(gen_html(d_bas, "table-class-robuste"), unsafe_allow_html=True)
-                st.markdown("<div style='height: 55px;'></div>", unsafe_allow_html=True)
-            if t_milieu:
-                st.markdown(f"<span class='titre-classement'>{t_milieu}</span>", unsafe_allow_html=True)
-                st.markdown(gen_html(d_haut, "table-class-robuste"), unsafe_allow_html=True)
-                st.markdown("<div style='height: 55px;'></div>", unsafe_allow_html=True)
-            if t_bas:
-                st.markdown(f"<span class='titre-classement'>{t_bas}</span>", unsafe_allow_html=True)
-                st.markdown(gen_html(d_milieu, "table-class-robuste"), unsafe_allow_html=True)
+# Affichage pur de votre grille graphique exacte
+cg, cd = st.columns([1.3, 0.9])
+with cg:
+    if t_live: st.markdown(f"<span class='titre-live'>{t_live}</span>", unsafe_allow_html=True)
+    st.markdown(gen_html(d_liv, "table-live"), unsafe_allow_html=True)
+    st.markdown("<div style='height:35px;'></div>", unsafe_allow_html=True)
+    if t_his: st.markdown(f"<span class='titre-hist'>{t_his}</span>", unsafe_allow_html=True)
+    st.markdown(gen_html(d_his, "table-hist"), unsafe_allow_html=True)
+    
+with cd:
+    if choix_course != "Essais":
+        if t_haut:
+            st.markdown(f"<span class='titre-classement'>{t_haut}</span>", unsafe_allow_html=True)
+            st.markdown(gen_html(d_haut, "table-class-robuste"), unsafe_allow_html=True)
+            st.markdown("<div style='height: 55px;'></div>", unsafe_allow_html=True)
+        if t_milieu:
+            st.markdown(f"<span class='titre-classement'>{t_milieu}</span>", unsafe_allow_html=True)
+            st.markdown(gen_html(d_milieu, "table-class-robuste"), unsafe_allow_html=True)
+            st.markdown("<div style='height: 55px;'></div>", unsafe_allow_html=True)
+        if t_bas:
+            st.markdown(f"<span class='titre-classement'>{t_bas}</span>", unsafe_allow_html=True)
+            st.markdown(gen_html(d_bas, "table-class-robuste"), unsafe_allow_html=True)
+else:
+    if t_haut:
+        st.markdown(f"<span class='titre-classement'>{t_haut}</span>", unsafe_allow_html=True)
+        st.markdown(gen_html(d_bas, "table-class-robuste"), unsafe_allow_html=True)
+        st.markdown("<div style='height: 55px;'></div>", unsafe_allow_html=True)
+    if t_milieu:
+        st.markdown(f"<span class='titre-classement'>{t_milieu}</span>", unsafe_allow_html=True)
+        st.markdown(gen_html(d_haut, "table-class-robuste"), unsafe_allow_html=True)
+        st.markdown("<div style='height: 55px;'></div>", unsafe_allow_html=True)
+    if t_bas:
+        st.markdown(f"<span class='titre-classement'>{t_bas}</span>", unsafe_allow_html=True)
+        st.markdown(gen_html(d_milieu, "table-class-robuste"), unsafe_allow_html=True)
 
-    st.markdown("<div style='height:30px;'></div>", unsafe_allow_html=True)
+st.markdown("<div style='height:30px;'></div>", unsafe_allow_html=True)
 
-# Lancement en passant la variable en paramètre
-afficher_tableaux(choix_course)
+# --- LE SEUL SYSTÈME DE TIMEOUT QUI NE GRISERA JAMAIS LA PAGE ET NE BLOQUERA PAS DROPBOX ---
+# Met à jour la page toutes les 30s de manière 100% transparente en HTML pur (en arrière-plan du navigateur)
+st.markdown("""
+    <noscript><meta http-equiv="refresh" content="30"></noscript>
+    <script>
+        if (!window.autoRefreshSet) {
+            window.autoRefreshSet = true;
+            setTimeout(function() {
+                const btn = window.parent.document.querySelector('button[kind="secondary"]');
+                if (btn) { btn.click(); } else { window.parent.location.reload(); }
+            }, 30000);
+        }
+    </script>
+""", unsafe_allow_html=True)
