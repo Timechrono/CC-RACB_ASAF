@@ -5,7 +5,7 @@ import requests
 import io
 import Essais
 
-# --- DÉTECTION SIMPLE DES COURSES ---
+# --- CHARGEMENT COMPLET DE TOUTES LES COURSES ---
 try:
     import Course_1_ASAF
     course1_disponible = True
@@ -44,7 +44,7 @@ except ModuleNotFoundError:
 
 st.set_page_config(page_title="Live", layout="wide")
 
-# --- CONCEPTION GRAPHIQUE GÉOMÉTRIQUE SANS AUCUNE MARGE BLANCHE ---
+# --- CONCEPTION GRAPHIQUE GÉOMÉTRIQUE SANS MARGE BLANCHE ---
 st.markdown("""
 <style>
 [data-testid="stHeader"] { display: none !important; }
@@ -52,6 +52,7 @@ button:focus, div:focus, input:focus, select:focus {
     outline: none !important; border-color: transparent !important; box-shadow: none !important;
 }
 
+/* 1. COMPACITÉ DE LA ZONE SUPERIEURE */
 .block-container { 
     padding-top: 5px !important; 
     padding-bottom: 0rem !important; 
@@ -67,21 +68,25 @@ div[data-testid="stVerticalBlock"] {
     padding-top: 0px !important;
 }
 
-div[data-testid="stHorizontalBlock"]:has(button) {
+/* ANCRAGE DU MENU HORIZONTAL UNIQUE : INTERDIT LA DOUBLE LIGNE */
+.zone-menu-horizontale div[data-testid="stHorizontalBlock"] {
     display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
     justify-content: center !important;
     align-items: center !important;
     gap: 10px !important;
     width: 100% !important;
     margin: 0px auto !important;
 }
-div[data-testid="stHorizontalBlock"]:has(button) > div {
-    flex: none !important;
+.zone-menu-horizontale div[data-testid="stHorizontalBlock"] > div {
+    flex: 0 0 auto !important;
     width: auto !important;
     padding: 0px !important;
     margin: 0px !important;
 }
 
+/* 2. RAPPROCHEMENT NET ET COLLÉ DES TABLEAUX SOUS LES BOUTONS */
 div.stElementContainer {
     margin-top: 0px !important;
     margin-bottom: 0px !important;
@@ -113,6 +118,22 @@ div.stElementContainer {
 .table-live td:last-child, .table-live td:last-child, .table-class-robuste td:last-child { font-weight: bold !important; font-size: 0.94rem !important; color: #0F172A !important; }
 .table-hist tr:nth-child(odd) td { background-color: #E0F2FE !important; }
 
+/* LARGEURS DES TABLEAUX */
+.table-live th:nth-child(1), .table-live td:nth-child(1) { width: 8% !important; }
+.table-live th:nth-child(2), .table-live td:nth-child(2) { width: 26% !important; }
+.table-live th:nth-child(3), .table-live td:nth-child(3) { width: 18% !important; }
+.table-live th:nth-child(4), .table-live td:nth-child(4) { width: 13% !important; }
+.table-live th:nth-child(5), .table-live td:nth-child(5) { width: 13% !important; }
+.table-live th:nth-child(6), .table-live td:nth-child(6) { width: 22% !important; }
+
+.table-class-robuste th:nth-child(1), .table-class-robuste td:nth-child(1) { width: 9% !important; }
+.table-class-robuste th:nth-child(2), .table-class-robuste td:nth-child(2) { width: 11% !important; }
+.table-class-robuste th:nth-child(3), .table-class-robuste td:nth-child(3) { width: 33% !important; }
+.table-class-robuste th:nth-child(4), .table-class-robuste td:nth-child(4) { width: 23% !important; }
+.table-class-robuste th:nth-child(5), .table-class-robuste td:nth-child(5) { width: 6% !important; }
+.table-class-robuste th:nth-child(6), .table-class-robuste td:nth-child(6) { width: 18% !important; text-align: right !important; }
+
+/* DESIGN DES BOUTONS HORIZONTAUX LISIBLES */
 div.stButton > button {
     width: 140px !important; min-height: unset !important; height: 24px !important;
     background-color: #F1F5F9 !important; color: #475569 !important; font-weight: bold !important; font-size: 0.82rem !important;
@@ -130,7 +151,7 @@ def gen_html(df, cl):
         return f"<table class='table-compacte {cl}'><tr><td style='text-align: center; padding: 10px;'>Données indisponibles (Vérifiez Dropbox)</td></tr></table>"
     return df.to_html(index=False, classes=f"table-compacte {cl}", escape=False, border=0)
 
-# Liste des boutons
+# Assemblage des boutons horizontaux
 colonnes_visibles = ["Essais"]
 if course1_disponible: colonnes_visibles.append("Course 1 ASAF")
 if course1_racb_disponible: colonnes_visibles.append("Course 1 RACB")
@@ -139,32 +160,34 @@ if course2_racb_disponible: colonnes_visibles.append("Course 2 RACB")
 if course3_disponible: colonnes_visibles.append("Course 3 ASAF")
 if course3_racb_disponible: colonnes_visibles.append("Course 3 RACB")
 
+# MARGE STRICTE DE 10PX AU-DESSUS DES BOUTONS (BORD SUPÉRIEUR CORRIGÉ)
 st.markdown("<div style='height: 10px;'></div>", unsafe_allow_html=True)
 
-cols = st.columns([1.0] * len(colonnes_visibles))
-for idx, nom_session in enumerate(colonnes_visibles):
-    with cols[idx]:
-        if st.button(nom_session, key=f"btn_nav_{idx}"):
-            st.session_state["active_session"] = nom_session
-            st.rerun()
+# ENCAPSULATION DE SÉCURITÉ DANS UN CONTENEUR DÉDIÉ UNIQUEMENT AU MENU
+with st.container(key="zone-menu-horizontale"):
+    cols = st.columns([1.0] * len(colonnes_visibles))
+    for idx, nom_session in enumerate(colonnes_visibles):
+        with cols[idx]:
+            if st.button(nom_session, key=f"btn_nav_{idx}"):
+                st.session_state["active_session"] = nom_session
+                st.rerun()
 
+# Rendu de la couleur active sur le bouton sélectionné
 for idx, nom_session in enumerate(colonnes_visibles):
     if st.session_state["active_session"] == nom_session:
-        st.markdown(f"""<style>div[data-testid="stHorizontalBlock"] > div:nth-child({idx+1}) button {{ background-color: #1E3A8A !important; color: white !important; border-color: #1E3A8A !important; }}</style>""", unsafe_allow_html=True)
+        st.markdown(f"""<style>div[data-testid="stHorizontalBlock"]:has(button) > div:nth-child({idx+1}) button {{ background-color: #1E3A8A !important; color: white !important; border-color: #1E3A8A !important; }}</style>""", unsafe_allow_html=True)
 
-st.markdown("<div style='height: 10px; clear: both;'></div>", unsafe_allow_html=True)
+# MARGE STRICTE DE 10PX EN DESSOUS DES BOUTONS (FEUILLE DÉCOLLÉE CORRIGÉE)
+st.markdown("<div style='height: 10px; clear: both; display: block;'></div>", unsafe_allow_html=True)
 
 choix_course = st.session_state["active_session"]
 
-# Structures vides par défaut pour parer au blocage
+# Structures de secours
 d_liv, d_his, d_haut, d_milieu, d_bas = pd.DataFrame(), pd.DataFrame(), pd.DataFrame(), pd.DataFrame(), pd.DataFrame()
 t_live, t_his, t_haut, t_milieu, t_bas = "Chronométrage", "Historique", "Classement Haut", "Classement Milieu", "Classement Bas"
 
-# --- BLINDAGE ABSOLU DU CHARGEMENT AVEC TIMEOUT COURT (MAX 3 SECONDES) ---
+# Récupération directe et sécurisée avec Timeout court
 try:
-    # On force la bibliothèque requests à ne pas attendre plus de 3 secondes
-    # Si Dropbox ne répond pas instantanément, on passe au 'except' pour afficher la page directement
-    import sys
     from concurrent.futures import ThreadPoolExecutor
 
     def recuperer_avec_timeout():
@@ -176,7 +199,6 @@ try:
         elif choix_course == "Course 3 RACB" and course3_racb_disponible: return Course_3_RACB.recuperer_donnees_course()
         else: return Essais.recuperer_donnees_course()
 
-    # Exécution dans un thread séparé limité à 3.5 secondes max pour tuer le rond qui tourne
     with ThreadPoolExecutor(max_workers=1) as executor:
         future = executor.submit(recuperer_avec_timeout)
         res = future.result(timeout=3.5)
@@ -185,9 +207,9 @@ try:
 except Exception as e:
     t_live = "⚠️ Liaison Dropbox ralentie ou instable — Tentative de reconnexon en cours..."
 
-# --- RENDU DE VOTRE PRÉSENTATION EXACTE ---
 st.markdown("<style>.table-hist th:nth-child(1), .table-hist td:nth-child(1) { width: 7% !important; } .table-hist th:nth-child(2), .table-hist td:nth-child(2) { width: 23% !important; } .table-hist th:nth-child(3), .table-hist td:nth-child(3) { width: 22% !important; } .table-hist th:nth-child(4), .table-hist td:nth-child(4) { width: 10% !important; } .table-hist th:nth-child(5), .table-hist td:nth-child(5) { width: 10% !important; } .table-hist th:nth-child(6), .table-hist td:nth-child(6) { width: 14% !important; }</style>", unsafe_allow_html=True)
 
+# Rendu final standard propre en 2 colonnes
 cg, cd = st.columns([1.3, 0.9])
 with cg:
     st.markdown(f"<span class='titre-live'>{t_live}</span>", unsafe_allow_html=True)
@@ -224,7 +246,7 @@ with cd:
 
 st.markdown("<div style='height:30px;'></div>", unsafe_allow_html=True)
 
-# Rafraîchissement asynchrone par navigateur pur (zéro blocage serveur)
+# Rafraîchissement asynchrone par navigateur pur (TTL 30s)
 st.markdown("""
     <script>
         if (!window.autoRefreshSet) {
