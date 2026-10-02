@@ -43,7 +43,7 @@ except ModuleNotFoundError:
 
 st.set_page_config(page_title="Live", layout="wide")
 
-# --- CONCEPTION GRAPHIQUE RIGIDE ET BOUTONS HORIZONTAUX COMPACTS ---
+# --- CONCEPTION GRAPHIQUE FIXE ET ANTI-SÉISME ---
 st.markdown("""
 <style>
 [data-testid="stHeader"] { display: none !important; }
@@ -91,7 +91,7 @@ button:focus, div:focus, input:focus, select:focus {
 
 .block-container { padding-top: 0.4rem !important; padding-bottom: 0rem !important; }
 
-/* BOUTONS NATIFS STABLES : HAUTEUR SERRÉE (24PX) ET TEXTE EN GRAS */
+/* FIXATION GÉOMÉTRIQUE : LES BOUTONS ONT LA MÊME STRUCTURE ET NE BOUGENT PAS */
 div.stButton > button {
     width: 100% !important;
     min-height: unset !important;
@@ -103,31 +103,32 @@ div.stButton > button {
     border: 1px solid #CBD5E1 !important;
     border-radius: 3px !important;
     padding: 0px 14px !important;
-    transition: all 0.15s ease !important;
+    margin: 0px !important;
     line-height: 22px !important;
+    white-space: nowrap !important;
 }
 
-/* MARQUAGE BLEU SUR LE BOUTON DE LA SESSION ACTIVE */
-div.stButton[data-testid="stButton"] button.active-btn-css {{
-    background-color: #1E3A8A !important;
-    color: white !important;
-    border-color: #1E3A8A !important;
-}}
+/* FIXATION DE L'INTERLIGNE GLOBAL SOUS LE MENU */
+.separateur-statique {
+    height: 16px !important;
+    margin-bottom: 4px !important;
+    clear: both !important;
+    display: block !important;
+}
 
-/* TEXTE DU DÉCOMPTE SANS CADRE NI FOND COULEUR */
+/* TEXTE DU DÉCOMPTE STRICTEMENT ALIGNÉ SANS VARIATION DE LARGEUR */
 .label-decompte-pure-txt {
     font-size: 0.85rem !important;
     font-weight: bold !important;
     color: #1E3A8A !important;
     line-height: 24px !important;
     white-space: nowrap !important;
-    display: inline-block;
-    text-align: right;
-    width: 100%;
+    display: inline-block !important;
+    text-align: right !important;
+    width: 100% !important;
 }
 </style>
 """, unsafe_allow_html=True)
-# fin bloc 1
 if "active_session" not in st.session_state:
     st.session_state["active_session"] = "Essais / Entraînements"
 
@@ -136,7 +137,7 @@ def gen_html(df, cl):
     if df.empty: return f"<table class='table-compacte {cl}'><tr><td style='text-align: center; padding: 10px;'>Aucune donnée disponible</td></tr></table>"
     return df.to_html(index=False, classes=f"table-compacte {cl}", escape=False, border=0)
 
-# Assemblage de la liste des sessions disponibles
+# Assemblage des onglets de course
 colonnes_menu = ["Essais / Entraînements"]
 if course1_disponible: colonnes_menu.append("Course 1 ASAF")
 if course1_racb_disponible: colonnes_menu.append("Course 1 RACB")
@@ -145,11 +146,11 @@ if course2_racb_disponible: colonnes_menu.append("Course 2 RACB")
 if course3_disponible: colonnes_menu.append("Course 3 ASAF")
 if course3_racb_disponible: colonnes_menu.append("Course 3 RACB")
 
-# --- RECTIFICATION CRITIQUE DE LA SYNTAXE DE LA LIGNE 149 ---
-# On combine une liste de colonnes de même taille pour les boutons + 1 colonne pour le décompte
-cols = st.columns([1] * len(colonnes_menu) + [2.2], vertical_alignment="center")
+# Allocation précise des colonnes pour éviter tout saut de ligne
+structure_colonnes = [1.0] * len(colonnes_menu) + [2.2]
+cols = st.columns(structure_colonnes, vertical_alignment="center")
 
-# Rendu des boutons horizontaux
+# Rendu et blocage dynamique de la couleur du bouton sélectionné
 for idx, nom_session in enumerate(colonnes_menu):
     with cols[idx]:
         if st.session_state["active_session"] == nom_session:
@@ -158,14 +159,14 @@ for idx, nom_session in enumerate(colonnes_menu):
             st.session_state["active_session"] = nom_session
             st.rerun()
 
-# Utilisation exclusive de la dernière colonne à droite pour le texte du décompte
+# Point d'injection fixe pour le compteur
 zone_decompte_txt = cols[-1].empty()
 
-# Interligne fin et discret sous la barre d'onglets
-st.markdown("<div style='height: 14px; margin-bottom: 4px;'></div>", unsafe_allow_html=True)
+# INJECTION DE L'ESPACE SÉPARATEUR PARFAITEMENT STATIQUE
+st.markdown("<div class='separateur-statique'></div>", unsafe_allow_html=True)
 choix_course = st.session_state["active_session"]
 
-# Conteneur d'affichage pur (Anti-miroir grisé)
+# Conteneur d'affichage sécurisé (Anti-miroir)
 zone_affichage_pure = st.empty()
 
 # --- CYCLAGE AUTOMATIQUE CENTRALISÉ TOUTES LES 30 SECONDES ---
@@ -214,7 +215,7 @@ def afficher_tableaux():
                 st.markdown(f"<span class='titre-classement'>{t_bas}</span>", unsafe_allow_html=True)
                 st.markdown(gen_html(d_bas, "table-class-robuste"), unsafe_allow_html=True)
 
-    # REFRESH CONTINU ET TEXTUEL FLUIDE SANS CASSER L'HORIZONTALITÉ
+    # DÉCOMPTE FLUIDE SECONDE PAR SECONDE SANS DÉCALAGE DE CADRE
     for secondes_restantes in range(30, 0, -1):
         zone_decompte_txt.markdown(f"<span class='label-decompte-pure-txt'>⏱️ Rafraîchissement dans : {secondes_restantes}s</span>", unsafe_allow_html=True)
         time.sleep(1)
