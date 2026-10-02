@@ -43,7 +43,7 @@ except ModuleNotFoundError:
 
 st.set_page_config(page_title="Live", layout="wide")
 
-# --- CONCEPTION GRAPHIQUE RIGIDE ET STRATIFIÉE ---
+# --- CONCEPTION GRAPHIQUE GÉOMÉTRIQUE ET ANTI-SÉISME ---
 st.markdown("""
 <style>
 [data-testid="stHeader"] { display: none !important; }
@@ -75,6 +75,7 @@ button:focus, div:focus, input:focus, select:focus {
 .table-live td:last-child, .table-hist td:last-child, .table-class-robuste td:last-child { font-weight: bold !important; font-size: 0.94rem !important; color: #0F172A !important; }
 .table-hist tr:nth-child(odd) td { background-color: #E0F2FE !important; }
 
+/* EN-TÊTES DE TABLEAUX GAUCHE / DROITE */
 .table-live th:nth-child(1), .table-live td:nth-child(1) { width: 8% !important; }
 .table-live th:nth-child(2), .table-live td:nth-child(2) { width: 26% !important; }
 .table-live th:nth-child(3), .table-live td:nth-child(3) { width: 18% !important; }
@@ -89,12 +90,30 @@ button:focus, div:focus, input:focus, select:focus {
 .table-class-robuste th:nth-child(5), .table-class-robuste td:nth-child(5) { width: 6% !important; }
 .table-class-robuste th:nth-child(6), .table-class-robuste td:nth-child(6) { width: 18% !important; text-align: right !important; }
 
-.block-container { padding-top: 0.4rem !important; padding-bottom: 0rem !important; }
-
-/* FIXATION ET APPLICATION DU DESIGN COMPACT ET UNIQUE SUR TOUS LES BOUTONS */
-div.stButton > button {
+/* RECTIFICATION : FORÇAGE CSS GRID POUR ALIGNER ET SERRER UNIFORMÉMENT LES BOUTONS NATIFS */
+div[data-testid="stHorizontalBlock"] {
+    display: grid !important;
+    grid-template-columns: repeat(6, auto) 1fr !important; /* Crée des colonnes ajustées au texte + 1 grande colonne finale */
+    gap: 6px !important; /* Écartement strictement identique de 6px partout */
     width: 100% !important;
-    min-height: unset !important;
+    align-items: center !important;
+}
+
+div[data-testid="stHorizontalBlock"] > div {
+    min-width: unset !important;
+    width: auto !important;
+}
+
+/* Force la dernière colonne (celle du compteur) à se caler tout à fait à droite */
+div[data-testid="stHorizontalBlock"] > div:last-child {
+    justify-self: end !important;
+    width: 100% !important;
+}
+
+/* STRUCTURE DES BOUTONS GÉOMÉTRIQUEMENT COMPACTS SANS SAUT */
+div.stButton > button {
+    width: auto !important;
+    min-width: unset !important;
     height: 24px !important;
     background-color: #F1F5F9 !important;
     color: #475569 !important;
@@ -108,11 +127,11 @@ div.stButton > button {
     white-space: nowrap !important;
 }
 
-/* BLOC DE REHAUSSE IMPÉRATIF : INTERDIT PHYSIQUEMENT LE CHEVAUCHEMENT DE LA FEUILLE */
+/* SÉPARATEUR DE SÉCURITÉ GÉOMÉTRIQUE (PROPORTIONS PARFAITES : 22PX) */
 .zone-rehausse-menu {
-    height: 24px !important;
+    height: 22px !important;
     margin-top: 6px !important;
-    margin-bottom: 12px !important;
+    margin-bottom: 4px !important;
     display: block !important;
     clear: both !important;
 }
@@ -137,7 +156,6 @@ def gen_html(df, cl):
     if df.empty: return f"<table class='table-compacte {cl}'><tr><td style='text-align: center; padding: 10px;'>Aucune donnée disponible</td></tr></table>"
     return df.to_html(index=False, classes=f"table-compacte {cl}", escape=False, border=0)
 
-# Assemblage des libellés du menu horizontal ("Essais" en première position)
 colonnes_menu = ["Essais"]
 if course1_disponible: colonnes_menu.append("Course 1 ASAF")
 if course1_racb_disponible: colonnes_menu.append("Course 1 RACB")
@@ -146,10 +164,10 @@ if course2_racb_disponible: colonnes_menu.append("Course 2 RACB")
 if course3_disponible: colonnes_menu.append("Course 3 ASAF")
 if course3_racb_disponible: colonnes_menu.append("Course 3 RACB")
 
-# ÉTAPE 1 : RENDU DE LA BARRE EN COLONNES HORS DES FRAGMENTS (GARANTIT L'IMMOBILITÉ)
-structure_colonnes = [1.0] * len(colonnes_menu) + [2.2]
-cols = st.columns(structure_colonnes, vertical_alignment="center")
+# On crée une colonne de plus que le nombre de boutons pour accueillir l'horloge
+cols = st.columns(len(colonnes_menu) + 1, vertical_alignment="center")
 
+# Rendu linéaire stabilisé par le CSS Grid du Bloc 1
 for idx, nom_session in enumerate(colonnes_menu):
     with cols[idx]:
         if st.session_state["active_session"] == nom_session:
@@ -158,17 +176,17 @@ for idx, nom_session in enumerate(colonnes_menu):
             st.session_state["active_session"] = nom_session
             st.rerun()
 
-# Création du conteneur réservé exclusivement à l'écriture textuelle de l'horloge
+# Utilisation exclusive de la colonne de fin pour l'horloge (poussée à droite par la grille)
 zone_decompte_txt = cols[-1].empty()
 
-# Injection de la rehausse physique pour scinder définitivement le menu supérieur de la feuille
+# Injection du bloc tampon statique pour séparer le menu et la feuille
 st.markdown("<div class='zone-rehausse-menu'></div>", unsafe_allow_html=True)
 choix_course = st.session_state["active_session"]
 
-# Conteneur d'affichage étanche pour les classements (Anti-miroir)
+# Zone tampon d'affichage pur (Anti-miroir)
 zone_affichage_pure = st.empty()
 
-# --- ÉTAPE 2 : FRAGMENT SÉPARÉ DÉDIÉ UNIQUEMENT AUX TABLEAUX DE CHRONOS (Toutes les 30s) ---
+# --- FRAGMENT CENTRALISÉ DÉDIÉ UNIQUEMENT AUX CLASSEMENTS (Toutes les 30s) ---
 @st.fragment(run_every=30)
 def rafraichir_uniquement_tableaux():
     st.cache_data.clear()
@@ -179,13 +197,13 @@ def rafraichir_uniquement_tableaux():
         d_liv, d_his, d_haut, d_milieu, d_bas, t_live, t_his, t_haut, t_milieu, t_bas = Course_1_ASAF.recuperer_donnees_course()
     elif terme_recherche == "Course 1 RACB" and course1_racb_disponible:
         d_liv, d_his, d_haut, d_milieu, d_bas, t_live, t_his, t_haut, t_milieu, t_bas = Course_1_RACB.recuperer_donnees_course()
-    elif choix_course == "Course 2 ASAF" and course2_disponible:
+    elif terme_recherche == "Course 2 ASAF" and course2_disponible:
         d_liv, d_his, d_haut, d_milieu, d_bas, t_live, t_his, t_haut, t_milieu, t_bas = Course_2_ASAF.recuperer_donnees_course()
-    elif choix_course == "Course 2 RACB" and course2_racb_disponible:
+    elif terme_recherche == "Course 2 RACB" and course2_racb_disponible:
         d_liv, d_his, d_haut, d_milieu, d_bas, t_live, t_his, t_haut, t_milieu, t_bas = Course_2_RACB.recuperer_donnees_course()
-    elif choix_course == "Course 3 ASAF" and course3_disponible:
+    elif terme_recherche == "Course 3 ASAF" and course3_disponible:
         d_liv, d_his, d_haut, d_milieu, d_bas, t_live, t_his, t_haut, t_milieu, t_bas = Course_3_ASAF.recuperer_donnees_course()
-    elif choix_course == "Course 3 RACB" and course3_racb_disponible:
+    elif terme_recherche == "Course 3 RACB" and course3_racb_disponible:
         d_liv, d_his, d_haut, d_milieu, d_bas, t_live, t_his, t_haut, t_milieu, t_bas = Course_3_RACB.recuperer_donnees_course()
     else:
         d_liv, d_his, d_haut, d_milieu, d_bas, t_live, t_his, t_haut, t_milieu, t_bas = Essais.recuperer_donnees_course()
@@ -216,7 +234,7 @@ def rafraichir_uniquement_tableaux():
                 st.markdown(f"<span class='titre-classement'>{t_bas}</span>", unsafe_allow_html=True)
                 st.markdown(gen_html(d_bas, "table-class-robuste"), unsafe_allow_html=True)
 
-# --- ÉTAPE 3 : MINI-FRAGMENT SÉPARÉ DÉDIÉ UNIQUEMENT À L'HORLOGE COMPTEUR (Toutes les 1s) ---
+# --- MINI-FRAGMENT ISOLÉ DÉDIÉ UNIQUEMENT À L'HORLOGE COMPTEUR (Toutes les 1s) ---
 @st.fragment(run_every=1)
 def faire_tourner_le_compteur():
     if "chrono_sec" not in st.session_state:
@@ -228,6 +246,6 @@ def faire_tourner_le_compteur():
         
     zone_decompte_txt.markdown(f"<span class='label-decompte-pure-txt'>⏱️ Rafraîchissement dans : {st.session_state['chrono_sec']}s</span>", unsafe_allow_html=True)
 
-# Exécution asynchrone propre
+# Lancement synchrone
 rafraichir_uniquement_tableaux()
 faire_tourner_le_compteur()
