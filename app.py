@@ -92,7 +92,7 @@ div[data-testid="stVerticalBlock"] {
 }
 .lien-cc.actif {
     color: #1E3A8A !important;
-    border-bottom: 2px solid #1E3A8A !important; /* Le surlignage bleu marqué */
+    border-bottom: 2px solid #1E3A8A !important; /* Surlignage bleu */
     font-size: 1rem !important;
 }
 
@@ -144,7 +144,6 @@ div.stElementContainer {
 .table-class-robuste th:nth-child(6), .table-class-robuste td:nth-child(6) { width: 18% !important; text-align: right !important; }
 </style>
 """, unsafe_allow_html=True)
-# Initialisation propre des variables dans l'état de session Streamlit
 if "active_session" not in st.session_state:
     st.session_state["active_session"] = "Essais"
 
@@ -163,17 +162,16 @@ if course2_racb_disponible: colonnes_visibles.append("Course 2 RACB")
 if course3_disponible: colonnes_visibles.append("Course 3 ASAF")
 if course3_racb_disponible: colonnes_visibles.append("Course 3 RACB")
 
-# --- RENDU DU MENU DE LIENS TEXTUELS HORIZONTAUX SURLIGNÉS VIA LES SÉLECTEURS DE REQUÊTES NATIFS ---
+# --- RENDU DU MENU DE LIENS TEXTUELS HORIZONTAUX SURLIGNÉS ---
 html_menu = "<div class='barre-liens-cc'>"
 for nom_session in colonnes_visibles:
     style_actif = "actif" if st.session_state["active_session"] == nom_session else ""
-    html_menu += f'<a class="lien-cc {style_actif}" href="?session={encodeURIComponent(nom_session) if "encodeURIComponent" in locals() else nom_session.replace(" ", "%20")}" target="_self">{nom_session}</a>'
+    html_menu += f'<a class="lien-cc {style_actif}" href="?session={nom_session.replace(" ", "%20")}" target="_self">{nom_session}</a>'
 html_menu += "</div>"
 
-# Affichage direct du menu textuel pur
 st.markdown(html_menu, unsafe_allow_html=True)
 
-# Interception instantanée du clic sur le lien via l'URL pour changer de tableau sans bug graphique
+# Interception instantanée du clic via les query params
 query_params = st.query_params
 if "session" in query_params:
     session_cliquee = query_params["session"]
@@ -184,11 +182,11 @@ if "session" in query_params:
 choix_course = st.session_state["active_session"]
 terme_recherche = "Essais / Entraînements" if choix_course == "Essais" else choix_course
 
-# Structures vides par défaut pour empêcher l'écran de se figer
+# Structures par défaut
 d_liv, d_his, d_haut, d_milieu, d_bas = pd.DataFrame(), pd.DataFrame(), pd.DataFrame(), pd.DataFrame(), pd.DataFrame()
 t_live, t_his, t_haut, t_milieu, t_bas = "Live Chrono", "Historique", "Classement Haut", "Classement Milieu", "Classement Bas"
 
-# --- TIMEOUT DE SÉCURITÉ ABSOLU (MAX 2 SECONDES) POUR TUER DÉFINITIVEMENT LE ROND QUI TOURNE ---
+# --- TIMEOUT DE SÉCURITÉ SÉCURISÉ ---
 try:
     from concurrent.futures import ThreadPoolExecutor
     import Essais
@@ -199,10 +197,9 @@ try:
         elif terme_recherche == "Course 2 ASAF" and course2_disponible: return Course_2_ASAF.recuperer_donnees_course()
         elif terme_recherche == "Course 2 RACB" and course2_racb_disponible: return Course_2_RACB.recuperer_donnees_course()
         elif terme_recherche == "Course 3 ASAF" and course3_disponible: return Course_3_ASAF.recuperer_donnees_course()
-        elif terme_recherche == "Course 3 RACB" and course3_racb_disponible: return Course_3_RACB.recuperer_donnees_course()
+        elif choix_course == "Course 3 RACB" and course3_racb_disponible: return Course_3_RACB.recuperer_donnees_course()
         else: return Essais.recuperer_donnees_course()
 
-    # Si Dropbox met plus de 2.5 secondes à envoyer le fichier Excel, on coupe la connexion pour forcer l'affichage immédiat
     with ThreadPoolExecutor(max_workers=1) as executor:
         future = executor.submit(executer_calculs)
         res = future.result(timeout=2.5)
@@ -211,7 +208,7 @@ try:
 except Exception:
     t_live = "🔄 Synchronisation avec Dropbox en cours... (Affichage fluide maintenu)"
 
-# --- RENDU DE VOTRE PRÉSENTATION ET DE VOS TABLEAUX D'ORIGINE ---
+# --- GRILLE DE RENDU CORRIGÉE AVEC INDENTATION STRICTE ---
 cg, cd = st.columns([1.3, 0.9])
 with cg:
     if t_live: st.markdown(f"<span class='titre-live'>{t_live}</span>", unsafe_allow_html=True)
@@ -233,22 +230,22 @@ with cd:
         if t_bas:
             st.markdown(f"<span class='titre-classement'>{t_bas}</span>", unsafe_allow_html=True)
             st.markdown(gen_html(d_bas, "table-class-robuste"), unsafe_allow_html=True)
-else:
-    if t_haut:
-        st.markdown(f"<span class='titre-classement'>{t_haut}</span>", unsafe_allow_html=True)
-        st.markdown(gen_html(d_bas, "table-class-robuste"), unsafe_allow_html=True)
-        st.markdown("<div style='height: 55px;'></div>", unsafe_allow_html=True)
-    if t_milieu:
-        st.markdown(f"<span class='titre-classement'>{t_milieu}</span>", unsafe_allow_html=True)
-        st.markdown(gen_html(d_haut, "table-class-robuste"), unsafe_allow_html=True)
-        st.markdown("<div style='height: 55px;'></div>", unsafe_allow_html=True)
-    if t_bas:
-        st.markdown(f"<span class='titre-classement'>{t_bas}</span>", unsafe_allow_html=True)
-        st.markdown(gen_html(d_milieu, "table-class-robuste"), unsafe_allow_html=True)
+    else:
+        if t_haut:
+            st.markdown(f"<span class='titre-classement'>{t_haut}</span>", unsafe_allow_html=True)
+            st.markdown(gen_html(d_bas, "table-class-robuste"), unsafe_allow_html=True)
+            st.markdown("<div style='height: 55px;'></div>", unsafe_allow_html=True)
+        if t_milieu:
+            st.markdown(f"<span class='titre-classement'>{t_milieu}</span>", unsafe_allow_html=True)
+            st.markdown(gen_html(d_haut, "table-class-robuste"), unsafe_allow_html=True)
+            st.markdown("<div style='height: 55px;'></div>", unsafe_allow_html=True)
+        if t_bas:
+            st.markdown(f"<span class='titre-classement'>{t_bas}</span>", unsafe_allow_html=True)
+            st.markdown(gen_html(d_milieu, "table-class-robuste"), unsafe_allow_html=True)
 
 st.markdown("<div style='height:30px;'></div>", unsafe_allow_html=True)
 
-# --- REFRESH INVISIBLE GÉRÉ PAR LE NAVIGATEUR (ZÉRO UTILISATION DE PYTHON SOU SOUVRAINE) ---
+# Rafraîchissement automatique 30s par navigateur pur
 st.markdown("""
     <script>
         if (!window.autoRefreshSet) {
