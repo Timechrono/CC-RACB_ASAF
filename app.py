@@ -1,44 +1,6 @@
 import streamlit as st
 import pandas as pd
 import time
-import Essais
-
-# --- CHARGEMENT DE TOUTES LES COURSES ---
-try:
-    import Course_1_ASAF
-    course1_disponible = True
-except ModuleNotFoundError:
-    course1_disponible = False
-
-try:
-    import Course_2_ASAF
-    course2_disponible = True
-except ModuleNotFoundError:
-    course2_disponible = False
-
-try:
-    import Course_3_ASAF
-    course3_disponible = True
-except ModuleNotFoundError:
-    course3_disponible = False
-
-try:
-    import Course_1_RACB
-    course1_racb_disponible = True
-except ModuleNotFoundError:
-    course1_racb_disponible = False
-
-try:
-    import Course_2_RACB
-    course2_racb_disponible = True
-except ModuleNotFoundError:
-    course2_racb_disponible = False
-
-try:
-    import Course_3_RACB
-    course3_racb_disponible = True
-except ModuleNotFoundError:
-    course3_racb_disponible = False
 
 st.set_page_config(page_title="Live", layout="wide")
 
@@ -103,50 +65,62 @@ div[data-testid="stSelectbox"] div[data-baseweb="select"] {
 div[data-testid="stVerticalBlock"] { gap: 0rem !important; }
 </style>
 """, unsafe_allow_html=True)
+if "active_session" not in st.session_state:
+    st.session_state["active_session"] = "Essais / Entraînements"
+
 def gen_html(df, cl):
     if isinstance(df, str): return df 
     if df.empty: return f"<table class='table-compacte {cl}'><tr><td style='text-align: center; padding: 10px;'>Aucune donnée disponible</td></tr></table>"
     return df.to_html(index=False, classes=f"table-compacte {cl}", escape=False, border=0)
 
-# --- CACHE AUTOMATIQUE DE 30 SECONDES (EMPÊCHE DROPBOX DE BLOQUER LE SERVEUR) ---
-@st.cache_data(ttl=30, show_spinner=False)
-def charger_donnees_course_securisees(session_cible):
-    if session_cible == "Course 1 ASAF" and course1_disponible:
-        return Course_1_ASAF.recuperer_donnees_course()
-    elif session_cible == "Course 1 RACB" and course1_racb_disponible:
-        return Course_1_RACB.recuperer_donnees_course()
-    elif session_cible == "Course 2 ASAF" and course2_disponible:
-        return Course_2_ASAF.recuperer_donnees_course()
-    elif session_cible == "Course 2 RACB" and course2_racb_disponible:
-        return Course_2_RACB.recuperer_donnees_course()
-    elif session_cible == "Course 3 ASAF" and course3_disponible:
-        return Course_3_ASAF.recuperer_donnees_course()
-    elif session_cible == "Course 3 RACB" and course3_racb_disponible:
-        return Course_3_RACB.recuperer_donnees_course()
-    else:
-        return Essais.recuperer_donnees_course()
+# --- FONCTION DE CHARGEMENT ISOLEE AVEC CACHE SÉCURISÉ ---
+@st.cache_data(ttl=25, show_spinner=False)
+def extraire_donnees_de_la_session(session_cible):
+    # Les fichiers de calculs ne sont importés QUE s'ils sont appelés à l'écran (évite le freeze)
+    try:
+        if session_cible == "Course 1 ASAF":
+            import Course_1_ASAF
+            return Course_1_ASAF.recuperer_donnees_course()
+        elif session_cible == "Course 1 RACB":
+            import Course_1_RACB
+            return Course_1_RACB.recuperer_donnees_course()
+        elif session_cible == "Course 2 ASAF":
+            import Course_2_ASAF
+            return Course_2_ASAF.recuperer_donnees_course()
+        elif session_cible == "Course 2 RACB":
+            import Course_2_RACB
+            return Course_2_RACB.recuperer_donnees_course()
+        elif session_cible == "Course 3 ASAF":
+            import Course_3_ASAF
+            return Course_3_ASAF.recuperer_donnees_course()
+        elif session_cible == "Course 3 RACB":
+            import Course_3_RACB
+            return Course_3_RACB.recuperer_donnees_course()
+        else:
+            import Essais
+            return Essais.recuperer_donnees_course()
+    except Exception as e:
+        # Si Dropbox sature, renvoie des structures propres vides au lieu de faire tourner le rond
+        df_vide = pd.DataFrame()
+        return df_vide, df_vide, df_vide, df_vide, df_vide, f"⚠️ Liaison Dropbox ralentie ({str(e)})", "Historique", "Classement", "", ""
 
+# Rendu de la boîte de sélection d'origine
 col_texte, col_select, col_reste = st.columns([1.3, 1.4, 3.3], vertical_alignment="center")
 with col_texte:
     st.markdown('<p class="texte-menu">Sélectionnez la session à afficher :</p>', unsafe_allow_html=True)
 with col_select:
-    options_menu = ["Essais / Entraînements"]
-    if course1_disponible: options_menu.append("Course 1 ASAF")
-    if course1_racb_disponible: options_menu.append("Course 1 RACB")
-    if course2_disponible: options_menu.append("Course 2 ASAF")
-    if course2_racb_disponible: options_menu.append("Course 2 RACB")
-    if course3_disponible: options_menu.append("Course 3 ASAF")
-    if course3_racb_disponible: options_menu.append("Course 3 RACB")
-    
+    # On liste toutes les options de manière stable
+    options_menu = ["Essais / Entraînements", "Course 1 ASAF", "Course 1 RACB", "Course 2 ASAF", "Course 2 RACB", "Course 3 ASAF", "Course 3 RACB"]
     choix_course = st.selectbox("Session_Label", options_menu, label_visibility="collapsed", key="active_session")
 
 st.markdown("<div style='height:25px;'></div>", unsafe_allow_html=True)
 
-# Récupération instantanée grâce au cache de sécurité
-d_liv, d_his, d_haut, d_milieu, d_bas, t_live, t_his, t_haut, t_milieu, t_bas = charger_donnees_course_securisees(choix_course)
+# Récupération instantanée protégée par le cache
+d_liv, d_his, d_haut, d_milieu, d_bas, t_live, t_his, t_haut, t_milieu, t_bas = extraire_donnees_de_la_session(choix_course)
 
 st.markdown("<style>.table-hist th:nth-child(1), .table-hist td:nth-child(1) { width: 7% !important; } .table-hist th:nth-child(2), .table-hist td:nth-child(2) { width: 23% !important; } .table-hist th:nth-child(3), .table-hist td:nth-child(3) { width: 22% !important; } .table-hist th:nth-child(4), .table-hist td:nth-child(4) { width: 10% !important; } .table-hist th:nth-child(5), .table-hist td:nth-child(5) { width: 10% !important; } .table-hist th:nth-child(6), .table-hist td:nth-child(6) { width: 14% !important; }</style>", unsafe_allow_html=True)
 
+# Affichage de votre grille graphique exacte
 cg, cd = st.columns([1.3, 0.9])
 with cg:
     st.markdown(f"<span class='titre-live'>{t_live}</span>", unsafe_allow_html=True)
@@ -168,22 +142,22 @@ with cd:
         if t_bas:
             st.markdown(f"<span class='titre-classement'>{t_bas}</span>", unsafe_allow_html=True)
             st.markdown(gen_html(d_bas, "table-class-robuste"), unsafe_allow_html=True)
-    else:
-        if t_haut:
-            st.markdown(f"<span class='titre-classement'>{t_haut}</span>", unsafe_allow_html=True)
-            st.markdown(gen_html(d_bas, "table-class-robuste"), unsafe_allow_html=True)
-            st.markdown("<div style='height: 55px;'></div>", unsafe_allow_html=True)
-        if t_milieu:
-            st.markdown(f"<span class='titre-classement'>{t_milieu}</span>", unsafe_allow_html=True)
-            st.markdown(gen_html(d_haut, "table-class-robuste"), unsafe_allow_html=True)
-            st.markdown("<div style='height: 55px;'></div>", unsafe_allow_html=True)
-        if t_bas:
-            st.markdown(f"<span class='titre-classement'>{t_bas}</span>", unsafe_allow_html=True)
-            st.markdown(gen_html(d_milieu, "table-class-robuste"), unsafe_allow_html=True)
+else:
+    if t_haut:
+        st.markdown(f"<span class='titre-classement'>{t_haut}</span>", unsafe_allow_html=True)
+        st.markdown(gen_html(d_bas, "table-class-robuste"), unsafe_allow_html=True)
+        st.markdown("<div style='height: 55px;'></div>", unsafe_allow_html=True)
+    if t_milieu:
+        st.markdown(f"<span class='titre-classement'>{t_milieu}</span>", unsafe_allow_html=True)
+        st.markdown(gen_html(d_haut, "table-class-robuste"), unsafe_allow_html=True)
+        st.markdown("<div style='height: 55px;'></div>", unsafe_allow_html=True)
+    if t_bas:
+        st.markdown(f"<span class='titre-classement'>{t_bas}</span>", unsafe_allow_html=True)
+        st.markdown(gen_html(d_milieu, "table-class-robuste"), unsafe_allow_html=True)
 
 st.markdown("<br><br><br><div style='height:30px;'></div>", unsafe_allow_html=True)
 
-# --- TIMEOUT INVISIBLE DE RECHARGEMENT VIA LE NAVIGATEUR ---
+# --- REFRÉSH AUTOMATIQUE PAR LE NAVIGATEUR (SANS TOUCHER AU SERVEUR PYTHON) ---
 st.markdown("""
     <script>
         if (!window.autoRefreshSet) {
