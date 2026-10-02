@@ -180,13 +180,13 @@ for idx, nom_session in enumerate(colonnes_visibles):
     if st.session_state["active_session"] == nom_session:
         st.markdown(f"""<style>div[data-testid="stHorizontalBlock"] > div:nth-child({idx+1}) button {{ background-color: #1E3A8A !important; color: white !important; border-color: #1E3A8A !important; }}</style>""", unsafe_allow_html=True)
 
-# RESTAURATION DE LA MARGE STRICTEMENT SYMÉTRIQUE (10px) EN DESSOUS DES BOUTONS
-st.markdown("<div style='height: 10px; clear: both; display: block;'></div>", unsafe_allow_html=True)
+# ESPACE DE 10PX PARFAITEMENT PROPRE ET SYMÉTRIQUE EN DESSOUS DES BOUTONS
+st.markdown("<div style='height: 10px; clear: both;'></div>", unsafe_allow_html=True)
 
 choix_course = st.session_state["active_session"]
 terme_recherche = "Essais / Entraînements" if choix_course == "Essais" else choix_course
 
-# Liaison directe stable
+# Liaison directe stable sans aucune fonction asynchrone cassée
 if terme_recherche == "Course 1 ASAF" and course1_disponible:
     d_liv, d_his, d_haut, d_milieu, d_bas, t_live, t_his, t_haut, t_milieu, t_bas = Course_1_ASAF.recuperer_donnees_course()
 elif terme_recherche == "Course 1 RACB" and course1_racb_disponible:
@@ -227,7 +227,5 @@ with cd:
     
     st.markdown("<div style='height:70px;'></div>", unsafe_allow_html=True)
 
-# INJECTION D'UN RAFRAÎCHISSEMENT HTML SANS BLOCAGE (Éradication définitive de l'effet miroir grisé)
-st.markdown("""
-    <iframe src="about:blank" style="display:none;" onload="setTimeout(function(){window.parent.location.reload();}, 30000);"></iframe>
-""", unsafe_allow_html=True)
+# Plus de boucle automatique en tache de fond qui fait bugger le serveur cloud.
+# Le rafraîchissement se fait de manière propre et instantanée dès qu'un utilisateur clique sur un bouton de course.
