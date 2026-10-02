@@ -130,9 +130,9 @@ div.stElementContainer {
 .table-class-robuste th:nth-child(5), .table-class-robuste td:nth-child(5) { width: 6% !important; }
 .table-class-robuste th:nth-child(6), .table-class-robuste td:nth-child(6) { width: 18% !important; text-align: right !important; }
 
-/* RECTIFICATION DE LA COUPE DES BOUTONS - HAUTEUR FIXE ET LARGEUR AUTOMATIQUE ADAPTÉE */
+/* RECTIFICATION DE LA COUPE DES BOUTONS - HAUTEUR FIXE ET LARGEUR ADAPTÉE */
 div.stButton > button {
-    width: 140px !important; /* Largeur optimale pour afficher le texte en entier sans couper */
+    width: 140px !important;
     min-height: unset !important;
     height: 24px !important;
     background-color: #F1F5F9 !important;
@@ -166,7 +166,7 @@ if course2_racb_disponible: colonnes_visibles.append("Course 2 RACB")
 if course3_disponible: colonnes_visibles.append("Course 3 ASAF")
 if course3_racb_disponible: colonnes_visibles.append("Course 3 RACB")
 
-# Marges symétriques de 10px autour de la ligne de navigation
+# Marge haute exacte (10px) au-dessus du menu horizontal
 st.markdown("<div style='height: 10px;'></div>", unsafe_allow_html=True)
 
 cols = st.columns([1.0] * len(colonnes_visibles))
@@ -180,7 +180,8 @@ for idx, nom_session in enumerate(colonnes_visibles):
     if st.session_state["active_session"] == nom_session:
         st.markdown(f"""<style>div[data-testid="stHorizontalBlock"] > div:nth-child({idx+1}) button {{ background-color: #1E3A8A !important; color: white !important; border-color: #1E3A8A !important; }}</style>""", unsafe_allow_html=True)
 
-st.markdown("<div style='height: 10px; clear: both;'></div>", unsafe_allow_html=True)
+# RESTAURATION DE LA MARGE STRICTEMENT SYMÉTRIQUE (10px) EN DESSOUS DES BOUTONS
+st.markdown("<div style='height: 10px; clear: both; display: block;'></div>", unsafe_allow_html=True)
 
 choix_course = st.session_state["active_session"]
 terme_recherche = "Essais / Entraînements" if choix_course == "Essais" else choix_course
@@ -226,5 +227,7 @@ with cd:
     
     st.markdown("<div style='height:70px;'></div>", unsafe_allow_html=True)
 
-time.sleep(30)
-st.rerun()
+# INJECTION D'UN RAFRAÎCHISSEMENT HTML SANS BLOCAGE (Éradication définitive de l'effet miroir grisé)
+st.markdown("""
+    <iframe src="about:blank" style="display:none;" onload="setTimeout(function(){window.parent.location.reload();}, 30000);"></iframe>
+""", unsafe_allow_html=True)
