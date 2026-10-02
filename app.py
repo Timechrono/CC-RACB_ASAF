@@ -43,7 +43,7 @@ except ModuleNotFoundError:
 
 st.set_page_config(page_title="Live", layout="wide")
 
-# --- CONCEPTION GRAPHIQUE RIGIDE ET BLOC BARRE DE NAVIGATION ---
+# --- CONCEPTION GRAPHIQUE RIGIDE ET BLOC BARRE ULTRA-SERRÉE ---
 st.markdown("""
 <style>
 [data-testid="stHeader"] { display: none !important; }
@@ -68,7 +68,7 @@ button:focus, div:focus, input:focus, select:focus {
 .table-compacte th, .table-compacte td { 
     height: 18px !important; padding: 1px 5px !important; line-height: 1.1 !important; 
     font-size: 0.85rem !important; color: #000000 !important; vertical-align: middle !important; 
-    overflow: hidden !important; text-overflow: ellipsis !overflow: hidden !important; white-space: nowrap !important; 
+    overflow: hidden !important; text-overflow: ellipsis !important; white-space: nowrap !important; 
 }
 .table-compacte td { border-bottom: 1px solid #E0E0E0 !important; background-color: #FFFFFF !important; }
 .table-compacte th { font-weight: bold !important; background-color: #F5F5F5 !important; border-bottom: 2px solid #CCCCCC !important; text-align: left !important; }
@@ -91,41 +91,49 @@ button:focus, div:focus, input:focus, select:focus {
 
 .block-container { padding-top: 0.4rem !important; padding-bottom: 0rem !important; }
 
-/* CONTENEUR DE NAVIGATION UNIQUE SANS COLONNES ÉCARTÉES */
-.barre-navigation-CC {
+/* RECTIFICATION CRITIQUE : FORCE LA DISPARITION DES ESPACES VIDES DES COLONNES STREAMLIT */
+div[data-testid="stHorizontalBlock"] {
     display: flex !important;
-    align-items: center !important;
+    flex-direction: row !important;
     justify-content: flex-start !important;
-    gap: 6px !important; /* RECTIFICATION : DISTANCE FIXE ET TRÈS PETITE ENTRE LES BOUTONS */
+    align-items: center !important;
+    gap: 4px !important; /* Distance ultra-courte de 4 pixels entre chaque élément */
     width: 100% !important;
-    margin-bottom: 0px !important;
 }
 
-/* STYLE UNIQUE POUR CHAQUE BOUTON INSÉRÉ DANS LA BARRE */
-.barre-navigation-CC div.stButton > button {
-    width: auto !important;
+div[data-testid="stHorizontalBlock"] > div {
     min-width: unset !important;
-    height: 24px !important; /* HAUTEUR DIMINUÉE */
+    width: max-content !important; /* Adapte la colonne exactement à la taille du bouton */
+}
+
+/* STYLE DU BOUTON COMPACT UNIQUE */
+div.stButton > button {
+    width: auto !important;
+    height: 24px !important;
     background-color: #F1F5F9 !important;
     color: #475569 !important;
     font-weight: bold !important;
     font-size: 0.82rem !important;
     border: 1px solid #CBD5E1 !important;
     border-radius: 3px !important;
-    padding: 0px 14px !important; /* TEXTE RESTERA ÉLARGI MAIS RESPIRANT */
+    padding: 0px 14px !important;
     line-height: 22px !important;
     white-space: nowrap !important;
 }
+div.stButton > button:hover {
+    border-color: #1E3A8A !important;
+    color: #1E3A8A !important;
+    background-color: #E0F2FE !important;
+}
 
-/* TEXTE TEXTUEL PUR DU DÉCOMPTE SANS CONTOUR NI CADRE */
+/* DÉCOMPTE SANS BOÎTE REPOUSSÉ TOUT À DROITE */
 .label-decompte-epure {
     font-size: 0.85rem !important;
     font-weight: bold !important;
     color: #1E3A8A !important;
     line-height: 24px !important;
     white-space: nowrap !important;
-    margin-left: auto !important; /* Repousse le décompte tout à fait à droite de la ligne */
-    padding-right: 4px !important;
+    padding-left: 20px !important; /* Petit décalage pour ne pas toucher le dernier bouton */
 }
 </style>
 """, unsafe_allow_html=True)
@@ -145,33 +153,22 @@ if course2_racb_disponible: colonnes_menu.append("Course 2 RACB")
 if course3_disponible: colonnes_menu.append("Course 3 ASAF")
 if course3_racb_disponible: colonnes_menu.append("Course 3 RACB")
 
-# --- RENDU DE LA LIGNE UNIQUE EN FLEXBOX SERRÉE ---
-# On ouvre une enveloppe HTML personnalisée pour fusionner l'agencement horizontal
-st.markdown('<div class="barre-navigation-CC">', unsafe_allow_html=True)
-ligne_horizontale = st.container()
+# Création d'une structure horizontale où chaque bouton et le décompte prennent leur place naturelle côte à côte
+toutes_colonnes = st.columns(len(colonnes_menu) + 1)
 
-with ligne_horizontale:
-    # Création d'une structure en ligne pour aligner les boutons et le décompte sur le même axe
-    c_boutons = st.columns([8.5, 1.5])
-    
-    with c_boutons[0]:
-        # On force l'agencement côte à côte via des sous-colonnes ajustées au millimètre
-        sub_cols = st.columns([1.0] * len(colonnes_menu))
-        for idx, nom_session in enumerate(colonnes_menu):
-            with sub_cols[idx]:
-                if st.session_state["active_session"] == nom_session:
-                    st.markdown(f"""<style>div.barre-navigation-CC div:nth-child({idx+1}) button {{ background-color: #1E3A8A !important; color: white !important; border-color: #1E3A8A !important; }}</style>""", unsafe_allow_html=True)
-                if st.button(nom_session, key=f"nav_btn_{idx}"):
-                    st.session_state["active_session"] = nom_session
-                    st.rerun()
-                    
-    # Zone de texte pure pour le décompte à droite de la ligne
-    zone_decompte_epure = c_boutons[1].empty()
+for idx, nom_session in enumerate(colonnes_menu):
+    with toutes_colonnes[idx]:
+        if st.session_state["active_session"] == nom_session:
+            st.markdown(f"""<style>div[data-testid="stHorizontalBlock"] > div:nth-child({idx+1}) button {{ background-color: #1E3A8A !important; color: white !important; border-color: #1E3A8A !important; }}</style>""", unsafe_allow_html=True)
+        if st.button(nom_session, key=f"nav_btn_{idx}"):
+            st.session_state["active_session"] = nom_session
+            st.rerun()
 
-st.markdown('</div>', unsafe_allow_html=True)
+# Utilisation de la dernière colonne créée pour le décompte textuel pur
+zone_decompte_epure = toutes_colonnes[-1].empty()
 
-# Interligne de sécurité mesuré sous la barre unifiée
-st.markdown("<div style='height: 18px; margin-bottom: 4px;'></div>", unsafe_allow_html=True)
+# Marge d'interligne réduite sous la barre compactée
+st.markdown("<div style='height: 14px; margin-bottom: 4px;'></div>", unsafe_allow_html=True)
 choix_course = st.session_state["active_session"]
 
 zone_affichage_pure = st.empty()
@@ -222,7 +219,7 @@ def afficher_tableaux():
                 st.markdown(f"<span class='titre-classement'>{t_bas}</span>", unsafe_allow_html=True)
                 st.markdown(gen_html(d_bas, "table-class-robuste"), unsafe_allow_html=True)
 
-    # REFRESH SECONDE PAR SECONDE SANS BLOC DE COULEUR AUTOUR DU TEXTE
+    # REFRESH CONTINU ET TEXTUEL SANS AUCUN CADRE GRAPHIQUE
     for secondes_restantes in range(30, 0, -1):
         zone_decompte_epure.markdown(f"<span class='label-decompte-epure'>⏱️ Rafraîchissement dans : {secondes_restantes}s</span>", unsafe_allow_html=True)
         time.sleep(1)
