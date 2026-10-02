@@ -43,7 +43,7 @@ except ModuleNotFoundError:
 
 st.set_page_config(page_title="Live", layout="wide")
 
-# --- CONCEPTION GRAPHIQUE RIGIDE ET BLOCAGE DU RECOUVREMENT ---
+# --- CONCEPTION GRAPHIQUE GÉOMÉTRIQUE SANS AUCUNE MARGE BLANCHE ---
 st.markdown("""
 <style>
 [data-testid="stHeader"] { display: none !important; }
@@ -51,7 +51,7 @@ button:focus, div:focus, input:focus, select:focus {
     outline: none !important; border-color: transparent !important; box-shadow: none !important;
 }
 
-/* 1. ESPACE DU DESSUS DE LA PAGE (CONSERVÉ À L'IDENTIQUE) */
+/* 1. NETTOYAGE ABSOLU DE LA HAUTEUR SUPÉRIEURE DE LA PAGE */
 .block-container { 
     padding-top: 0px !important; 
     padding-bottom: 0rem !important; 
@@ -62,19 +62,14 @@ div[data-testid="stMainBlockContainer"] {
     padding-top: 0px !important;
     margin-top: -18px !important;
 }
-
-/* 2. VERROUILLAGE DE LA BARRE DU HAUT */
-div[data-testid="stHorizontalBlock"] {
-    margin-top: 0px !important;
-    margin-bottom: 0px !important;
+div[data-testid="stVerticalBlock"] {
+    gap: 0rem !important;
     padding-top: 0px !important;
-    padding-bottom: 0px !important;
-    height: 28px !important;
 }
 
-/* 3. RECTIFICATION : ESPACE SOUS LES BOUTONS RESSERRÉ AU MAXIMUM À 1 PIXEL */
+/* 2. RAPPROCHEMENT CHIRURGICAL DES TABLEAUX SOUS LE MENU */
 div[data-testid="stVerticalBlock"] > div:nth-child(2) {
-    margin-top: 1px !important; /* Colle la feuille directement sous le menu sans espace inutile */
+    margin-top: 1px !important; 
 }
 
 .titre-live, .titre-hist, .titre-classement {
@@ -116,7 +111,7 @@ div[data-testid="stVerticalBlock"] > div:nth-child(2) {
 .table-class-robuste th:nth-child(5), .table-class-robuste td:nth-child(5) { width: 6% !important; }
 .table-class-robuste th:nth-child(6), .table-class-robuste td:nth-child(6) { width: 18% !important; text-align: right !important; }
 
-/* BARRE EN FLEXBOX HTML */
+/* LA BARRE UNIQUE SANS AUCUN COMPOSANT DE COLONNE PYTHON COLMATANT */
 .barre-horizontale-cc-unique {
     display: flex !important;
     flex-direction: row !important;
@@ -130,7 +125,6 @@ div[data-testid="stVerticalBlock"] > div:nth-child(2) {
     padding: 0px !important;
 }
 
-/* FORMAT DU BOUTON GÉOMÉTRIQUEMENT RECTANGLAIRE */
 .bouton-cc-statique {
     display: inline-block !important;
     height: 24px !important;
@@ -152,13 +146,13 @@ div[data-testid="stVerticalBlock"] > div:nth-child(2) {
     color: #1E3A8A !important;
     background-color: #E0F2FE !important;
 }
-
 .bouton-cc-statique.actif {
     background-color: #1E3A8A !important;
     color: white !important;
     border-color: #1E3A8A !important;
 }
 
+/* LE CHRONO CALÉ TOUT À DROITE SANS CRÉER DE HAUTEUR GÊNANTE */
 .compteur-cc-txt {
     font-size: 0.85rem !important;
     font-weight: bold !important;
@@ -166,17 +160,17 @@ div[data-testid="stVerticalBlock"] > div:nth-child(2) {
     line-height: 24px !important;
     white-space: nowrap !important;
     font-family: sans-serif !important;
-    margin: 0px !important;
+    margin-left: auto !important; /* Force le compteur en fin de ligne à droite */
+    display: inline-block !important;
 }
 
 .separateur-statique-final {
-    height: 2px !important;
+    height: 1px !important;
     display: block !important;
     clear: both !important;
 }
 </style>
 """, unsafe_allow_html=True)
-# Interception et gestion de la session active via URL
 if "session" not in st.query_params:
     st.query_params["session"] = "Essais"
 choix_course = st.query_params["session"]
@@ -186,7 +180,6 @@ def gen_html(df, cl):
     if df.empty: return f"<table class='table-compacte {cl}'><tr><td style='text-align: center; padding: 10px;'>Aucune donnée disponible</td></tr></table>"
     return df.to_html(index=False, classes=f"table-compacte {cl}", escape=False, border=0)
 
-# Assemblage de la liste des onglets horizontaux
 onglets_CC = [("Essais", "Essais")]
 if course1_disponible: onglets_CC.append(("Course 1 ASAF", "Course 1 ASAF"))
 if course1_racb_disponible: onglets_CC.append(("Course 1 RACB", "Course 1 RACB"))
@@ -195,24 +188,10 @@ if course2_racb_disponible: onglets_CC.append(("Course 2 RACB", "Course 2 RACB")
 if course3_disponible: onglets_CC.append(("Course 3 ASAF", "Course 3 ASAF"))
 if course3_racb_disponible: onglets_CC.append(("Course 3 RACB", "Course 3 RACB"))
 
-# --- RENDU DE LA BARRE EN COLONNES PROPRES POUR INTEGRER L'HORLOGE PYTHON ---
-c_menu, c_chrono = st.columns([4.0, 1.0], vertical_alignment="center")
+# --- ZONE D'INJECTION UNIQUE EN LIGNE (SUPPRIME DÉFINITIVEMENT LE TROU DES COLONNES) ---
+zone_menu_et_chrono = st.empty()
 
-with c_menu:
-    html_barre = '<div class="barre-horizontale-cc-unique">'
-    for libelle, code_id in onglets_CC:
-        classe_active = "actif" if choix_course == code_id else ""
-        html_barre += f'<a class="bouton-cc-statique {classe_active}" href="?session={code_id}" target="_self">{libelle}</a>'
-    html_barre += '</div>'
-    st.markdown(html_barre, unsafe_allow_html=True)
-
-with c_chrono:
-    # Zone d'écriture dynamique et autonome pour le compteur (tourne à la seconde)
-    zone_decompte_txt = st.empty()
-
-st.markdown('<div class="separateur-statique-final"></div>', unsafe_allow_html=True)
-
-# Zones tampons d'affichage pur (Éradication définitive de l'effet miroir)
+# Zones de rendu propres pour les classements
 zone_affichage_pure = st.empty()
 
 # --- FRAGMENT CENTRALISÉ DÉDIÉ UNIQUEMENT AUX CLASSEMENTS (Toutes les 30s) ---
@@ -252,31 +231,37 @@ def rafraichir_uniquement_tableaux():
             if t_haut:
                 st.markdown(f"<span class='titre-classement'>{t_haut}</span>", unsafe_allow_html=True)
                 st.markdown(gen_html(d_haut, "table-class-robuste"), unsafe_allow_html=True)
-            
             if t_milieu and not (isinstance(d_milieu, pd.DataFrame) and d_milieu.empty):
                 st.markdown("<div style='height: 40px;'></div>", unsafe_allow_html=True)
                 st.markdown(f"<span class='titre-classement'>{t_milieu}</span>", unsafe_allow_html=True)
                 st.markdown(gen_html(d_milieu, "table-class-robuste"), unsafe_allow_html=True)
-                
             if t_bas and not (isinstance(d_bas, pd.DataFrame) and d_bas.empty):
                 st.markdown("<div style='height: 40px;'></div>", unsafe_allow_html=True)
                 st.markdown(f"<span class='titre-classement'>{t_bas}</span>", unsafe_allow_html=True)
                 st.markdown(gen_html(d_bas, "table-class-robuste"), unsafe_allow_html=True)
-                
-            # CORRECTION CRITIQUE : Les deux lignes blanches d'espacement sont injectées ICI tout en bas
+            
+            # Les lignes blanches de fin de fichier se placent proprement ICI tout en bas
             st.markdown("<div style='height:70px;'></div>", unsafe_allow_html=True)
 
-# --- MINI-FRAGMENT PYTHON NATIF DÉDIÉ EXCLUSIVEMENT AU COMPTEUR (Cadencé à 1s) ---
+# --- MINI-FRAGMENT TECHNIQUE DÉDIÉ EXCLUSIVEMENT AU MENU + CHRONO COMPTEUR ---
 @st.fragment(run_every=1)
-def faire_tourner_le_compteur():
+def gerer_barre_superieure_fluide():
     if "chrono_sec" not in st.session_state:
         st.session_state["chrono_sec"] = 30
     st.session_state["chrono_sec"] -= 1
     if st.session_state["chrono_sec"] <= 0:
         st.session_state["chrono_sec"] = 30
     
-    zone_decompte_txt.markdown(f"<p class='compteur-cc-txt'>⏱️ Rafraîchissement dans : {st.session_state['chrono_sec']}s</p>", unsafe_allow_html=True)
+    # Rendu brut consolidé dans l'enveloppe sans colonnes intermédiaires
+    html_unifie = '<div class="barre-horizontale-cc-unique">'
+    for libelle, code_id in onglets_CC:
+        classe_active = "actif" if choix_course == code_id else ""
+        html_unifie += f'<a class="bouton-cc-statique {classe_active}" href="?session={code_id}" target="_self">{libelle}</a>'
+    html_unifie += f'<span class="compteur-cc-txt">⏱️ Rafraîchissement dans : {st.session_state["chrono_sec"]}s</span>'
+    html_unifie += '</div><div class="separateur-statique-final"></div>'
+    
+    zone_menu_et_chrono.markdown(html_unifie, unsafe_allow_html=True)
 
-# Lancement des deux processus étanches
+# Lancement simultané des deux processus étanches
 rafraichir_uniquement_tableaux()
-faire_tourner_le_compteur()
+gerer_barre_superieure_fluide()
