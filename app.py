@@ -54,7 +54,7 @@ button:focus, div:focus, input:focus, select:focus {
     outline: none !important; border-color: transparent !important; box-shadow: none !important;
 }
 
-/* 🛑 ÉRADICATION TOTALE DES RECTANGLES DE CHARGEMENT DE STREAMLIT */
+/* 🛑 ACTION RADICALE : INTERDIT TOUT RENDER GRIS OU SQUELETTE DANS LE NAVIGATEUR */
 div[data-testid="stSkeleton"], .stSkeleton, [class*="skeleton"], [style*="shimmer"], [data-testid="stStatusWidget"] {
     display: none !important;
     visibility: hidden !important;
@@ -146,7 +146,7 @@ div.stElementContainer {
 .table-live td:last-child, .table-live td:last-child, .table-class-robuste td:last-child { font-weight: bold !important; font-size: 0.94rem !important; color: #0F172A !important; }
 .table-hist tr:nth-child(odd) td { background-color: #E0F2FE !important; }
 
-/* LARGEURS DES TABLEAUX GAUCHE ET DROITE */
+/* LARGEURS DES TABLEAUX */
 .table-live th:nth-child(1), .table-live td:nth-child(1) { width: 8% !important; }
 .table-live th:nth-child(2), .table-live td:nth-child(2) { width: 26% !important; }
 .table-live th:nth-child(3), .table-live td:nth-child(3) { width: 18% !important; }
@@ -160,6 +160,14 @@ div.stElementContainer {
 .table-class-robuste th:nth-child(4), .table-class-robuste td:nth-child(4) { width: 23% !important; }
 .table-class-robuste th:nth-child(5), .table-class-robuste td:nth-child(5) { width: 6% !important; }
 .table-class-robuste th:nth-child(6), .table-class-robuste td:nth-child(6) { width: 18% !important; text-align: right !important; }
+
+/* CACHE PHYSIQUEMENT LE BOUTON AUTOMATIQUE POUR ÉVITER TOUT ENCOMBREMENT VISUEL */
+div.stButton button[key="bouton_invisible_sync"] {
+    display: none !important;
+    opacity: 0 !important;
+    width: 0px !important;
+    height: 0px !important;
+}
 </style>
 """, unsafe_allow_html=True)
 if "active_session" not in st.session_state:
@@ -171,7 +179,7 @@ def gen_html(df, cl):
         return f"<table class='table-compacte {cl}'><tr><td style='text-align: center; padding: 10px;'>Aucune donnée disponible</td></tr></table>"
     return df.to_html(index=False, classes=f"table-compacte {cl}", escape=False, border=0)
 
-# Construction de la liste des boutons horizontaux disponibles
+# Liste ordonnée des options de manche
 options_menu = ["Essais"]
 if course1_asaf_dispo: options_menu.append("Course 1 ASAF")
 if course1_racb_dispo: options_menu.append("Course 1 RACB")
@@ -180,7 +188,7 @@ if course2_racb_dispo: options_menu.append("Course 2 RACB")
 if course3_asaf_dispo: options_menu.append("Course 3 ASAF")
 if course3_racb_dispo: options_menu.append("Course 3 RACB")
 
-# Rendu de la barre de boutons HTML Flexbox unifiée (Marges haut/bas de 10px fixées)
+# Rendu de la barre de boutons HTML Flexbox unifiée
 html_menu = "<div class='menu-horizontal-cc'>"
 for nom_session in options_menu:
     classe_actif = "actif" if st.session_state["active_session"] == nom_session else ""
@@ -189,7 +197,7 @@ html_menu += "</div>"
 
 st.markdown(html_menu, unsafe_allow_html=True)
 
-# Interception immédiate du clic par URL
+# Interception du clic manche par URL
 query_params = st.query_params
 if "session" in query_params:
     session_cliquee = query_params["session"]
@@ -268,12 +276,21 @@ with cd:
 
 st.markdown("<br><br><br><div style='height:30px;'></div>", unsafe_allow_html=True)
 
-# --- REFRESH AUTOMATIQUE PAR LE NAVIGATEUR TOUTES LES 30S SANS ENCOMBREMENT ---
+# --- SÉCURISATION DU REFRESH PAR MICRO-CLIC INTERNE (DÉTRUIT LE BLOC GRIS STRUCTUREL) ---
+# Ce bouton est injecté nativement mais masqué par le CSS de la partie 1
+if st.button("Sync_Data", key="bouton_invisible_sync"):
+    st.rerun()
+
+# Le script JavaScript exécute un micro-clic interne toutes les 30 secondes.
+# Le navigateur ne subit AUCUNE actualisation globale, le squelette gris reste totalement bloqué.
 st.markdown("""
     <script>
-        if (!window.autoRefreshSet) {
-            window.autoRefreshSet = true;
-            setTimeout(function() { window.parent.location.reload(); }, 30000);
+        if (!window.liveSyncActive) {
+            window.liveSyncActive = true;
+            setInterval(function() {
+                const targetBtn = window.parent.document.querySelector('button[key="bouton_invisible_sync"]');
+                if (targetBtn) { targetBtn.click(); }
+            }, 30000);
         }
     </script>
 """, unsafe_allow_html=True)
