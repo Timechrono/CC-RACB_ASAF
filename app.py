@@ -51,7 +51,7 @@ button:focus, div:focus, input:focus, select:focus {
     outline: none !important; border-color: transparent !important; box-shadow: none !important;
 }
 
-/* 1. NETTOYAGE ABSOLU DE LA HAUTEUR SUPÉRIEURE DE LA PAGE */
+/* 1. NETTOYAGE INTÉGRAL DU HAUT ET DE L'ENVELOPPE DE LA PAGE */
 .block-container { 
     padding-top: 0px !important; 
     padding-bottom: 0rem !important; 
@@ -67,9 +67,22 @@ div[data-testid="stVerticalBlock"] {
     padding-top: 0px !important;
 }
 
-/* 2. RAPPROCHEMENT CHIRURGICAL DES TABLEAUX SOUS LE MENU */
-div[data-testid="stVerticalBlock"] > div:nth-child(2) {
-    margin-top: 1px !important; 
+/* 2. RECTIFICATION CHIRURGICALE DU FRAGMENT DES TABLEAUX POUR FORCER LE RACHÈTEMENT ACCORDÉON */
+div.stFragment {
+    margin-top: 0px !important;
+    padding-top: 0px !important;
+}
+div.stFragment > div {
+    margin-top: 0px !important;
+    padding-top: 0px !important;
+}
+
+/* Suppression des espaces de la grille de boutons natifs Streamlit */
+div[data-testid="stHorizontalBlock"] {
+    margin-top: 0px !important;
+    margin-bottom: 0px !important;
+    padding-top: 0px !important;
+    padding-bottom: 0px !important;
 }
 
 .titre-live, .titre-hist, .titre-classement {
@@ -127,11 +140,6 @@ div.stButton > button {
     line-height: 22px !important;
     white-space: nowrap !important;
 }
-div.stButton > button:hover {
-    border-color: #1E3A8A !important;
-    color: #1E3A8A !important;
-    background-color: #E0F2FE !important;
-}
 
 /* TEXTE DU COMPTEUR ÉPURÉ CALÉ EN HAUT À DROITE */
 .compteur-cc-txt {
@@ -147,8 +155,12 @@ div.stButton > button:hover {
     margin: 0px !important;
 }
 
+/* 3. COLLEMENT DIRECT : UN PIXEL DE MARGE AVEC LES TABLEAUX DU DESSOUS */
 .separateur-statique-final {
-    height: 2px !important;
+    height: 1px !important;
+    margin-top: 0px !important;
+    margin-bottom: 0px !important;
+    padding: 0px !important;
     display: block !important;
     clear: both !important;
 }
@@ -195,7 +207,6 @@ choix_course = st.session_state["active_session"]
 zone_affichage_pure = st.empty()
 
 # --- FRAGMENT CENTRALISÉ DÉDIÉ UNIQUEMENT AUX CLASSEMENTS (Toutes les 30s) ---
-# Il s'exécute de façon autonome en arrière-plan sans jamais faire sauter le menu supérieur
 @st.fragment(run_every=30)
 def rafraichir_uniquement_tableaux():
     st.cache_data.clear()
