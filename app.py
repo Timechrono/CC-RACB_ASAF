@@ -42,6 +42,7 @@ except ModuleNotFoundError:
 
 st.set_page_config(page_title="Live", layout="wide")
 
+# --- CONCEPTION GRAPHIQUE GÉOMÉTRIQUE IMMÉDIATE ---
 st.markdown("""
 <style>
 [data-testid="stHeader"] { display: none !important; }
@@ -49,7 +50,7 @@ button:focus, div:focus, input:focus, select:focus {
     outline: none !important; border-color: transparent !important; box-shadow: none !important;
 }
 
-/* 1. COMPACITÉ MAXIMALE EN HAUT DE PAGE */
+/* 1. SUPPRESSION INTÉGRALE DE LA ZONE BLANCHE TOUT EN HAUT */
 .block-container { 
     padding-top: 5px !important; 
     padding-bottom: 0rem !important; 
@@ -65,22 +66,25 @@ div[data-testid="stVerticalBlock"] {
     padding-top: 0px !important;
 }
 
-/* CONTENEUR FLEXBOX SUR MESURE POUR ENFERMER ET CENTRER LES BOUTONS SANS COUPURE */
-div[data-testid="stHorizontalBlock"]:has(button) {
+/* BLINDAGE DU CONTENEUR POUR EMPÊCHER LE GLITCH VERTICAL AU PREMIER CLIC */
+div[data-testid="stHorizontalBlock"] {
     display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
     justify-content: center !important;
     align-items: center !important;
     gap: 10px !important;
     width: 100% !important;
     margin: 0px auto !important;
 }
-div[data-testid="stHorizontalBlock"]:has(button) > div {
-    flex: none !important;
+div[data-testid="stHorizontalBlock"] > div {
+    flex: 0 0 auto !important;
     width: auto !important;
     padding: 0px !important;
     margin: 0px !important;
 }
 
+/* 2. RAPPROCHEMENT NET ET COLLÉ DES TABLEAUX SOUS LES BOUTONS */
 div.stElementContainer {
     margin-top: 0px !important;
     margin-bottom: 0px !important;
@@ -154,7 +158,7 @@ def gen_html(df, cl):
     if df.empty: return f"<table class='table-compacte {cl}'><tr><td style='text-align: center; padding: 10px;'>Aucune donnée disponible</td></tr></table>"
     return df.to_html(index=False, classes=f"table-compacte {cl}", escape=False, border=0)
 
-# Assemblage dynamique des boutons du menu horizontal
+# Liste ordonnée
 colonnes_visibles = ["Essais"]
 if course1_disponible: colonnes_visibles.append("Course 1 ASAF")
 if course1_racb_disponible: colonnes_visibles.append("Course 1 RACB")
@@ -165,7 +169,7 @@ if course3_racb_disponible: colonnes_visibles.append("Course 3 RACB")
 
 st.markdown("<div style='height: 10px;'></div>", unsafe_allow_html=True)
 
-# Affichage de la ligne horizontale centrée
+# Colonnes virtuelles pour l'enregistrement du clic
 cols = st.columns([1.0] * len(colonnes_visibles))
 for idx, nom_session in enumerate(colonnes_visibles):
     with cols[idx]:
@@ -177,15 +181,13 @@ for idx, nom_session in enumerate(colonnes_visibles):
     if st.session_state["active_session"] == nom_session:
         st.markdown(f"""<style>div[data-testid="stHorizontalBlock"] > div:nth-child({idx+1}) button {{ background-color: #1E3A8A !important; color: white !important; border-color: #1E3A8A !important; }}</style>""", unsafe_allow_html=True)
 
-# Espace parfaitement symétrique sous le menu (10px)
 st.markdown("<div style='height: 10px; clear: both;'></div>", unsafe_allow_html=True)
 
 choix_course = st.session_state["active_session"]
 
-# --- FRAGMENT CENTRALISÉ TOUTES LES 30S (ZÉRO EFFET MIROIR, ZÉRO BLOCAGE) ---
+# --- FRAGMENT AVEC DÉTECTION LINÉAIRE STRICTE ---
 @st.fragment(run_every=30)
 def afficher_tableaux():
-    # Détection de la session active
     if choix_course == "Course 1 ASAF" and course1_disponible:
         d_liv, d_his, d_haut, d_milieu, d_bas, t_live, t_his, t_haut, t_milieu, t_bas = Course_1_ASAF.recuperer_donnees_course()
     elif choix_course == "Course 1 RACB" and course1_racb_disponible:
@@ -212,7 +214,6 @@ def afficher_tableaux():
         st.markdown(gen_html(d_his, "table-hist"), unsafe_allow_html=True)
         
     with cd:
-        # Conservation stricte de l'ordre d'affichage de vos classements d'origine
         if choix_course != "Essais":
             if t_haut:
                 st.markdown(f"<span class='titre-classement'>{t_haut}</span>", unsafe_allow_html=True)
@@ -240,5 +241,4 @@ def afficher_tableaux():
 
     st.markdown("<div style='height:30px;'></div>", unsafe_allow_html=True)
 
-# Exécution propre
 afficher_tableaux()
