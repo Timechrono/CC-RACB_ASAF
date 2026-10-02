@@ -69,7 +69,7 @@ div[data-testid="stVerticalBlock"] {
 
 /* 2. FORCE LA FEUILLE DE RÉSULTATS A REMONTER TRÈS PRÈS DES BOUTONS */
 div[data-testid="stVerticalBlock"] > div:nth-child(2) {
-    margin-top: -30px !important; /* Marge négative agressive pour supprimer le trou sous les boutons */
+    margin-top: -30px !important; /* Supprime le trou sous les boutons */
 }
 
 .titre-live, .titre-hist, .titre-classement {
@@ -111,7 +111,7 @@ div[data-testid="stVerticalBlock"] > div:nth-child(2) {
 .table-class-robuste th:nth-child(5), .table-class-robuste td:nth-child(5) { width: 6% !important; }
 .table-class-robuste th:nth-child(6), .table-class-robuste td:nth-child(6) { width: 18% !important; text-align: right !important; }
 
-/* DESIGN DES BOUTONS SERRÉS RECTANGLAIRES (24PX) SANS BOÎTE DE COULEUR INTERMÉDIAIRE */
+/* DESIGN DES BOUTONS SERRÉS RECTANGLAIRES (24PX) */
 div.stButton > button {
     width: 100% !important;
     min-height: unset !important;
@@ -155,7 +155,7 @@ def gen_html(df, cl):
     if df.empty: return f"<table class='table-compacte {cl}'><tr><td style='text-align: center; padding: 10px;'>Aucune donnée disponible</td></tr></table>"
     return df.to_html(index=False, classes=f"table-compacte {cl}", escape=False, border=0)
 
-# Assemblage des boutons horizontaux
+# CORRECTION DU BUG : Re-déclaration saine de la variable de liste
 colonnes_visibles = ["Essais"]
 if course1_disponible: colonnes_visibles.append("Course 1 ASAF")
 if course1_racb_disponible: colonnes_visibles.append("Course 1 RACB")
@@ -176,7 +176,7 @@ for idx, nom_session in enumerate(colonnes_visibles):
             st.session_state["active_session"] = nom_session
             st.rerun()
 
-# Rendu du texte informatif fixe à l'extrémité droite (Allégé à 100% de tout calcul de secondes)
+# Rendu du texte informatif fixe à l'extrémité droite
 with cols[-1]:
     st.markdown("<p class='label-statique-cc'>🔄 Synchro Live 30s</p>", unsafe_allow_html=True)
 
