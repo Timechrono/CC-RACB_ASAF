@@ -43,7 +43,7 @@ except ModuleNotFoundError:
 
 st.set_page_config(page_title="Live", layout="wide")
 
-# --- CONCEPTION GRAPHIQUE GÉOMÉTRIQUE SANS AUCUNE MARGE BLANCHE ---
+# --- CONCEPTION GRAPHIQUE ANTI-CHEVAUCHEMENT ---
 st.markdown("""
 <style>
 [data-testid="stHeader"] { display: none !important; }
@@ -51,7 +51,7 @@ button:focus, div:focus, input:focus, select:focus {
     outline: none !important; border-color: transparent !important; box-shadow: none !important;
 }
 
-/* 1. NETTOYAGE ABSOLU DE LA HAUTEUR SUPÉRIEURE DE LA PAGE */
+/* 1. NETTOYAGE DE L'ESPACE BLANC TOUT EN HAUT DE LA PAGE */
 .block-container { 
     padding-top: 0px !important; 
     padding-bottom: 0rem !important; 
@@ -66,13 +66,13 @@ div[data-testid="stVerticalBlock"] {
     padding-top: 0px !important;
 }
 
-/* 2. FORCE LA SUPPRESSION DES MARGES DES COLONNES DU MENU ET DU DESSOUS */
+/* 2. RECTIFICATION DU BLOC DE COLONNES DU MENU : LARGEUR FIXE ET PROPRE */
 div[data-testid="stHorizontalBlock"] {
     margin-top: 0px !important;
     margin-bottom: 0px !important;
     padding-top: 0px !important;
     padding-bottom: 0px !important;
-    gap: 0rem !important;
+    height: 36px !important; /* CRITIQUE : Crée une hauteur de sécurité pour que rien ne se chevauche */
 }
 div[data-testid="stHorizontalBlock"] > div, .stColumn {
     padding-top: 0px !important;
@@ -105,7 +105,7 @@ div[data-testid="stHorizontalBlock"] > div, .stColumn {
 .table-live td:last-child, .table-hist td:last-child, .table-class-robuste td:last-child { font-weight: bold !important; font-size: 0.94rem !important; color: #0F172A !important; }
 .table-hist tr:nth-child(odd) td { background-color: #E0F2FE !important; }
 
-/* LARGEURS DES CELLULES */
+/* LARGEURS DES TABLEAUX */
 .table-live th:nth-child(1), .table-live td:nth-child(1) { width: 8% !important; }
 .table-live th:nth-child(2), .table-live td:nth-child(2) { width: 26% !important; }
 .table-live th:nth-child(3), .table-live td:nth-child(3) { width: 18% !important; }
@@ -134,6 +134,7 @@ div[data-testid="stHorizontalBlock"] > div, .stColumn {
     padding: 0px !important;
 }
 
+/* FORMAT DU BOUTON GÉOMÉTRIQUEMENT RECTANGLAIRE */
 .bouton-cc-statique {
     display: inline-block !important;
     height: 24px !important;
@@ -172,12 +173,9 @@ div[data-testid="stHorizontalBlock"] > div, .stColumn {
     margin: 0px !important;
 }
 
-/* 3. COLLEMENT MILLIMÉTRÉ : DEUX PIXELS REELS ENTRE LE MENU ET LES TABLEAUX */
+/* 3. COUSSIN GEOMETRIQUE DE PROTECTION : Empeche physiquement la feuille de remonter */
 .separateur-statique-final {
-    height: 2px !important;
-    margin-top: 0px !important;
-    margin-bottom: 0px !important;
-    padding: 0px !important;
+    height: 12px !important;
     display: block !important;
     clear: both !important;
 }
