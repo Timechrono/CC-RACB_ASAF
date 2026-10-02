@@ -66,7 +66,7 @@ div[data-testid="stVerticalBlock"] {
     padding-top: 0px !important;
 }
 
-/* BLINDAGE DU CONTENEUR POUR EMPÊCHER LE GLITCH VERTICAL AU PREMIER CLIC */
+/* BLINDAGE DU CONTENEUR POUR S'ASSURER QUE LE MENU RESTE HORIZONTAL */
 div[data-testid="stHorizontalBlock"] {
     display: flex !important;
     flex-direction: row !important;
@@ -169,13 +169,12 @@ if course3_racb_disponible: colonnes_visibles.append("Course 3 RACB")
 
 st.markdown("<div style='height: 10px;'></div>", unsafe_allow_html=True)
 
-# Colonnes virtuelles pour l'enregistrement du clic
+# Changement direct de l'état sans appeler st.rerun() pour briser la boucle du rond
 cols = st.columns([1.0] * len(colonnes_visibles))
 for idx, nom_session in enumerate(colonnes_visibles):
     with cols[idx]:
         if st.button(nom_session, key=f"btn_nav_{idx}"):
             st.session_state["active_session"] = nom_session
-            st.rerun()
 
 for idx, nom_session in enumerate(colonnes_visibles):
     if st.session_state["active_session"] == nom_session:
@@ -183,22 +182,23 @@ for idx, nom_session in enumerate(colonnes_visibles):
 
 st.markdown("<div style='height: 10px; clear: both;'></div>", unsafe_allow_html=True)
 
+# Déclaration à l'extérieur pour alimenter le fragment en direct
 choix_course = st.session_state["active_session"]
 
-# --- FRAGMENT AVEC DÉTECTION LINÉAIRE STRICTE ---
+# --- FRAGMENT PUREMENT CONCENTRÉ SUR LE RENDU DES CLASSEMENTS ---
 @st.fragment(run_every=30)
-def afficher_tableaux():
-    if choix_course == "Course 1 ASAF" and course1_disponible:
+def afficher_tableaux(session_active):
+    if session_active == "Course 1 ASAF" and course1_disponible:
         d_liv, d_his, d_haut, d_milieu, d_bas, t_live, t_his, t_haut, t_milieu, t_bas = Course_1_ASAF.recuperer_donnees_course()
-    elif choix_course == "Course 1 RACB" and course1_racb_disponible:
+    elif session_active == "Course 1 RACB" and course1_racb_disponible:
         d_liv, d_his, d_haut, d_milieu, d_bas, t_live, t_his, t_haut, t_milieu, t_bas = Course_1_RACB.recuperer_donnees_course()
-    elif choix_course == "Course 2 ASAF" and course2_disponible:
+    elif session_active == "Course 2 ASAF" and course2_disponible:
         d_liv, d_his, d_haut, d_milieu, d_bas, t_live, t_his, t_haut, t_milieu, t_bas = Course_2_ASAF.recuperer_donnees_course()
-    elif choix_course == "Course 2 RACB" and course2_racb_disponible:
+    elif session_active == "Course 2 RACB" and course2_racb_disponible:
         d_liv, d_his, d_haut, d_milieu, d_bas, t_live, t_his, t_haut, t_milieu, t_bas = Course_2_RACB.recuperer_donnees_course()
-    elif choix_course == "Course 3 ASAF" and course3_disponible:
+    elif session_active == "Course 3 ASAF" and course3_disponible:
         d_liv, d_his, d_haut, d_milieu, d_bas, t_live, t_his, t_haut, t_milieu, t_bas = Course_3_ASAF.recuperer_donnees_course()
-    elif choix_course == "Course 3 RACB" and course3_racb_disponible:
+    elif session_active == "Course 3 RACB" and course3_racb_disponible:
         d_liv, d_his, d_haut, d_milieu, d_bas, t_live, t_his, t_haut, t_milieu, t_bas = Course_3_RACB.recuperer_donnees_course()
     else:
         d_liv, d_his, d_haut, d_milieu, d_bas, t_live, t_his, t_haut, t_milieu, t_bas = Essais.recuperer_donnees_course()
@@ -214,7 +214,7 @@ def afficher_tableaux():
         st.markdown(gen_html(d_his, "table-hist"), unsafe_allow_html=True)
         
     with cd:
-        if choix_course != "Essais":
+        if session_active != "Essais":
             if t_haut:
                 st.markdown(f"<span class='titre-classement'>{t_haut}</span>", unsafe_allow_html=True)
                 st.markdown(gen_html(d_haut, "table-class-robuste"), unsafe_allow_html=True)
@@ -241,4 +241,5 @@ def afficher_tableaux():
 
     st.markdown("<div style='height:30px;'></div>", unsafe_allow_html=True)
 
-afficher_tableaux()
+# Lancement en passant la variable en paramètre
+afficher_tableaux(choix_course)
