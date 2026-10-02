@@ -2,25 +2,6 @@ import streamlit as st
 import pandas as pd
 import time
 
-# --- CHARGEMENT DÉCOUPLÉ ET SÉCURISÉ DES SESSIONS ---
-def charger_modules_course():
-    modules = {"Essais": None, "C1_ASAF": None, "C2_ASAF": None, "C3_ASAF": None, "C1_RACB": None, "C2_RACB": None, "C3_RACB": None}
-    try: import Essais; modules["Essais"] = Essais
-    except Exception: pass
-    try: import Course_1_ASAF; modules["C1_ASAF"] = Course_1_ASAF
-    except Exception: pass
-    try: import Course_2_ASAF; modules["C2_ASAF"] = Course_2_ASAF
-    except Exception: pass
-    try: import Course_3_ASAF; modules["C3_ASAF"] = Course_3_ASAF
-    except Exception: pass
-    try: import Course_1_RACB; modules["C1_RACB"] = Course_1_RACB
-    except Exception: pass
-    try: import Course_2_RACB; modules["C2_RACB"] = Course_2_RACB
-    except Exception: pass
-    try: import Course_3_RACB; modules["C3_RACB"] = Course_3_RACB
-    except Exception: pass
-    return modules
-
 st.set_page_config(page_title="Live", layout="wide")
 
 # --- CONCEPTION GRAPHIQUE GÉOMÉTRIQUE SANS AUCUNE MARGE BLANCHE ---
@@ -63,37 +44,6 @@ div[data-testid="stHorizontalBlock"] > div {
     margin: 0px !important;
 }
 
-/* 2. RAPPROCHEMENT NET ET COLLÉ DES TABLEAUX SOUS LES BOUTONS */
-div.stElementContainer {
-    margin-top: 0px !important;
-    margin-bottom: 0px !important;
-    padding-top: 0px !important;
-    padding-bottom: 0px !important;
-}
-
-.titre-live, .titre-hist, .titre-classement {
-    color: #FFFFFF !important; font-size: 1.05rem !important; font-weight: bold !important;
-    padding: 4px 8px !important; border-radius: 3px !important; margin-bottom: 6px !important;
-    width: 100% !important; display: block !important; clear: both !important;
-}
-.titre-live { background-color: #15803D !important; }
-.titre-hist { background-color: #475569 !important; }
-.titre-classement { background-color: #1E3A8A !important; }
-
-.table-compacte {
-    width: 100% !important; margin-bottom: 0px !important;
-    border-collapse: collapse !important; table-layout: fixed !important;
-}
-.table-compacte tr { height: 18px !important; }
-.table-compacte th, .table-compacte td { 
-    height: 18px !important; padding: 1px 5px !important; line-height: 1.1 !important; 
-    font-size: 0.85rem !important; color: #000000 !important; vertical-align: middle !important; 
-    overflow: hidden !important; text-overflow: ellipsis !important; white-space: nowrap !important; 
-}
-.table-compacte td { border-bottom: 1px solid #E0E0E0 !important; background-color: #FFFFFF !important; }
-.table-compacte th { font-weight: bold !important; background-color: #F5F5F5 !important; border-bottom: 2px solid #CCCCCC !important; text-align: left !important; }
-.table-hist tr:nth-child(odd) td { background-color: #E0F2FE !important; }
-
 div.stButton > button {
     width: 130px !important;
     min-height: unset !important;
@@ -111,25 +61,11 @@ div.stButton > button {
 }
 </style>
 """, unsafe_allow_html=True)
-mods = charger_modules_course()
-
 if "active_session" not in st.session_state:
     st.session_state["active_session"] = "Essais"
 
-def gen_html(df, cl):
-    if isinstance(df, str): return df 
-    if df is None or (isinstance(df, pd.DataFrame) and df.empty): 
-        return f"<table class='table-compacte {cl}'><tr><td style='text-align: center; padding: 10px;'>Aucune donnée disponible</td></tr></table>"
-    return df.to_html(index=False, classes=f"table-compacte {cl}", escape=False, border=0)
-
-# Construction de la liste des boutons
-colonnes_visibles = ["Essais"]
-if mods["C1_ASAF"] or "Course 1 ASAF" in st.session_state.get("active_session", ""): colonnes_visibles.append("Course 1 ASAF")
-if mods["C1_RACB"] or "Course 1 RACB" in st.session_state.get("active_session", ""): colonnes_visibles.append("Course 1 RACB")
-if mods["C2_ASAF"] or "Course 2 ASAF" in st.session_state.get("active_session", ""): colonnes_visibles.append("Course 2 ASAF")
-if mods["C2_RACB"] or "Course 2 RACB" in st.session_state.get("active_session", ""): colonnes_visibles.append("Course 2 RACB")
-if mods["C3_ASAF"] or "Course 3 ASAF" in st.session_state.get("active_session", ""): colonnes_visibles.append("Course 3 ASAF")
-if mods["C3_RACB"] or "Course 3 RACB" in st.session_state.get("active_session", ""): colonnes_visibles.append("Course 3 RACB")
+# On force une liste fixe de boutons pour le test
+colonnes_visibles = ["Essais", "Course 1 ASAF", "Course 1 RACB"]
 
 st.markdown("<div style='height: 10px;'></div>", unsafe_allow_html=True)
 
@@ -147,64 +83,7 @@ for idx, nom_session in enumerate(colonnes_visibles):
 st.markdown("<div style='height: 10px; clear: both;'></div>", unsafe_allow_html=True)
 
 choix_course = st.session_state["active_session"]
-zone_affichage_pure = st.empty()
 
-# --- FRAGMENT CENTRALISÉ DÉDIÉ UNIQUEMENT AUX CLASSEMENTS ---
-@st.fragment(run_every=30)
-def rafraichir_uniquement_tableaux():
-    d_liv, d_his, d_haut, d_milieu, d_bas = pd.DataFrame(), pd.DataFrame(), pd.DataFrame(), pd.DataFrame(), pd.DataFrame()
-    t_live, t_his, t_haut, t_milieu, t_bas = "Live", "Historique", "Classement Haut", "", ""
-    
-    # Import forcé à l'intérieur pour capturer l'erreur exacte
-    try:
-        if choix_course == "Course 1 ASAF":
-            import Course_1_ASAF
-            d_liv, d_his, d_haut, d_milieu, d_bas, t_live, t_his, t_haut, t_milieu, t_bas = Course_1_ASAF.recuperer_donnees_course()
-        elif choix_course == "Course 1 RACB":
-            import Course_1_RACB
-            d_liv, d_his, d_haut, d_milieu, d_bas, t_live, t_his, t_haut, t_milieu, t_bas = Course_1_RACB.recuperer_donnees_course()
-        elif choix_course == "Course 2 ASAF":
-            import Course_2_ASAF
-            d_liv, d_his, d_haut, d_milieu, d_bas, t_live, t_his, t_haut, t_milieu, t_bas = Course_2_ASAF.recuperer_donnees_course()
-        elif choix_course == "Course 2 RACB":
-            import Course_2_RACB
-            d_liv, d_his, d_haut, d_milieu, d_bas, t_live, t_his, t_haut, t_milieu, t_bas = Course_2_RACB.recuperer_donnees_course()
-        elif choix_course == "Course 3 ASAF":
-            import Course_3_ASAF
-            d_liv, d_his, d_haut, d_milieu, d_bas, t_live, t_his, t_haut, t_milieu, t_bas = Course_3_ASAF.recuperer_donnees_course()
-        elif choix_course == "Course 3 RACB":
-            import Course_3_RACB
-            d_liv, d_his, d_haut, d_milieu, d_bas, t_live, t_his, t_haut, t_milieu, t_bas = Course_3_RACB.recuperer_donnees_course()
-        else:
-            import Essais
-            d_liv, d_his, d_haut, d_milieu, d_bas, t_live, t_his, t_haut, t_milieu, t_bas = Essais.recuperer_donnees_course()
-    except Exception as e:
-        # Affiche l'erreur en gros et en rouge dans le titre du Live
-        t_live = f"⚠️ ERREUR DANS {choix_course}.py : {str(e)}"
-
-    with zone_affichage_pure.container():
-        st.markdown("<style>.table-hist th:nth-child(1), .table-hist td:nth-child(1) { width: 7% !important; } .table-hist th:nth-child(2), .table-hist td:nth-child(2) { width: 23% !important; } .table-hist th:nth-child(3), .table-hist td:nth-child(3) { width: 22% !important; } .table-hist th:nth-child(4), .table-hist td:nth-child(4) { width: 10% !important; } .table-hist th:nth-child(5), .table-hist td:nth-child(5) { width: 10% !important; } .table-hist th:nth-child(6), .table-hist td:nth-child(6) { width: 14% !important; }</style>", unsafe_allow_html=True)
-
-        cg, cd = st.columns([1.3, 0.9])
-        with cg:
-            st.markdown(f"<span class='titre-live'>{t_live}</span>", unsafe_allow_html=True)
-            st.markdown(gen_html(d_liv, "table-live"), unsafe_allow_html=True)
-            st.markdown("<div style='height:35px;'></div>", unsafe_allow_html=True)
-            if t_his: st.markdown(f"<span class='titre-hist'>{t_his}</span>", unsafe_allow_html=True)
-            st.markdown(gen_html(d_his, "table-hist"), unsafe_allow_html=True)
-            
-        with cd:
-            if t_haut:
-                st.markdown(f"<span class='titre-classement'>{t_haut}</span>", unsafe_allow_html=True)
-                st.markdown(gen_html(d_haut, "table-class-robuste"), unsafe_allow_html=True)
-            if t_milieu and not (isinstance(d_milieu, pd.DataFrame) and d_milieu.empty):
-                st.markdown("<div style='height: 40px;'></div>", unsafe_allow_html=True)
-                st.markdown(f"<span class='titre-classement'>{t_milieu}</span>", unsafe_allow_html=True)
-                st.markdown(gen_html(d_milieu, "table-class-robuste"), unsafe_allow_html=True)
-            if t_bas and not (isinstance(d_bas, pd.DataFrame) and d_bas.empty):
-                st.markdown("<div style='height: 40px;'></div>", unsafe_allow_html=True)
-                st.markdown(f"<span class='titre-classement'>{t_bas}</span>", unsafe_allow_html=True)
-                st.markdown(gen_html(d_bas, "table-class-robuste"), unsafe_allow_html=True)
-            st.markdown("<div style='height:70px;'></div>", unsafe_allow_html=True)
-
-rafraichir_uniquement_tableaux()
+# Affichage d'un texte simple à la place des tableaux pour valider le fonctionnement
+st.write(f"### Menu actif détecté : {choix_course}")
+st.info("Si ce message et le menu s'affichent instantanément, c'est que le problème vient à 100% du contenu du fichier Essais.py.")
