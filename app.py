@@ -43,7 +43,7 @@ except ModuleNotFoundError:
 
 st.set_page_config(page_title="Live", layout="wide")
 
-# --- CONCEPTION GRAPHIQUE RIGIDE ET BOUTONS HORIZONTAUX ---
+# --- CONCEPTION GRAPHIQUE RIGIDE ET BOUTONS HORIZONTAUX COMPACTS ---
 st.markdown("""
 <style>
 [data-testid="stHeader"] { display: none !important; }
@@ -90,31 +90,44 @@ button:focus, div:focus, input:focus, select:focus {
 .table-class-robuste th:nth-child(6), .table-class-robuste td:nth-child(6) { width: 18% !important; text-align: right !important; }
 
 .block-container { padding-top: 0.4rem !important; padding-bottom: 0rem !important; }
-div[data-testid="stVerticalBlock"] { gap: 0rem !important; }
 
-/* BOUTONS HORIZONTAUX OPTIMISÉS : HAUTEUR AJUSTÉE, TEXTE GRAS ET RESPIRANT */
+/* BOUTONS TRÈS RESSERRÉS ET DIMINUÉS EN HAUTEUR (24PX) */
 div.stButton > button {
     width: 100% !important;
     min-height: unset !important;
-    height: 28px !important;
+    height: 24px !important;
     background-color: #F1F5F9 !important;
     color: #475569 !important;
     font-weight: bold !important;
-    font-size: 0.85rem !important;
+    font-size: 0.80rem !important;
     border: 1px solid #CBD5E1 !important;
-    border-radius: 4px !important;
-    padding: 0px 12px !important;
-    transition: all 0.2s ease !important;
-    line-height: 26px !important;
+    border-radius: 3px !important;
+    padding: 0px 4px !important;
+    transition: all 0.15s ease !important;
+    line-height: 22px !important;
 }
 div.stButton > button:hover {
     border-color: #1E3A8A !important;
     color: #1E3A8A !important;
     background-color: #E0F2FE !important;
 }
+
+/* MINI COMPTEUR DESIGN */
+.label-decompte {
+    font-size: 0.85rem !important;
+    font-weight: bold !important;
+    color: #1E3A8A !important;
+    text-align: right !important;
+    line-height: 24px !important;
+    background-color: #EFF6FF !important;
+    border: 1px solid #BFDBFE !important;
+    border-radius: 3px !important;
+    padding: 0px 8px !important;
+    display: block;
+}
 </style>
 """, unsafe_allow_html=True)
-# fin loc 1
+# fin bloc 1
 if "active_session" not in st.session_state:
     st.session_state["active_session"] = "Essais / Entraînements"
 
@@ -123,7 +136,7 @@ def gen_html(df, cl):
     if df.empty: return f"<table class='table-compacte {cl}'><tr><td style='text-align: center; padding: 10px;'>Aucune donnée disponible</td></tr></table>"
     return df.to_html(index=False, classes=f"table-compacte {cl}", escape=False, border=0)
 
-# Assemblage dynamique des boutons horizontaux
+# Assemblage dynamique des boutons horizontaux disponibles
 colonnes_menu = ["Essais / Entraînements"]
 if course1_disponible: colonnes_menu.append("Course 1 ASAF")
 if course1_racb_disponible: colonnes_menu.append("Course 1 RACB")
@@ -132,21 +145,26 @@ if course2_racb_disponible: colonnes_menu.append("Course 2 RACB")
 if course3_disponible: colonnes_menu.append("Course 3 ASAF")
 if course3_racb_disponible: colonnes_menu.append("Course 3 RACB")
 
-cols = st.columns(len(colonnes_menu))
+# AJOUT D'UNE COLONNE SPÉCIFIQUE EN FIN DE LIGNE POUR LE DÉCOMPTE (Proportions ajustées)
+largeurs_colonnes = [1.0] * len(colonnes_menu) + [1.3]
+cols = st.columns(largeurs_colonnes)
 
+# Rendu des boutons
 for idx, nom_session in enumerate(colonnes_menu):
     with cols[idx]:
         if st.session_state["active_session"] == nom_session:
-            st.markdown(f"""<style>div[data-testid="stHorizontalBlock"] > div:nth-child({idx+1}) button {{ background-color: #1E3A8A !important; color: white !important; border-color: #1E3A8A !important; box-shadow: 0px 2px 4px rgba(30,58,138,0.3) !important; }}</style>""", unsafe_allow_html=True)
+            st.markdown(f"""<style>div[data-testid="stHorizontalBlock"] > div:nth-child({idx+1}) button {{ background-color: #1E3A8A !important; color: white !important; border-color: #1E3A8A !important; box-shadow: 0px 1px 2px rgba(30,58,138,0.2) !important; }}</style>""", unsafe_allow_html=True)
         if st.button(nom_session, key=f"btn_{idx}"):
             st.session_state["active_session"] = nom_session
             st.rerun()
 
-# INTERLIGNE JUSTE MILIEU : 18PX DE HAUTEUR
+# Zone d'ancrage pour le texte du décompte des secondes (Dernière colonne de la grille)
+zone_decompte = cols[-1].empty()
+
 st.markdown("<div style='height: 18px; margin-bottom: 4px;'></div>", unsafe_allow_html=True)
 choix_course = st.session_state["active_session"]
 
-# Zone d'affichage pure vidée mécaniquement à chaque itération
+# Conteneur d'affichage pur forcé (Anti-miroir grisé)
 zone_affichage_pure = st.empty()
 
 # --- CYCLAGE AUTOMATIQUE CENTRALISÉ TOUTES LES 30 SECONDES ---
@@ -169,7 +187,7 @@ def afficher_tableaux():
     else:
         d_liv, d_his, d_haut, d_milieu, d_bas, t_live, t_his, t_haut, t_milieu, t_bas = Essais.recuperer_donnees_course()
 
-    # Rendu propre forcé
+    # Rendu propre des classements
     with zone_affichage_pure.container():
         st.markdown("<style>.table-hist th:nth-child(1), .table-hist td:nth-child(1) { width: 7% !important; } .table-hist th:nth-child(2), .table-hist td:nth-child(2) { width: 23% !important; } .table-hist th:nth-child(3), .table-hist td:nth-child(3) { width: 22% !important; } .table-hist th:nth-child(4), .table-hist td:nth-child(4) { width: 10% !important; } .table-hist th:nth-child(5), .table-hist td:nth-child(5) { width: 10% !important; } .table-hist th:nth-child(6), .table-hist td:nth-child(6) { width: 14% !important; }</style>", unsafe_allow_html=True)
 
@@ -196,7 +214,11 @@ def afficher_tableaux():
                 st.markdown(f"<span class='titre-classement'>{t_bas}</span>", unsafe_allow_html=True)
                 st.markdown(gen_html(d_bas, "table-class-robuste"), unsafe_allow_html=True)
 
-    time.sleep(30)
+    # BOUCLE DU COMPTEUR SECONDE PAR SECONDE (Évite de figer l'interface)
+    for secondes_restantes in range(30, 0, -1):
+        zone_decompte.markdown(f"<span class='label-decompte'>⏱️ Rafraîchissement dans : {secondes_restantes}s</span>", unsafe_allow_html=True)
+        time.sleep(1)
+        
     st.rerun()
 
 afficher_tableaux()
