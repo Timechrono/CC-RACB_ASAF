@@ -68,22 +68,38 @@ div[data-testid="stVerticalBlock"] {
     padding-top: 0px !important;
 }
 
-/* ANCRAGE DU MENU HORIZONTAL UNIQUE : INTERDIT LA DOUBLE LIGNE */
-.zone-menu-horizontale div[data-testid="stHorizontalBlock"] {
+/* STRUCTURE DU CONTENEUR DE BOUTONS HTML PUR (SÉCURITÉ PREMIER CLIC) */
+.menu-horizontal-fixe {
     display: flex !important;
     flex-direction: row !important;
-    flex-wrap: nowrap !important;
     justify-content: center !important;
     align-items: center !important;
     gap: 10px !important;
+    margin-top: 10px !important;    /* Marge haute exacte de 10px */
+    margin-bottom: 10px !important; /* Marge basse exacte de 10px */
     width: 100% !important;
-    margin: 0px auto !important;
 }
-.zone-menu-horizontale div[data-testid="stHorizontalBlock"] > div {
-    flex: 0 0 auto !important;
-    width: auto !important;
-    padding: 0px !important;
-    margin: 0px !important;
+
+/* STYLE UNIQUE POUR LES BOUTONS DU MENU SANS CONFLIT AVEC STREAMLIT */
+.btn-nav-cc {
+    width: 140px !important;
+    height: 24px !important;
+    background-color: #F1F5F9 !important;
+    color: #475569 !important;
+    font-weight: bold !important;
+    font-size: 0.82rem !important;
+    border: 1px solid #CBD5E1 !important;
+    border-radius: 3px !important;
+    cursor: pointer !important;
+    text-align: center !important;
+    line-height: 22px !important;
+    white-space: nowrap !important;
+    font-family: sans-serif !important;
+}
+.btn-nav-cc.actif {
+    background-color: #1E3A8A !important;
+    color: white !important;
+    border-color: #1E3A8A !important;
 }
 
 /* 2. RAPPROCHEMENT NET ET COLLÉ DES TABLEAUX SOUS LES BOUTONS */
@@ -132,14 +148,6 @@ div.stElementContainer {
 .table-class-robuste th:nth-child(4), .table-class-robuste td:nth-child(4) { width: 23% !important; }
 .table-class-robuste th:nth-child(5), .table-class-robuste td:nth-child(5) { width: 6% !important; }
 .table-class-robuste th:nth-child(6), .table-class-robuste td:nth-child(6) { width: 18% !important; text-align: right !important; }
-
-/* DESIGN DES BOUTONS HORIZONTAUX LISIBLES */
-div.stButton > button {
-    width: 140px !important; min-height: unset !important; height: 24px !important;
-    background-color: #F1F5F9 !important; color: #475569 !important; font-weight: bold !important; font-size: 0.82rem !important;
-    border: 1px solid #CBD5E1 !important; border-radius: 3px !important; padding: 0px 4px !important; margin: 0px !important;
-    line-height: 22px !important; white-space: nowrap !important; display: inline-block !important;
-}
 </style>
 """, unsafe_allow_html=True)
 if "active_session" not in st.session_state:
@@ -151,7 +159,7 @@ def gen_html(df, cl):
         return f"<table class='table-compacte {cl}'><tr><td style='text-align: center; padding: 10px;'>Données indisponibles (Vérifiez Dropbox)</td></tr></table>"
     return df.to_html(index=False, classes=f"table-compacte {cl}", escape=False, border=0)
 
-# Assemblage des boutons horizontaux
+# Assemblage ordonné des options de session
 colonnes_visibles = ["Essais"]
 if course1_disponible: colonnes_visibles.append("Course 1 ASAF")
 if course1_racb_disponible: colonnes_visibles.append("Course 1 RACB")
@@ -160,33 +168,43 @@ if course2_racb_disponible: colonnes_visibles.append("Course 2 RACB")
 if course3_disponible: colonnes_visibles.append("Course 3 ASAF")
 if course3_racb_disponible: colonnes_visibles.append("Course 3 RACB")
 
-# MARGE STRICTE DE 10PX AU-DESSUS DES BOUTONS (BORD SUPÉRIEUR CORRIGÉ)
-st.markdown("<div style='height: 10px;'></div>", unsafe_allow_html=True)
+# --- CONSTRUTION DU MENU EN HTML PUR INATTAQUABLE ---
+# Injection de boutons HTML avec un script d'écoute pour renvoyer le choix à Streamlit sans doublon
+html_menu = "<div class='menu-horizontal-fixe'>"
+for nom_session in colonnes_visibles:
+    classe_actif = "actif" if st.session_state["active_session"] == nom_session else ""
+    html_menu += f"<button class='btn-nav-cc {classe_actif}' onclick=\"window.parent.postMessage({{type: 'set_session', val: '{nom_session}'}}, '*');\">{nom_session}</button>"
+html_menu += "</div>"
 
-# ENCAPSULATION DE SÉCURITÉ DANS UN CONTENEUR DÉDIÉ UNIQUEMENT AU MENU
-with st.container(key="zone-menu-horizontale"):
-    cols = st.columns([1.0] * len(colonnes_visibles))
-    for idx, nom_session in enumerate(colonnes_visibles):
-        with cols[idx]:
-            if st.button(nom_session, key=f"btn_nav_{idx}"):
-                st.session_state["active_session"] = nom_session
-                st.rerun()
+st.markdown(html_menu, unsafe_allow_html=True)
 
-# Rendu de la couleur active sur le bouton sélectionné
-for idx, nom_session in enumerate(colonnes_visibles):
-    if st.session_state["active_session"] == nom_session:
-        st.markdown(f"""<style>div[data-testid="stHorizontalBlock"]:has(button) > div:nth-child({idx+1}) button {{ background-color: #1E3A8A !important; color: white !important; border-color: #1E3A8A !important; }}</style>""", unsafe_allow_html=True)
+# Réception sécurisée du clic HTML pour changer la session dans Streamlit
+st.markdown("""
+    <script>
+        window.addEventListener('message', function(e) {
+            if (e.data && e.type === 'set_session') {
+                const inputs = window.parent.document.querySelectorAll('input');
+                // Force le stockage interne de Streamlit à se mettre à jour
+                window.parent.location.hash = '?session=' + encodeURIComponent(e.data.val);
+            }
+        });
+    </script>
+""", unsafe_allow_html=True)
 
-# MARGE STRICTE DE 10PX EN DESSOUS DES BOUTONS (FEUILLE DÉCOLLÉE CORRIGÉE)
-st.markdown("<div style='height: 10px; clear: both; display: block;'></div>", unsafe_allow_html=True)
+# Récupération de la session cliquée via les query params (natif et ultra-rapide)
+query_params = st.query_params
+if "session" in query_params:
+    session_cliquee = query_params["session"]
+    if session_cliquee in colonnes_visibles and st.session_state["active_session"] != session_cliquee:
+        st.session_state["active_session"] = session_cliquee
+        st.rerun()
 
 choix_course = st.session_state["active_session"]
 
-# Structures de secours
+# Structures de calcul d'origine
 d_liv, d_his, d_haut, d_milieu, d_bas = pd.DataFrame(), pd.DataFrame(), pd.DataFrame(), pd.DataFrame(), pd.DataFrame()
 t_live, t_his, t_haut, t_milieu, t_bas = "Chronométrage", "Historique", "Classement Haut", "Classement Milieu", "Classement Bas"
 
-# Récupération directe et sécurisée avec Timeout court
 try:
     from concurrent.futures import ThreadPoolExecutor
 
@@ -209,7 +227,6 @@ except Exception as e:
 
 st.markdown("<style>.table-hist th:nth-child(1), .table-hist td:nth-child(1) { width: 7% !important; } .table-hist th:nth-child(2), .table-hist td:nth-child(2) { width: 23% !important; } .table-hist th:nth-child(3), .table-hist td:nth-child(3) { width: 22% !important; } .table-hist th:nth-child(4), .table-hist td:nth-child(4) { width: 10% !important; } .table-hist th:nth-child(5), .table-hist td:nth-child(5) { width: 10% !important; } .table-hist th:nth-child(6), .table-hist td:nth-child(6) { width: 14% !important; }</style>", unsafe_allow_html=True)
 
-# Rendu final standard propre en 2 colonnes
 cg, cd = st.columns([1.3, 0.9])
 with cg:
     st.markdown(f"<span class='titre-live'>{t_live}</span>", unsafe_allow_html=True)
@@ -231,22 +248,22 @@ with cd:
         if t_bas:
             st.markdown(f"<span class='titre-classement'>{t_bas}</span>", unsafe_allow_html=True)
             st.markdown(gen_html(d_bas, "table-class-robuste"), unsafe_allow_html=True)
-    else:
-        if t_haut:
-            st.markdown(f"<span class='titre-classement'>{t_haut}</span>", unsafe_allow_html=True)
-            st.markdown(gen_html(d_bas, "table-class-robuste"), unsafe_allow_html=True)
-            st.markdown("<div style='height: 55px;'></div>", unsafe_allow_html=True)
-        if t_milieu:
-            st.markdown(f"<span class='titre-classement'>{t_milieu}</span>", unsafe_allow_html=True)
-            st.markdown(gen_html(d_haut, "table-class-robuste"), unsafe_allow_html=True)
-            st.markdown("<div style='height: 55px;'></div>", unsafe_allow_html=True)
-        if t_bas:
-            st.markdown(f"<span class='titre-classement'>{t_bas}</span>", unsafe_allow_html=True)
-            st.markdown(gen_html(d_milieu, "table-class-robuste"), unsafe_allow_html=True)
+else:
+    if t_haut:
+        st.markdown(f"<span class='titre-classement'>{t_haut}</span>", unsafe_allow_html=True)
+        st.markdown(gen_html(d_bas, "table-class-robuste"), unsafe_allow_html=True)
+        st.markdown("<div style='height: 55px;'></div>", unsafe_allow_html=True)
+    if t_milieu:
+        st.markdown(f"<span class='titre-classement'>{t_milieu}</span>", unsafe_allow_html=True)
+        st.markdown(gen_html(d_haut, "table-class-robuste"), unsafe_allow_html=True)
+        st.markdown("<div style='height: 55px;'></div>", unsafe_allow_html=True)
+    if t_bas:
+        st.markdown(f"<span class='titre-classement'>{t_bas}</span>", unsafe_allow_html=True)
+        st.markdown(gen_html(d_milieu, "table-class-robuste"), unsafe_allow_html=True)
 
 st.markdown("<div style='height:30px;'></div>", unsafe_allow_html=True)
 
-# Rafraîchissement asynchrone par navigateur pur (TTL 30s)
+# Rafraîchissement automatique toutes les 30 secondes via navigateur pur
 st.markdown("""
     <script>
         if (!window.autoRefreshSet) {
