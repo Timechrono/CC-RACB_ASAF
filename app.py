@@ -1,8 +1,7 @@
-import streamlit as st
+import streamlit st
 import pandas as pd
 import time
 
-# --- LOGIQUE DE SAUVEGARDE ET CHARGEMENT DES DONNÉES EN CACHE ---
 def charger_modules_course():
     modules = {"Essais": None, "C1_ASAF": None, "C2_ASAF": None, "C3_ASAF": None, "C1_RACB": None, "C2_RACB": None, "C3_RACB": None}
     try: import Essais; modules["Essais"] = Essais
@@ -23,7 +22,6 @@ def charger_modules_course():
 
 st.set_page_config(page_title="Live", layout="wide")
 
-# --- CONCEPTION GRAPHIQUE GÉOMÉTRIQUE SANS AUCUNE MARGE BLANCHE ---
 st.markdown("""
 <style>
 [data-testid="stHeader"] { display: none !important; }
@@ -31,7 +29,6 @@ button:focus, div:focus, input:focus, select:focus {
     outline: none !important; border-color: transparent !important; box-shadow: none !important;
 }
 
-/* 1. CONFIGURATION DES MARGES SUPÉRIEURES */
 .block-container { 
     padding-top: 5px !important; 
     padding-bottom: 0rem !important; 
@@ -47,7 +44,6 @@ div[data-testid="stVerticalBlock"] {
     padding-top: 0px !important;
 }
 
-/* CONTENEUR FLEXBOX SUR MESURE POUR ENFERMER ET CENTRER LES BOUTONS SANS ÉTIREMENT */
 div[data-testid="stHorizontalBlock"] {
     display: flex !important;
     justify-content: center !important;
@@ -115,17 +111,12 @@ mods = charger_modules_course()
 if "active_session" not in st.session_state:
     st.session_state["active_session"] = "Essais"
 
-# Initialisation de la mémoire globale cache pour éviter les tableaux vides lors des micro-coupures réseau
-if "cache_live_donnees" not in st.session_state:
-    st.session_state["cache_live_donnees"] = {}
-
 def gen_html(df, cl):
     if isinstance(df, str): return df 
     if df is None or (isinstance(df, pd.DataFrame) and df.empty): 
         return f"<table class='table-compacte {cl}'><tr><td style='text-align: center; padding: 10px;'>Aucune donnée disponible</td></tr></table>"
     return df.to_html(index=False, classes=f"table-compacte {cl}", escape=False, border=0)
 
-# Assemblage de la liste finale des boutons
 colonnes_visibles = ["Essais"]
 if mods["C1_ASAF"]: colonnes_visibles.append("Course 1 ASAF")
 if mods["C1_RACB"]: colonnes_visibles.append("Course 1 RACB")
@@ -134,7 +125,6 @@ if mods["C2_RACB"]: colonnes_visibles.append("Course 2 RACB")
 if mods["C3_ASAF"]: colonnes_visibles.append("Course 3 ASAF")
 if mods["C3_RACB"]: colonnes_visibles.append("Course 3 RACB")
 
-# Écartement haut (10px)
 st.markdown("<div style='height: 10px;'></div>", unsafe_allow_html=True)
 
 cols = st.columns([1.0] * len(colonnes_visibles))
@@ -148,56 +138,55 @@ for idx, nom_session in enumerate(colonnes_visibles):
     if st.session_state["active_session"] == nom_session:
         st.markdown(f"""<style>div[data-testid="stHorizontalBlock"] > div:nth-child({idx+1}) button {{ background-color: #1E3A8A !important; color: white !important; border-color: #1E3A8A !important; }}</style>""", unsafe_allow_html=True)
 
-# Écartement bas strictement identique (10px)
 st.markdown("<div style='height: 10px; clear: both;'></div>", unsafe_allow_html=True)
 
 choix_course = st.session_state["active_session"]
 zone_affichage_pure = st.empty()
 
-# --- FRAGMENT CENTRALISÉ DÉDIÉ UNIQUEMENT AUX CLASSEMENTS (Toutes les 30s) ---
 @st.fragment(run_every=30)
 def rafraichir_uniquement_tableaux():
-    # Définition des valeurs par défaut au cas où aucun cache n'existe encore
     d_liv, d_his, d_haut, d_milieu, d_bas = pd.DataFrame(), pd.DataFrame(), pd.DataFrame(), pd.DataFrame(), pd.DataFrame()
-    t_live, t_his, t_haut, t_milieu, t_bas = "Live", "Historique", "Classement Haut", "", ""
+    t_live, t_his, t_haut, t_milieu, t_bas = "Live", "Historique", "Classement", "", ""
     
-    # Restauration des données stockées si elles existent pour la session active
-    if choix_course in st.session_state["cache_live_donnees"]:
-        c = st.session_state["cache_live_donnees"][choix_course]
-        d_liv, d_his, d_haut, d_milieu, d_bas, t_live, t_his, t_haut, t_milieu, t_bas = c
+    # Mode diagnostic forcé : on ré-importe le fichier en direct sans bloquer l'application
+    try:
+        if choix_course == "Course 1 ASAF":
+            import Course_1_ASAF
+            res = Course_1_ASAF.recuperer_donnees_course()
+        elif choix_course == "Course 1 RACB":
+            import Course_1_RACB
+            res = Course_1_RACB.recuperer_donnees_course()
+        elif choix_course == "Course 2 ASAF":
+            import Course_2_ASAF
+            res = Course_2_ASAF.recuperer_donnees_course()
+        elif choix_course == "Course 2 RACB":
+            import Course_2_RACB
+            res = Course_2_RACB.recuperer_donnees_course()
+        elif choix_course == "Course 3 ASAF":
+            import Course_3_ASAF
+            res = Course_3_ASAF.recuperer_donnees_course()
+        elif choix_course == "Course 3 RACB":
+            import Course_3_RACB
+            res = Course_3_RACB.recuperer_donnees_course()
+        else:
+            import Essais
+            # --- SUPPRESSION SÉCURISÉE DU TRY/EXCEPT SOURNOIS D'ESSAIS.PY EN LIVE ---
+            # Pour voir l'erreur réelle s'il y en a une
+            res = Essais.recuperer_donnees_course()
 
-    # Sélection dynamique du module associé
-    m = mods["Essais"]
-    if choix_course == "Course 1 ASAF": m = mods["C1_ASAF"]
-    elif choix_course == "Course 1 RACB": m = mods["C1_RACB"]
-    elif choix_course == "Course 2 ASAF": m = mods["C2_ASAF"]
-    elif choix_course == "Course 2 RACB": m = mods["C2_RACB"]
-    elif choix_course == "Course 3 ASAF": m = mods["C3_ASAF"]
-    elif choix_course == "Course 3 RACB": m = mods["C3_RACB"]
-
-    if m and hasattr(m, 'recuperer_donnees_course'):
-        try:
-            res = m.recuperer_donnees_course()
-            # Si le script renvoie des structures valides, on écrase et met à jour le cache de secours
-            if res and (isinstance(res, tuple) or isinstance(res, list)):
-                # Gestion tolérante du nombre de variables retournées (qu'il y en ait 5 ou 10)
-                if len(res) == 10:
-                    st.session_state["cache_live_donnees"][choix_course] = res
-                    d_liv, d_his, d_haut, d_milieu, d_bas, t_live, t_his, t_haut, t_milieu, t_bas = res
-                elif len(res) == 5:
-                    # Rétrocompatibilité si le fichier renvoie uniquement les 5 DataFrames de base
-                    d_liv, d_his, d_haut, d_milieu, d_bas = res
-                    st.session_state["cache_live_donnees"][choix_course] = (d_liv, d_his, d_haut, d_milieu, d_bas, t_live, t_his, t_haut, t_milieu, t_bas)
-        except Exception:
-            # En cas de plantage réseau de Dropbox durant le requests.get, le cache déjà chargé reste affiché à l'écran
-            pass
+        if res and len(res) == 10:
+            d_liv, d_his, d_haut, d_milieu, d_bas, t_live, t_his, t_haut, t_milieu, t_bas = res
+            
+    except Exception as e:
+        # Affiche le bug exact en rouge vif dans le bandeau du Live au lieu d'une page blanche
+        t_live = f"⚠️ BUG DANS LE SCRIPT DE CALCUL : {str(e)}"
 
     with zone_affichage_pure.container():
         st.markdown("<style>.table-hist th:nth-child(1), .table-hist td:nth-child(1) { width: 7% !important; } .table-hist th:nth-child(2), .table-hist td:nth-child(2) { width: 23% !important; } .table-hist th:nth-child(3), .table-hist td:nth-child(3) { width: 22% !important; } .table-hist th:nth-child(4), .table-hist td:nth-child(4) { width: 10% !important; } .table-hist th:nth-child(5), .table-hist td:nth-child(5) { width: 10% !important; } .table-hist th:nth-child(6), .table-hist td:nth-child(6) { width: 14% !important; }</style>", unsafe_allow_html=True)
 
         cg, cd = st.columns([1.3, 0.9])
         with cg:
-            if t_live: st.markdown(f"<span class='titre-live'>{t_live}</span>", unsafe_allow_html=True)
+            st.markdown(f"<span class='titre-live'>{t_live}</span>", unsafe_allow_html=True)
             st.markdown(gen_html(d_liv, "table-live"), unsafe_allow_html=True)
             st.markdown("<div style='height:35px;'></div>", unsafe_allow_html=True)
             if t_his: st.markdown(f"<span class='titre-hist'>{t_his}</span>", unsafe_allow_html=True)
@@ -215,7 +204,6 @@ def rafraichir_uniquement_tableaux():
                 st.markdown("<div style='height: 40px;'></div>", unsafe_allow_html=True)
                 st.markdown(f"<span class='titre-classement'>{t_bas}</span>", unsafe_allow_html=True)
                 st.markdown(gen_html(d_bas, "table-class-robuste"), unsafe_allow_html=True)
-            
             st.markdown("<div style='height:70px;'></div>", unsafe_allow_html=True)
 
 rafraichir_uniquement_tableaux()
