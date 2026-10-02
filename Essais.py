@@ -156,4 +156,5 @@ def recuperer_donnees_course():
     t_as123 = "🏆 CLASSEMENT EVOLUTIF DES ESSAIS Division 123 (Top 15)"
     t_as4 = "🏆 CLASSEMENT EVOLUTIF DES ESSAIS Division 4 (Top 10)"
 
-    return df_live, df_hist, df_asaf123, df_asaf4, df_racb, t_live, t_hist, t_racb, t_as123, t_as4
+    return (df_live, df_hist, df_asaf123, df_asaf4, df_racb, t_live, t_hist, t_racb, t_as123, t_as4)
+
