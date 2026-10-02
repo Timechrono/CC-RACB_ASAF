@@ -162,7 +162,7 @@ if course2_racb_disponible: colonnes_visibles.append("Course 2 RACB")
 if course3_disponible: colonnes_visibles.append("Course 3 ASAF")
 if course3_racb_disponible: colonnes_visibles.append("Course 3 RACB")
 
-# Répartition des colonnes (Tous les boutons de course à 1.0, la colonne finale du texte à 2.8)
+# Répartition des colonnes
 proportions_finales = [1.0] * len(colonnes_visibles) + [2.8]
 cols = st.columns(proportions_finales, vertical_alignment="center")
 
@@ -190,8 +190,6 @@ zone_affichage_pure = st.empty()
 # --- FRAGMENT CENTRALISÉ DÉDIÉ UNIQUEMENT AUX CLASSEMENTS (Toutes les 30s) ---
 @st.fragment(run_every=30)
 def rafraichir_uniquement_tableaux():
-    st.cache_data.clear()
-    
     terme_recherche = "Essais / Entraînements" if choix_course == "Essais" else choix_course
 
     if terme_recherche == "Course 1 ASAF" and course1_disponible:
@@ -233,8 +231,7 @@ def rafraichir_uniquement_tableaux():
                 st.markdown(f"<span class='titre-classement'>{t_bas}</span>", unsafe_allow_html=True)
                 st.markdown(gen_html(d_bas, "table-class-robuste"), unsafe_allow_html=True)
             
-            # Lignes blanches de respiration placées en fin de page
             st.markdown("<div style='height:70px;'></div>", unsafe_allow_html=True)
 
-# Lancement du processus étanche
+# Lancement propre de la fonction fragmentée
 rafraichir_uniquement_tableaux()
