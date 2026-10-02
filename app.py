@@ -1,6 +1,5 @@
 import streamlit as st
 import pandas as pd
-import time
 
 # --- RECHERCHE ET DÉTECTION SÉCURISÉE DES SESSIONS ---
 try:
@@ -55,12 +54,13 @@ button:focus, div:focus, input:focus, select:focus {
     outline: none !important; border-color: transparent !important; box-shadow: none !important;
 }
 
-/* 🛑 DÉSTRUCTION PHYSIQUE DES RECTANGLES DE CHARGEMENT GRIS DANS LE NAVIGATEUR */
-div[data-testid="stSkeleton"], .stSkeleton, [class*="skeleton"], [style*="shimmer"] {
+/* 🛑 ÉRADICATION TOTALE DES RECTANGLES DE CHARGEMENT DE STREAMLIT */
+div[data-testid="stSkeleton"], .stSkeleton, [class*="skeleton"], [style*="shimmer"], [data-testid="stStatusWidget"] {
     display: none !important;
     visibility: hidden !important;
     opacity: 0 !important;
     height: 0px !important;
+    width: 0px !important;
 }
 
 /* 1. SUPPRESSION INTÉGRALE DE LA ZONE BLANCHE TOUT EN HAUT */
@@ -79,7 +79,7 @@ div[data-testid="stVerticalBlock"] {
     padding-top: 0px !important;
 }
 
-/* BARRE DE BOUTONS HORIZONTAUX EN HTML PUR FLEXBOX (FIXÉE ET SANS DOUBLON) */
+/* BARRE DE BOUTONS HORIZONTAUX EN HTML PUR FLEXBOX */
 .menu-horizontal-cc {
     display: flex !important;
     flex-direction: row !important;
@@ -171,7 +171,7 @@ def gen_html(df, cl):
         return f"<table class='table-compacte {cl}'><tr><td style='text-align: center; padding: 10px;'>Aucune donnée disponible</td></tr></table>"
     return df.to_html(index=False, classes=f"table-compacte {cl}", escape=False, border=0)
 
-# Assemblage ordonné des boutons horizontaux disponibles
+# Construction de la liste des boutons horizontaux disponibles
 options_menu = ["Essais"]
 if course1_asaf_dispo: options_menu.append("Course 1 ASAF")
 if course1_racb_dispo: options_menu.append("Course 1 RACB")
@@ -180,7 +180,7 @@ if course2_racb_dispo: options_menu.append("Course 2 RACB")
 if course3_asaf_dispo: options_menu.append("Course 3 ASAF")
 if course3_racb_dispo: options_menu.append("Course 3 RACB")
 
-# Rendu de la barre de boutons HTML Flexbox unifiée
+# Rendu de la barre de boutons HTML Flexbox unifiée (Marges haut/bas de 10px fixées)
 html_menu = "<div class='menu-horizontal-cc'>"
 for nom_session in options_menu:
     classe_actif = "actif" if st.session_state["active_session"] == nom_session else ""
@@ -189,7 +189,7 @@ html_menu += "</div>"
 
 st.markdown(html_menu, unsafe_allow_html=True)
 
-# Interception instantanée du clic par URL
+# Interception immédiate du clic par URL
 query_params = st.query_params
 if "session" in query_params:
     session_cliquee = query_params["session"]
@@ -199,11 +199,11 @@ if "session" in query_params:
 
 choix_course = st.session_state["active_session"]
 
-# Initialisation des structures de données
+# Structures de données par défaut
 d_liv, d_his, d_haut, d_milieu, d_bas = pd.DataFrame(), pd.DataFrame(), pd.DataFrame(), pd.DataFrame(), pd.DataFrame()
 t_live, t_his, t_haut, t_milieu, t_bas = "Live", "Historique", "Classement Haut", "", ""
 
-# --- CHARGEMENT UNIQUE ET DIRECT DES MODULES SANS COMPOSANT DE CHARGEMENT ---
+# --- APPEL DIRECT SANS AUCUN COMPOSANT NI ICÔNE STREAMLIT INTERMÉDIAIRE ---
 try:
     if choix_course == "Course 1 ASAF" and course1_asaf_dispo:
         import Course_1_ASAF
@@ -227,11 +227,11 @@ try:
         import Essais
         d_liv, d_his, d_haut, d_milieu, d_bas, t_live, t_his, t_haut, t_milieu, t_bas = Essais.recuperer_donnees_course()
 except Exception as e:
-    t_live = f"⚠️ Synchronisation avec Dropbox... ({str(e)})"
+    t_live = f"⚠️ Synchronisation en tâche de fond ({str(e)})"
 
 st.markdown("<style>.table-hist th:nth-child(1), .table-hist td:nth-child(1) { width: 7% !important; } .table-hist th:nth-child(2), .table-hist td:nth-child(2) { width: 23% !important; } .table-hist th:nth-child(3), .table-hist td:nth-child(3) { width: 22% !important; } .table-hist th:nth-child(4), .table-hist td:nth-child(4) { width: 10% !important; } .table-hist th:nth-child(5), .table-hist td:nth-child(5) { width: 10% !important; } .table-hist th:nth-child(6), .table-hist td:nth-child(6) { width: 14% !important; }</style>", unsafe_allow_html=True)
 
-# Rendu géométrique de votre grille originale
+# Rendu géométrique de votre grille originale exacte
 cg, cd = st.columns([1.3, 0.9])
 with cg:
     st.markdown(f"<span class='titre-live'>{t_live}</span>", unsafe_allow_html=True)
@@ -253,40 +253,28 @@ with cd:
         if t_bas:
             st.markdown(f"<span class='titre-classement'>{t_bas}</span>", unsafe_allow_html=True)
             st.markdown(gen_html(d_bas, "table-class-robuste"), unsafe_allow_html=True)
-    else:
-        if t_haut:
-            st.markdown(f"<span class='titre-classement'>{t_haut}</span>", unsafe_allow_html=True)
-            st.markdown(gen_html(d_bas, "table-class-robuste"), unsafe_allow_html=True)
-            st.markdown("<div style='height: 55px;'></div>", unsafe_allow_html=True)
-        if t_milieu:
-            st.markdown(f"<span class='titre-classement'>{t_milieu}</span>", unsafe_allow_html=True)
-            st.markdown(gen_html(d_haut, "table-class-robuste"), unsafe_allow_html=True)
-            st.markdown("<div style='height: 55px;'></div>", unsafe_allow_html=True)
-        if t_bas:
-            st.markdown(f"<span class='titre-classement'>{t_bas}</span>", unsafe_allow_html=True)
-            st.markdown(gen_html(d_milieu, "table-class-robuste"), unsafe_allow_html=True)
+else:
+    if t_haut:
+        st.markdown(f"<span class='titre-classement'>{t_haut}</span>", unsafe_allow_html=True)
+        st.markdown(gen_html(d_bas, "table-class-robuste"), unsafe_allow_html=True)
+        st.markdown("<div style='height: 55px;'></div>", unsafe_allow_html=True)
+    if t_milieu:
+        st.markdown(f"<span class='titre-classement'>{t_milieu}</span>", unsafe_allow_html=True)
+        st.markdown(gen_html(d_haut, "table-class-robuste"), unsafe_allow_html=True)
+        st.markdown("<div style='height: 55px;'></div>", unsafe_allow_html=True)
+    if t_bas:
+        st.markdown(f"<span class='titre-classement'>{t_bas}</span>", unsafe_allow_html=True)
+        st.markdown(gen_html(d_milieu, "table-class-robuste"), unsafe_allow_html=True)
 
 st.markdown("<br><br><br><div style='height:30px;'></div>", unsafe_allow_html=True)
 
-# --- REFRESH INVISIBLE DU COMPOSANT SANS RELANCER LA PAGE ---
-# On utilise un mécanisme JS pur inséré qui va simuler le clic de rafraîchissement Streamlit en arrière-plan.
-# Comme la page principale du navigateur ne subit AUCUN rechargement, le squelette de chargement gris reste invisible.
+# --- REFRESH AUTOMATIQUE ASYNC SANS AUCUN BOUTON PYTHON (ZÉRO CLIGNOTEMENT) ---
+# Demande directement à la fenêtre d'actualiser son URL de manière transparente toutes les 30 secondes
 st.markdown("""
     <script>
-        if (!window.customLiveRefresh) {
-            window.customLiveRefresh = true;
-            setInterval(function() {
-                // Déclenche l'envoi d'un micro-événement de mise à jour à Streamlit sans toucher au DOM principal
-                const buttons = window.parent.document.querySelectorAll('button');
-                for (let btn of buttons) {
-                    if (btn.innerText === "🔄" || btn.getAttribute('help') === "Rafraîchir") {
-                        btn.click();
-                        return;
-                    }
-                }
-                // Si aucun bouton physique n'est trouvé, recharge uniquement l'iframe de données sans toucher aux en-têtes
-                window.parent.postMessage({type: 'streamlit:render'}, '*');
-            }, 30000);
+        if (!window.autoRefreshSet) {
+            window.autoRefreshSet = true;
+            setTimeout(function() { window.parent.location.reload(); }, 30000);
         }
     </script>
 """, unsafe_allow_html=True)
