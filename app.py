@@ -43,7 +43,7 @@ except ModuleNotFoundError:
 
 st.set_page_config(page_title="Live", layout="wide")
 
-# --- CONCEPTION GRAPHIQUE GÉOMÉTRIQUE SANS AUCUNE MARGE BLANCHE EXTRACTED ---
+# --- CONCEPTION GRAPHIQUE GÉOMÉTRIQUE SANS AUCUNE MARGE BLANCHE ---
 st.markdown("""
 <style>
 [data-testid="stHeader"] { display: none !important; }
@@ -53,18 +53,34 @@ button:focus, div:focus, input:focus, select:focus {
 
 /* 1. SUPPRESSION INTÉGRALE DE LA ZONE BLANCHE TOUT EN HAUT */
 .block-container { 
-    padding-top: 0px !important; 
+    padding-top: 5px !important; 
     padding-bottom: 0rem !important; 
     padding-left: 1rem !important; 
     padding-right: 1rem !important; 
 }
 div[data-testid="stMainBlockContainer"] {
-    padding-top: 0px !important;
-    margin-top: -18px !important;
+    padding-top: 5px !important;
+    margin-top: 0px !important;
 }
 div[data-testid="stVerticalBlock"] {
     gap: 0rem !important;
     padding-top: 0px !important;
+}
+
+/* CONTENEUR FLEXBOX INJECTÉ POUR FORCER LE MENU HORIZONTAL À CENTRER PROPREMENT */
+div[data-testid="stHorizontalBlock"]:has(button) {
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+    gap: 10px !important;
+    width: 100% !important;
+    margin: 0px auto !important;
+}
+div[data-testid="stHorizontalBlock"]:has(button) > div {
+    flex: none !important;
+    width: auto !important;
+    padding: 0px !important;
+    margin: 0px !important;
 }
 
 /* 2. RAPPROCHEMENT NET ET COLLÉ DES TABLEAUX SOUS LES BOUTONS */
@@ -114,9 +130,9 @@ div.stElementContainer {
 .table-class-robuste th:nth-child(5), .table-class-robuste td:nth-child(5) { width: 6% !important; }
 .table-class-robuste th:nth-child(6), .table-class-robuste td:nth-child(6) { width: 18% !important; text-align: right !important; }
 
-/* FIXATION GÉOMÉTRIQUE POUR LES BOUTONS NATIFS RECTANGLAIRES SERRÉS (24PX) */
+/* RECTIFICATION DE LA COUPE DES BOUTONS - HAUTEUR FIXE ET LARGEUR AUTOMATIQUE ADAPTÉE */
 div.stButton > button {
-    width: 100% !important;
+    width: 140px !important; /* Largeur optimale pour afficher le texte en entier sans couper */
     min-height: unset !important;
     height: 24px !important;
     background-color: #F1F5F9 !important;
@@ -129,6 +145,7 @@ div.stButton > button {
     margin: 0px !important;
     line-height: 22px !important;
     white-space: nowrap !important;
+    display: inline-block !important;
 }
 </style>
 """, unsafe_allow_html=True)
@@ -140,7 +157,7 @@ def gen_html(df, cl):
     if df.empty: return f"<table class='table-compacte {cl}'><tr><td style='text-align: center; padding: 10px;'>Aucune donnée disponible</td></tr></table>"
     return df.to_html(index=False, classes=f"table-compacte {cl}", escape=False, border=0)
 
-# Construction de la ligne de navigation horizontale simple
+# Liste des boutons
 colonnes_visibles = ["Essais"]
 if course1_disponible: colonnes_visibles.append("Course 1 ASAF")
 if course1_racb_disponible: colonnes_visibles.append("Course 1 RACB")
@@ -149,7 +166,9 @@ if course2_racb_disponible: colonnes_visibles.append("Course 2 RACB")
 if course3_disponible: colonnes_visibles.append("Course 3 ASAF")
 if course3_racb_disponible: colonnes_visibles.append("Course 3 RACB")
 
-# Rendu horizontal direct via colonnes standards équilibrées
+# Marges symétriques de 10px autour de la ligne de navigation
+st.markdown("<div style='height: 10px;'></div>", unsafe_allow_html=True)
+
 cols = st.columns([1.0] * len(colonnes_visibles))
 for idx, nom_session in enumerate(colonnes_visibles):
     with cols[idx]:
@@ -157,15 +176,16 @@ for idx, nom_session in enumerate(colonnes_visibles):
             st.session_state["active_session"] = nom_session
             st.rerun()
 
-# Rendu de la couleur active sur le bouton sélectionné
 for idx, nom_session in enumerate(colonnes_visibles):
     if st.session_state["active_session"] == nom_session:
         st.markdown(f"""<style>div[data-testid="stHorizontalBlock"] > div:nth-child({idx+1}) button {{ background-color: #1E3A8A !important; color: white !important; border-color: #1E3A8A !important; }}</style>""", unsafe_allow_html=True)
 
+st.markdown("<div style='height: 10px; clear: both;'></div>", unsafe_allow_html=True)
+
 choix_course = st.session_state["active_session"]
 terme_recherche = "Essais / Entraînements" if choix_course == "Essais" else choix_course
 
-# --- LIAISON DIRECTE SANS FRAGMENT (ZÉRO BLOCAGE) ---
+# Liaison directe stable
 if terme_recherche == "Course 1 ASAF" and course1_disponible:
     d_liv, d_his, d_haut, d_milieu, d_bas, t_live, t_his, t_haut, t_milieu, t_bas = Course_1_ASAF.recuperer_donnees_course()
 elif terme_recherche == "Course 1 RACB" and course1_racb_disponible:
@@ -181,7 +201,6 @@ elif terme_recherche == "Course 3 RACB" and course3_racb_disponible:
 else:
     d_liv, d_his, d_haut, d_milieu, d_bas, t_live, t_his, t_haut, t_milieu, t_bas = Essais.recuperer_donnees_course()
 
-# --- RENDU DE VOTRE PRÉSENTATION EXACTE ---
 st.markdown("<style>.table-hist th:nth-child(1), .table-hist td:nth-child(1) { width: 7% !important; } .table-hist th:nth-child(2), .table-hist td:nth-child(2) { width: 23% !important; } .table-hist th:nth-child(3), .table-hist td:nth-child(3) { width: 22% !important; } .table-hist th:nth-child(4), .table-hist td:nth-child(4) { width: 10% !important; } .table-hist th:nth-child(5), .table-hist td:nth-child(5) { width: 10% !important; } .table-hist th:nth-child(6), .table-hist td:nth-child(6) { width: 14% !important; }</style>", unsafe_allow_html=True)
 
 cg, cd = st.columns([1.3, 0.9])
@@ -207,6 +226,5 @@ with cd:
     
     st.markdown("<div style='height:70px;'></div>", unsafe_allow_html=True)
 
-# Boucle de rafraîchissement standard 30s stable (sans fragment bloquant)
 time.sleep(30)
 st.rerun()
