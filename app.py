@@ -43,12 +43,7 @@ except ModuleNotFoundError:
 
 st.set_page_config(page_title="Live", layout="wide")
 
-# Interception et gestion des clics via URL (Béton armé anti-clignotement)
-if "session" not in st.query_params:
-    st.query_params["session"] = "Essais"
-choix_course = st.query_params["session"]
-
-# --- CONCEPTION GRAPHIQUE RIGIDE EN LIGNE (AUCUN COMPOSANT SÉISMIQUE STREAMLIT) ---
+# --- CONCEPTION GRAPHIQUE GÉOMÉTRIQUEMENT VERROUILLÉE ---
 st.markdown("""
 <style>
 [data-testid="stHeader"] { display: none !important; }
@@ -80,7 +75,7 @@ button:focus, div:focus, input:focus, select:focus {
 .table-live td:last-child, .table-hist td:last-child, .table-class-robuste td:last-child { font-weight: bold !important; font-size: 0.94rem !important; color: #0F172A !important; }
 .table-hist tr:nth-child(odd) td { background-color: #E0F2FE !important; }
 
-/* LARGEURS ASSIGNÉES AUX TABLEAUX */
+/* RECTIFICATION GÉOMÉTRIQUE : LARGEURS FIXES DES EN-TÊTES DE TABLEAUX */
 .table-live th:nth-child(1), .table-live td:nth-child(1) { width: 8% !important; }
 .table-live th:nth-child(2), .table-live td:nth-child(2) { width: 26% !important; }
 .table-live th:nth-child(3), .table-live td:nth-child(3) { width: 18% !important; }
@@ -95,102 +90,87 @@ button:focus, div:focus, input:focus, select:focus {
 .table-class-robuste th:nth-child(5), .table-class-robuste td:nth-child(5) { width: 6% !important; }
 .table-class-robuste th:nth-child(6), .table-class-robuste td:nth-child(6) { width: 18% !important; text-align: right !important; }
 
-.block-container { padding-top: 0.4rem !important; padding-bottom: 0rem !important; }
-
-/* LA BARRE ULTRA-STATIQUE EN FLEXBOX HTML PURE (NE PEUT PAS PASSER À LA VERTICALE) */
-.barre-horizontale-cc-unique {
-    display: flex !important;
-    flex-direction: row !important;
-    align-items: center !important;
-    justify-content: flex-start !important;
-    gap: 6px !important; /* Distance fixe et serrée de 6px entre chaque bouton */
+/* BOUTONS RECTANGLAIRES SERRÉS ET COMPACTS (24PX) */
+div.stButton > button {
     width: 100% !important;
-    height: 26px !important;
-    margin-top: 0px !important;
-    margin-bottom: 0px !important;
-    padding: 0px !important;
-}
-
-/* FORMAT DU BOUTON EN LIEN HTML GÉOMÉTRIQUEMENT RECTANGLAIRE */
-.bouton-cc-statique {
-    display: inline-block !important;
+    min-height: unset !important;
     height: 24px !important;
     background-color: #F1F5F9 !important;
     color: #475569 !important;
     font-weight: bold !important;
     font-size: 0.82rem !important;
     border: 1px solid #CBD5E1 !important;
-    border-radius: 3px !important; /* Pas d'ovale */
-    padding: 0px 14px !important;
+    border-radius: 3px !important;
+    padding: 0px 4px !important;
+    margin: 0px !important;
     line-height: 22px !important;
-    text-decoration: none !important;
     white-space: nowrap !important;
-    text-align: center !important;
-    font-family: sans-serif !important;
-}
-.bouton-cc-statique:hover {
-    border-color: #1E3A8A !important;
-    color: #1E3A8A !important;
-    background-color: #E0F2FE !important;
 }
 
-/* COULEUR BLEU MARQUÉ SUR L'ONGLET ACTIF */
-.bouton-cc-statique.actif {
-    background-color: #1E3A8A !important;
-    color: white !important;
-    border-color: #1E3A8A !important;
-}
-
-/* TEXTE DU COMPTEUR REPOUSSÉ STRICTEMENT À DROITE SANS CADRE COULEUR */
-.compteur-cc-txt {
-    font-size: 0.85rem !important;
-    font-weight: bold !important;
-    color: #1E3A8A !important;
-    line-height: 26px !important;
-    margin-left: auto !important; /* Force le placement à l'extrémité droite */
-    white-space: nowrap !important;
-    font-family: sans-serif !important;
-}
-
-/* ESPACE DE SÉCURITÉ STATIQUE FIXE ET SÉCURISÉ (22PX) AVEC LA FEUILLE DU DESSOUS */
+/* MARGE DE SÉPARATION DE 22PX ENTRE LE MENU ET LES FEUILLES */
 .separateur-statique-final {
     height: 22px !important;
+    margin-top: 4px !important;
+    margin-bottom: 2px !important;
     display: block !important;
     clear: both !important;
 }
+
+.label-decompte-pure-txt {
+    font-size: 0.85rem !important;
+    font-weight: bold !important;
+    color: #1E3A8A !important;
+    line-height: 24px !important;
+    white-space: nowrap !important;
+    display: inline-block !important;
+    text-align: right !important;
+    width: 100% !important;
+}
 </style>
 """, unsafe_allow_html=True)
+if "active_session" not in st.session_state:
+    st.session_state["active_session"] = "Essais"
+
 def gen_html(df, cl):
     if isinstance(df, str): return df 
     if df.empty: return f"<table class='table-compacte {cl}'><tr><td style='text-align: center; padding: 10px;'>Aucune donnée disponible</td></tr></table>"
     return df.to_html(index=False, classes=f"table-compacte {cl}", escape=False, border=0)
 
-# Assemblage de la liste des onglets (Le premier affiche bien "Essais")
-onglets_CC = [("Essais", "Essais")]
-if course1_disponible: onglets_CC.append(("Course 1 ASAF", "Course 1 ASAF"))
-if course1_racb_disponible: onglets_CC.append(("Course 1 RACB", "Course 1 RACB"))
-if course2_disponible: onglets_CC.append(("Course 2 ASAF", "Course 2 ASAF"))
-if course2_racb_disponible: onglets_CC.append(("Course 2 RACB", "Course 2 RACB"))
-if course3_disponible: onglets_CC.append(("Course 3 ASAF", "Course 3 ASAF"))
-if course3_racb_disponible: onglets_CC.append(("Course 3 RACB", "Course 3 RACB"))
+# Assemblage des onglets du menu horizontal (Affiche bien "Essais" en premier)
+colonnes_visibles = ["Essais"]
+if course1_disponible: colonnes_visibles.append("Course 1 ASAF")
+if course1_racb_disponible: colonnes_visibles.append("Course 1 RACB")
+if course2_disponible: colonnes_menu.append("Course 2 ASAF") if 'course2_menu' in locals() else colonnes_visibles.append("Course 2 ASAF")
+if course2_racb_disponible: colonnes_visibles.append("Course 2 RACB")
+if course3_disponible: colonnes_visibles.append("Course 3 ASAF")
+if course3_racb_disponible: colonnes_visibles.append("Course 3 RACB")
 
-# --- INJECTION DU BARREAU EN HTML PUR (ZÉRO COMPOSANT STREAMLIT = IMPOSSIBLE A VERTIQUER) ---
-html_barre = '<div class="barre-horizontale-cc-unique">'
-for libelle, code_id in onglets_CC:
-    classe_active = "actif" if choix_course == code_id else ""
-    html_barre += f'<a class="bouton-cc-statique {classe_active}" href="?session={code_id}" target="_self">{libelle}</a>'
+# Écarts corrigés au millimètre (Essais est compact à 0.6)
+structure_colonnes = [0.6, 1.2, 1.2, 1.2, 1.2, 1.2, 1.2]
+proportions_finales = structure_colonnes[:len(colonnes_visibles)] + [2.5]
 
-# Ancre statique pour l'horloge décompte
-html_barre += '<span id="horloge-cc-txt" class="compteur-cc-txt">⏱️ Rafraîchissement dans : 30s</span>'
-html_barre += '</div>'
+# Construction unique de la ligne de navigation (Emplacement 100% fixe hors des fragments)
+cols = st.columns(proportions_finales, vertical_alignment="center")
 
-st.markdown(html_barre, unsafe_allow_html=True)
-st.markdown('<div class="separateur-statique-final"></div>', unsafe_allow_html=True)
+for idx, nom_session in enumerate(colonnes_visibles):
+    with cols[idx]:
+        if st.session_state["active_session"] == nom_session:
+            st.markdown(f"""<style>div[data-testid="stHorizontalBlock"] > div:nth-child({idx+1}) button {{ background-color: #1E3A8A !important; color: white !important; border-color: #1E3A8A !important; }}</style>""", unsafe_allow_html=True)
+        if st.button(nom_session, key=f"btn_nav_{idx}"):
+            st.session_state["active_session"] = nom_session
+            st.rerun()
 
-# Zones tampons d'affichage pur (Éradication définitive de l'effet miroir)
+# Zone d'écriture textuelle isolée pour le décompte à droite
+zone_decompte_txt = cols[-1].empty()
+
+# Insertion du séparateur statique
+st.markdown("<div class='separateur-statique-final'></div>", unsafe_allow_html=True)
+choix_course = st.session_state["active_session"]
+
+# Conteneur d'affichage pur (Éradication des boîtes miroir)
 zone_affichage_pure = st.empty()
 
-# --- FRAGMENT CENTRALISÉ DÉDIÉ UNIQUEMENT AUX TABLEAUX DE RESULTATS (Toutes les 30s) ---
+# --- FRAGMENT CENTRALISÉ DÉDIÉ UNIQUEMENT AUX CLASSEMENTS (Toutes les 30s) ---
 @st.fragment(run_every=30)
 def rafraichir_uniquement_tableaux():
     st.cache_data.clear()
@@ -225,7 +205,8 @@ def rafraichir_uniquement_tableaux():
             
         with cd:
             if t_haut:
-                st.markdown(f"<span class='st_haut-classement'>{t_haut}</span>", unsafe_allow_html=True)
+                # CORRECTION COMPLÈTE DU NOM DE VARIABLE (Supprime définitivement le NameError et le chargement infini)
+                st.markdown(f"<span class='titre-classement'>{t_haut}</span>", unsafe_allow_html=True)
                 st.markdown(gen_html(d_haut, "table-class-robuste"), unsafe_allow_html=True)
             
             if t_milieu and not (isinstance(d_milieu, pd.DataFrame) and d_milieu.empty):
@@ -238,18 +219,18 @@ def rafraichir_uniquement_tableaux():
                 st.markdown(f"<span class='titre-classement'>{t_bas}</span>", unsafe_allow_html=True)
                 st.markdown(gen_html(d_bas, "table-class-robuste"), unsafe_allow_html=True)
 
-# --- MINI-FRAGMENT DÉDIÉ EXCLUSIVEMENT AU COMPTEUR DES SECONDES (Toutes les 1s) ---
+# --- MINI-FRAGMENT COMPTEUR SECONDE PAR SECONDE ---
 @st.fragment(run_every=1)
 def faire_tourner_le_compteur():
     if "chrono_sec" not in st.session_state:
         st.session_state["chrono_sec"] = 30
+    
     st.session_state["chrono_sec"] -= 1
     if st.session_state["chrono_sec"] <= 0:
         st.session_state["chrono_sec"] = 30
-    
-    # Écrasement textuel JavaScript propre (Aucune influence sur la géométrie de la page)
-    st.markdown(f"""<script>document.getElementById("horloge-cc-txt").innerText = "⏱️ Rafraîchissement dans : {st.session_state['chrono_sec']}s";</script>""", unsafe_allow_html=True)
+        
+    zone_decompte_txt.markdown(f"<span class='label-decompte-pure-txt'>⏱️ Rafraîchissement dans : {st.session_state['chrono_sec']}s</span>", unsafe_allow_html=True)
 
-# Exécution des processus
+# Lancement coordonné
 rafraichir_uniquement_tableaux()
 faire_tourner_le_compteur()
