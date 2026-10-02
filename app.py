@@ -43,7 +43,7 @@ except ModuleNotFoundError:
 
 st.set_page_config(page_title="Live", layout="wide")
 
-# --- CONCEPTION GRAPHIQUE RIGIDE ET STRUCTURE DE NAVIGATION FUSIONNÉE ---
+# --- CONCEPTION GRAPHIQUE RIGIDE ET BOUTONS HORIZONTAUX COMPACTS ---
 st.markdown("""
 <style>
 [data-testid="stHeader"] { display: none !important; }
@@ -91,32 +91,10 @@ button:focus, div:focus, input:focus, select:focus {
 
 .block-container { padding-top: 0.4rem !important; padding-bottom: 0rem !important; }
 
-/* BARRE DE NAVIGATION SUR MESURE : REGROUPE EN FLEXBOX TOUS LES ENFANTS DIRECTS */
-div[data-testid="stHorizontalBlock"] {
-    display: none !important; /* On détruit l'ancien système de colonnes défectueux */
-}
-
-.barre-nav-cc-unifiee {
-    display: flex !important;
-    flex-direction: row !important;
-    flex-wrap: nowrap !important;
-    align-items: center !important;
-    justify-content: flex-start !important;
-    gap: 6px !important; /* Écartement mathématique constant de 6px entre TOUS les éléments */
+/* BOUTONS NATIFS STABLES : HAUTEUR SERRÉE (24PX) ET TEXTE EN GRAS */
+div.stButton > button {
     width: 100% !important;
-    height: 26px !important;
-    margin-bottom: 0px !important;
-    padding: 0px !important;
-}
-
-/* APPLICATION DU STYLE SUR LA SUITE DE BOUTONS NATIFS INJECTÉS */
-.barre-nav-cc-unifiee div.element-bouton {
-    display: inline-block !important;
-    width: auto !important;
-}
-
-.barre-nav-cc-unifiee button {
-    width: auto !important;
+    min-height: unset !important;
     height: 24px !important;
     background-color: #F1F5F9 !important;
     color: #475569 !important;
@@ -125,26 +103,27 @@ div[data-testid="stHorizontalBlock"] {
     border: 1px solid #CBD5E1 !important;
     border-radius: 3px !important;
     padding: 0px 14px !important;
+    transition: all 0.15s ease !important;
     line-height: 22px !important;
-    white-space: nowrap !important;
 }
 
-/* BOUTON SÉLECTIONNÉ ACTIF (BLEU MARQUÉ) */
-.barre-nav-cc-unifiee .bouton-actif button {
+/* MARQUAGE BLEU SUR LE BOUTON DE LA SESSION ACTIVE */
+div.stButton[data-testid="stButton"] button.active-btn-css {{
     background-color: #1E3A8A !important;
     color: white !important;
     border-color: #1E3A8A !important;
-}
+}}
 
-/* TEXTE DU DÉCOMPTE PUR SANS CADRE POSITIONNÉ À DROITE */
-.barre-nav-cc-unifiee .label-decompte-epure {
+/* TEXTE DU DÉCOMPTE SANS CADRE NI FOND COULEUR */
+.label-decompte-pure-txt {
     font-size: 0.85rem !important;
     font-weight: bold !important;
     color: #1E3A8A !important;
-    line-height: 26px !important;
+    line-height: 24px !important;
     white-space: nowrap !important;
-    margin-left: auto !important; /* Repousse automatiquement à l'extrémité droite de la même ligne */
-    padding-right: 4px !important;
+    display: inline-block;
+    text-align: right;
+    width: 100%;
 }
 </style>
 """, unsafe_allow_html=True)
@@ -156,6 +135,7 @@ def gen_html(df, cl):
     if df.empty: return f"<table class='table-compacte {cl}'><tr><td style='text-align: center; padding: 10px;'>Aucune donnée disponible</td></tr></table>"
     return df.to_html(index=False, classes=f"table-compacte {cl}", escape=False, border=0)
 
+# Assemblage de la liste des sessions disponibles
 colonnes_menu = ["Essais / Entraînements"]
 if course1_disponible: colonnes_menu.append("Course 1 ASAF")
 if course1_racb_disponible: colonnes_menu.append("Course 1 RACB")
@@ -164,29 +144,27 @@ if course2_racb_disponible: colonnes_menu.append("Course 2 RACB")
 if course3_disponible: colonnes_menu.append("Course 3 ASAF")
 if course3_racb_disponible: colonnes_menu.append("Course 3 RACB")
 
-# --- CONCEPTION DE LA LIGNE HORIZONTALE PAR INJECTION CONTENEUR ---
-# On crée la structure HTML flexbox en haut de la page
-st.markdown('<div class="barre-nav-cc-unifiee">', unsafe_allow_html=True)
+# CRÉATION DE LA BARRE HORIZONTALE PAR COLONNES AJUSTÉES AU CONTENU
+# Le paramètre vertical_alignment aligne le décompte et les boutons sur le même axe
+cols = st.columns([1] * len(colonnes_menu) +, vertical_alignment="center")
 
-# Pour chaque session du menu, on injecte le bouton dans une div alignée
+# Rendu sécurisé des boutons horizontaux collés régulièrement
 for idx, nom_session in enumerate(colonnes_menu):
-    classe_active = "bouton-actif" if st.session_state["active_session"] == nom_session else ""
-    st.markdown(f'<div class="element-bouton {classe_active}">', unsafe_allow_html=True)
-    if st.button(nom_session, key=f"nav_btn_unifie_{idx}"):
-        st.session_state["active_session"] = nom_session
-        st.rerun()
-    st.markdown('</div>', unsafe_allow_html=True)
+    with cols[idx]:
+        if st.session_state["active_session"] == nom_session:
+            st.markdown(f"""<style>div[data-testid="stHorizontalBlock"] > div:nth-child({idx+1}) button {{ background-color: #1E3A8A !important; color: white !important; border-color: #1E3A8A !important; }}</style>""", unsafe_allow_html=True)
+        if st.button(nom_session, key=f"btn_nav_{idx}"):
+            st.session_state["active_session"] = nom_session
+            st.rerun()
 
-# Ancre texte pour le décompte (placé dans le même alignement Flexbox)
-zone_decompte_epure = st.empty()
+# Utilisation exclusive de la dernière colonne à droite pour le texte brut du décompte
+zone_decompte_txt = cols[-1].empty()
 
-# Fermeture de la ligne Flexbox
-st.markdown('</div>', unsafe_allow_html=True)
-
-# Interligne constant sous la barre de navigation
+# Interligne fin et discret sous la barre d'onglets
 st.markdown("<div style='height: 14px; margin-bottom: 4px;'></div>", unsafe_allow_html=True)
 choix_course = st.session_state["active_session"]
 
+# Conteneur d'affichage pur (Anti-miroir grisé)
 zone_affichage_pure = st.empty()
 
 # --- CYCLAGE AUTOMATIQUE CENTRALISÉ TOUTES LES 30 SECONDES ---
@@ -235,9 +213,9 @@ def afficher_tableaux():
                 st.markdown(f"<span class='titre-classement'>{t_bas}</span>", unsafe_allow_html=True)
                 st.markdown(gen_html(d_bas, "table-class-robuste"), unsafe_allow_html=True)
 
-    # DÉCOMPTE SÉCURISÉ INJECTÉ DANS L'ALIGNEMENT DE LA LIGNE UNIQUE
+    # REFRESH CONTINU ET TEXTUEL FLUIDE SANS CASSER L'HORIZONTALITÉ
     for secondes_restantes in range(30, 0, -1):
-        zone_decompte_epure.markdown(f"<span class='label-decompte-epure'>⏱️ Rafraîchissement dans : {secondes_restantes}s</span>", unsafe_allow_html=True)
+        zone_decompte_txt.markdown(f"<span class='label-decompte-pure-txt'>⏱️ Rafraîchissement dans : {secondes_restantes}s</span>", unsafe_allow_html=True)
         time.sleep(1)
         
     st.rerun()
