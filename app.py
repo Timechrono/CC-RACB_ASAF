@@ -29,9 +29,9 @@ except Exception:
 
 try:
     import Course_1_RACB
-    course1_racb_disp = True
+    course1_racb_dispo = True
 except Exception:
-    course1_racb_disp = False
+    course1_racb_dispo = False
 
 try:
     import Course_2_RACB
@@ -99,6 +99,7 @@ div[data-testid="stVerticalBlock"] {
     white-space: nowrap !important;
     font-family: sans-serif !important;
     display: inline-block !important;
+    text-decoration: none !important;
 }
 .btn-cc.actif {
     background-color: #1E3A8A !important;
@@ -166,23 +167,22 @@ def gen_html(df, cl):
 # Assemblage ordonné des boutons horizontaux disponibles
 options_menu = ["Essais / Entraînements"]
 if course1_asaf_dispo: options_menu.append("Course 1 ASAF")
-if 'course1_racb_disp' in locals(): options_menu.append("Course 1 RACB")
+if course1_racb_dispo: options_menu.append("Course 1 RACB")
 if course2_asaf_dispo: options_menu.append("Course 2 ASAF")
-if course2_racb_disponible: options_menu.append("Course 2 RACB")
+if course2_racb_dispo: options_menu.append("Course 2 RACB")
 if course3_asaf_dispo: options_menu.append("Course 3 ASAF")
-if course3_racb_disponible: options_menu.append("Course 3 RACB")
+if course3_racb_dispo: options_menu.append("Course 3 RACB")
 
-# --- RENDU DE LA BARRE DE BOUTONS EN HTML PUR (ZÉRO UTILISATION DU PROCESSUS COLUMNS) ---
+# --- RENDU DE LA BARRE DE BOUTONS EN HTML PUR ---
 html_menu = "<div class='menu-horizontal-cc'>"
 for nom_session in options_menu:
     classe_actif = "actif" if st.session_state["active_session"] == nom_session else ""
-    # Utilise l'API d'URL de base pour rafraîchir proprement la session au clic sans faire freezer Streamlit
     html_menu += f'<a href="?session={nom_session.replace(" ", "%20")}" target="_self" class="btn-cc {classe_actif}">{nom_session}</a>'
 html_menu += "</div>"
 
 st.markdown(html_menu, unsafe_allow_html=True)
 
-# Détection instantanée du changement de page par URL (méthode la plus stable existante)
+# Détection du changement de page par URL
 query_params = st.query_params
 if "session" in query_params:
     session_cliquee = query_params["session"]
@@ -200,15 +200,15 @@ t_live, t_his, t_haut, t_milieu, t_bas = "Live", "Historique", "Classement Haut"
 try:
     if choix_course == "Course 1 ASAF" and course1_asaf_dispo:
         d_liv, d_his, d_haut, d_milieu, d_bas, t_live, t_his, t_haut, t_milieu, t_bas = Course_1_ASAF.recuperer_donnees_course()
-    elif choix_course == "Course 1 RACB" and 'course1_racb_disp' in locals():
+    elif choix_course == "Course 1 RACB" and course1_racb_dispo:
         d_liv, d_his, d_haut, d_milieu, d_bas, t_live, t_his, t_haut, t_milieu, t_bas = Course_1_RACB.recuperer_donnees_course()
     elif choix_course == "Course 2 ASAF" and course2_asaf_dispo:
         d_liv, d_his, d_haut, d_milieu, d_bas, t_live, t_his, t_haut, t_milieu, t_bas = Course_2_ASAF.recuperer_donnees_course()
-    elif choix_course == "Course 2 RACB" and course2_racb_disponible:
+    elif choix_course == "Course 2 RACB" and course2_racb_dispo:
         d_liv, d_his, d_haut, d_milieu, d_bas, t_live, t_his, t_haut, t_milieu, t_bas = Course_2_RACB.recuperer_donnees_course()
     elif choix_course == "Course 3 ASAF" and course3_asaf_dispo:
         d_liv, d_his, d_haut, d_milieu, d_bas, t_live, t_his, t_haut, t_milieu, t_bas = Course_3_ASAF.recuperer_donnees_course()
-    elif choix_course == "Course 3 RACB" and course3_racb_disponible:
+    elif choix_course == "Course 3 RACB" and course3_racb_dispo:
         d_liv, d_his, d_haut, d_milieu, d_bas, t_live, t_his, t_haut, t_milieu, t_bas = Course_3_RACB.recuperer_donnees_course()
     elif essais_dispo:
         d_liv, d_his, d_haut, d_milieu, d_bas, t_live, t_his, t_haut, t_milieu, t_bas = Essais.recuperer_donnees_course()
@@ -239,18 +239,18 @@ with cd:
         if t_bas:
             st.markdown(f"<span class='titre-classement'>{t_bas}</span>", unsafe_allow_html=True)
             st.markdown(gen_html(d_bas, "table-class-robuste"), unsafe_allow_html=True)
-else:
-    if t_haut:
-        st.markdown(f"<span class='titre-classement'>{t_haut}</span>", unsafe_allow_html=True)
-        st.markdown(gen_html(d_bas, "table-class-robuste"), unsafe_allow_html=True)
-        st.markdown("<div style='height: 55px;'></div>", unsafe_allow_html=True)
-    if t_milieu:
-        st.markdown(f"<span class='titre-classement'>{t_milieu}</span>", unsafe_allow_html=True)
-        st.markdown(gen_html(d_haut, "table-class-robuste"), unsafe_allow_html=True)
-        st.markdown("<div style='height: 55px;'></div>", unsafe_allow_html=True)
-    if t_bas:
-        st.markdown(f"<span class='titre-classement'>{t_bas}</span>", unsafe_allow_html=True)
-        st.markdown(gen_html(d_milieu, "table-class-robuste"), unsafe_allow_html=True)
+    else:
+        if t_haut:
+            st.markdown(f"<span class='titre-classement'>{t_haut}</span>", unsafe_allow_html=True)
+            st.markdown(gen_html(d_bas, "table-class-robuste"), unsafe_allow_html=True)
+            st.markdown("<div style='height: 55px;'></div>", unsafe_allow_html=True)
+        if t_milieu:
+            st.markdown(f"<span class='titre-classement'>{t_milieu}</span>", unsafe_allow_html=True)
+            st.markdown(gen_html(d_haut, "table-class-robuste"), unsafe_allow_html=True)
+            st.markdown("<div style='height: 55px;'></div>", unsafe_allow_html=True)
+        if t_bas:
+            st.markdown(f"<span class='titre-classement'>{t_bas}</span>", unsafe_allow_html=True)
+            st.markdown(gen_html(d_milieu, "table-class-robuste"), unsafe_allow_html=True)
 
 st.markdown("<br><br><br><div style='height:30px;'></div>", unsafe_allow_html=True)
 
