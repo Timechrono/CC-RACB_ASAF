@@ -43,12 +43,35 @@ except ModuleNotFoundError:
 
 st.set_page_config(page_title="Live", layout="wide")
 
-# --- CONCEPTION GRAPHIQUE COMPACTE ET RIGIDE ---
+# --- CONCEPTION GRAPHIQUE GÉOMÉTRIQUE COMPACTE SANS MARGES BLANCHES ---
 st.markdown("""
 <style>
 [data-testid="stHeader"] { display: none !important; }
 button:focus, div:focus, input:focus, select:focus {
     outline: none !important; border-color: transparent !important; box-shadow: none !important;
+}
+
+/* 1. SUPPRESSION DE TOUS LES ESPACES BLANCS TOUT EN HAUT DE LA PAGE APP */
+.block-container { 
+    padding-top: 0.1rem !important; 
+    padding-bottom: 0rem !important; 
+    padding-left: 1rem !important; 
+    padding-right: 1rem !important; 
+}
+div[data-testid="stMainBlockContainer"] {
+    padding-top: 0px !important;
+}
+
+/* 2. FORCE LES BLOCS HORIZONTAUX STREAMLIT A SUPPRIMER LEUR PROPRE MARGE INTERNE */
+div[data-testid="stHorizontalBlock"] {
+    margin-top: 0px !important;
+    margin-bottom: 0px !important;
+    padding-top: 0px !important;
+    padding-bottom: 0px !important;
+}
+div[data-testid="stHorizontalBlock"] > div {
+    padding-top: 0px !important;
+    padding-bottom: 0px !important;
 }
 
 .titre-live, .titre-hist, .titre-classement {
@@ -75,8 +98,20 @@ button:focus, div:focus, input:focus, select:focus {
 .table-live td:last-child, .table-hist td:last-child, .table-class-robuste td:last-child { font-weight: bold !important; font-size: 0.94rem !important; color: #0F172A !important; }
 .table-hist tr:nth-child(odd) td { background-color: #E0F2FE !important; }
 
-/* RECTIFICATION DES MARGES : SUPPRESSION COMPLÈTE DE L'ESPACE IMMENSE DU HAUT */
-.block-container { padding-top: 0.1rem !important; padding-bottom: 0rem !important; }
+/* RECTIFICATION DES LARGEURS DE COLONNES DES TABLEAUX */
+.table-live th:nth-child(1), .table-live td:nth-child(1) { width: 8% !important; }
+.table-live th:nth-child(2), .table-live td:nth-child(2) { width: 26% !important; }
+.table-live th:nth-child(3), .table-live td:nth-child(3) { width: 18% !important; }
+.table-live th:nth-child(4), .table-live td:nth-child(4) { width: 13% !important; }
+.table-live th:nth-child(5), .table-live td:nth-child(5) { width: 13% !important; }
+.table-live th:nth-child(6), .table-live td:nth-child(6) { width: 22% !important; }
+
+.table-class-robuste th:nth-child(1), .table-class-robuste td:nth-child(1) { width: 9% !important; }
+.table-class-robuste th:nth-child(2), .table-class-robuste td:nth-child(2) { width: 11% !important; }
+.table-class-robuste th:nth-child(3), .table-class-robuste td:nth-child(3) { width: 33% !important; }
+.table-class-robuste th:nth-child(4), .table-class-robuste td:nth-child(4) { width: 23% !important; }
+.table-class-robuste th:nth-child(5), .table-class-robuste td:nth-child(5) { width: 6% !important; }
+.table-class-robuste th:nth-child(6), .table-class-robuste td:nth-child(6) { width: 18% !important; text-align: right !important; }
 
 /* LA BARRE ULTRA-STATIQUE EN FLEXBOX HTML PURE */
 .barre-horizontale-cc-unique {
@@ -131,9 +166,11 @@ button:focus, div:focus, input:focus, select:focus {
     font-family: sans-serif !important;
 }
 
-/* RECTIFICATION : INTERLIGNE SERRÉ ET PARFAIT ENTRE MENU ET FEUILLE EN DESSOUS */
+/* 3. RECTIFICATION DU SÉPARATEUR : SERRÉ VISUELLEMENT À SEULEMENT 4 PIXELS */
 .separateur-statique-final {
-    height: 8px !important;
+    height: 4px !important;
+    margin-top: 0px !important;
+    margin-bottom: 0px !important;
     display: block !important;
     clear: both !important;
 }
