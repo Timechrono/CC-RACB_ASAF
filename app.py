@@ -103,22 +103,22 @@ div.stElementContainer {
 .table-live td:last-child, .table-class-robuste td:last-child { font-weight: bold !important; font-size: 0.94rem !important; color: #0F172A !important; }
 .table-hist tr:nth-child(odd) td { background-color: #E0F2FE !important; }
 
-/* --- AJUSTEMENTS SPECIFIQUES POUR SMARTPHONES --- */
+/* --- AJUSTEMENTS ENCORE PLUS PETITS POUR SMARTPHONES --- */
 @media (max-width: 768px) {
     .block-container {
         padding-left: 2px !important;
         padding-right: 2px !important;
     }
     .titre-live, .titre-hist, .titre-classement {
-        font-size: 0.9rem !important;
+        font-size: 0.85rem !important;
         padding: 3px 6px !important;
     }
     .table-compacte th, .table-compacte td { 
-        font-size: 0.72rem !important; /* Écriture plus petite pour mobile */
-        padding: 1px 3px !important;   /* Espaces réduits entre les colonnes */
+        font-size: 0.65rem !important; /* Caractère encore un peu plus petit */
+        padding: 1px 2px !important;   /* Espaces serrés au maximum */
     }
     .table-live td:last-child, .table-class-robuste td:last-child { 
-        font-size: 0.78rem !important; 
+        font-size: 0.70rem !important; 
     }
 }
 </style>
@@ -150,6 +150,18 @@ elif choix_course_url == "c3racb" and course3_racb_disponible:
 else:
     choix_course = "Essais"
 
+# Message conseil pour le mode paysage (s'affiche uniquement sur mobile)
+st.markdown("""
+<div class="mobile-only-info" style="display: none; background-color: #FEF3C7; color: #92400E; padding: 6px; font-size: 0.78rem; text-align: center; font-weight: bold; border-radius: 4px; margin-bottom: 8px; border: 1px solid #FCD34D;">
+    🔄 Conseil : Tournez votre smartphone en mode PAYSAGE pour un confort maximal. Faites glisser le tableau avec le doigt si nécessaire.
+</div>
+<style>
+@media (max-width: 768px) {
+    .mobile-only-info { display: block !important; }
+}
+</style>
+""", unsafe_allow_html=True)
+
 d_liv, d_his, d_haut, d_milieu, d_bas = pd.DataFrame(), pd.DataFrame(), pd.DataFrame(), pd.DataFrame(), pd.DataFrame()
 t_live, t_his, t_haut, t_milieu, t_bas = "Chronométrage", "Historique", "Classement Haut", "Classement Milieu", "Classement Bas"
 
@@ -180,7 +192,7 @@ cg, cd = st.columns([1.3, 0.9])
 with cg:
     st.markdown(f"<span class='titre-live'>{t_live}</span>", unsafe_allow_html=True)
     st.markdown(gen_html(d_liv, "table-live"), unsafe_allow_html=True)
-    st.markdown("<div style='height:20px;'></div>", unsafe_allow_html=True)
+    st.markdown("<div style='height:15px;'></div>", unsafe_allow_html=True)
     if t_his: st.markdown(f"<span class='titre-hist'>{t_his}</span>", unsafe_allow_html=True)
     st.markdown(gen_html(d_his, "table-hist"), unsafe_allow_html=True)
     
@@ -189,11 +201,11 @@ with cd:
         if t_haut:
             st.markdown(f"<span class='titre-classement'>{t_haut}</span>", unsafe_allow_html=True)
             st.markdown(gen_html(d_haut, "table-class-robuste"), unsafe_allow_html=True)
-            st.markdown("<div style='height: 25px;'></div>", unsafe_allow_html=True)
+            st.markdown("<div style='height: 20px;'></div>", unsafe_allow_html=True)
         if t_milieu:
             st.markdown(f"<span class='titre-classement'>{t_milieu}</span>", unsafe_allow_html=True)
             st.markdown(gen_html(d_milieu, "table-class-robuste"), unsafe_allow_html=True)
-            st.markdown("<div style='height: 25px;'></div>", unsafe_allow_html=True)
+            st.markdown("<div style='height: 20px;'></div>", unsafe_allow_html=True)
         if t_bas:
             st.markdown(f"<span class='titre-classement'>{t_bas}</span>", unsafe_allow_html=True)
             st.markdown(gen_html(d_bas, "table-class-robuste"), unsafe_allow_html=True)
@@ -201,16 +213,16 @@ with cd:
         if t_haut:
             st.markdown(f"<span class='titre-classement'>{t_haut}</span>", unsafe_allow_html=True)
             st.markdown(gen_html(d_bas, "table-class-robuste"), unsafe_allow_html=True)
-            st.markdown("<div style='height: 25px;'></div>", unsafe_allow_html=True)
+            st.markdown("<div style='height: 20px;'></div>", unsafe_allow_html=True)
         if t_milieu:
             st.markdown(f"<span class='titre-classement'>{t_milieu}</span>", unsafe_allow_html=True)
             st.markdown(gen_html(d_haut, "table-class-robuste"), unsafe_allow_html=True)
-            st.markdown("<div style='height: 25px;'></div>", unsafe_allow_html=True)
+            st.markdown("<div style='height: 20px;'></div>", unsafe_allow_html=True)
         if t_bas:
             st.markdown(f"<span class='titre-classement'>{t_bas}</span>", unsafe_allow_html=True)
             st.markdown(gen_html(d_milieu, "table-class-robuste"), unsafe_allow_html=True)
 
-st.markdown("<div style='height:30px;'></div>", unsafe_allow_html=True)
+st.markdown("<div style='height:20px;'></div>", unsafe_allow_html=True)
 
 # Rafraîchissement automatique toutes les 30 secondes
 st.markdown("""
