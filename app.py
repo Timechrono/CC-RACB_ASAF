@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 import time
 
-# --- DÉTECTION SIMPLE ET LINÉAIRE DE VOS FICHIERS DE CALCULS ---
+# --- RECHERCHE ET DÉTECTION SÉCURISÉE DES SESSIONS ---
 try:
     import Essais
     essais_dispo = True
@@ -47,7 +47,7 @@ except Exception:
 
 st.set_page_config(page_title="Live", layout="wide")
 
-# --- RESTAURATION DE VOTRE PRÉSENTATION GÉOMÉTRIQUE EXACTE ---
+# --- CONCEPTION GRAPHIQUE GÉOMÉTRIQUE AVEC MASQUAGE DES LIGNES GRISÉES ---
 st.markdown("""
 <style>
 [data-testid="stHeader"] { display: none !important; }
@@ -55,7 +55,15 @@ button:focus, div:focus, input:focus, select:focus {
     outline: none !important; border-color: transparent !important; box-shadow: none !important;
 }
 
-/* 1. CONFIGURATION STRICTE DES HAUTEURS ET BORD SUPÉRIEUR */
+/* 🛑 BLINDAGE CHOC ANTI-LIGNES GRISÉES : MASQUE TOUS LES SQUELETTES DE CHARGEMENT DE STREAMLIT */
+[data-testid="stSkeleton"], .stSkeleton, [class*="skeleton"] {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    height: 0px !important;
+}
+
+/* 1. SUPPRESSION INTÉGRALE DE LA ZONE BLANCHE TOUT EN HAUT */
 .block-container { 
     padding-top: 5px !important; 
     padding-bottom: 0rem !important; 
@@ -71,7 +79,7 @@ div[data-testid="stVerticalBlock"] {
     padding-top: 0px !important;
 }
 
-/* BARRE DE BOUTONS HORIZONTAUX SANS CONFLIT */
+/* BARRE DE BOUTONS HORIZONTAUX EN HTML PUR FLEXBOX */
 .menu-horizontal-cc {
     display: flex !important;
     flex-direction: row !important;
@@ -138,7 +146,7 @@ div.stElementContainer {
 .table-live td:last-child, .table-live td:last-child, .table-class-robuste td:last-child { font-weight: bold !important; font-size: 0.94rem !important; color: #0F172A !important; }
 .table-hist tr:nth-child(odd) td { background-color: #E0F2FE !important; }
 
-/* REPRISE STRICTE DE VOS LARGEURS DE COLONNES */
+/* LARGEURS DES TABLEAUX GAUCHE ET DROITE */
 .table-live th:nth-child(1), .table-live td:nth-child(1) { width: 8% !important; }
 .table-live th:nth-child(2), .table-live td:nth-child(2) { width: 26% !important; }
 .table-live th:nth-child(3), .table-live td:nth-child(3) { width: 18% !important; }
@@ -154,7 +162,7 @@ div.stElementContainer {
 .table-class-robuste th:nth-child(6), .table-class-robuste td:nth-child(6) { width: 18% !important; text-align: right !important; }
 </style>
 """, unsafe_allow_html=True)
-# Initialisation des variables d'état de session et de la mémoire tampon
+# Initialisation de la mémoire tampon locale
 if "active_session" not in st.session_state:
     st.session_state["active_session"] = "Essais"
 if "tampon_tables" not in st.session_state:
@@ -175,7 +183,7 @@ if course2_racb_dispo: options_menu.append("Course 2 RACB")
 if course3_asaf_dispo: options_menu.append("Course 3 ASAF")
 if course3_racb_dispo: options_menu.append("Course 3 RACB")
 
-# Injection unifiée du menu horizontal
+# Rendu de la barre de boutons HTML Flexbox unifiée
 html_menu = "<div class='menu-horizontal-cc'>"
 for nom_session in options_menu:
     classe_actif = "actif" if st.session_state["active_session"] == nom_session else ""
@@ -184,7 +192,7 @@ html_menu += "</div>"
 
 st.markdown(html_menu, unsafe_allow_html=True)
 
-# Détection instantanée du changement de page par URL
+# Interception instantanée du clic par URL
 query_params = st.query_params
 if "session" in query_params:
     session_cliquee = query_params["session"]
@@ -194,18 +202,18 @@ if "session" in query_params:
 
 choix_course = st.session_state["active_session"]
 
-# Zone d'injection figée : empêche Streamlit de créer des espaces blancs ou des shimmers gris
+# Zone d'injection figée
 zone_affichage_verrouillee = st.empty()
 
 # Structures de données temporaires
 d_liv, d_his, d_haut, d_milieu, d_bas = pd.DataFrame(), pd.DataFrame(), pd.DataFrame(), pd.DataFrame(), pd.DataFrame()
 t_live, t_his, t_haut, t_milieu, t_bas = "Live", "Historique", "Classement Haut", "", ""
 
-# ÉTAPE 1 : Restauration immédiate depuis la mémoire tampon locale (TUE l'apparition des lignes grises)
+# Restauration immédiate depuis la mémoire tampon locale
 if choix_course in st.session_state["tampon_tables"]:
     d_liv, d_his, d_haut, d_milieu, d_bas, t_live, t_his, t_haut, t_milieu, t_bas = st.session_state["tampon_tables"][choix_course]
 
-# ÉTAPE 2 : Exécution masquée et asynchrone des calculs en direct
+# Exécution des calculs en direct
 try:
     if choix_course == "Course 1 ASAF" and course1_asaf_dispo:
         res = Course_1_ASAF.recuperer_donnees_course()
@@ -228,9 +236,9 @@ try:
         st.session_state["tampon_tables"][choix_course] = res
         d_liv, d_his, d_haut, d_milieu, d_bas, t_live, t_his, t_haut, t_milieu, t_bas = res
 except Exception as e:
-    t_live = f"⚠️ Données en cours de mise à jour... ({str(e)})"
+    t_live = f"⚠️ Mise à jour en cours... ({str(e)})"
 
-# ÉTAPE 3 : Rendu instantané à l'intérieur de la zone conteneur figée
+# Rendu instantané à l'intérieur de la zone conteneur figée
 with zone_affichage_verrouillee.container():
     st.markdown("<style>.table-hist th:nth-child(1), .table-hist td:nth-child(1) { width: 7% !important; } .table-hist th:nth-child(2), .table-hist td:nth-child(2) { width: 23% !important; } .table-hist th:nth-child(3), .table-hist td:nth-child(3) { width: 22% !important; } .table-hist th:nth-child(4), .table-hist td:nth-child(4) { width: 10% !important; } .table-hist th:nth-child(5), .table-hist td:nth-child(5) { width: 10% !important; } .table-hist th:nth-child(6), .table-hist td:nth-child(6) { width: 14% !important; }</style>", unsafe_allow_html=True)
 
@@ -270,7 +278,7 @@ with zone_affichage_verrouillee.container():
 
 st.markdown("<br><br><br><div style='height:30px;'></div>", unsafe_allow_html=True)
 
-# --- CONFIGURATION SANS PROCESSEUR DU TIMEOUT NAVIGATEUR ---
+# --- CONFIGURATION DU TIMEOUT NAVIGATEUR ---
 st.markdown("""
     <script>
         if (!window.autoRefreshSet) {
