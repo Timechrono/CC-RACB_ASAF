@@ -130,19 +130,6 @@ div.stButton > button {
     line-height: 22px !important;
     white-space: nowrap !important;
 }
-
-/* STYLE TEXTUEL FIXE POUR LE REVERS DROIT */
-.label-statique-cc {
-    font-size: 0.85rem !important;
-    font-weight: bold !important;
-    color: #475569 !important;
-    line-height: 24px !important;
-    white-space: nowrap !important;
-    display: inline-block !important;
-    text-align: right !important;
-    width: 100% !important;
-    margin: 0px !important;
-}
 </style>
 """, unsafe_allow_html=True)
 if "active_session" not in st.session_state:
@@ -150,10 +137,11 @@ if "active_session" not in st.session_state:
 
 def gen_html(df, cl):
     if isinstance(df, str): return df 
-    if df.empty: return f"<table class='table-compacte {cl}'><tr><td style='text-align: center; padding: 10px;'>Aucune donnée disponible</td></tr></table>"
+    if df is None or (isinstance(df, pd.DataFrame) and df.empty): 
+        return f"<table class='table-compacte {cl}'><tr><td style='text-align: center; padding: 10px;'>Aucune donnée disponible</td></tr></table>"
     return df.to_html(index=False, classes=f"table-compacte {cl}", escape=False, border=0)
 
-# Assemblage de la liste finale des boutons du menu horizontal
+# Assemblage de la liste finale des boutons
 colonnes_visibles = ["Essais"]
 if course1_disponible: colonnes_visibles.append("Course 1 ASAF")
 if course1_racb_disponible: colonnes_visibles.append("Course 1 RACB")
@@ -162,50 +150,53 @@ if course2_racb_disponible: colonnes_visibles.append("Course 2 RACB")
 if course3_disponible: colonnes_visibles.append("Course 3 ASAF")
 if course3_racb_disponible: colonnes_visibles.append("Course 3 RACB")
 
-# Répartition des colonnes
 proportions_finales = [1.0] * len(colonnes_visibles) + [2.8]
 cols = st.columns(proportions_finales, vertical_alignment="center")
 
-# Rendu linéaire des boutons rectangulaires stables
+# Rendu des boutons
 for idx, nom_session in enumerate(colonnes_visibles):
     with cols[idx]:
         if st.button(nom_session, key=f"btn_nav_{idx}"):
             st.session_state["active_session"] = nom_session
             st.rerun()
 
-# Rendu du style bleu marqué de manière sécurisée uniquement sur le bouton actif
+# Application du style bleu sur le bouton actif
 for idx, nom_session in enumerate(colonnes_visibles):
     if st.session_state["active_session"] == nom_session:
         st.markdown(f"""<style>div[data-testid="stHorizontalBlock"] > div:nth-child({idx+1}) button {{ background-color: #1E3A8A !important; color: white !important; border-color: #1E3A8A !important; }}</style>""", unsafe_allow_html=True)
 
-# Écriture textuelle fixe et sobre du statut à l'extrémité droite
 with cols[-1]:
-    st.markdown("<p class='compteur-cc-txt'>🔄 Synchro Live 30s</p>", unsafe_allow_html=True)
+    st.markdown("<p style='text-align:right; margin:0; font-size:0.85rem; font-weight:bold; color:#475569; line-height:24px;'>🔄 Synchro Live 30s</p>", unsafe_allow_html=True)
 
 choix_course = st.session_state["active_session"]
-
-# Conteneur d'affichage pur (Éradication des boîtes miroir)
 zone_affichage_pure = st.empty()
 
-# --- FRAGMENT CENTRALISÉ DÉDIÉ UNIQUEMENT AUX CLASSEMENTS (Toutes les 30s) ---
+# --- FRAGMENT CENTRALISÉ AVEC SÉCURITÉ ANTI-BLOCAGE ---
 @st.fragment(run_every=30)
 def rafraichir_uniquement_tableaux():
     terme_recherche = "Essais / Entraînements" if choix_course == "Essais" else choix_course
+    
+    # Valeurs par défaut en cas de plantage du module de données
+    d_liv, d_his, d_haut, d_milieu, d_bas = pd.DataFrame(), pd.DataFrame(), pd.DataFrame(), pd.DataFrame(), pd.DataFrame()
+    t_live, t_his, t_haut, t_milieu, t_bas = "Live", "Historique", "Classement Haut", "", ""
 
-    if terme_recherche == "Course 1 ASAF" and course1_disponible:
-        d_liv, d_his, d_haut, d_milieu, d_bas, t_live, t_his, t_haut, t_milieu, t_bas = Course_1_ASAF.recuperer_donnees_course()
-    elif terme_recherche == "Course 1 RACB" and course1_racb_disponible:
-        d_liv, d_his, d_haut, d_milieu, d_bas, t_live, t_his, t_haut, t_milieu, t_bas = Course_1_RACB.recuperer_donnees_course()
-    elif terme_recherche == "Course 2 ASAF" and course2_disponible:
-        d_liv, d_his, d_haut, d_milieu, d_bas, t_live, t_his, t_haut, t_milieu, t_bas = Course_2_ASAF.recuperer_donnees_course()
-    elif terme_recherche == "Course 2 RACB" and course2_racb_disponible:
-        d_liv, d_his, d_haut, d_milieu, d_bas, t_live, t_his, t_haut, t_milieu, t_bas = Course_2_RACB.recuperer_donnees_course()
-    elif terme_recherche == "Course 3 ASAF" and course3_disponible:
-        d_liv, d_his, d_haut, d_milieu, d_bas, t_live, t_his, t_haut, t_milieu, t_bas = Course_3_ASAF.recuperer_donnees_course()
-    elif terme_recherche == "Course 3 RACB" and course3_racb_disponible:
-        d_liv, d_his, d_haut, d_milieu, d_bas, t_live, t_his, t_haut, t_milieu, t_bas = Course_3_RACB.recuperer_donnees_course()
-    else:
-        d_liv, d_his, d_haut, d_milieu, d_bas, t_live, t_his, t_haut, t_milieu, t_bas = Essais.recuperer_donnees_course()
+    try:
+        if terme_recherche == "Course 1 ASAF" and course1_disponible:
+            d_liv, d_his, d_haut, d_milieu, d_bas, t_live, t_his, t_haut, t_milieu, t_bas = Course_1_ASAF.recuperer_donnees_course()
+        elif terme_recherche == "Course 1 RACB" and course1_racb_disponible:
+            d_liv, d_his, d_haut, d_milieu, d_bas, t_live, t_his, t_haut, t_milieu, t_bas = Course_1_RACB.recuperer_donnees_course()
+        elif terme_recherche == "Course 2 ASAF" and course2_disponible:
+            d_liv, d_his, d_haut, d_milieu, d_bas, t_live, t_his, t_haut, t_milieu, t_bas = Course_2_ASAF.recuperer_donnees_course()
+        elif terme_recherche == "Course 2 RACB" and course2_racb_disponible:
+            d_liv, d_his, d_haut, d_milieu, d_bas, t_live, t_his, t_haut, t_milieu, t_bas = Course_2_RACB.recuperer_donnees_course()
+        elif terme_recherche == "Course 3 ASAF" and course3_disponible:
+            d_liv, d_his, d_haut, d_milieu, d_bas, t_live, t_his, t_haut, t_milieu, t_bas = Course_3_ASAF.recuperer_donnees_course()
+        elif terme_recherche == "Course 3 RACB" and course3_racb_disponible:
+            d_liv, d_his, d_haut, d_milieu, d_bas, t_live, t_his, t_haut, t_milieu, t_bas = Course_3_RACB.recuperer_donnees_course()
+        else:
+            d_liv, d_his, d_haut, d_milieu, d_bas, t_live, t_his, t_haut, t_milieu, t_bas = Essais.recuperer_donnees_course()
+    except Exception as e:
+        t_live = f"⚠️ Erreur de chargement des données ({str(e)})"
 
     with zone_affichage_pure.container():
         st.markdown("<style>.table-hist th:nth-child(1), .table-hist td:nth-child(1) { width: 7% !important; } .table-hist th:nth-child(2), .table-hist td:nth-child(2) { width: 23% !important; } .table-hist th:nth-child(3), .table-hist td:nth-child(3) { width: 22% !important; } .table-hist th:nth-child(4), .table-hist td:nth-child(4) { width: 10% !important; } .table-hist th:nth-child(5), .table-hist td:nth-child(5) { width: 10% !important; } .table-hist th:nth-child(6), .table-hist td:nth-child(6) { width: 14% !important; }</style>", unsafe_allow_html=True)
@@ -233,5 +224,5 @@ def rafraichir_uniquement_tableaux():
             
             st.markdown("<div style='height:70px;'></div>", unsafe_allow_html=True)
 
-# Lancement propre de la fonction fragmentée
+# Lancement sécurisé
 rafraichir_uniquement_tableaux()
