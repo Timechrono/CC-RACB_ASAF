@@ -47,7 +47,7 @@ except Exception:
 
 st.set_page_config(page_title="Live", layout="wide")
 
-# --- CONCEPTION GRAPHIQUE GÉOMÉTRIQUE ANTI-CLIGNOTEMENT ---
+# --- CONCEPTION GRAPHIQUE GÉOMÉTRIQUE SANS AUCUNE MARGE BLANCHE ---
 st.markdown("""
 <style>
 [data-testid="stHeader"] { display: none !important; }
@@ -55,8 +55,8 @@ button:focus, div:focus, input:focus, select:focus {
     outline: none !important; border-color: transparent !important; box-shadow: none !important;
 }
 
-/* 🛑 SÉCURITÉ DE SECOURS ABSOLUE : INTERDIT TOUT RENDER GRIS OU BLANC */
-[data-testid="stSkeleton"], .stSkeleton, [class*="skeleton"], [data-testid="stRefreshSSR"] {
+/* 🛑 DÉSTRUCTION PHYSIQUE DES RECTANGLES DE CHARGEMENT GRIS DANS LE NAVIGATEUR */
+div[data-testid="stSkeleton"], .stSkeleton, [class*="skeleton"], [style*="shimmer"] {
     display: none !important;
     visibility: hidden !important;
     opacity: 0 !important;
@@ -79,7 +79,7 @@ div[data-testid="stVerticalBlock"] {
     padding-top: 0px !important;
 }
 
-/* BARRE DE BOUTONS HORIZONTAUX COMPACTE ET CENTRÉE */
+/* BARRE DE BOUTONS HORIZONTAUX EN HTML PUR FLEXBOX (FIXÉE ET SANS DOUBLON) */
 .menu-horizontal-cc {
     display: flex !important;
     flex-direction: row !important;
@@ -146,7 +146,7 @@ div.stElementContainer {
 .table-live td:last-child, .table-live td:last-child, .table-class-robuste td:last-child { font-weight: bold !important; font-size: 0.94rem !important; color: #0F172A !important; }
 .table-hist tr:nth-child(odd) td { background-color: #E0F2FE !important; }
 
-/* LARGEURS DES TABLEAUX */
+/* LARGEURS DES TABLEAUX GAUCHE ET DROITE */
 .table-live th:nth-child(1), .table-live td:nth-child(1) { width: 8% !important; }
 .table-live th:nth-child(2), .table-live td:nth-child(2) { width: 26% !important; }
 .table-live th:nth-child(3), .table-live td:nth-child(3) { width: 18% !important; }
@@ -160,14 +160,6 @@ div.stElementContainer {
 .table-class-robuste th:nth-child(4), .table-class-robuste td:nth-child(4) { width: 23% !important; }
 .table-class-robuste th:nth-child(5), .table-class-robuste td:nth-child(5) { width: 6% !important; }
 .table-class-robuste th:nth-child(6), .table-class-robuste td:nth-child(6) { width: 18% !important; text-align: right !important; }
-
-/* MASQUAGE DISCRET DU BOUTON SYNC REFRESH EN BAS A GAUCHE */
-div.stButton button[key="btn_refresh_cache"] {
-    display: none !important;
-    opacity: 0 !important;
-    width: 0px !important;
-    height: 0px !important;
-}
 </style>
 """, unsafe_allow_html=True)
 if "active_session" not in st.session_state:
@@ -188,7 +180,7 @@ if course2_racb_dispo: options_menu.append("Course 2 RACB")
 if course3_asaf_dispo: options_menu.append("Course 3 ASAF")
 if course3_racb_dispo: options_menu.append("Course 3 RACB")
 
-# Rendu de la barre de boutons HTML Flexbox unifiée (Marges haut/bas de 10px figées)
+# Rendu de la barre de boutons HTML Flexbox unifiée
 html_menu = "<div class='menu-horizontal-cc'>"
 for nom_session in options_menu:
     classe_actif = "actif" if st.session_state["active_session"] == nom_session else ""
@@ -197,7 +189,7 @@ html_menu += "</div>"
 
 st.markdown(html_menu, unsafe_allow_html=True)
 
-# Interception instantanée du clic de manche par URL
+# Interception instantanée du clic par URL
 query_params = st.query_params
 if "session" in query_params:
     session_cliquee = query_params["session"]
@@ -211,7 +203,7 @@ choix_course = st.session_state["active_session"]
 d_liv, d_his, d_haut, d_milieu, d_bas = pd.DataFrame(), pd.DataFrame(), pd.DataFrame(), pd.DataFrame(), pd.DataFrame()
 t_live, t_his, t_haut, t_milieu, t_bas = "Live", "Historique", "Classement Haut", "", ""
 
-# --- APPEL SÉCURISÉ LINÉAIRE EN DIRECT ---
+# --- CHARGEMENT UNIQUE ET DIRECT DES MODULES SANS COMPOSANT DE CHARGEMENT ---
 try:
     if choix_course == "Course 1 ASAF" and course1_asaf_dispo:
         import Course_1_ASAF
@@ -235,11 +227,11 @@ try:
         import Essais
         d_liv, d_his, d_haut, d_milieu, d_bas, t_live, t_his, t_haut, t_milieu, t_bas = Essais.recuperer_donnees_course()
 except Exception as e:
-    t_live = f"⚠️ Synchronisation réseau en tâche de fond... ({str(e)})"
+    t_live = f"⚠️ Synchronisation avec Dropbox... ({str(e)})"
 
 st.markdown("<style>.table-hist th:nth-child(1), .table-hist td:nth-child(1) { width: 7% !important; } .table-hist th:nth-child(2), .table-hist td:nth-child(2) { width: 23% !important; } .table-hist th:nth-child(3), .table-hist td:nth-child(3) { width: 22% !important; } .table-hist th:nth-child(4), .table-hist td:nth-child(4) { width: 10% !important; } .table-hist th:nth-child(5), .table-hist td:nth-child(5) { width: 10% !important; } .table-hist th:nth-child(6), .table-hist td:nth-child(6) { width: 14% !important; }</style>", unsafe_allow_html=True)
 
-# Affichage géométrique de votre grille originale
+# Rendu géométrique de votre grille originale
 cg, cd = st.columns([1.3, 0.9])
 with cg:
     st.markdown(f"<span class='titre-live'>{t_live}</span>", unsafe_allow_html=True)
@@ -274,23 +266,26 @@ with cd:
             st.markdown(f"<span class='titre-classement'>{t_bas}</span>", unsafe_allow_html=True)
             st.markdown(gen_html(d_milieu, "table-class-robuste"), unsafe_allow_html=True)
 
-st.markdown("<div style='height:30px;'></div>", unsafe_allow_html=True)
+st.markdown("<br><br><br><div style='height:30px;'></div>", unsafe_allow_html=True)
 
-# --- SÉCURISATION DU REFRESH PAR MICRO-CLIC DISCRET (TUE DÉFINITIVEMENT LE FLICKER GRIS) ---
-# Un bouton invisible Streamlit sert de déclencheur de rafraîchissement local
-if st.button("🔄", key="btn_refresh_cache"):
-    st.rerun()
-
-# Le script JavaScript clique sur ce bouton toutes les 30s de manière 100% invisible en tâche de fond. 
-# Comme la page ne se recharge pas à la racine du navigateur, le squelette de chargement gris reste totalement masqué.
+# --- REFRESH INVISIBLE DU COMPOSANT SANS RELANCER LA PAGE ---
+# On utilise un mécanisme JS pur inséré qui va simuler le clic de rafraîchissement Streamlit en arrière-plan.
+# Comme la page principale du navigateur ne subit AUCUN rechargement, le squelette de chargement gris reste invisible.
 st.markdown("""
     <script>
-        if (!window.autoRefreshActive) {
-            window.autoRefreshActive = true;
+        if (!window.customLiveRefresh) {
+            window.customLiveRefresh = true;
             setInterval(function() {
-                // Détecte le bouton de rafraîchissement natif par son attribut de clé Streamlit
-                const targetBtn = window.parent.document.querySelector('button[key="btn_refresh_cache"]');
-                if (targetBtn) { targetBtn.click(); }
+                // Déclenche l'envoi d'un micro-événement de mise à jour à Streamlit sans toucher au DOM principal
+                const buttons = window.parent.document.querySelectorAll('button');
+                for (let btn of buttons) {
+                    if (btn.innerText === "🔄" || btn.getAttribute('help') === "Rafraîchir") {
+                        btn.click();
+                        return;
+                    }
+                }
+                // Si aucun bouton physique n'est trouvé, recharge uniquement l'iframe de données sans toucher aux en-têtes
+                window.parent.postMessage({type: 'streamlit:render'}, '*');
             }, 30000);
         }
     </script>
