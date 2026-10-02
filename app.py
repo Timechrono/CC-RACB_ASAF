@@ -2,9 +2,28 @@ import streamlit as st
 import pandas as pd
 import time
 
+# --- CHARGEMENT SÉCURISÉ DES SESSIONS DE COURSE ---
+def charger_modules_course():
+    modules = {"Essais": None, "C1_ASAF": None, "C2_ASAF": None, "C3_ASAF": None, "C1_RACB": None, "C2_RACB": None, "C3_RACB": None}
+    try: import Essais; modules["Essais"] = Essais
+    except Exception: pass
+    try: import Course_1_ASAF; modules["C1_ASAF"] = Course_1_ASAF
+    except Exception: pass
+    try: import Course_2_ASAF; modules["C2_ASAF"] = Course_2_ASAF
+    except Exception: pass
+    try: import Course_3_ASAF; modules["C3_ASAF"] = Course_3_ASAF
+    except Exception: pass
+    try: import Course_1_RACB; modules["C1_RACB"] = Course_1_RACB
+    except Exception: pass
+    try: import Course_2_RACB; modules["C2_RACB"] = Course_2_RACB
+    except Exception: pass
+    try: import Course_3_RACB; modules["C3_RACB"] = Course_3_RACB
+    except Exception: pass
+    return modules
+
 st.set_page_config(page_title="Live", layout="wide")
 
-# --- CONCEPTION GRAPHIQUE GÉOMÉTRIQUE SANS AUCUNE MARGE BLANCHE ---
+# --- STYLE GRAPHIQUE GÉOMÉTRIQUE SERRÉ ---
 st.markdown("""
 <style>
 [data-testid="stHeader"] { display: none !important; }
@@ -12,7 +31,6 @@ button:focus, div:focus, input:focus, select:focus {
     outline: none !important; border-color: transparent !important; box-shadow: none !important;
 }
 
-/* 1. NETTOYAGE ET REPOSITIONNEMENT EN HAUT DE L'ÉCRAN */
 .block-container { 
     padding-top: 5px !important; 
     padding-bottom: 0rem !important; 
@@ -28,7 +46,7 @@ div[data-testid="stVerticalBlock"] {
     padding-top: 0px !important;
 }
 
-/* CONTENEUR FLEXBOX SUR MESURE POUR ENFERMER ET CENTRER LES BOUTONS SANS ÉTIREMENT */
+/* GRILLE FLEXBOX SERRÉE POUR CENTRER LES BOUTONS */
 div[data-testid="stHorizontalBlock"] {
     display: flex !important;
     justify-content: center !important;
@@ -43,6 +61,36 @@ div[data-testid="stHorizontalBlock"] > div {
     padding: 0px !important;
     margin: 0px !important;
 }
+
+div.stElementContainer {
+    margin-top: 0px !important;
+    margin-bottom: 0px !important;
+    padding-top: 0px !important;
+    padding-bottom: 0px !important;
+}
+
+.titre-live, .titre-hist, .titre-classement {
+    width: 100% !important; display: block !important; clear: both !important;
+    color: #FFFFFF !important; font-size: 1.05rem !important; font-weight: bold !important;
+    padding: 4px 8px !important; border-radius: 3px !important; margin-bottom: 6px !important;
+}
+.titre-live { background-color: #15803D !important; }
+.titre-hist { background-color: #475569 !important; }
+.titre-classement { background-color: #1E3A8A !important; }
+
+.table-compacte {
+    width: 100% !important; margin-bottom: 0px !important;
+    border-collapse: collapse !important; table-layout: fixed !important;
+}
+.table-compacte tr { height: 18px !important; }
+.table-compacte th, .table-compacte td { 
+    height: 18px !important; padding: 1px 5px !important; line-height: 1.1 !important; 
+    font-size: 0.85rem !important; color: #000000 !important; vertical-align: middle !important; 
+    overflow: hidden !important; text-overflow: ellipsis !important; white-space: nowrap !important; 
+}
+.table-compacte td { border-bottom: 1px solid #E0E0E0 !important; background-color: #FFFFFF !important; }
+.table-compacte th { font-weight: bold !important; background-color: #F5F5F5 !important; border-bottom: 2px solid #CCCCCC !important; text-align: left !important; }
+.table-hist tr:nth-child(odd) td { background-color: #E0F2FE !important; }
 
 div.stButton > button {
     width: 130px !important;
@@ -61,12 +109,27 @@ div.stButton > button {
 }
 </style>
 """, unsafe_allow_html=True)
+mods = charger_modules_course()
+
 if "active_session" not in st.session_state:
     st.session_state["active_session"] = "Essais"
 
-# On force une liste fixe de boutons pour le test
-colonnes_visibles = ["Essais", "Course 1 ASAF", "Course 1 RACB"]
+def gen_html(df, cl):
+    if isinstance(df, str): return df 
+    if df is None or (isinstance(df, pd.DataFrame) and df.empty): 
+        return f"<table class='table-compacte {cl}'><tr><td style='text-align: center; padding: 10px;'>Aucune donnée disponible</td></tr></table>"
+    return df.to_html(index=False, classes=f"table-compacte {cl}", escape=False, border=0)
 
+# Assemblage dynamique des boutons selon ce qui est disponible
+colonnes_visibles = ["Essais"]
+if mods["C1_ASAF"]: colonnes_visibles.append("Course 1 ASAF")
+if mods["C1_RACB"]: colonnes_visibles.append("Course 1 RACB")
+if mods["C2_ASAF"]: colonnes_visibles.append("Course 2 ASAF")
+if mods["C2_RACB"]: colonnes_visibles.append("Course 2 RACB")
+if mods["C3_ASAF"]: colonnes_visibles.append("Course 3 ASAF")
+if mods["C3_RACB"]: colonnes_visibles.append("Course 3 RACB")
+
+# Marge haute exacte (10px)
 st.markdown("<div style='height: 10px;'></div>", unsafe_allow_html=True)
 
 cols = st.columns([1.0] * len(colonnes_visibles))
@@ -80,10 +143,59 @@ for idx, nom_session in enumerate(colonnes_visibles):
     if st.session_state["active_session"] == nom_session:
         st.markdown(f"""<style>div[data-testid="stHorizontalBlock"] > div:nth-child({idx+1}) button {{ background-color: #1E3A8A !important; color: white !important; border-color: #1E3A8A !important; }}</style>""", unsafe_allow_html=True)
 
+# Marge basse strictement symétrique (10px)
 st.markdown("<div style='height: 10px; clear: both;'></div>", unsafe_allow_html=True)
 
 choix_course = st.session_state["active_session"]
+zone_affichage_pure = st.empty()
 
-# Affichage d'un texte simple à la place des tableaux pour valider le fonctionnement
-st.write(f"### Menu actif détecté : {choix_course}")
-st.info("Si ce message et le menu s'affichent instantanément, c'est que le problème vient à 100% du contenu du fichier Essais.py.")
+# --- FRAGMENT CENTRALISÉ TOUTES LES 30S ---
+@st.fragment(run_every=30)
+def rafraichir_uniquement_tableaux():
+    d_liv, d_his, d_haut, d_milieu, d_bas = pd.DataFrame(), pd.DataFrame(), pd.DataFrame(), pd.DataFrame(), pd.DataFrame()
+    t_live, t_his, t_haut, t_milieu, t_bas = "Live", "Historique", "Classement", "", ""
+    
+    # Sélection du bon module de données
+    m = mods["Essais"]
+    if choix_course == "Course 1 ASAF": m = mods["C1_ASAF"]
+    elif choix_course == "Course 1 RACB": m = mods["C1_RACB"]
+    elif choix_course == "Course 2 ASAF": m = mods["C2_ASAF"]
+    elif choix_course == "Course 2 RACB": m = mods["C2_RACB"]
+    elif choix_course == "Course 3 ASAF": m = mods["C3_ASAF"]
+    elif choix_course == "Course 3 RACB": m = mods["C3_RACB"]
+
+    if m and hasattr(m, 'recuperer_donnees_course'):
+        try:
+            # Capture et dépaquetage propre des données retournées
+            res = m.recuperer_donnees_course()
+            if res and len(res) == 10:
+                d_liv, d_his, d_haut, d_milieu, d_bas, t_live, t_his, t_haut, t_milieu, t_bas = res
+        except Exception:
+            t_live = "⚠️ Données en cours de synchronisation..."
+
+    with zone_affichage_pure.container():
+        st.markdown("<style>.table-hist th:nth-child(1), .table-hist td:nth-child(1) { width: 7% !important; } .table-hist th:nth-child(2), .table-hist td:nth-child(2) { width: 23% !important; } .table-hist th:nth-child(3), .table-hist td:nth-child(3) { width: 22% !important; } .table-hist th:nth-child(4), .table-hist td:nth-child(4) { width: 10% !important; } .table-hist th:nth-child(5), .table-hist td:nth-child(5) { width: 10% !important; } .table-hist th:nth-child(6), .table-hist td:nth-child(6) { width: 14% !important; }</style>", unsafe_allow_html=True)
+
+        cg, cd = st.columns([1.3, 0.9])
+        with cg:
+            if t_live: st.markdown(f"<span class='titre-live'>{t_live}</span>", unsafe_allow_html=True)
+            st.markdown(gen_html(d_liv, "table-live"), unsafe_allow_html=True)
+            st.markdown("<div style='height:35px;'></div>", unsafe_allow_html=True)
+            if t_his: st.markdown(f"<span class='titre-hist'>{t_his}</span>", unsafe_allow_html=True)
+            st.markdown(gen_html(d_his, "table-hist"), unsafe_allow_html=True)
+            
+        with cd:
+            if t_haut:
+                st.markdown(f"<span class='titre-classement'>{t_haut}</span>", unsafe_allow_html=True)
+                st.markdown(gen_html(d_haut, "table-class-robuste"), unsafe_allow_html=True)
+            if t_milieu and not (isinstance(d_milieu, pd.DataFrame) and d_milieu.empty):
+                st.markdown("<div style='height: 40px;'></div>", unsafe_allow_html=True)
+                st.markdown(f"<span class='titre-classement'>{t_milieu}</span>", unsafe_allow_html=True)
+                st.markdown(gen_html(d_milieu, "table-class-robuste"), unsafe_allow_html=True)
+            if t_bas and not (isinstance(d_bas, pd.DataFrame) and d_bas.empty):
+                st.markdown("<div style='height: 40px;'></div>", unsafe_allow_html=True)
+                st.markdown(f"<span class='titre-classement'>{t_bas}</span>", unsafe_allow_html=True)
+                st.markdown(gen_html(d_bas, "table-class-robuste"), unsafe_allow_html=True)
+            st.markdown("<div style='height:70px;'></div>", unsafe_allow_html=True)
+
+rafraichir_uniquement_tableaux()
