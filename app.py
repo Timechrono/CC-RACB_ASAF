@@ -96,7 +96,7 @@ div[data-testid="stVerticalBlock"] > div:nth-child(2) {
 .table-live td:last-child, .table-hist td:last-child, .table-class-robuste td:last-child { font-weight: bold !important; font-size: 0.94rem !important; color: #0F172A !important; }
 .table-hist tr:nth-child(odd) td { background-color: #E0F2FE !important; }
 
-/* LARGEURS DES TABLEAUX */
+/* LARGEURS DES TABLEAUX GAUCHE ET DROITE */
 .table-live th:nth-child(1), .table-live td:nth-child(1) { width: 8% !important; }
 .table-live th:nth-child(2), .table-live td:nth-child(2) { width: 26% !important; }
 .table-live th:nth-child(3), .table-live td:nth-child(3) { width: 18% !important; }
@@ -160,7 +160,7 @@ div[data-testid="stVerticalBlock"] > div:nth-child(2) {
     line-height: 24px !important;
     white-space: nowrap !important;
     font-family: sans-serif !important;
-    margin-left: auto !important; /* Force le compteur en fin de ligne à droite */
+    margin-left: auto !important;
     display: inline-block !important;
 }
 
@@ -171,6 +171,7 @@ div[data-testid="stVerticalBlock"] > div:nth-child(2) {
 }
 </style>
 """, unsafe_allow_html=True)
+# Gestion saine de l'onglet actif via l'URL pour tuer tout effet de clignotement vertical
 if "session" not in st.query_params:
     st.query_params["session"] = "Essais"
 choix_course = st.query_params["session"]
@@ -180,6 +181,7 @@ def gen_html(df, cl):
     if df.empty: return f"<table class='table-compacte {cl}'><tr><td style='text-align: center; padding: 10px;'>Aucune donnée disponible</td></tr></table>"
     return df.to_html(index=False, classes=f"table-compacte {cl}", escape=False, border=0)
 
+# Assemblage de la liste sécurisée des onglets horizontaux (Essais affiché en premier)
 onglets_CC = [("Essais", "Essais")]
 if course1_disponible: onglets_CC.append(("Course 1 ASAF", "Course 1 ASAF"))
 if course1_racb_disponible: onglets_CC.append(("Course 1 RACB", "Course 1 RACB"))
@@ -188,10 +190,10 @@ if course2_racb_disponible: onglets_CC.append(("Course 2 RACB", "Course 2 RACB")
 if course3_disponible: onglets_CC.append(("Course 3 ASAF", "Course 3 ASAF"))
 if course3_racb_disponible: onglets_CC.append(("Course 3 RACB", "Course 3 RACB"))
 
-# --- ZONE D'INJECTION UNIQUE EN LIGNE (SUPPRIME DÉFINITIVEMENT LE TROU DES COLONNES) ---
+# Conteneur d'affichage unique pour la barre supérieure (Supprime le trou des colonnes Streamlit)
 zone_menu_et_chrono = st.empty()
 
-# Zones de rendu propres pour les classements
+# Zones de rendu propres pour les classements (Anti-miroir grisé)
 zone_affichage_pure = st.empty()
 
 # --- FRAGMENT CENTRALISÉ DÉDIÉ UNIQUEMENT AUX CLASSEMENTS (Toutes les 30s) ---
@@ -240,19 +242,19 @@ def rafraichir_uniquement_tableaux():
                 st.markdown(f"<span class='titre-classement'>{t_bas}</span>", unsafe_allow_html=True)
                 st.markdown(gen_html(d_bas, "table-class-robuste"), unsafe_allow_html=True)
             
-            # Les lignes blanches de fin de fichier se placent proprement ICI tout en bas
+            # Lignes blanches réglementaires injectées tout en bas de l'écran de droite
             st.markdown("<div style='height:70px;'></div>", unsafe_allow_html=True)
 
-# --- MINI-FRAGMENT TECHNIQUE DÉDIÉ EXCLUSIVEMENT AU MENU + CHRONO COMPTEUR ---
+# --- MINI-FRAGMENT TECHNIQUE DÉDIÉ EXCLUSIVEMENT AU COMPTEUR DES SECONDES (Toutes les 1s) ---
 @st.fragment(run_every=1)
-def gerer_barre_superieure_fluide():
+def faire_tourner_le_compteur():
     if "chrono_sec" not in st.session_state:
         st.session_state["chrono_sec"] = 30
     st.session_state["chrono_sec"] -= 1
     if st.session_state["chrono_sec"] <= 0:
         st.session_state["chrono_sec"] = 30
     
-    # Rendu brut consolidé dans l'enveloppe sans colonnes intermédiaires
+    # Rendu propre ré-injecté dynamiquement
     html_unifie = '<div class="barre-horizontale-cc-unique">'
     for libelle, code_id in onglets_CC:
         classe_active = "actif" if choix_course == code_id else ""
@@ -262,6 +264,6 @@ def gerer_barre_superieure_fluide():
     
     zone_menu_et_chrono.markdown(html_unifie, unsafe_allow_html=True)
 
-# Lancement simultané des deux processus étanches
+# Lancement coordonné des processus étanches
 rafraichir_uniquement_tableaux()
-gerer_barre_superieure_fluide()
+faire_tourner_le_compteur()
