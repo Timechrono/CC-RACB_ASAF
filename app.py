@@ -44,7 +44,7 @@ except ModuleNotFoundError:
 
 st.set_page_config(page_title="Live", layout="wide")
 
-# --- CONCEPTION GRAPHIQUE GÉOMÉTRIQUE SANS AUCUNE MARGE BLANCHE ---
+# --- CONCEPTION GRAPHIQUE GÉOMÉTRIQUE OPTIMISÉE POUR ORDINATEUR & MOBILE ---
 st.markdown("""
 <style>
 [data-testid="stHeader"] { display: none !important; }
@@ -54,8 +54,8 @@ button:focus, div:focus, input:focus, select:focus {
 .block-container { 
     padding-top: 5px !important; 
     padding-bottom: 0rem !important; 
-    padding-left: 1rem !important; 
-    padding-right: 1rem !important; 
+    padding-left: 0.5rem !important; 
+    padding-right: 0.5rem !important; 
 }
 div[data-testid="stMainBlockContainer"] {
     padding-top: 5px !important;
@@ -80,35 +80,61 @@ div.stElementContainer {
 .titre-hist { background-color: #475569 !important; }
 .titre-classement { background-color: #1E3A8A !important; }
 
+/* Conteneur pour forcer le glissement horizontal sur mobile */
+.table-responsive-container {
+    width: 100% !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    margin-bottom: 10px !important;
+}
+
 .table-compacte {
     width: 100% !important; margin-bottom: 0px !important;
-    border-collapse: collapse !important; table-layout: fixed !important;
+    border-collapse: collapse !important; table-layout: auto !important;
 }
 .table-compacte tr { height: 18px !important; }
 .table-compacte th, .table-compacte td { 
     height: 18px !important; padding: 1px 5px !important; line-height: 1.1 !important; 
     font-size: 0.85rem !important; color: #000000 !important; vertical-align: middle !important; 
-    overflow: hidden !important; text-overflow: ellipsis !important; white-space: nowrap !important; 
+    white-space: nowrap !important; 
 }
 .table-compacte td { border-bottom: 1px solid #E0E0E0 !important; background-color: #FFFFFF !important; }
 .table-compacte th { font-weight: bold !important; background-color: #F5F5F5 !important; border-bottom: 2px solid #CCCCCC !important; text-align: left !important; }
 .table-live td:last-child, .table-class-robuste td:last-child { font-weight: bold !important; font-size: 0.94rem !important; color: #0F172A !important; }
 .table-hist tr:nth-child(odd) td { background-color: #E0F2FE !important; }
+
+/* --- AJUSTEMENTS SPECIFIQUES POUR SMARTPHONES --- */
+@media (max-width: 768px) {
+    .block-container {
+        padding-left: 2px !important;
+        padding-right: 2px !important;
+    }
+    .titre-live, .titre-hist, .titre-classement {
+        font-size: 0.9rem !important;
+        padding: 3px 6px !important;
+    }
+    .table-compacte th, .table-compacte td { 
+        font-size: 0.72rem !important; /* Écriture plus petite pour mobile */
+        padding: 1px 3px !important;   /* Espaces réduits entre les colonnes */
+    }
+    .table-live td:last-child, .table-class-robuste td:last-child { 
+        font-size: 0.78rem !important; 
+    }
+}
 </style>
 """, unsafe_allow_html=True)
 
 def gen_html(df, cl):
     if isinstance(df, str): return df 
     if df is None or (isinstance(df, pd.DataFrame) and df.empty): 
-        return f"<table class='table-compacte {cl}'><tr><td style='text-align: center; padding: 10px;'>Données indisponibles (Vérifiez Dropbox)</td></tr></table>"
-    return df.to_html(index=False, classes=f"table-compacte {cl}", escape=False, border=0)
-
-# --- LECTURE DU CHOIX DE LA COURSE DEPUIS L'URL (GÉRÉ PAR VOTRE SITE WEB) ---
-# Si aucun paramètre n'est fourni, on charge "Essais" par défaut
+        return f"<div class='table-responsive-container'><table class='table-compacte {cl}'><tr><td style='text-align: center; padding: 10px;'>Données indisponibles (Vérifiez Dropbox)</td></tr></table></div>"
+    
+    html_table = df.to_html(index=False, classes=f"table-compacte {cl}", escape=False, border=0)
+    return f"<div class='table-responsive-container'>{html_table}</div>"
+# --- LECTURE DU CHOIX DE LA COURSE DEPUIS L'URL ---
 query_params = st.query_params
 choix_course_url = query_params.get("course", "essais").lower()
 
-# Traduction du paramètre URL vers le nom attendu par vos scripts de données
 if choix_course_url == "c1asaf" and course1_disponible:
     choix_course = "Course 1 ASAF"
 elif choix_course_url == "c1racb" and course1_racb_disponible:
@@ -124,11 +150,9 @@ elif choix_course_url == "c3racb" and course3_racb_disponible:
 else:
     choix_course = "Essais"
 
-# Structures vides par défaut pour parer au blocage
 d_liv, d_his, d_haut, d_milieu, d_bas = pd.DataFrame(), pd.DataFrame(), pd.DataFrame(), pd.DataFrame(), pd.DataFrame()
 t_live, t_his, t_haut, t_milieu, t_bas = "Chronométrage", "Historique", "Classement Haut", "Classement Milieu", "Classement Bas"
 
-# --- BLINDAGE ABSOLU DU CHARGEMENT AVEC TIMEOUT COURT ---
 try:
     from concurrent.futures import ThreadPoolExecutor
 
@@ -149,14 +173,14 @@ try:
 except Exception as e:
     t_live = "⚠️ Liaison Dropbox ralentie ou instable — Tentative de reconnexon en cours..."
 
-# --- RENDU DE VOTRE PRÉSENTATION EXACTE ---
-st.markdown("<style>.table-hist th:nth-child(1), .table-hist td:nth-child(1) { width: 7% !important; } .table-hist th:nth-child(2), .table-hist td:nth-child(2) { width: 23% !important; } .table-hist th:nth-child(3), .table-hist td:nth-child(3) { width: 22% !important; } .table-hist th:nth-child(4), .table-hist td:nth-child(4) { width: 10% !important; } .table-hist th:nth-child(5), .table-hist td:nth-child(5) { width: 10% !important; } .table-hist th:nth-child(6), .table-hist td:nth-child(6) { width: 14% !important; }</style>", unsafe_allow_html=True)
+# Ajustement grand écran (ignoré sur mobile)
+st.markdown("<style>@media (min-width: 769px) { .table-hist th:nth-child(1), .table-hist td:nth-child(1) { width: 7% !important; } .table-hist th:nth-child(2), .table-hist td:nth-child(2) { width: 23% !important; } .table-hist th:nth-child(3), .table-hist td:nth-child(3) { width: 22% !important; } .table-hist th:nth-child(4), .table-hist td:nth-child(4) { width: 10% !important; } .table-hist th:nth-child(5), .table-hist td:nth-child(5) { width: 10% !important; } .table-hist th:nth-child(6), .table-hist td:nth-child(6) { width: 14% !important; } }</style>", unsafe_allow_html=True)
 
 cg, cd = st.columns([1.3, 0.9])
 with cg:
     st.markdown(f"<span class='titre-live'>{t_live}</span>", unsafe_allow_html=True)
     st.markdown(gen_html(d_liv, "table-live"), unsafe_allow_html=True)
-    st.markdown("<div style='height:35px;'></div>", unsafe_allow_html=True)
+    st.markdown("<div style='height:20px;'></div>", unsafe_allow_html=True)
     if t_his: st.markdown(f"<span class='titre-hist'>{t_his}</span>", unsafe_allow_html=True)
     st.markdown(gen_html(d_his, "table-hist"), unsafe_allow_html=True)
     
@@ -165,11 +189,11 @@ with cd:
         if t_haut:
             st.markdown(f"<span class='titre-classement'>{t_haut}</span>", unsafe_allow_html=True)
             st.markdown(gen_html(d_haut, "table-class-robuste"), unsafe_allow_html=True)
-            st.markdown("<div style='height: 55px;'></div>", unsafe_allow_html=True)
+            st.markdown("<div style='height: 25px;'></div>", unsafe_allow_html=True)
         if t_milieu:
             st.markdown(f"<span class='titre-classement'>{t_milieu}</span>", unsafe_allow_html=True)
             st.markdown(gen_html(d_milieu, "table-class-robuste"), unsafe_allow_html=True)
-            st.markdown("<div style='height: 55px;'></div>", unsafe_allow_html=True)
+            st.markdown("<div style='height: 25px;'></div>", unsafe_allow_html=True)
         if t_bas:
             st.markdown(f"<span class='titre-classement'>{t_bas}</span>", unsafe_allow_html=True)
             st.markdown(gen_html(d_bas, "table-class-robuste"), unsafe_allow_html=True)
@@ -177,18 +201,18 @@ with cd:
         if t_haut:
             st.markdown(f"<span class='titre-classement'>{t_haut}</span>", unsafe_allow_html=True)
             st.markdown(gen_html(d_bas, "table-class-robuste"), unsafe_allow_html=True)
-            st.markdown("<div style='height: 55px;'></div>", unsafe_allow_html=True)
+            st.markdown("<div style='height: 25px;'></div>", unsafe_allow_html=True)
         if t_milieu:
             st.markdown(f"<span class='titre-classement'>{t_milieu}</span>", unsafe_allow_html=True)
             st.markdown(gen_html(d_haut, "table-class-robuste"), unsafe_allow_html=True)
-            st.markdown("<div style='height: 55px;'></div>", unsafe_allow_html=True)
+            st.markdown("<div style='height: 25px;'></div>", unsafe_allow_html=True)
         if t_bas:
             st.markdown(f"<span class='titre-classement'>{t_bas}</span>", unsafe_allow_html=True)
             st.markdown(gen_html(d_milieu, "table-class-robuste"), unsafe_allow_html=True)
 
 st.markdown("<div style='height:30px;'></div>", unsafe_allow_html=True)
 
-# Rafraîchissement asynchrone nettoyé (Zéro bug de duplication d'iframe)
+# Rafraîchissement automatique toutes les 30 secondes
 st.markdown("""
     <script>
         if (!window.autoRefreshSet) {
