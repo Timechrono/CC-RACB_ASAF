@@ -2,7 +2,13 @@ import streamlit as st
 import pandas as pd
 import time
 
-# --- CHARGEMENT UNIQUE ET PARAMÉTRÉ DES FICHIERS ---
+# --- RECHERCHE ET DETECTION SECURISEE DES SESSIONS SANS APPEL ---
+try:
+    import Essais
+    essais_dispo = True
+except Exception:
+    essais_dispo = False
+
 try:
     import Course_1_ASAF
     course1_asaf_dispo = True
@@ -148,7 +154,7 @@ div.stElementContainer {
 .table-class-robuste th:nth-child(6), .table-class-robuste td:nth-child(6) { width: 18% !important; text-align: right !important; }
 </style>
 """, unsafe_allow_html=True)
-# Initialisation de la mémoire tampon locale (ZÉRO utilisation du cache Streamlit défectueux)
+# Initialisation de la mémoire tampon locale
 if "active_session" not in st.session_state:
     st.session_state["active_session"] = "Essais"
 if "sauvegarde_loc_donnees" not in st.session_state:
@@ -160,7 +166,7 @@ def gen_html(df, cl):
         return f"<table class='table-compacte {cl}'><tr><td style='text-align: center; padding: 10px;'>Aucune donnée disponible</td></tr></table>"
     return df.to_html(index=False, classes=f"table-compacte {cl}", escape=False, border=0)
 
-# Assemblage des boutons horizontaux
+# Assemblage strict et vérifié des boutons horizontaux disponibles
 options_menu = ["Essais"]
 if course1_asaf_dispo: options_menu.append("Course 1 ASAF")
 if course1_racb_dispo: options_menu.append("Course 1 RACB")
@@ -169,7 +175,7 @@ if course2_racb_dispo: options_menu.append("Course 2 RACB")
 if course3_asaf_dispo: options_menu.append("Course 3 ASAF")
 if course3_racb_dispo: options_menu.append("Course 3 RACB")
 
-# Injection du menu horizontal indivisible
+# Rendu de la barre de boutons HTML (Aucun risque de duplication ou de menu vertical)
 html_menu = "<div class='menu-horizontal-cc'>"
 for nom_session in options_menu:
     classe_actif = "actif" if st.session_state["active_session"] == nom_session else ""
@@ -178,7 +184,7 @@ html_menu += "</div>"
 
 st.markdown(html_menu, unsafe_allow_html=True)
 
-# Interception immédiate du clic par URL
+# Interception du clic URL
 query_params = st.query_params
 if "session" in query_params:
     session_cliquee = query_params["session"]
@@ -192,11 +198,11 @@ choix_course = st.session_state["active_session"]
 d_liv, d_his, d_haut, d_milieu, d_bas = pd.DataFrame(), pd.DataFrame(), pd.DataFrame(), pd.DataFrame(), pd.DataFrame()
 t_live, t_his, t_haut, t_milieu, t_bas = "Live", "Historique", "Classement Haut", "", ""
 
-# Restauration immédiate depuis la mémoire tampon si elle existe déjà (évite l'écran blanc/gris)
+# Restauration immédiate depuis la mémoire tampon interne au navigateur pour détruire l'écran blanc
 if choix_course in st.session_state["sauvegarde_loc_donnees"]:
     d_liv, d_his, d_haut, d_milieu, d_bas, t_live, t_his, t_haut, t_milieu, t_bas = st.session_state["sauvegarde_loc_donnees"][choix_course]
 
-# --- APPEL DIRECT BLINDÉ EN TEMPS : SÉCURITÉ TIMEOUT MAX 2 SECONDES ---
+# --- SÉCURITÉ TIMEOUT INTÉGRALE : DROPBOX LENT INTERDIT DE COMPROMETTRE LA PAGE ---
 try:
     from concurrent.futures import ThreadPoolExecutor
 
@@ -204,7 +210,7 @@ try:
         if choix_course == "Course 1 ASAF" and course1_asaf_dispo:
             import Course_1_ASAF
             return Course_1_ASAF.recuperer_donnees_course()
-        elif choix_course == "Course 1 RACB" and course1_racb_disp:
+        elif choix_course == "Course 1 RACB" and course1_racb_dispo:
             import Course_1_RACB
             return Course_1_RACB.recuperer_donnees_course()
         elif choix_course == "Course 2 ASAF" and course2_asaf_dispo:
@@ -216,27 +222,26 @@ try:
         elif choix_course == "Course 3 ASAF" and course3_asaf_dispo:
             import Course_3_ASAF
             return Course_3_ASAF.recuperer_donnees_course()
-        elif choix_course == "Course 3 RACB" and course3_racb_disp:
+        elif choix_course == "Course 3 RACB" and course3_racb_dispo:
             import Course_3_RACB
             return Course_3_RACB.recuperer_donnees_course()
-        else:
+        elif essais_dispo:
             import Essais
             return Essais.recuperer_donnees_course()
+        return None
 
-    # Si le script de calcul met plus de 2 secondes (Dropbox lent), on coupe l'attente pour afficher la page de suite
     with ThreadPoolExecutor(max_workers=1) as executor:
         future = executor.submit(recuperer_sans_bloquer)
-        res = future.result(timeout=2.0)
+        res = future.result(timeout=2.0) # Coupe l'attente au bout de 2s max pour détruire le rond
         if res and len(res) == 10:
             st.session_state["sauvegarde_loc_donnees"][choix_course] = res
             d_liv, d_his, d_haut, d_milieu, d_bas, t_live, t_his, t_haut, t_milieu, t_bas = res
 except Exception:
-    # Maintient l'affichage des anciennes données si Dropbox sature
     pass
 
 st.markdown("<style>.table-hist th:nth-child(1), .table-hist td:nth-child(1) { width: 7% !important; } .table-hist th:nth-child(2), .table-hist td:nth-child(2) { width: 23% !important; } .table-hist th:nth-child(3), .table-hist td:nth-child(3) { width: 22% !important; } .table-hist th:nth-child(4), .table-hist td:nth-child(4) { width: 10% !important; } .table-hist th:nth-child(5), .table-hist td:nth-child(5) { width: 10% !important; } .table-hist th:nth-child(6), .table-hist td:nth-child(6) { width: 14% !important; }</style>", unsafe_allow_html=True)
 
-# Rendu de votre grille d'origine exacte
+# Rendu géométrique de votre grille originale
 cg, cd = st.columns([1.3, 0.9])
 with cg:
     st.markdown(f"<span class='titre-live'>{t_live}</span>", unsafe_allow_html=True)
@@ -246,7 +251,7 @@ with cg:
     st.markdown(gen_html(d_his, "table-hist"), unsafe_allow_html=True)
     
 with cd:
-    if choix_course != "Essais":
+    if choix_course not in ["Essais / Entraînements", "Essais"]:
         if t_haut:
             st.markdown(f"<span class='titre-classement'>{t_haut}</span>", unsafe_allow_html=True)
             st.markdown(gen_html(d_haut, "table-class-robuste"), unsafe_allow_html=True)
@@ -273,7 +278,7 @@ with cd:
 
 st.markdown("<br><br><br><div style='height:30px;'></div>", unsafe_allow_html=True)
 
-# --- AUTOMATIQUE REFRESH NAVIGATEUR PUR SANS TOUCHER AU PROCESSEUR STREAMLIT ---
+# --- AUTOMATIQUE REFRESH NAVIGATEUR PUR ---
 st.markdown("""
     <script>
         if (!window.autoRefreshSet) {
