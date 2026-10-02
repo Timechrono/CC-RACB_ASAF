@@ -43,7 +43,7 @@ except ModuleNotFoundError:
 
 st.set_page_config(page_title="Live", layout="wide")
 
-# --- CONCEPTION GRAPHIQUE ANTI-CHEVAUCHEMENT ---
+# --- CONCEPTION GRAPHIQUE RIGIDE ET BLOCAGE DU RECOUVREMENT ---
 st.markdown("""
 <style>
 [data-testid="stHeader"] { display: none !important; }
@@ -51,7 +51,7 @@ button:focus, div:focus, input:focus, select:focus {
     outline: none !important; border-color: transparent !important; box-shadow: none !important;
 }
 
-/* 1. NETTOYAGE DE L'ESPACE BLANC TOUT EN HAUT DE LA PAGE */
+/* 1. NETTOYAGE DES MARGES BLANCHES DE LA PAGE GLOBAL */
 .block-container { 
     padding-top: 0px !important; 
     padding-bottom: 0rem !important; 
@@ -61,24 +61,19 @@ button:focus, div:focus, input:focus, select:focus {
 div[data-testid="stMainBlockContainer"] {
     padding-top: 0px !important;
 }
-div[data-testid="stVerticalBlock"] {
-    gap: 0rem !important;
-    padding-top: 0px !important;
-}
 
-/* 2. RECTIFICATION DU BLOC DE COLONNES DU MENU : LARGEUR FIXE ET PROPRE */
+/* 2. VERROUILLAGE DE LA BARRE DU HAUT : ELLE DEVIENT IMMUABLE */
 div[data-testid="stHorizontalBlock"] {
     margin-top: 0px !important;
     margin-bottom: 0px !important;
     padding-top: 0px !important;
     padding-bottom: 0px !important;
-    height: 36px !important; /* CRITIQUE : Crée une hauteur de sécurité pour que rien ne se chevauche */
+    height: 28px !important;
 }
-div[data-testid="stHorizontalBlock"] > div, .stColumn {
-    padding-top: 0px !important;
-    padding-bottom: 0px !important;
-    margin-top: 0px !important;
-    margin-bottom: 0px !important;
+
+/* 3. BARRIÈRE CHIRURGICALE ANTI-CHEVAUCHEMENT : FORCE LA FEUILLE À DESCENDRE DE 16 PIXELS */
+div[data-testid="stVerticalBlock"] > div:nth-child(2) {
+    margin-top: 16px !important; /* Crée l'espace physique obligatoire sous le menu */
 }
 
 .titre-live, .titre-hist, .titre-classement {
@@ -173,9 +168,8 @@ div[data-testid="stHorizontalBlock"] > div, .stColumn {
     margin: 0px !important;
 }
 
-/* 3. COUSSIN GEOMETRIQUE DE PROTECTION : Empeche physiquement la feuille de remonter */
 .separateur-statique-final {
-    height: 12px !important;
+    height: 2px !important;
     display: block !important;
     clear: both !important;
 }
@@ -200,8 +194,7 @@ if course2_racb_disponible: onglets_CC.append(("Course 2 RACB", "Course 2 RACB")
 if course3_disponible: onglets_CC.append(("Course 3 ASAF", "Course 3 ASAF"))
 if course3_racb_disponible: onglets_CC.append(("Course 3 RACB", "Course 3 RACB"))
 
-# --- RENDU DE LA BARRE EN COLONNES PROPRES ET SERRÉES POUR INTEGRER L'HORLOGE PYTHON ---
-# Utilisation de deux conteneurs Streamlit pour aligner le menu à gauche et le décompte à droite
+# --- RENDU DE LA BARRE EN COLONNES PROPRES POUR INTEGRER L'HORLOGE PYTHON ---
 c_menu, c_chrono = st.columns([4.0, 1.0], vertical_alignment="center")
 
 with c_menu:
