@@ -111,22 +111,10 @@ div[data-testid="stVerticalBlock"] > div:nth-child(2) {
 .table-class-robuste th:nth-child(5), .table-class-robuste td:nth-child(5) { width: 6% !important; }
 .table-class-robuste th:nth-child(6), .table-class-robuste td:nth-child(6) { width: 18% !important; text-align: right !important; }
 
-/* LA BARRE UNIQUE SANS AUCUN COMPOSANT DE COLONNE PYTHON COLMATANT */
-.barre-horizontale-cc-unique {
-    display: flex !important;
-    flex-direction: row !important;
-    align-items: center !important;
-    justify-content: flex-start !important;
-    gap: 6px !important;
+/* STYLE GÉOMÉTRIQUE POUR LES BOUTONS NATIFS RECTANGLAIRES SERRÉS (24PX) */
+div.stButton > button {
     width: 100% !important;
-    height: 24px !important;
-    margin-top: 0px !important;
-    margin-bottom: 0px !important;
-    padding: 0px !important;
-}
-
-.bouton-cc-statique {
-    display: inline-block !important;
+    min-height: unset !important;
     height: 24px !important;
     background-color: #F1F5F9 !important;
     color: #475569 !important;
@@ -134,25 +122,18 @@ div[data-testid="stVerticalBlock"] > div:nth-child(2) {
     font-size: 0.82rem !important;
     border: 1px solid #CBD5E1 !important;
     border-radius: 3px !important;
-    padding: 0px 14px !important;
+    padding: 0px 4px !important;
+    margin: 0px !important;
     line-height: 22px !important;
-    text-decoration: none !important;
     white-space: nowrap !important;
-    text-align: center !important;
-    font-family: sans-serif !important;
 }
-.bouton-cc-statique:hover {
+div.stButton > button:hover {
     border-color: #1E3A8A !important;
     color: #1E3A8A !important;
     background-color: #E0F2FE !important;
 }
-.bouton-cc-statique.actif {
-    background-color: #1E3A8A !important;
-    color: white !important;
-    border-color: #1E3A8A !important;
-}
 
-/* LE CHRONO CALÉ TOUT À DROITE SANS CRÉER DE HAUTEUR GÊNANTE */
+/* TEXTE DU COMPTEUR ÉPURÉ CALÉ EN HAUT À DROITE */
 .compteur-cc-txt {
     font-size: 0.85rem !important;
     font-weight: bold !important;
@@ -160,43 +141,61 @@ div[data-testid="stVerticalBlock"] > div:nth-child(2) {
     line-height: 24px !important;
     white-space: nowrap !important;
     font-family: sans-serif !important;
-    margin-left: auto !important;
     display: inline-block !important;
+    text-align: right !important;
+    width: 100% !important;
+    margin: 0px !important;
 }
 
 .separateur-statique-final {
-    height: 1px !important;
+    height: 2px !important;
     display: block !important;
     clear: both !important;
 }
 </style>
 """, unsafe_allow_html=True)
-# Gestion saine de l'onglet actif via l'URL pour tuer tout effet de clignotement vertical
-if "session" not in st.query_params:
-    st.query_params["session"] = "Essais"
-choix_course = st.query_params["session"]
+if "active_session" not in st.session_state:
+    st.session_state["active_session"] = "Essais"
 
 def gen_html(df, cl):
     if isinstance(df, str): return df 
     if df.empty: return f"<table class='table-compacte {cl}'><tr><td style='text-align: center; padding: 10px;'>Aucune donnée disponible</td></tr></table>"
     return df.to_html(index=False, classes=f"table-compacte {cl}", escape=False, border=0)
 
-# Assemblage de la liste sécurisée des onglets horizontaux (Essais affiché en premier)
-onglets_CC = [("Essais", "Essais")]
-if course1_disponible: onglets_CC.append(("Course 1 ASAF", "Course 1 ASAF"))
-if course1_racb_disponible: onglets_CC.append(("Course 1 RACB", "Course 1 RACB"))
-if course2_disponible: onglets_CC.append(("Course 2 ASAF", "Course 2 ASAF"))
-if course2_racb_disponible: onglets_CC.append(("Course 2 RACB", "Course 2 RACB"))
-if course3_disponible: onglets_CC.append(("Course 3 ASAF", "Course 3 ASAF"))
-if course3_racb_disponible: onglets_CC.append(("Course 3 RACB", "Course 3 RACB"))
+# Assemblage de la liste finale des boutons du menu horizontal
+colonnes_visibles = ["Essais"]
+if course1_disponible: colonnes_visibles.append("Course 1 ASAF")
+if course1_racb_disponible: colonnes_visibles.append("Course 1 RACB")
+if course2_disponible: colonnes_visibles.append("Course 2 ASAF")
+if course2_racb_disponible: colonnes_visibles.append("Course 2 RACB")
+if course3_disponible: colonnes_visibles.append("Course 3 ASAF")
+if course3_racb_disponible: colonnes_visibles.append("Course 3 RACB")
 
-# Conteneur d'affichage unique pour la barre supérieure (Supprime le trou des colonnes Streamlit)
-zone_menu_et_chrono = st.empty()
+# Répartition des colonnes (Tous les boutons de course à 1.0, la colonne finale du texte à 2.8)
+proportions_finales = [1.0] * len(colonnes_visibles) + [2.8]
+cols = st.columns(proportions_finales, vertical_alignment="center")
 
-# Zones de rendu propres pour les classements (Anti-miroir grisé)
+# Rendu linéaire des boutons rectangulaires stables
+for idx, nom_session in enumerate(colonnes_visibles):
+    with cols[idx]:
+        if st.session_state["active_session"] == nom_session:
+            st.markdown(f"""<style>div[data-testid="stHorizontalBlock"] > div:nth-child({idx+1}) button {{ background-color: #1E3A8A !important; color: white !important; border-color: #1E3A8A !important; }}</style>""", unsafe_allow_html=True)
+        if st.button(nom_session, key=f"btn_nav_{idx}"):
+            st.session_state["active_session"] = nom_session
+            st.rerun()
+
+# Écriture textuelle fixe et sobre du statut à l'extrémité droite
+with cols[-1]:
+    st.markdown("<p class='compteur-cc-txt'>🔄 Mise à jour automatique (30s)</p>", unsafe_allow_html=True)
+
+st.markdown("<div class='separateur-statique-final'></div>", unsafe_allow_html=True)
+choix_course = st.session_state["active_session"]
+
+# Conteneur d'affichage pur (Éradication des boîtes miroir)
 zone_affichage_pure = st.empty()
 
 # --- FRAGMENT CENTRALISÉ DÉDIÉ UNIQUEMENT AUX CLASSEMENTS (Toutes les 30s) ---
+# Il s'exécute de façon autonome en arrière-plan sans jamais faire sauter le menu supérieur
 @st.fragment(run_every=30)
 def rafraichir_uniquement_tableaux():
     st.cache_data.clear()
@@ -242,28 +241,8 @@ def rafraichir_uniquement_tableaux():
                 st.markdown(f"<span class='titre-classement'>{t_bas}</span>", unsafe_allow_html=True)
                 st.markdown(gen_html(d_bas, "table-class-robuste"), unsafe_allow_html=True)
             
-            # Lignes blanches réglementaires injectées tout en bas de l'écran de droite
+            # Lignes blanches de respiration placées en fin de page
             st.markdown("<div style='height:70px;'></div>", unsafe_allow_html=True)
 
-# --- MINI-FRAGMENT TECHNIQUE DÉDIÉ EXCLUSIVEMENT AU COMPTEUR DES SECONDES (Toutes les 1s) ---
-@st.fragment(run_every=1)
-def faire_tourner_le_compteur():
-    if "chrono_sec" not in st.session_state:
-        st.session_state["chrono_sec"] = 30
-    st.session_state["chrono_sec"] -= 1
-    if st.session_state["chrono_sec"] <= 0:
-        st.session_state["chrono_sec"] = 30
-    
-    # Rendu propre ré-injecté dynamiquement
-    html_unifie = '<div class="barre-horizontale-cc-unique">'
-    for libelle, code_id in onglets_CC:
-        classe_active = "actif" if choix_course == code_id else ""
-        html_unifie += f'<a class="bouton-cc-statique {classe_active}" href="?session={code_id}" target="_self">{libelle}</a>'
-    html_unifie += f'<span class="compteur-cc-txt">⏱️ Rafraîchissement dans : {st.session_state["chrono_sec"]}s</span>'
-    html_unifie += '</div><div class="separateur-statique-final"></div>'
-    
-    zone_menu_et_chrono.markdown(html_unifie, unsafe_allow_html=True)
-
-# Lancement coordonné des processus étanches
+# Lancement du processus étanche
 rafraichir_uniquement_tableaux()
-faire_tourner_le_compteur()
