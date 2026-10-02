@@ -43,7 +43,7 @@ except ModuleNotFoundError:
 
 st.set_page_config(page_title="Live", layout="wide")
 
-# --- CONCEPTION GRAPHIQUE GÉOMÉTRIQUE STRICTEMENT FIXE ---
+# --- CONCEPTION GRAPHIQUE STRICTEMENT STATIQUE ET RECTANGLAIRE ---
 st.markdown("""
 <style>
 [data-testid="stHeader"] { display: none !important; }
@@ -75,39 +75,7 @@ button:focus, div:focus, input:focus, select:focus {
 .table-live td:last-child, .table-hist td:last-child, .table-class-robuste td:last-child { font-weight: bold !important; font-size: 0.94rem !important; color: #0F172A !important; }
 .table-hist tr:nth-child(odd) td { background-color: #E0F2FE !important; }
 
-/* LARGEURS DES EN-TÊTES DE TABLEAUX */
-.table-live th:nth-child(1), .table-live td:nth-child(1) { width: 8% !important; }
-.table-live th:nth-child(2), .table-live td:nth-child(2) { width: 26% !important; }
-.table-live th:nth-child(3), .table-live td:nth-child(3) { width: 18% !important; }
-.table-live th:nth-child(4), .table-live td:nth-child(4) { width: 13% !important; }
-.table-live th:nth-child(5), .table-live td:nth-child(5) { width: 13% !important; }
-.table-live th:nth-child(6), .table-live td:nth-child(6) { width: 22% !important; }
-
-.table-class-robuste th:nth-child(1), .table-class-robuste td:nth-child(1) { width: 9% !important; }
-.table-class-robuste th:nth-child(2), .table-class-robuste td:nth-child(2) { width: 11% !important; }
-.table-class-robuste th:nth-child(3), .table-class-robuste td:nth-child(3) { width: 33% !important; }
-.table-class-robuste th:nth-child(4), .table-class-robuste td:nth-child(4) { width: 23% !important; }
-.table-class-robuste th:nth-child(5), .table-class-robuste td:nth-child(5) { width: 6% !important; }
-.table-class-robuste th:nth-child(6), .table-class-robuste td:nth-child(6) { width: 18% !important; text-align: right !important; }
-
-.block-container { padding-top: 0.4rem !important; padding-bottom: 0rem !important; }
-
-/* TABLEAU INVISIBLE QUI SOUDE LES COMPOSANTS SANS SAUT VERTICAL COMPORTEMENTAL */
-.grille-cc-unifiee-html {
-    width: 100% !important;
-    border-collapse: collapse !important;
-    border: none !important;
-    margin: 0px !important;
-    padding: 0px !important;
-}
-.grille-cc-unifiee-html td {
-    border: none !important;
-    padding: 0px 3px !important; /* Distance fixe de 6px au total entre les boutons */
-    vertical-align: middle !important;
-    background-color: transparent !important;
-}
-
-/* BOUTONS COMPACTS RECTANGLAIRES (ZÉRO OVALE, ZÉRO ROUGE) */
+/* FIXATION ET ALIGNEMENT RECTANGLAIRE SANS CLIGNOTEMENT */
 div.stButton > button {
     width: 100% !important;
     min-height: unset !important;
@@ -118,22 +86,21 @@ div.stButton > button {
     font-size: 0.82rem !important;
     border: 1px solid #CBD5E1 !important;
     border-radius: 3px !important;
-    padding: 0px 14px !important;
+    padding: 0px 4px !important;
     margin: 0px !important;
     line-height: 22px !important;
     white-space: nowrap !important;
 }
 
-/* BLOC DE COUPE PHREATIQUE EXPLICITE : INTERDIT À LA FEUILLE DE REMONTER OU RECOUVRIR */
-.separateur-physique-rehausse {
+/* SÉPARATEUR DE SÉCURITÉ DE 22PX EMPECHANT LA FEUILLE DE REMONTER */
+.separateur-statique {
     height: 22px !important;
-    margin-top: 4px !important;
+    margin-top: 2px !important;
     margin-bottom: 2px !important;
-    display: block !important;
     clear: both !important;
+    display: block !important;
 }
 
-/* TEXTE DU COMPTEUR REPOUSSÉ TOUT À DROITE */
 .label-decompte-pure-txt {
     font-size: 0.85rem !important;
     font-weight: bold !important;
@@ -154,6 +121,7 @@ def gen_html(df, cl):
     if df.empty: return f"<table class='table-compacte {cl}'><tr><td style='text-align: center; padding: 10px;'>Aucune donnée disponible</td></tr></table>"
     return df.to_html(index=False, classes=f"table-compacte {cl}", escape=False, border=0)
 
+# Assemblage automatique des onglets
 colonnes_visibles = ["Essais"]
 if course1_disponible: colonnes_visibles.append("Course 1 ASAF")
 if course1_racb_disponible: colonnes_visibles.append("Course 1 RACB")
@@ -162,34 +130,29 @@ if course2_racb_disponible: colonnes_visibles.append("Course 2 RACB")
 if course3_disponible: colonnes_visibles.append("Course 3 ASAF")
 if course3_racb_disponible: colonnes_visibles.append("Course 3 RACB")
 
-# --- CONSTRUTION DE LA SUITE HORIZONTALE EN TABLEAU HYBRIDE SANS VIDE ---
-# Génération de la structure de cases HTML invisibles
-entete_html = '<table class="grille-cc-unifiee-html"><tr>'
-for i in range(len(colonnes_visibles)):
-    # On ajuste l'espace de la case selon le bouton ('Essais' est plus court)
-    largeur_cellule = "65px" if idx == 0 else "125px"
-    entete_html += f'<td style="width: {largeur_cellule};" id="cell-btn-{i}"></td>'
-# Case de fin élargie pour accueillir l'horloge compteur tout à fait à droite
-entete_html += '<td></td></tr></table>'
-st.markdown(entete_html, unsafe_allow_html=True)
+# RESOLUTION DU COMPORTEMENT : Tailles asymétriques précalculées (Essais est serré à 0.7)
+structure_colonnes = [0.7, 1.2, 1.2, 1.2, 1.2, 1.2, 1.2]
+proportions_finales = structure_colonnes[:len(colonnes_visibles)] + [2.5]
 
-# Rendu et ancrage des composants natifs cliquables dans les cellules
+# Génération unique de la ligne de navigation (Emplacement 100% stable hors des fragments)
+cols = st.columns(proportions_finales, vertical_alignment="center")
+
 for idx, nom_session in enumerate(colonnes_visibles):
-    with st.html(f'#cell-btn-{idx}'):
+    with cols[idx]:
         if st.session_state["active_session"] == nom_session:
-            st.markdown(f"""<style>div[data-testid="stHorizontalBlock"] button, div.stButton button {{ background-color: #1E3A8A !important; color: white !important; border-color: #1E3A8A !important; }}</style>""", unsafe_allow_html=True)
+            st.markdown(f"""<style>div[data-testid="stHorizontalBlock"] > div:nth-child({idx+1}) button {{ background-color: #1E3A8A !important; color: white !important; border-color: #1E3A8A !important; }}</style>""", unsafe_allow_html=True)
         if st.button(nom_session, key=f"btn_nav_{idx}"):
             st.session_state["active_session"] = nom_session
             st.rerun()
 
-# Utilisation de la toute dernière cellule pour fixer le décompte textuel brut
-zone_decompte_txt = st.html('table.grille-cc-unifiee-html td:last-child').empty()
+# Zone d'écriture de l'horloge
+zone_decompte_txt = cols[-1].empty()
 
-# Injection de la rehausse physique de 22px (La feuille ne peut plus recouvrir le menu)
-st.markdown("<div class='separateur-physique-rehausse'></div>", unsafe_allow_html=True)
+# Séparateur géométrique fixe de 22px
+st.markdown("<div class='separateur-statique'></div>", unsafe_allow_html=True)
 choix_course = st.session_state["active_session"]
 
-# Conteneur d'affichage pur (Éradication des boîtes miroir)
+# Conteneur d'affichage pur (Éradication des reliquats)
 zone_affichage_pure = st.empty()
 
 # --- FRAGMENT CENTRALISÉ DÉDIÉ UNIQUEMENT AUX CLASSEMENTS (Toutes les 30s) ---
@@ -252,6 +215,6 @@ def faire_tourner_le_compteur():
         
     zone_decompte_txt.markdown(f"<span class='label-decompte-pure-txt'>⏱️ Rafraîchissement dans : {st.session_state['chrono_sec']}s</span>", unsafe_allow_html=True)
 
-# Lancement
+# Lancement coordonné
 rafraichir_uniquement_tableaux()
 faire_tourner_le_compteur()
