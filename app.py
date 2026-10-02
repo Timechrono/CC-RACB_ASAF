@@ -67,6 +67,19 @@ div[data-testid="stVerticalBlock"] {
     padding-top: 0px !important;
 }
 
+/* CONTENEUR FLEXBOX SUR MESURE POUR ENFERMER ET CENTRER LES BOUTONS SANS ÉTIREMENT */
+div[data-testid="stHorizontalBlock"] {
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+    gap: 8px !important; /* Espace serré et propre entre chaque bouton */
+    width: 100% !important;
+}
+div[data-testid="stHorizontalBlock"] > div {
+    flex: none !important;
+    width: auto !important;
+}
+
 /* 2. RAPPROCHEMENT NET ET COLLÉ DES TABLEAUX SOUS LES BOUTONS */
 div.stElementContainer {
     margin-top: 0px !important;
@@ -116,7 +129,7 @@ div.stElementContainer {
 
 /* FIXATION GÉOMÉTRIQUE POUR LES BOUTONS NATIFS RECTANGLAIRES SERRÉS (24PX) */
 div.stButton > button {
-    width: 100% !important;
+    width: 140px !important; /* Fixation d'une largeur harmonieuse identique pour chaque bouton */
     min-height: unset !important;
     height: 24px !important;
     background-color: #F1F5F9 !important;
@@ -150,15 +163,13 @@ if course2_racb_disponible: colonnes_visibles.append("Course 2 RACB")
 if course3_disponible: colonnes_visibles.append("Course 3 ASAF")
 if course3_racb_disponible: colonnes_visibles.append("Course 3 RACB")
 
-# Espace au-dessus des boutons
-st.markdown("<div style='height: 10px;'></div>", unsafe_allow_html=True)
+# Marge supérieure exacte (10px)
+st.markdown("<div style='height: 10px; margin: 0px; padding: 0px;'></div>", unsafe_allow_html=True)
 
-# Calcul dynamique pour le centrage : on crée des colonnes équilibrées
-nb_boutons = len(colonnes_visibles)
-proportions_finales = [1.0] * nb_boutons
-cols = st.columns(proportions_finales, vertical_alignment="center")
+# Génération des colonnes équivalentes
+cols = st.columns([1.0] * len(colonnes_visibles))
 
-# Rendu des boutons directement indexés sur la grille globale
+# Rendu des boutons
 for idx, nom_session in enumerate(colonnes_visibles):
     with cols[idx]:
         if st.button(nom_session, key=f"btn_nav_{idx}"):
@@ -170,8 +181,8 @@ for idx, nom_session in enumerate(colonnes_visibles):
     if st.session_state["active_session"] == nom_session:
         st.markdown(f"""<style>div[data-testid="stHorizontalBlock"] > div:nth-child({idx+1}) button {{ background-color: #1E3A8A !important; color: white !important; border-color: #1E3A8A !important; }}</style>""", unsafe_allow_html=True)
 
-# Espace en dessous des boutons STRICTEMENT SYMÉTRIQUE à celui du haut (10px)
-st.markdown("<div style='height: 10px;'></div>", unsafe_allow_html=True)
+# Marge inférieure stricte et identique (10px) injectée en HTML pur pour contourner les contraintes de Streamlit
+st.markdown("<div style='height: 10px; content: \"\"; display: block; clear: both;'></div>", unsafe_allow_html=True)
 
 choix_course = st.session_state["active_session"]
 zone_affichage_pure = st.empty()
