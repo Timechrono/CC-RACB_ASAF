@@ -100,7 +100,7 @@ div.stButton > button {
     font-weight: bold !important;
     font-size: 0.82rem !important;
     border: 1px solid #CBD5E1 !important;
-    border-radius: 3px !important; /* Angles droits très légèrement adoucis, pas d'ovale */
+    border-radius: 3px !important;
     padding: 0px 4px !important;
     margin: 0px !important;
     line-height: 22px !important;
@@ -141,26 +141,21 @@ def gen_html(df, cl):
     if df.empty: return f"<table class='table-compacte {cl}'><tr><td style='text-align: center; padding: 10px;'>Aucune donnée disponible</td></tr></table>"
     return df.to_html(index=False, classes=f"table-compacte {cl}", escape=False, border=0)
 
-# --- RECTIFICATION DES PROPORTIONS POUR SERRER LES BOUTONS COMPACTEMENT ---
-# Nous passons des valeurs asymétriques pour caler l'espace :
-# - La colonne 'Essais' est étroite (0.6) car le mot est court.
-# - Les colonnes 'Course X XXXX' sont à 1.1.
-# - La colonne finale du décompte est élargie à 2.8 pour interdire le retour à la ligne.
-structure_colonnes = [0.6, 1.1, 1.1, 1.1, 1.1, 1.1, 1.1, 2.8]
-
-# On s'assure d'adapter le nombre de colonnes au nombre réel de sessions chargées
+# Assemblage de la liste finale des boutons
 colonnes_visibles = ["Essais"]
 if course1_disponible: colonnes_visibles.append("Course 1 ASAF")
 if course1_racb_disponible: colonnes_visibles.append("Course 1 RACB")
 if course2_disponible: colonnes_visibles.append("Course 2 ASAF")
 if course2_racb_disponible: colonnes_visibles.append("Course 2 RACB")
-if course3_disponible: colonnes_menu.append("Course 3 ASAF") # Sécurité héritée
+if course3_disponible: colonnes_visibles.append("Course 3 ASAF")
 if course3_racb_disponible: colonnes_visibles.append("Course 3 RACB")
 
+# Écarts corrigés au millimètre en fonction des longueurs de mots
+structure_colonnes = [0.6, 1.1, 1.1, 1.1, 1.1, 1.1, 1.1]
 proportions_finales = structure_colonnes[:len(colonnes_visibles)] + [2.8]
 cols = st.columns(proportions_finales, vertical_alignment="center")
 
-# Rendu des boutons de course rectangulaires stables
+# Rendu des boutons rectangulaires stables
 for idx, nom_session in enumerate(colonnes_visibles):
     with cols[idx]:
         if st.session_state["active_session"] == nom_session:
@@ -169,13 +164,13 @@ for idx, nom_session in enumerate(colonnes_visibles):
             st.session_state["active_session"] = nom_session
             st.rerun()
 
-# Utilisation exclusive de la dernière colonne à droite pour le texte brut du décompte
+# Zone d'écriture du décompte
 zone_decompte_txt = cols[-1].empty()
 
 st.markdown("<div class='separateur-statique'></div>", unsafe_allow_html=True)
 choix_course = st.session_state["active_session"]
 
-# Conteneur d'affichage pur des classements (Anti-miroir / Anti-reliquat)
+# Conteneur d'affichage pur (Anti-miroir)
 zone_affichage_pure = st.empty()
 
 # --- FRAGMENT CENTRALISÉ DÉDIÉ UNIQUEMENT AUX CLASSEMENTS (Toutes les 30s) ---
@@ -226,7 +221,7 @@ def rafraichir_uniquement_tableaux():
                 st.markdown(f"<span class='titre-classement'>{t_bas}</span>", unsafe_allow_html=True)
                 st.markdown(gen_html(d_bas, "table-class-robuste"), unsafe_allow_html=True)
 
-# --- MINI-FRAGMENT ISOLÉ DÉDIÉ UNIQUEMENT À L'HORLOGE COMPTEUR (Toutes les 1s) ---
+# --- MINI-FRAGMENT COMPTEUR SECONDE PAR SECONDE ---
 @st.fragment(run_every=1)
 def faire_tourner_le_compteur():
     if "chrono_sec" not in st.session_state:
@@ -238,6 +233,6 @@ def faire_tourner_le_compteur():
         
     zone_decompte_txt.markdown(f"<span class='label-decompte-pure-txt'>⏱️ Rafraîchissement dans : {st.session_state['chrono_sec']}s</span>", unsafe_allow_html=True)
 
-# Lancement coordonné
+# Lancement
 rafraichir_uniquement_tableaux()
 faire_tourner_le_compteur()
