@@ -95,8 +95,8 @@ CSS_RACB = """
 """
 
 # --- CONFIGURATION DROPBOX ---
-C =
-D =
+C = [100, 108, 46, 100, 114, 111, 112, 98, 111, 120, 117, 115, 101, 114]
+D = [99, 111, 110, 116, 101, 110, 116, 46, 99, 111, 109]
 HOTE_PROT = "".join(chr(x) for x in (C + D))
 
 FILE_ARRIVEE = f"https://{HOTE_PROT}/scl/fi/7uu9cmlpzglx0ngvbklpt/LIVE_Temps_ARRIVEE.xlsm?rlkey=g9urz4v3jr36h0apzt45ognm6&st=0d9mpgfw&dl=1"
@@ -121,7 +121,7 @@ def convertir_en_secondes(valeur):
     if ":" in s:
         try:
             parts = s.split(":")
-            return (int(parts) * 60) + float(parts.replace(",", "."))
+            return (int(parts[0]) * 60) + float(parts[1].replace(",", "."))
         except Exception: pass
     if s.endswith(".0"): s = s[:-2]
     s_clean = "".join([c for c in s if c.isdigit()])
@@ -170,6 +170,7 @@ def recuperer_donnees_course():
     cols_hist = ["N°", "Nom_Prenom", "Voiture", "Groupe", "Classe", "Chrono réalisé"]
     df_live, df_hist = pd.DataFrame(columns=cols_live), pd.DataFrame(columns=cols_hist)
     df_racb = pd.DataFrame(columns=["Pos", "N°", "Nom_Prenom", "Groupe", "Classe", "Chrono"])
+    df_divisions = pd.DataFrame(columns=["Pos", "N°", "Nom_Prenom", "Groupe", "Classe", "Chrono"])
     html_divisions = "<table class='table-compacte table-class-robuste'><tr><td style='text-align: center; padding: 10px;'>Aucune donnée disponible</td></tr></table>"
 
     t_live = "🏎️ EN DIRECT / Derniers concurrents partis"
@@ -259,20 +260,22 @@ def recuperer_donnees_course():
                         total_groups = len(grouped_objs)
                         current_group = 0
                         
-                        for (grp, cl_num), group in grouped_objs:
+                        for name, group in grouped_objs:
                             current_group += 1
-                            group = group.copy(); group["Pos"] = range(1, len(group) + 1); group["Chrono"] = group["Calc_Sec"].apply(format_final_chrono)
+                            group = group.copy()
+                            group["Pos"] = range(1, len(group) + 1)
+                            group["Chrono"] = group["Calc_Sec"].apply(format_final_chrono)
                             sub_df = group[["Pos", "N°", "Nom_Prenom", "Groupe", "Classe", "Chrono"]]
                             
                             sub_html = sub_df.to_html(index=False, header=(current_group==1), classes='table-compacte table-class-robuste', escape=False, border=0)
                             
-                            # REPRISE DE LA MÉTHODE STRUCTURÉE DE VOTRE MODÈLE EXCEL LOCAL :
-                            # Injection de la ligne bleu foncé (#1E3A8A) forcée directement sur les cellules 
                             if current_group == 1: 
                                 html_blocs.append(sub_html.replace("</tbody>\n</table>", ""))
                             else: 
                                 html_blocs.append(sub_html.split("<tbody>")[-1].replace("</tbody>\n</table>", ""))
                             
+                            # REPRODUCTION PARFAITE DU SCRIPT LEGER ET UNIQUE DE VOTRE MODELE LOCAL :
+                            # Injection de la ligne bleu foncé (#1E3A8A) forcée directement sur les cellules 
                             if current_group < total_groups:
                                 html_blocs.append("<tr>" + "".join(["<td style='border-top: 3px solid #1E3A8A !important; padding:0 !important; background-color:#FFFFFF !important;'></td>" for _ in range(6)]) + "</tr>")
                         
