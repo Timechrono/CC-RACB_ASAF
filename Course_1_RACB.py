@@ -84,7 +84,7 @@ def calculer_statut_chrono(row, est_dans_le_live=True):
     if "Calc_Sec" in row and pd.notna(row["Calc_Sec"]) and row["Calc_Sec"] > 0:
         temps_formate = format_final_chrono(row["Calc_Sec"])
         if est_dans_le_live:
-            # STYLE UNIQUE ET INVIOLABLE : On utilise le même V textuel décalé coloré en rouge (#DC2626) ou en vert (#16A34A)
+            # STYLE EN PARFAITE CONFORMITÉ : Coche universelle verte, ou rouge si > 4 minutes (240 secondes)
             if row["Calc_Sec"] > 240:
                 coche = "<span style='color: #DC2626; font-weight: bold;'>✔</span>"
             else:
@@ -94,11 +94,12 @@ def calculer_statut_chrono(row, est_dans_le_live=True):
     if "Heure_Depart" in row and pd.notna(row["Heure_Depart"]) and pd.isna(row.get("Heure_Arrivee")):
         return "<span class='vrai-gyrophare'>🚨</span> EN PISTE" if est_dans_le_live else "En Piste"
     return "No Time"
-# fin bloc 1
+#fin bloc 1
 def generer_tableau_html(df, classe_specifique):
     if df.empty: 
         return f"<table class='table-compacte {classe_specifique}'><tr><td style='text-align: center; padding: 10px;'>Aucune donnée disponible</td></tr></table>"
     
+    # RESTAURATION DE VOTRE BOUCLE HISTORIQUE EXACTE QUI TRACE LES LIGNES BLEUES
     if classe_specifique == "table-class-groupes" and "Classe" in df.columns and "Groupe" in df.columns:
         html = f"<table class='table-compacte table-class-robuste'><thead><tr>"
         for col in df.columns: html += f"<th>{col}</th>"
@@ -107,7 +108,7 @@ def generer_tableau_html(df, classe_specifique):
             classe_row = ""
             if idx < len(df) - 1:
                 if df.iloc[idx]["Classe"] != df.iloc[idx + 1]["Classe"] or df.iloc[idx]["Groupe"] != df.iloc[idx + 1]["Groupe"]:
-                    classe_row = "class='ligne-separation-classe'"
+                    classe_row = "class='ligne-bleue-separation'"
             html += f"<tr {classe_row}>"
             for col in df.columns: html += f"<td>{df.iloc[idx][col]}</td>"
             html += "</tr>"
@@ -202,17 +203,17 @@ def recuperer_donnees_course():
                     racb["Pos"] = range(1, len(racb) + 1); racb["Chrono"] = racb["Calc_Sec"].apply(format_final_chrono)
                     df_racb = racb[["Pos", "N°", "Nom_Prenom", "Groupe", "Classe", "Chrono"]]
                 
-                # REIFICATION DU TRI STRICT : On force d'abord le tri par Groupe, puis par Classe_Num (numérique), puis par Temps (Calc_Sec)
+                # RECTIFICATION ULTRA-STRICTE DU TRI CROISSANT MATHEMATIQUE
                 scr["Classe_Num"] = pd.to_numeric(scr["Classe"], errors='coerce').fillna(999)
-                df_grouped = scr.sort_values(by=["Groupe", "Classe_Num", "Calc_Sec"]).copy()
+                df_grouped = scr.sort_values(by=["Groupe", "Classe_Num", "Calc_Sec"])
                 
-                if len(df_grouped) > 0:
-                    # Regroupement et extraction par lot de 3 pilotes maximum par catégorie
-                    df_final_grouped = df_grouped.groupby(["Groupe", "Classe_Num"]).head(3).copy()
-                    df_final_grouped["Pos"] = df_final_grouped.groupby(["Groupe", "Classe_Num"]).cumcount() + 1
-                    df_final_grouped["Chrono"] = df_final_grouped["Calc_Sec"].apply(format_final_chrono)
-                    
-                    df_divisions = pd.DataFrame(df_final_grouped[["Pos", "N°", "Nom_Prenom", "Groupe", "Classe", "Chrono"]].values, columns=["Pos", "N°", "Nom_Prenom", "Groupe", "Classe", "Chrono"])
+                # Regroupement par paquet de 3 et extraction propre
+                df_final_grouped = df_grouped.groupby(["Groupe", "Classe_Num"]).head(3).copy()
+                df_final_grouped["Pos"] = df_final_grouped.groupby(["Groupe", "Classe_Num"]).cumcount() + 1
+                df_final_grouped["Chrono"] = df_final_grouped["Calc_Sec"].apply(format_final_chrono)
+                
+                # Reconstruction ordonnée finale envoyée à votre boucle HTML fonctionnelle de confiance
+                df_divisions = pd.DataFrame(df_final_grouped[["Pos", "N°", "Nom_Prenom", "Groupe", "Classe", "Chrono"]].values, columns=["Pos", "N°", "Nom_Prenom", "Groupe", "Classe", "Chrono"])
     except Exception: pass
 
     html_hist = CSS_RACB + generer_tableau_html(df_hist, "table-hist")
