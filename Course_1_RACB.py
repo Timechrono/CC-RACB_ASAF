@@ -95,13 +95,39 @@ def calculer_statut_chrono(row, est_dans_le_live=True):
         return "<span class='vrai-gyrophare'>🚨</span> EN PISTE" if est_dans_le_live else "En Piste"
     return "No Time"
 # fin bloc 1
+def generer_tableau_html(df, classe_specifique):
+    if df.empty: 
+        return f"<table class='table-compacte {classe_specifique}'><tr><td style='text-align: center; padding: 10px;'>Aucune donnée disponible</td></tr></table>"
+    
+    if classe_specifique == "table-class-groupes" and "Classe" in df.columns and "Groupe" in df.columns:
+        html = f"<table class='table-compacte table-class-robuste'><thead><tr>"
+        for col in df.columns: html += f"<th>{col}</th>"
+        html += "</tr></thead><tbody>"
+        for idx in range(len(df)):
+            classe_row = ""
+            if idx < len(df) - 1:
+                if df.iloc[idx]["Classe"] != df.iloc[idx + 1]["Classe"] or df.iloc[idx]["Groupe"] != df.iloc[idx + 1]["Groupe"]:
+                    classe_row = "class='ligne-separation-classe'"
+            html += f"<tr {classe_row}>"
+            for col in df.columns: html += f"<td>{df.iloc[idx][col]}</td>"
+            html += "</tr>"
+        html += "</tbody></table>"
+        return html
+
+    return df.to_html(index=False, classes=f"table-compacte {classe_specifique}", escape=False, border=0)
+
 def recuperer_donnees_course():
     cols_live = ["N°", "Nom_Prenom", "Voiture", "Départ", "Arrivée", "Chrono réalisé"]
     cols_hist = ["N°", "Nom_Prenom", "Voiture", "Groupe", "Classe", "Chrono réalisé"]
-    df_live = pd.DataFrame(columns=cols_live)
-    df_hist = pd.DataFrame(columns=cols_hist)
+    df_live, df_hist = pd.DataFrame(columns=cols_live), pd.DataFrame(columns=cols_hist)
     df_racb = pd.DataFrame(columns=["Pos", "N°", "Nom_Prenom", "Groupe", "Classe", "Chrono"])
-    html_divisions = "<table class='table-compacte table-class-robuste'><tr><td style='text-align: center; padding: 10px;'>Aucune donnée disponible</td></tr></table>"
+    df_divisions = pd.DataFrame(columns=["Pos", "N°", "Nom_Prenom", "Groupe", "Classe", "Chrono"])
+
+    t_live = "🏎️ EN DIRECT / Derniers concurrents partis"
+    t_his = "🕒 HISTORIQUE DES TEMPS / 1er COURSE / Concurrents RACB"
+    t_haut = "🏆 CLASSEMENT GENERAL OFFICIEUX RACB (Top 20)"
+    t_milieu = "📊 CLASSEMENT OFFICIEUX PAR Groupe / Classe (Top 3)"
+    t_bas = ""
 
     try:
         flux_eng = telecharger_excel(FILE_ENGAGES)
@@ -176,37 +202,20 @@ def recuperer_donnees_course():
                     racb["Pos"] = range(1, len(racb) + 1); racb["Chrono"] = racb["Calc_Sec"].apply(format_final_chrono)
                     df_racb = racb[["Pos", "N°", "Nom_Prenom", "Groupe", "Classe", "Chrono"]]
                 
+                # REIFICATION DU TRI STRICT : On force d'abord le tri par Groupe, puis par Classe_Num (numérique), puis par Temps (Calc_Sec)
                 scr["Classe_Num"] = pd.to_numeric(scr["Classe"], errors='coerce').fillna(999)
-                df_grouped = scr.sort_values(by=["Groupe", "Classe_Num", "Calc_Sec"]).groupby(["Groupe", "Classe_Num"]).head(3).copy()
+                df_grouped = scr.sort_values(by=["Groupe", "Classe_Num", "Calc_Sec"]).copy()
                 
                 if len(df_grouped) > 0:
-                    html_blocs = []
-                    grouped_objs = df_grouped.groupby(["Groupe", "Classe_Num"])
-                    total_groups = len(grouped_objs)
-                    current_group = 0
+                    # Regroupement et extraction par lot de 3 pilotes maximum par catégorie
+                    df_final_grouped = df_grouped.groupby(["Groupe", "Classe_Num"]).head(3).copy()
+                    df_final_grouped["Pos"] = df_final_grouped.groupby(["Groupe", "Classe_Num"]).cumcount() + 1
+                    df_final_grouped["Chrono"] = df_final_grouped["Calc_Sec"].apply(format_final_chrono)
                     
-                    for (grp, cl_num), group in grouped_objs:
-                        current_group += 1
-                        group = group.copy(); group["Pos"] = range(1, len(group) + 1); group["Chrono"] = group["Calc_Sec"].apply(format_final_chrono)
-                        sub_df = group[["Pos", "N°", "Nom_Prenom", "Groupe", "Classe", "Chrono"]]
-                        
-                        sub_html = sub_df.to_html(index=False, header=(current_group==1), classes='table-compacte table-class-robuste', escape=False, border=0)
-                        if current_group == 1: html_blocs.append(sub_html.replace("</tbody>\n</table>", ""))
-                        else: html_blocs.append(sub_html.split("<tbody>")[-1].replace("</tbody>\n</table>", ""))
-                        
-                        if current_group < total_groups:
-                            html_blocs.append("<tr class='ligne-bleue-separation'>" + "".join(["<td></td>" for _ in range(6)]) + "</tr>")
-                    
-                    html_blocs.append("</tbody>\n</table>")
-                    html_divisions = "".join(html_blocs)
+                    df_divisions = pd.DataFrame(df_final_grouped[["Pos", "N°", "Nom_Prenom", "Groupe", "Classe", "Chrono"]].values, columns=["Pos", "N°", "Nom_Prenom", "Groupe", "Classe", "Chrono"])
     except Exception: pass
 
-    t_live = "🏎️ EN DIRECT / Derniers concurrents partis"
-    t_his = "🕒 HISTORIQUE DES TEMPS / 1er COURSE / Concurrents RACB"
-    t_haut = "🏆 CLASSEMENT GENERAL OFFICIEUX RACB (Top 20)"
-    t_milieu = "📊 CLASSEMENT OFFICIEUX PAR Groupe / Classe (Top 3)"
-    t_bas = ""
+    html_hist = CSS_RACB + generer_tableau_html(df_hist, "table-hist")
+    html_class_div = generer_tableau_html(df_divisions, "table-class-groupes")
 
-    html_hist = CSS_RACB + df_hist.to_html(index=False, classes="table-compacte table-hist", escape=False, border=0)
-
-    return df_live, html_hist, df_racb, html_divisions, pd.DataFrame(), t_live, t_his, t_haut, t_milieu, t_bas
+    return df_live, html_hist, df_racb, html_class_div, pd.DataFrame(), t_live, t_his, t_haut, t_milieu, t_bas
