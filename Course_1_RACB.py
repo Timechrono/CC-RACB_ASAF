@@ -146,12 +146,12 @@ def recuperer_donnees_course():
 
         df_eng_raw.columns = df_eng_raw.columns.astype(str).str.strip().str.upper()
         
-        # SÉCURISATION & LIMITATION : Le Groupe est limité à 6 caractères maximum via [:6]
+        # Restauration du Groupe complet (sans la coupure Python)
         df_eng = pd.DataFrame({
             "N°": df_eng_raw.iloc[:, 0].apply(nettoyer_numero), 
             "Nom_Prenom": df_eng_raw.iloc[:, 1].fillna("Pilote Inconnu").astype(str).str.strip(),
             "Voiture": df_eng_raw.iloc[:, 4].fillna("").astype(str).str.strip(),
-            "Groupe": df_eng_raw.iloc[:, 5].apply(lambda x: "-" if pd.isna(x) else str(x).strip()[:-2] if str(x).strip().endswith(".0") else str(x).strip()[:6]),
+            "Groupe": df_eng_raw.iloc[:, 5].apply(lambda x: "-" if pd.isna(x) else str(x).strip()[:-2] if str(x).strip().endswith(".0") else str(x).strip()),
             "Classe": df_eng_raw.iloc[:, 6].fillna("-").astype(str).str.strip().apply(lambda x: x[:-2] if x.endswith(".0") else x)
         })
         df_eng = df_eng[df_eng["N°"] != "NAN"].drop_duplicates(subset=["N°"])
@@ -224,17 +224,18 @@ def recuperer_donnees_course():
                 df_divisions = df_final_grouped[["Pos", "N°", "Nom_Prenom", "Groupe", "Classe", "Chrono"]].rename(columns={"Classe": "Cl"}).copy()
     except Exception: pass
 
-    # RÉTABLISSEMENT DES LIGNES BLEUES : La fonction technique native cible maintenant "Cl"
+    # CORRECTION : La ligne de séparation cible la bordure inférieure (border-bottom) de la ligne actuelle
     if not df_divisions.empty and "Cl" in df_divisions.columns and "Groupe" in df_divisions.columns:
         html_class_div = f"<table class='table-compacte table-class-robuste'><thead><tr>"
         for col in df_divisions.columns: html_class_div += f"<th>{col}</th>"
         html_class_div += "</tr></thead><tbody>"
         for idx in range(len(df_divisions)):
-            classe_row = ""
+            style_row = ""
             if idx < len(df_divisions) - 1:
+                # Si la ligne suivante change de Cl ou de Groupe, on trace une bordure en BAS de la ligne en cours
                 if df_divisions.iloc[idx]["Cl"] != df_divisions.iloc[idx + 1]["Cl"] or df_divisions.iloc[idx]["Groupe"] != df_divisions.iloc[idx + 1]["Groupe"]:
-                    classe_row = "class='ligne-bleue-separation'"
-            html_class_div += f"<tr {classe_row}>"
+                    style_row = "style='border-bottom: 3px solid #1E3A8A !important;'"
+            html_class_div += f"<tr {style_row}>"
             for col in df_divisions.columns: html_class_div += f"<td>{df_divisions.iloc[idx][col]}</td>"
             html_class_div += "</tr>"
         html_class_div += "</tbody></table>"
