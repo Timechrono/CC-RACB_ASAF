@@ -5,9 +5,10 @@ import os
 import requests
 import io
 
-# --- DESIGN SCIENTIFIQUE RIGIDE ET LARGEURS CONSERVÉES À L'IDENTIQUE ---
+# --- DESIGN SCIENTIFIQUE RIGIDE ET CONFIGURATION DES LARGEURS ET ESPACEMENTS ---
 CSS_RACB = """
 <style>
+/* Largeurs strictes des colonnes de l'historique */
 .table-hist th:nth-child(1), .table-hist td:nth-child(1) { width: 8% !important; }   
 .table-hist th:nth-child(2), .table-hist td:nth-child(2) { width: 30% !important; }  
 .table-hist th:nth-child(3), .table-hist td:nth-child(3) { width: 26% !important; }  
@@ -15,11 +16,9 @@ CSS_RACB = """
 .table-hist th:nth-child(5), .table-hist td:nth-child(5) { width: 8% !important; }   
 .table-hist th:nth-child(6), .table-hist td:nth-child(6) { width: 17% !important; }  
 
-/* Espacement élargi personnalisé injecté uniquement pour cette course */
-.espacement-bloc-hist {
+/* Force l'espacement de 45px AU-DESSUS du titre de l'historique */
+.titre-hist {
     margin-top: 45px !important;
-    display: block !important;
-    clear: both !important;
 }
 </style>
 """
@@ -86,13 +85,14 @@ def calculer_statut_chrono(row, est_dans_le_live=True):
     if "Heure_Depart" in row and pd.notna(row["Heure_Depart"]) and pd.isna(row.get("Heure_Arrivee")):
         return "<span class='vrai-gyrophare'>🚨</span> EN PISTE" if est_dans_le_live else "En Piste"
     return "No Time"
+# fin bloc 1
 def recuperer_donnees_course():
     cols_live = ["N°", "Nom_Prenom", "Voiture", "Départ", "Arrivée", "Chrono réalisé"]
     df_live = pd.DataFrame(columns=cols_live)
-    html_hist = "<div class='espacement-bloc-hist'></div><table class='table-compacte table-hist'><tr><td style='text-align: center; padding: 10px;'>Aucune donnée disponible</td></tr></table>"
+    html_hist = "<table class='table-compacte table-hist'><tr><td style='text-align: center; padding: 10px;'>Aucune donnée disponible</td></tr></table>"
     df_racb = pd.DataFrame(columns=["Pos", "N°", "Nom_Prenom", "Groupe", "Classe", "Chrono"])
     
-    # Titres des classements par défaut
+    # Configuration des titres
     t_live = "Chronométrage Course 1 RACB"
     t_his = "Historique Course 1 RACB"
     t_haut = "CLASSEMENT GENERAL OFFICIEUX RACB (Top 30)"
@@ -164,8 +164,8 @@ def recuperer_donnees_course():
                 base["Chrono_C1_Visual_Hist"] = base.apply(formater_chrono_historique_course1, axis=1)
                 df_hist_base = base.copy()
                 
-                # RE-INJECTION DU STYLE DE LARGEUR ET DE L'ESPACE DE 45PX VIA LA CLASSE CSS
-                html_hist = CSS_RACB + "<div class='espacement-bloc-hist'></div><table class='table-compacte table-hist'><thead><tr><th>N°</th><th>Nom_Prenom</th><th>Voiture</th><th>Groupe</th><th>Classe</th><th>Chrono réalisé</th></tr></thead><tbody>"
+                # RE-INJECTION DU STYLE SANS LE BLOC INVISIBLE MAIS AVEC LE CSS CORRIGÉ
+                html_hist = CSS_RACB + "<table class='table-compacte table-hist'><thead><tr><th>N°</th><th>Nom_Prenom</th><th>Voiture</th><th>Groupe</th><th>Classe</th><th>Chrono réalisé</th></tr></thead><tbody>"
                 for idx, row in df_hist_base.iterrows():
                     html_hist += f"<tr><td>{row['N°']}</td><td>{row['Nom_Prenom']}</td><td>{row['Voiture']}</td><td>{row['Groupe']}</td><td>{row['Classe']}</td><td>{row['Chrono_C1_Visual_Hist']}</td></tr>"
                 html_hist += "</tbody></table>"
@@ -181,5 +181,4 @@ def recuperer_donnees_course():
                         df_racb = racb[["Pos", "N°", "Nom_Prenom", "Groupe", "Classe", "Chrono"]]
         except Exception: pass
 
-    # Renvoi des 10 variables ordonnées attendues par app.py
     return df_live, html_hist, df_racb, pd.DataFrame(), pd.DataFrame(), t_live, t_his, t_haut, t_milieu, t_bas
