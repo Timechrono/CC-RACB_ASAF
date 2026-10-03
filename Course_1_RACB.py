@@ -176,6 +176,7 @@ def recuperer_donnees_course():
     t_milieu = "📊 CLASSEMENT OFFICIEUX PAR Groupe / Classe (Top 3)"
     t_bas = ""
 
+    # CORRECTION DES PERMISSIONS ET CASSE DE VARIABLES : Appel aux variables d'origine
     data_engages = telecharger_excel(FILE_ENGAGES)
     data_depart = telecharger_excel(FILE_DEPART)
     data_arrivee = telecharger_excel(FILE_ARRIVEE)
@@ -183,8 +184,8 @@ def recuperer_donnees_course():
     if data_engages and data_depart and data_arrivee:
         try:
             df_eng_raw = pd.read_excel(data_engages, skiprows=1, engine='openpyxl')
-            df_dep_raw = pd.read_excel(data_DEPART, header=None, engine='openpyxl')
-            df_arr_raw = pd.read_excel(data_ARRIVEE, header=None, engine='openpyxl')
+            df_dep_raw = pd.read_excel(data_depart, header=None, engine='openpyxl')
+            df_arr_raw = pd.read_excel(data_arrivee, header=None, engine='openpyxl')
 
             idx_dep_1, idx_arr_1 = None, None
             for c_idx in range(len(df_dep_raw.columns)):
@@ -265,9 +266,8 @@ def recuperer_donnees_course():
 
     html_hist = CSS_RACB + generer_tableau_html(df_hist, "table-hist")
     
-    # L'ASTUCE SANS TOUCHER À APP.PY : On injecte l'espace HTML directement au-dessus du tableau par divisions
+    # AJUSTEMENT : Injection propre de la coupure de séparation de 15px entre les deux blocs de droite
     html_brut_divisions = generer_tableau_html(df_divisions, "table-class-groupes")
     html_divisions_avec_espace = f"<div style='height: 15px;'></div>{html_brut_divisions}"
 
-    # On transmet cette structure augmentée dans la variable df_milieu (4ème paramètre) vers app.py
     return df_live, html_hist, df_racb, html_divisions_avec_espace, pd.DataFrame(), t_live, t_his, t_haut, t_milieu, t_bas
