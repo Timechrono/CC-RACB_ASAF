@@ -5,7 +5,7 @@ import os
 import requests
 import io
 
-# --- DESIGN SCIENTIFIQUE RIGIDE ET LARGEURS CONSERVÉES À L'IDENTIQUE ---
+# --- DESIGN SCIENTIFIQUE RIGIDE ET CONFIGURATION DES LARGEURS ET ESPACEMENTS ---
 CSS_RACB = """
 <style>
 /* VRAI GYROPHARE DE COURSE STATIQUE (SANS CLIGNOTEMENT) */
@@ -35,7 +35,7 @@ CSS_RACB = """
     color: #0F172A !important;
 }
 
-/* RESTAURATION DU COLORIAGE BLEU UNE LIGNE SUR DEUX UNIQUEMENT POUR L'HISTORIQUE */
+/* COLORIAGE BLEU UNE LIGNE SUR DEUX HISTORIQUE */
 .table-hist tr:nth-child(odd) td {
     background-color: #E0F2FE !important;
 }
@@ -64,9 +64,16 @@ CSS_RACB = """
 .table-class-robuste th:nth-child(5), .table-class-robuste td:nth-child(5) { width: 6% !important; }
 .table-class-robuste th:nth-child(6), .table-class-robuste td:nth-child(6) { width: 18% !important; text-align: right !important; }
 
-/* GAUCHE : Espacement discret au-dessus du titre Historique */
+/* CORRECTION : Réduction de la marge haute à gauche pour qu'elle soit parfaite (15px) */
 .titre-hist {
-    margin-top: 22px !important;
+    margin-top: 15px !important;
+}
+
+/* Espacement interne pour les bannières fusionnées de droite */
+.separation-classement-droite {
+    height: 15px !important;
+    display: block !important;
+    clear: both !important;
 }
 </style>
 """
@@ -264,13 +271,21 @@ def recuperer_donnees_course():
         except Exception: pass
 
     html_hist = CSS_RACB + generer_tableau_html(df_hist, "table-hist")
-    html_divisions = generer_tableau_html(df_divisions, "table-class-groupes")
     
-    # REPOSITIONNEMENT PARFAIT DE L'ESPACE :
-    # On nettoie le tableau des divisions et on injecte la coupure invisible de 15px 
-    # à la suite immédiate du tableau du Scratch (Top 20) pour pousser la bannière bleue vers le bas
-    html_brut_racb = generer_tableau_html(df_racb, "table-class-robuste")
-    html_racb_avec_espace_dessous = f"{html_brut_racb}<div style='height: 15px;'></div>"
+    # --- LA DOUBLE FUSION AUTONOME DE LA COLONNE DE DROITE ---
+    # 1. On transforme le Top 20 et le Top 3 en codes HTML pures
+    html_tableau_racb = generer_tableau_html(df_racb, "table-class-robuste")
+    html_tableau_divisions = generer_tableau_html(df_divisions, "table-class-groupes")
+    
+    # 2. On fabrique le bloc complet de droite en y intégrant manuellement l'interligne de 15px et le deuxième titre
+    # De cette façon, Streamlit n'a plus aucun contrôle sur la séparation, elle s'affiche de force.
+    html_colonne_droite_fusionnee = f"""
+    {html_tableau_racb}
+    <div class="separation-classement-droite"></div>
+    <span class="titre-classement">{t_milieu}</span>
+    {html_tableau_divisions}
+    """
 
-    # On transmet les structures ordonnées vers app.py
-    return df_live, html_hist, html_racb_avec_espace_dessous, html_divisions, pd.DataFrame(), t_live, t_his, t_haut, t_milieu, t_bas
+    # Pour éviter que app.py ne redessine un deuxième titre parasite, on vide la variable t_milieu
+    # Structure de retour : df_live, html_hist, html_fusion_droite, pd.DataFrame(), pd.DataFrame(), t_live, t_his, t_haut, t_milieu, t_bas
+    return df_live, html_hist, html_colonne_droite_fusionnee, pd.DataFrame(), pd.DataFrame(), t_live, t_his, t_haut, "", t_bas
