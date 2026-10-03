@@ -14,11 +14,6 @@ CSS_RACB = """
 .table-hist th:nth-child(4), .table-hist td:nth-child(4) { width: 11% !important; }   
 .table-hist th:nth-child(5), .table-hist td:nth-child(5) { width: 8% !important; }   
 .table-hist th:nth-child(6), .table-hist td:nth-child(6) { width: 17% !important; }  
-
-/* AJUSTEMENT : Espacement discret au-dessus de la ligne du titre Historique */
-.titre-hist {
-    margin-top: 22px !important;
-}
 </style>
 """
 
@@ -172,5 +167,5 @@ def recuperer_donnees_course():
         except Exception: pass
 
     # TRANSMISSION PARFAITE DU CONTENU À L'APP SANS FAIRE DE DOUBLON
-    # Structure originale préservée : renvoi des données pures et des titres d'origine (laissés à la gestion d'app.py)
-    return df_live, html_hist, df_racb, pd.DataFrame(), pd.DataFrame(), "Chronométrage", "Historique", "Classement Haut", "Classement Milieu", "Classement Bas"
+    # Structure : df_live, df_hist (ici HTML), df_haut, df_milieu, df_bas, Titre1, Titre2, Titre3, Titre4, Titre5
+    return df_live, html_
