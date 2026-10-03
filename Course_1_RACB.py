@@ -95,6 +95,12 @@ def recuperer_donnees_course():
     df_racb = pd.DataFrame(columns=["Pos", "N°", "Nom_Prenom", "Groupe", "Classe", "Chrono"])
     html_divisions = "<table class='table-compacte table-class-robuste'><tr><td style='text-align: center; padding: 10px;'>Aucune donnée disponible</td></tr></table>"
 
+    t_live = "🏎️ EN DIRECT / Derniers concurrents partis"
+    t_his = "🕒 HISTORIQUE DES TEMPS / 1er COURSE / Concurrents RACB"
+    t_haut = "🏆 CLASSEMENT GENERAL OFFICIEUX RACB (Top 20)"
+    t_milieu = "📊 CLASSEMENT OFFICIEUX PAR Groupe / Classe (Top 3)"
+    t_bas = ""
+
     try:
         flux_eng = telecharger_excel(FILE_ENGAGES)
         flux_dep = telecharger_excel(FILE_DEPART)
@@ -161,11 +167,9 @@ def recuperer_donnees_course():
             valides = base[base["Calc_Sec"].notna() & (base["Calc_Sec"] > 0)].copy()
             if len(valides) > 0:
                 scr = valides.sort_values(by="Calc_Sec").drop_duplicates(subset=["N°"], keep="first").copy()
-                
-                # Exclusion des groupes de démo (1, 2, 3, 4) si présents
                 scr = scr[~scr["Groupe"].astype(str).str.strip().str.startswith(('1', '2', '3', '4'), na=False)]
                 
-                racb = scr.head(20).copy() # Restriction stricte Top 20 RACB
+                racb = scr.head(20).copy()
                 if len(racb) > 0:
                     racb["Pos"] = range(1, len(racb) + 1); racb["Chrono"] = racb["Calc_Sec"].apply(format_final_chrono)
                     df_racb = racb[["Pos", "N°", "Nom_Prenom", "Groupe", "Classe", "Chrono"]]
@@ -184,24 +188,17 @@ def recuperer_donnees_course():
                         group = group.copy(); group["Pos"] = range(1, len(group) + 1); group["Chrono"] = group["Calc_Sec"].apply(format_final_chrono)
                         sub_df = group[["Pos", "N°", "Nom_Prenom", "Groupe", "Classe", "Chrono"]]
                         
-                        # LOGIQUE ULTRA-STABLE ISSUE DIRECTEMENT DE VOTRE FICHIER JOINT ASAF
                         sub_html = sub_df.to_html(index=False, header=(current_group==1), classes='table-compacte table-class-robuste', escape=False, border=0)
                         if current_group == 1: html_blocs.append(sub_html.replace("</tbody>\n</table>", ""))
                         else: html_blocs.append(sub_html.split("<tbody>")[-1].replace("</tbody>\n</table>", ""))
                         
-                        # Tracé de la ligne bleue foncée d'origine entre les classes
+                        # REMÈDE APPORTÉ : Tracé forcé à l'aide d'une vraie ligne physique bleu foncé (<hr>) de 3px d'épaisseur
                         if current_group < total_groups:
-                            html_blocs.append("<tr>" + "".join(["<td style='border-top: 3px solid #1E3A8A !important; padding:0 !important; background-color:#FFFFFF !important;'></td>" for _ in range(6)]) + "</tr>")
+                            html_blocs.append("<tr>" + "".join(["<td style='padding:0 !important; background-color:#FFFFFF !important;'><hr style='border:0 !important; border-top:3px solid #1E3A8A !important; margin:0 !important; padding:0 !important;'></td>" for _ in range(6)]) + "</tr>")
                     
                     html_blocs.append("</tbody>\n</table>")
                     html_divisions = "".join(html_blocs)
     except Exception: pass
-
-    t_live = "🏎️ EN DIRECT / Derniers concurrents partis"
-    t_his = "🕒 HISTORIQUE DES TEMPS / 1er COURSE / Concurrents RACB"
-    t_haut = "🏆 CLASSEMENT GENERAL OFFICIEUX RACB (Top 20)"
-    t_milieu = "📊 CLASSEMENT OFFICIEUX PAR Groupe / Classe (Top 3)"
-    t_bas = ""
 
     html_hist = CSS_RACB + df_hist.to_html(index=False, classes="table-compacte table-hist", escape=False, border=0)
 
