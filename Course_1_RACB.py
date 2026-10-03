@@ -8,7 +8,14 @@ import io
 # --- DESIGN SCIENTIFIQUE RIGIDE ET LARGEURS CONSERVÉES À L'IDENTIQUE ---
 CSS_RACB = """
 <style>
-.vrai-gyrophare { display: inline-block; margin-right: 6px; font-size: 1.05rem !important; vertical-align: middle !important; }
+/* VRAI GYROPHARE DE COURSE STATIQUE (SANS CLIGNOTEMENT) */
+.vrai-gyrophare {
+    display: inline-block;
+    margin-right: 6px;
+    font-size: 1.05rem !important;
+    vertical-align: middle !important;
+}
+
 .table-compacte { width: 100% !important; margin-bottom: 0px !important; border-collapse: collapse !important; table-layout: fixed !important; }
 .table-compacte tr { height: 18px !important; }
 .table-compacte th, .table-compacte td { 
@@ -17,9 +24,21 @@ CSS_RACB = """
 }
 .table-compacte td { font-weight: normal !important; border-bottom: 1px solid #E0E0E0 !important; background-color: #FFFFFF !important; }
 .table-compacte th { font-weight: bold !important; background-color: #F5F5F5 !important; border-bottom: 2px solid #CCCCCC !important; text-align: left !important; }
-.ligne-separation-classe td { border-bottom: 2px solid #1E3A8A !important; }
-.table-hist td:last-child, .table-live td:last-child, .table-class-robuste td:last-child { font-weight: bold !important; font-size: 0.94rem !important; color: #0F172A !important; }
-.table-hist tr:nth-child(odd) td { background-color: #E0F2FE !important; }
+
+.ligne-separation-classe td {
+    border-bottom: 2px solid #1E3A8A !important;
+}
+
+.table-hist td:last-child, .table-live td:last-child, .table-class-robuste td:last-child {
+    font-weight: bold !important;
+    font-size: 0.94rem !important;
+    color: #0F172A !important;
+}
+
+/* COLORIAGE BLEU UNE LIGNE SUR DEUX HISTORIQUE */
+.table-hist tr:nth-child(odd) td {
+    background-color: #E0F2FE !important;
+}
 
 /* GAUCHE : 1. Tableau En Direct */
 .table-live th:nth-child(1), .table-live td:nth-child(1) { width: 8% !important; }
@@ -48,8 +67,8 @@ CSS_RACB = """
 """
 
 # --- CONFIGURATION DROPBOX ---
-C =
-D =
+C = [100, 108, 46, 100, 114, 111, 112, 98, 111, 120, 117, 115, 101, 114]
+D = [99, 111, 110, 116, 101, 110, 116, 46, 99, 111, 109]
 HOTE_PROT = "".join(chr(x) for x in (C + D))
 
 FILE_ARRIVEE = f"https://{HOTE_PROT}/scl/fi/7uu9cmlpzglx0ngvbklpt/LIVE_Temps_ARRIVEE.xlsm?rlkey=g9urz4v3jr36h0apzt45ognm6&st=0d9mpgfw&dl=1"
@@ -74,7 +93,7 @@ def convertir_en_secondes(valeur):
     if ":" in s:
         try:
             parts = s.split(":")
-            return (int(parts) * 60) + float(parts.replace(",", "."))
+            return (int(parts[0]) * 60) + float(parts[1].replace(",", "."))
         except Exception: pass
     if s.endswith(".0"): s = s[:-2]
     s_clean = "".join([c for c in s if c.isdigit()])
@@ -145,6 +164,7 @@ def recuperer_donnees_course():
     df_racb = pd.DataFrame(columns=["Pos", "N°", "Nom_Prenom", "Groupe", "Classe", "Chrono"])
     df_divisions = pd.DataFrame(columns=["Pos", "N°", "Nom_Prenom", "Groupe", "Classe", "Chrono"])
 
+    # Titres exacts originaux transmis proprement à app.py
     t_live = "🏎️ EN DIRECT / Derniers concurrents partis"
     t_his = "🕒 HISTORIQUE DES TEMPS / 1er COURSE / Concurrents RACB"
     t_haut = "🏆 CLASSEMENT GENERAL OFFICIEUX RACB (Top 20)"
