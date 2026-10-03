@@ -164,8 +164,11 @@ div.stElementContainer {{
     .logo-signature {{ height: 32px !important; }}
 }}
 
-.table-class-robuste tr.ligne-bleue-separation td {{
-    border-top: 3px solid #1E3A8A !important;
+/* Correction : Force la bordure bleue foncée sur le BAS des cellules de la ligne de séparation */
+.table-class-robuste tr.ligne-bleue-separation td {
+    border-bottom: 3px solid #1E3A8A !important;
+}
+
 }}
 </style>
 """, unsafe_allow_html=True)
