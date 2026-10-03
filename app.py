@@ -9,7 +9,7 @@ import Essais
 # ==============================================================================
 # ⚠️ METTEZ VOTRE LIEN DROPBOX ICI (Assurez-vous qu'il se termine bien par dl=1)
 # ==============================================================================
-LIEN_DROPBOX_LOGO = "https://dropbox.com"
+LIEN_DROPBOX_LOGO = "https://www.dropbox.com/scl/fi/hi24fjo0vbal4oiiwt9jl/logo-TimeC.png?rlkey=xlw0oqk9gdnq6v5dgahi0klg0&st=y86yrn6y&dl=1"
 
 # --- DÉTECTION DES SCRIPTS DE COURSE DISPONIBLES ---
 try:
@@ -86,11 +86,11 @@ div.stElementContainer {{
 .titre-hist {{ background-color: #475569 !important; margin-top: 25px !important; margin-bottom: 6px !important; }}
 .titre-classement {{ background-color: #1E3A8A !important; margin-top: 0px !important; margin-bottom: 6px !important; }}
 
-/* MODIFICATION : Cadre vert très foncé, texte vert fluo et NON GRAS */
+/* MODIFICATION : Cadre vert très foncé, texte BLANC et NON GRAS */
 .refresh-bleu-clair-historique {{
-    color: #00FF00 !important;
+    color: #FFFFFF !important;             /* Texte blanc */
     font-weight: normal !important;
-    background-color: #064E3B !important; /* Vert très foncé */
+    background-color: #064E3B !important; /* Fond vert très foncé */
     border: 1px solid #00FF00 !important;   /* Fine bordure vert fluo */
     padding: 1px 6px !important;            /* Espace intérieur du cadre */
     border-radius: 4px !important;          /* Coins arrondis */
@@ -173,6 +173,7 @@ def gen_html(df, cl):
 # --- LECTURE DU PARAMÈTRE DE COURSE DEPUIS L'URL ---
 query_params = st.query_params
 choix_course_url = query_params.get("course", "essais").lower()
+
 # fin bloc 1
 if choix_course_url == "c1asaf" and course1_disponible:
     choix_course = "Course 1 ASAF"
