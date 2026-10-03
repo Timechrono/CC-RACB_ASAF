@@ -23,7 +23,7 @@ CSS_RACB = """
     height: 18px !important; padding: 1px 5px !important; line-height: 1.1 !important; font-size: 0.85rem !important; color: #000000 !important; 
     vertical-align: middle !important; overflow: hidden !important; text-overflow: ellipsis !important; white-space: nowrap !important; 
 }
-.table-compacte td { font-weight: normal !important; border-bottom: 1px solid #E0E0E0 !important; background-color: #FFFFFF !important; }
+.table-compacte td { border-bottom: 1px solid #E0E0E0 !important; background-color: #FFFFFF !important; }
 .table-compacte th { font-weight: bold !important; background-color: #F5F5F5 !important; border-bottom: 2px solid #CCCCCC !important; text-align: left !important; }
 
 .table-hist td:last-child, .table-live td:last-child, .table-class-robuste td:last-child {
@@ -168,9 +168,7 @@ def recuperer_donnees_course():
     cols_live = ["N°", "Nom_Prenom", "Voiture", "Départ", "Arrivée", "Chrono réalisé"]
     cols_hist = ["N°", "Nom_Prenom", "Voiture", "Groupe", "Classe", "Chrono réalisé"]
     df_live, df_hist = pd.DataFrame(columns=cols_live), pd.DataFrame(columns=cols_hist)
-    df_racb = pd.DataFrame(columns=["Pos", "N°", "Nom_Prenom", "Groupe", "Classe", "Chrono"])
-    df_divisions = pd.DataFrame(columns=["Pos", "N°", "Nom_Prenom", "Groupe", "Classe", "Chrono"])
-    html_divisions = "<table class='table-compacte table-class-robuste'><tr><td style='text-align: center; padding: 10px;'>Aucune donnée disponible</td></tr></table>"
+    df_racb, df_divisions = pd.DataFrame(columns=["Pos", "N°", "Nom_Prenom", "Groupe", "Classe", "Chrono"]), pd.DataFrame(columns=["Pos", "N°", "Nom_Prenom", "Groupe", "Classe", "Chrono"])
 
     t_live = "🏎️ EN DIRECT / Derniers concurrents partis"
     t_his = "🕒 HISTORIQUE DES TEMPS / 1er COURSE / Concurrents RACB"
@@ -229,7 +227,15 @@ def recuperer_donnees_course():
                     base_c1 = base[base["Heure_Depart"].notna()].copy(); base_c1["Ordre_Live"] = range(len(base_c1))
                     df_live_base = base_c1.sort_values(by="Ordre_Live", ascending=False).head(5).copy()
                     df_live_base["Chrono réalisé"] = df_live_base.apply(lambda r: calculer_statut_chrono(r, est_dans_le_live=True), axis=1)
-                    df_live_base["Arrivée_Brute"] = df_live_base["Heure_Arrivee"].apply(formater_heure_ecran)
+                    
+                    # LOGIQUE AJOUTÉE : Formate l'heure d'arrivée et greffe le V vert décalé s'il y a un temps
+                    def determiner_arrivee_avec_v_vert(row):
+                        if pd.isna(row["Heure_Arrivee"]) or row["Heure_Arrivee"] == "" or str(row["Heure_Arrivee"]).lower() == "nan":
+                            return "-"
+                        heure_formatee = formater_heure_ecran(row["Heure_Arrivee"])
+                        return f"{heure_formatee}&nbsp;&nbsp;&nbsp;✅"
+                    
+                    df_live_base["Arrivée_Brute"] = df_live_base.apply(determiner_arrivee_avec_v_vert, axis=1)
                     df_live = df_live_base[["N°", "Nom_Prenom", "Voiture", "Départ_C1", "Arrivée_Brute", "Chrono réalisé"]].rename(columns={"Départ_C1": "Départ", "Arrivée_Brute": "Arrivée"})
 
                 def formater_chrono_historique_course1(row):
@@ -258,30 +264,19 @@ def recuperer_donnees_course():
                         grouped_objs = df_grouped.groupby(["Groupe", "Classe_Num"])
                         total_groups = len(grouped_objs)
                         current_group = 0
-                        
-                        for (grp, cl_num), group in grouped_objs:
+                        for grp, cl_num in grouped_objs.groups.keys():
                             current_group += 1
-                            group = group.copy(); group["Pos"] = range(1, len(group) + 1); group["Chrono"] = group["Calc_Sec"].apply(format_final_chrono)
+                            group = grouped_objs.get_group((grp, cl_num)).copy()
+                            group["Pos"] = range(1, len(group) + 1); group["Chrono"] = group["Calc_Sec"].apply(format_final_chrono)
                             sub_df = group[["Pos", "N°", "Nom_Prenom", "Groupe", "Classe", "Chrono"]]
-                            
-                            # Logique d'extraction ASAF robuste et native pour reconstruire la table de classement
                             sub_html = sub_df.to_html(index=False, header=(current_group==1), classes='table-compacte table-class-robuste', escape=False, border=0)
-                            
-                            if current_group == 1: 
-                                html_blocs.append(sub_html.replace("</tbody>\n</table>", ""))
-                            else: 
-                                html_blocs.append(sub_html.split("<tbody>")[-1].replace("</tbody>\n</table>", ""))
-                            
-                            # REPRODUCTION STRUCTURÉE ET LÉGÈRE DU SCRIPT UNIFIÉ LOCALE :
-                            # Injection de la ligne bleu foncé (#1E3A8A) forcée directement sur les cellules 
-                            if current_group < total_groups:
-                                html_blocs.append("<tr>" + "".join(["<td style='border-top: 3px solid #1E3A8A !important; padding:0 !important; background-color:#FFFFFF !important;'></td>" for _ in range(6)]) + "</tr>")
-                        
+                            if current_group == 1: html_blocs.append(sub_html.replace("</tbody>\n</table>", ""))
+                            else: html_blocs.append(sub_html.split("<tbody>")[-1].replace("</tbody>\n</table>", ""))
                         html_blocs.append("</tbody>\n</table>")
-                        html_divisions = "".join(html_blocs)
+                        df_divisions = "".join(html_blocs)
         except Exception: pass
 
     html_hist = CSS_RACB + generer_tableau_html(df_hist, "table-hist")
-    html_class_div = f"<div class='table-responsive-container'>{html_divisions}</div>" if isinstance(html_divisions, str) else generer_tableau_html(html_divisions, "table-class-groupes")
+    html_class_div = df_divisions if isinstance(df_divisions, str) else generer_tableau_html(df_divisions, "table-class-groupes")
 
     return df_live, html_hist, df_racb, html_class_div, pd.DataFrame(), t_live, t_his, t_haut, t_milieu, t_bas
