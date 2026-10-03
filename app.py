@@ -1,4 +1,4 @@
-import streamlit st
+import streamlit as st
 import pandas as pd
 import time
 import requests
@@ -80,7 +80,7 @@ div.stElementContainer {
 .titre-hist { background-color: #475569 !important; margin-top: 25px !important; margin-bottom: 6px !important; }
 .titre-classement { background-color: #1E3A8A !important; margin-top: 0px !important; margin-bottom: 6px !important; }
 
-/* Forçage de la marge supérieure pour le deuxième et troisième classement à droite */
+/* Forçage de la marge supérieure pour le deuxième classement à droite */
 .espace-classement-suivant {
     margin-top: 25px !important;
 }
