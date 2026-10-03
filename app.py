@@ -114,8 +114,8 @@ div.stElementContainer {
         padding: 3px 6px !important;
     }
     .table-compacte th, .table-compacte td { 
-        font-size: 0.65rem !important; /* Caractère très compact */
-        padding: 1px 2px !important;   /* Espaces réduits au maximum */
+        font-size: 0.65rem !important;
+        padding: 1px 2px !important;
     }
     .table-live td:last-child, .table-class-robuste td:last-child { 
         font-size: 0.70rem !important; 
@@ -212,12 +212,10 @@ with cd:
 
 st.markdown("<div style='height:20px;'></div>", unsafe_allow_html=True)
 
-# Rafraîchissement automatique toutes les 30 secondes
-st.markdown("""
-    <script>
-        if (!window.autoRefreshSet) {
-            window.autoRefreshSet = true;
-            setTimeout(function() { window.location.reload(); }, 30000);
-        }
-    </script>
-""", unsafe_allow_html=True)
+# --- SYSTÈME DE RAFRAÎCHISSEMENT NATIF (TOUTES LES 30 SECONDES) ---
+@st.fragment
+def declencher_compteur_auto():
+    time.sleep(30)
+    st.rerun()
+
+declencher_compteur_auto()
