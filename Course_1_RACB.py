@@ -146,7 +146,6 @@ def recuperer_donnees_course():
 
         df_eng_raw.columns = df_eng_raw.columns.astype(str).str.strip().str.upper()
         
-        # Restauration du Groupe complet (sans la coupure Python)
         df_eng = pd.DataFrame({
             "N°": df_eng_raw.iloc[:, 0].apply(nettoyer_numero), 
             "Nom_Prenom": df_eng_raw.iloc[:, 1].fillna("Pilote Inconnu").astype(str).str.strip(),
@@ -224,18 +223,18 @@ def recuperer_donnees_course():
                 df_divisions = df_final_grouped[["Pos", "N°", "Nom_Prenom", "Groupe", "Classe", "Chrono"]].rename(columns={"Classe": "Cl"}).copy()
     except Exception: pass
 
-    # CORRECTION : La ligne de séparation cible la bordure inférieure (border-bottom) de la ligne actuelle
+    # Rétablissement de la classe sur la ligne (tr)
     if not df_divisions.empty and "Cl" in df_divisions.columns and "Groupe" in df_divisions.columns:
         html_class_div = f"<table class='table-compacte table-class-robuste'><thead><tr>"
         for col in df_divisions.columns: html_class_div += f"<th>{col}</th>"
         html_class_div += "</tr></thead><tbody>"
         for idx in range(len(df_divisions)):
-            style_row = ""
+            classe_row = ""
             if idx < len(df_divisions) - 1:
-                # Si la ligne suivante change de Cl ou de Groupe, on trace une bordure en BAS de la ligne en cours
+                # Si le groupe ou la classe change à la ligne suivante, on marque cette ligne
                 if df_divisions.iloc[idx]["Cl"] != df_divisions.iloc[idx + 1]["Cl"] or df_divisions.iloc[idx]["Groupe"] != df_divisions.iloc[idx + 1]["Groupe"]:
-                    style_row = "style='border-bottom: 3px solid #1E3A8A !important;'"
-            html_class_div += f"<tr {style_row}>"
+                    classe_row = "class='ligne-bleue-separation'"
+            html_class_div += f"<tr {classe_row}>"
             for col in df_divisions.columns: html_class_div += f"<td>{df_divisions.iloc[idx][col]}</td>"
             html_class_div += "</tr>"
         html_class_div += "</tbody></table>"
