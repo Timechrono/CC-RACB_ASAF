@@ -5,7 +5,7 @@ import os
 import requests
 import io
 
-# --- DESIGN SCIENTIFIQUE RIGIDE ET ADAPTATION SMARTPHONE SANS CONFLIT ---
+# --- DESIGN SCIENTIFIQUE RIGIDE ET STRUCTURE UNIFIÉE PC / MOBILE ---
 CSS_RACB = """
 <style>
 /* VRAI GYROPHARE DE COURSE STATIQUE (SANS CLIGNOTEMENT) */
@@ -37,7 +37,7 @@ CSS_RACB = """
     background-color: #E0F2FE !important;
 }
 
-/* LA LIGNE DE SÉPARATION BLEUE TECHNIQUE FONCTIONNELLE */
+/* LA LIGNE DE SÉPARATION BLEUE TECHNIQUE FONCTIONNELLE D'ORIGINE */
 .ligne-separation-classe td {
     border-bottom: 2px solid #1E3A8A !important;
 }
@@ -73,7 +73,7 @@ CSS_RACB = """
 
 /* --- CONFIGURATION ADAPTATIVE SMARTPHONE (PORTRAIT & PAYSAGE) --- */
 @media (max-width: 768px) {
-    /* REMÈDE PAYSAGE : On casse les colonnes Streamlit côte-à-côte pour forcer un empilement vertical propre (plus de chevauchement) */
+    /* REMÈDE PAYSAGE : Empilement vertical sur mobile pour éliminer les chevauchements et libérer le glissement */
     div[data-testid="stHorizontalBlock"] {
         flex-direction: column !important;
     }
@@ -82,23 +82,23 @@ CSS_RACB = """
         max-width: 100% !important;
     }
 
-    /* REMÈDE PORTRAIT : Chaque tableau est forcé de glisser de manière autonome */
+    /* REMÈDE PORTRAIT : Tunnel de glissement uniforme et taille compacte */
     .table-responsive-container {
         width: 100% !important;
         max-width: 100% !important;
         overflow-x: auto !important;
         display: block !important;
         clear: both !important;
-        -webkit-overflow-scrolling: touch !important; /* Glissement fluide iOS */
+        -webkit-overflow-scrolling: touch !important;
         margin-bottom: 12px !important;
     }
     .table-compacte {
-        table-layout: auto !important; /* Fluide sur mobile */
+        table-layout: auto !important;
         width: 100% !important;
-        min-width: 560px !important; /* Force la largeur pour avoir un glissement homogène sur tous les tableaux */
+        min-width: 560px !important; /* Force la même largeur de base pour tous les tableaux */
     }
     .table-compacte th, .table-compacte td { 
-        font-size: 0.65rem !important; /* Écriture réduite mobile */
+        font-size: 0.65rem !important;
         padding: 1px 4px !important;
         overflow: visible !important;
         text-overflow: clip !important;
@@ -111,8 +111,8 @@ CSS_RACB = """
 """
 
 # --- CONFIGURATION DROPBOX ---
-C =
-D =
+C = [100, 108, 46, 100, 114, 111, 112, 98, 111, 120, 117, 115, 101, 114]
+D = [99, 111, 110, 116, 101, 110, 116, 46, 99, 111, 109]
 HOTE_PROT = "".join(chr(x) for x in (C + D))
 
 FILE_ARRIVEE = f"https://{HOTE_PROT}/scl/fi/7uu9cmlpzglx0ngvbklpt/LIVE_Temps_ARRIVEE.xlsm?rlkey=g9urz4v3jr36h0apzt45ognm6&st=0d9mpgfw&dl=1"
@@ -137,7 +137,7 @@ def convertir_en_secondes(valeur):
     if ":" in s:
         try:
             parts = s.split(":")
-            return (int(parts) * 60) + float(parts.replace(",", "."))
+            return (int(parts[0]) * 60) + float(parts[1].replace(",", "."))
         except Exception: pass
     if s.endswith(".0"): s = s[:-2]
     s_clean = "".join([c for c in s if c.isdigit()])
@@ -179,10 +179,10 @@ def calculer_statut_chrono(row, est_dans_le_live=True):
     return "No Time"
 def generer_tableau_html(df, classe_specifique):
     if df.empty: 
-        return f"<table class='table-compacte {classe_specifique}'><tr><td style='text-align: center; padding: 10px;'>Aucune donnée disponible</td></tr></table>"
+        return f"<div class='table-responsive-container'><table class='table-compacte {classe_specifique}'><tr><td style='text-align: center; padding: 10px;'>Aucune donnée disponible</td></tr></table></div>"
     
     if classe_specifique == "table-class-groupes" and "Classe" in df.columns and "Groupe" in df.columns:
-        html = f"<table class='table-compacte table-class-robuste'><thead><tr>"
+        html = f"<div class='table-responsive-container'><table class='table-compacte table-class-robuste'><thead><tr>"
         for col in df.columns: html += f"<th>{col}</th>"
         html += "</tr></thead><tbody>"
         for idx in range(len(df)):
@@ -193,10 +193,11 @@ def generer_tableau_html(df, classe_specifique):
             html += f"<tr {classe_row}>"
             for col in df.columns: html += f"<td>{df.iloc[idx][col]}</td>"
             html += "</tr>"
-        html += "</tbody></table>"
+        html += "</tbody></table></div>"
         return html
 
-    return df.to_html(index=False, classes=f"table-compacte {classe_specifique}", escape=False, border=0)
+    html_brut = df.to_html(index=False, classes=f"table-compacte {classe_specifique}", escape=False, border=0)
+    return f"<div class='table-responsive-container'>{html_brut}</div>"
 
 def recuperer_donnees_course():
     cols_live = ["N°", "Nom_Prenom", "Voiture", "Départ", "Arrivée", "Chrono réalisé"]
@@ -294,5 +295,5 @@ def recuperer_donnees_course():
     html_hist = CSS_RACB + generer_tableau_html(df_hist, "table-hist")
     html_class_div = generer_tableau_html(df_divisions, "table-class-groupes")
 
-    # Utilisation du conteneur responsive pour forcer le glissement de TOUS les tableaux de la même façon sur mobile
-    return generer_tableau_html(df_live, "table-live"), html_hist, df_racb, html_class_div, pd.DataFrame(), t_live, t_his, t_haut, t_milieu, t_bas
+    # Correction syntaxique : On renvoie les objets de données purs, l'enveloppe responsive est appliquée en interne
+    return df_live, html_hist, df_racb, html_class_div, pd.DataFrame(), t_live, t_his, t_haut, t_milieu, t_bas
