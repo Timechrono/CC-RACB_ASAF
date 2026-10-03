@@ -123,7 +123,6 @@ def generer_tableau_html(df, classe_specifique):
     return df.to_html(index=False, classes=f"table-compacte {classe_specifique}", escape=False, border=0)
 
 def recuperer_donnees_course():
-    # MODIFICATION EFFECTIVE : Les en-têtes sont configurés en "Cl" et "Chrono"
     cols_live = ["N°", "Nom_Prenom", "Voiture", "Départ", "Arrivée", "Chrono"]
     cols_hist = ["N°", "Nom_Prenom", "Voiture", "Groupe", "Cl", "Chrono"]
     df_live, df_hist = pd.DataFrame(columns=cols_live), pd.DataFrame(columns=cols_hist)
@@ -146,11 +145,15 @@ def recuperer_donnees_course():
         df_arr_raw = pd.read_excel(flux_arr, header=None, engine='openpyxl')
 
         df_eng_raw.columns = df_eng_raw.columns.astype(str).str.strip().str.upper()
-        df_eng = pd.DataFrame({"N°": df_eng_raw.iloc[:, 0].apply(nettoyer_numero), 
-                               "Nom_Prenom": df_eng_raw.iloc[:, 1].fillna("Pilote Inconnu").astype(str).str.strip(),
-                               "Voiture": df_eng_raw.iloc[:, 4].fillna("").astype(str).str.strip(),
-                               "Groupe": df_eng_raw.iloc[:, 5].apply(lambda x: "-" if pd.isna(x) else str(x).strip()[:-2] if str(x).strip().endswith(".0") else str(x).strip()),
-                               "Classe": df_eng_raw.iloc[:, 6].fillna("-").astype(str).str.strip().apply(lambda x: x[:-2] if x.endswith(".0") else x)})
+        
+        # SÉCURISATION & LIMITATION : Le Groupe est limité à 6 caractères maximum via [:6]
+        df_eng = pd.DataFrame({
+            "N°": df_eng_raw.iloc[:, 0].apply(nettoyer_numero), 
+            "Nom_Prenom": df_eng_raw.iloc[:, 1].fillna("Pilote Inconnu").astype(str).str.strip(),
+            "Voiture": df_eng_raw.iloc[:, 4].fillna("").astype(str).str.strip(),
+            "Groupe": df_eng_raw.iloc[:, 5].apply(lambda x: "-" if pd.isna(x) else str(x).strip()[:-2] if str(x).strip().endswith(".0") else str(x).strip()[:6]),
+            "Classe": df_eng_raw.iloc[:, 6].fillna("-").astype(str).str.strip().apply(lambda x: x[:-2] if x.endswith(".0") else x)
+        })
         df_eng = df_eng[df_eng["N°"] != "NAN"].drop_duplicates(subset=["N°"])
         liste_numeros_racb = set(df_eng["N°"].tolist())
 
@@ -197,7 +200,6 @@ def recuperer_donnees_course():
 
             base["Chrono_C1_Visual_Hist"] = base.apply(lambda r: "En Piste" if pd.notna(r["Heure_Depart"]) and pd.isna(r["Heure_Arrivee"]) and pd.isna(r["Sec_Excel"]) else format_final_chrono(r["Calc_Sec"]) if pd.notna(r["Calc_Sec"]) and r["Calc_Sec"] > 0 else "No Time", axis=1)
             base["Ordre_Saisie"] = range(len(base))
-            # CORRECTION : Renommage de "Classe" en "Cl" pour l'historique
             df_hist = base.sort_values(by="Ordre_Saisie", ascending=False)[["N°", "Nom_Prenom", "Voiture", "Groupe", "Classe", "Chrono_C1_Visual_Hist"]].rename(columns={"Chrono_C1_Visual_Hist": "Chrono", "Classe": "Cl"})
 
             valides = base[base["Calc_Sec"].notna() & (base["Calc_Sec"] > 0)].copy()
@@ -208,7 +210,6 @@ def recuperer_donnees_course():
                 racb = scr.head(20).copy()
                 if len(racb) > 0:
                     racb["Pos"] = range(1, len(racb) + 1); racb["Chrono"] = racb["Calc_Sec"].apply(format_final_chrono)
-                    # CORRECTION : Renommage en "Cl" pour le classement général
                     df_racb = racb[["Pos", "N°", "Nom_Prenom", "Groupe", "Classe", "Chrono"]].rename(columns={"Classe": "Cl"})
                 
                 scr["Groupe_Num"] = pd.to_numeric(scr["Groupe"], errors='coerce').fillna(999)
@@ -220,11 +221,26 @@ def recuperer_donnees_course():
                 df_final_grouped["Pos"] = df_final_grouped.groupby(["Groupe_Num", "Classe_Num"]).cumcount() + 1
                 df_final_grouped["Chrono"] = df_final_grouped["Calc_Sec"].apply(format_final_chrono)
                 
-                # CORRECTION : Renommage en "Cl" pour le classement par divisions
                 df_divisions = df_final_grouped[["Pos", "N°", "Nom_Prenom", "Groupe", "Classe", "Chrono"]].rename(columns={"Classe": "Cl"}).copy()
     except Exception: pass
 
+    # RÉTABLISSEMENT DES LIGNES BLEUES : La fonction technique native cible maintenant "Cl"
+    if not df_divisions.empty and "Cl" in df_divisions.columns and "Groupe" in df_divisions.columns:
+        html_class_div = f"<table class='table-compacte table-class-robuste'><thead><tr>"
+        for col in df_divisions.columns: html_class_div += f"<th>{col}</th>"
+        html_class_div += "</tr></thead><tbody>"
+        for idx in range(len(df_divisions)):
+            classe_row = ""
+            if idx < len(df_divisions) - 1:
+                if df_divisions.iloc[idx]["Cl"] != df_divisions.iloc[idx + 1]["Cl"] or df_divisions.iloc[idx]["Groupe"] != df_divisions.iloc[idx + 1]["Groupe"]:
+                    classe_row = "class='ligne-bleue-separation'"
+            html_class_div += f"<tr {classe_row}>"
+            for col in df_divisions.columns: html_class_div += f"<td>{df_divisions.iloc[idx][col]}</td>"
+            html_class_div += "</tr>"
+        html_class_div += "</tbody></table>"
+    else:
+        html_class_div = generer_tableau_html(df_divisions, "table-class-groupes")
+
     html_hist = CSS_RACB + generer_tableau_html(df_hist, "table-hist")
-    html_class_div = generer_tableau_html(df_divisions, "table-class-groupes")
 
     return df_live, html_hist, df_racb, html_class_div, pd.DataFrame(), t_live, t_his, t_haut, t_milieu, t_bas
