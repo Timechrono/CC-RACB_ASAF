@@ -5,7 +5,7 @@ import os
 import requests
 import io
 
-# --- DESIGN SCIENTIFIQUE RIGIDE ET LARGEURS AUTOMATIQUEMENT ADAPTATIVES SUR MOBILE ---
+# --- DESIGN SCIENTIFIQUE RIGIDE ET BLOCAGE STRICT DE LA LARGEUR SUR MOBILE ---
 CSS_RACB = """
 <style>
 /* VRAI GYROPHARE DE COURSE STATIQUE (SANS CLIGNOTEMENT) */
@@ -40,7 +40,7 @@ CSS_RACB = """
     background-color: #E0F2FE !important;
 }
 
-/* ORDINATEUR : Configuration stricte des largeurs */
+/* ORDINATEUR : Largeurs de colonnes strictes d'origine */
 @media (min-width: 769px) {
     .table-live th:nth-child(1), .table-live td:nth-child(1) { width: 8% !important; }
     .table-live th:nth-child(2), .table-live td:nth-child(2) { width: 26% !important; }
@@ -64,14 +64,31 @@ CSS_RACB = """
     .table-class-robuste th:nth-child(6), .table-class-robuste td:nth-child(6) { width: 18% !important; text-align: right !important; }
 }
 
-/* SMARTPHONE (REMÈDE DÉFINITIF) : On déverrouille le blocage pour que le tableau se cale à 100% de l'écran */
+/* SMARTPHONE (REMÈDE TECHNIQUE TOTAL) */
 @media (max-width: 768px) {
-    .table-compacte {
-        table-layout: auto !important; /* Rend le tableau fluide et auto-ajustable */
+    /* On force l'application en ligne à se verrouiller à la largeur stricte du téléphone */
+    .stApp, .block-container, div[data-testid="stMainBlockContainer"] {
+        max-width: 100vw !important;
+        overflow-x: hidden !important;
+    }
+    
+    /* Conteneur spécial pour chaque tableau : s'il s'élargit, il crée une glissière interne avec le doigt */
+    .table-responsive-container {
         width: 100% !important;
+        max-width: 100% !important;
+        overflow-x: auto !important;
+        display: block !important;
+        clear: both !important;
+        -webkit-overflow-scrolling: touch !important; /* Défilement fluide sur iPhone */
+    }
+    
+    /* Le tableau à l'intérieur conserve ses écritures compactes d'origine sans s'écraser */
+    .table-compacte {
+        table-layout: fixed !important;
+        width: 580px !important; /* Taille idéale pour que l'historique et les classements soient lisibles en paysage */
     }
     .table-compacte th, .table-compacte td {
-        padding: 1px 3px !important; /* Resserre les cellules pour éviter la coupure */
+        padding: 1px 4px !important;
     }
 }
 </style>
@@ -145,10 +162,10 @@ def calculer_statut_chrono(row, est_dans_le_live=True):
     return "No Time"
 def generer_tableau_html(df, classe_specifique):
     if df.empty: 
-        return f"<table class='table-compacte {classe_specifique}'><tr><td style='text-align: center; padding: 10px;'>Aucune donnée disponible</td></tr></table>"
+        return f"<div class='table-responsive-container'><table class='table-compacte {classe_specifique}'><tr><td style='text-align: center; padding: 10px;'>Aucune donnée disponible</td></tr></table></div>"
     
     if classe_specifique == "table-class-groupes" and "Classe" in df.columns and "Groupe" in df.columns:
-        html = f"<table class='table-compacte table-class-robuste'><thead><tr>"
+        html = f"<div class='table-responsive-container'><table class='table-compacte table-class-robuste'><thead><tr>"
         for col in df.columns:
             html += f"<th>{col}</th>"
         html += "</tr></thead><tbody>"
@@ -161,10 +178,11 @@ def generer_tableau_html(df, classe_specifique):
             for col in df.columns:
                 html += f"<td>{df.iloc[idx][col]}</td>"
             html += "</tr>"
-        html += "</tbody></table>"
+        html += "</tbody></table></div>"
         return html
 
-    return df.to_html(index=False, classes=f"table-compacte {classe_specifique}", escape=False, border=0)
+    html_brut = df.to_html(index=False, classes=f"table-compacte {classe_specifique}", escape=False, border=0)
+    return f"<div class='table-responsive-container'>{html_brut}</div>"
 
 def recuperer_donnees_course():
     cols_live = ["N°", "Nom_Prenom", "Voiture", "Départ", "Arrivée", "Chrono réalisé"]
