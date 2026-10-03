@@ -6,8 +6,10 @@ import requests
 import io
 import Essais
 
-
-LIEN_DROPBOX_LOGO = "https://www.dropbox.com/scl/fi/hi24fjo0vbal4oiiwt9jl/logo-TimeC.png?rlkey=xlw0oqk9gdnq6v5dgahi0klg0&st=y86yrn6y&dl=1"
+# ==============================================================================
+# ⚠️ METTEZ VOTRE LIEN DROPBOX ICI (Assurez-vous qu'il se termine bien par dl=1)
+# ==============================================================================
+LIEN_DROPBOX_LOGO = "https://dropbox.com"
 
 # --- DÉTECTION DES SCRIPTS DE COURSE DISPONIBLES ---
 try:
@@ -84,14 +86,14 @@ div.stElementContainer {{
 .titre-hist {{ background-color: #475569 !important; margin-top: 25px !important; margin-bottom: 6px !important; }}
 .titre-classement {{ background-color: #1E3A8A !important; margin-top: 0px !important; margin-bottom: 6px !important; }}
 
-/* MODIFICATION : Cadre vert très foncé, texte BLANC et NON GRAS */
+/* Cadre vert très foncé, texte BLANC et NON GRAS */
 .refresh-bleu-clair-historique {{
-    color: #FFFFFF !important;             /* Texte blanc */
+    color: #FFFFFF !important;
     font-weight: normal !important;
-    background-color: #064E3B !important; /* Fond vert très foncé */
-    border: 1px solid #00FF00 !important;   /* Fine bordure vert fluo */
-    padding: 1px 6px !important;            /* Espace intérieur du cadre */
-    border-radius: 4px !important;          /* Coins arrondis */
+    background-color: #064E3B !important;
+    border: 1px solid #00FF00 !important;
+    padding: 1px 6px !important;
+    border-radius: 4px !important;
     display: inline-block !important;
     margin-left: 4px !important;
 }}
@@ -138,7 +140,6 @@ div.stElementContainer {{
     width: 100% !important;
 }}
 
-/* AJUSTEMENT : Conservé à 42px comme demandé */
 .logo-signature {{
     height: 42px !important;
     width: auto !important;
@@ -149,6 +150,15 @@ div.stElementContainer {{
     .block-container {{ padding-left: 2px !important; padding-right: 2px !important; }}
     .titre-live, .titre-hist, .titre-classement {{ font-size: 0.85rem !important; padding: 3px 6px !important; }}
     .table-compacte th, .table-compacte td {{ font-size: 0.65rem !important; padding: 1px 2px !important; }}
+    
+    /* MODIFICATION OPTIQUE : Limite la colonne Groupe (4e colonne de l'historique) sur smartphone */
+    .table-hist td:nth-child(4) {{
+        max-width: 45px !important; /* Largeur physique équivalente à environ 6 caractères */
+        overflow: hidden !important;
+        text-overflow: clip !important;
+        white-space: nowrap !important;
+    }}
+    
     .table-live td:last-child, .table-class-robuste td:last-child {{ font-size: 0.70rem !important; }}
     .signature-fin-page {{ font-size: 0.75rem !important; padding-top: 4px !important; }}
     .logo-signature {{ height: 32px !important; }}
