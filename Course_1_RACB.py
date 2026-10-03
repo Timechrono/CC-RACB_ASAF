@@ -104,6 +104,7 @@ def generer_tableau_html(df, classe_specifique):
     if df.empty: 
         return f"<table class='table-compacte {classe_specifique}'><tr><td style='text-align: center; padding: 10px;'>Aucune donnée disponible</td></tr></table>"
     
+    # REPRISE DE VOTRE BOUCLE TECHNIQUE NATIVE ET ROBUSTE DE CONFIANCE
     if classe_specifique == "table-class-groupes" and "Classe" in df.columns and "Groupe" in df.columns:
         html = f"<table class='table-compacte table-class-robuste'><thead><tr>"
         for col in df.columns: html += f"<th>{col}</th>"
@@ -207,15 +208,18 @@ def recuperer_donnees_course():
                     racb["Pos"] = range(1, len(racb) + 1); racb["Chrono"] = racb["Calc_Sec"].apply(format_final_chrono)
                     df_racb = racb[["Pos", "N°", "Nom_Prenom", "Groupe", "Classe", "Chrono"]]
                 
+                # SÉCURISATION DU TRI SANS PERTE DES EN-TÊTES DE COLONNES
                 scr["Groupe_Num"] = pd.to_numeric(scr["Groupe"], errors='coerce').fillna(999)
                 scr["Classe_Num"] = pd.to_numeric(scr["Classe"], errors='coerce').fillna(999)
-                df_grouped = scr.sort_values(by=["Groupe_Num", "Classe_Num", "Calc_Sec"])
                 
-                if len(df_grouped) > 0:
-                    df_final_grouped = df_grouped.groupby(["Groupe_Num", "Classe_Num"]).head(3).copy()
-                    df_final_grouped["Pos"] = df_final_grouped.groupby(["Groupe_Num", "Classe_Num"]).cumcount() + 1
-                    df_final_grouped["Chrono"] = df_final_grouped["Calc_Sec"].apply(format_final_chrono)
-                    df_divisions = pd.DataFrame(df_final_grouped[["Pos", "N°", "Nom_Prenom", "Groupe", "Classe", "Chrono"]].values, columns=["Pos", "N°", "Nom_Prenom", "Groupe", "Classe", "Chrono"])
+                df_grouped = scr.sort_values(by=["Groupe_Num", "Classe_Num", "Calc_Sec"])
+                df_final_grouped = df_grouped.groupby(["Groupe_Num", "Classe_Num"]).head(3).copy()
+                
+                df_final_grouped["Pos"] = df_final_grouped.groupby(["Groupe_Num", "Classe_Num"]).cumcount() + 1
+                df_final_grouped["Chrono"] = df_final_grouped["Calc_Sec"].apply(format_final_chrono)
+                
+                # Préservation parfaite des types et liaisons pour la boucle HTML
+                df_divisions = df_final_grouped[["Pos", "N°", "Nom_Prenom", "Groupe", "Classe", "Chrono"]].copy()
     except Exception: pass
 
     html_hist = CSS_RACB + generer_tableau_html(df_hist, "table-hist")
