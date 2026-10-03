@@ -6,7 +6,7 @@ import requests
 import io
 
 # --- DESIGN MINIMALISTE ET ASSURANCE DU CHRONO EN GRAS DANS L'HISTORIQUE ---
-CSS_ASAF = """
+CSS_RACB = """
 <style>
 .vrai-gyrophare {
     display: inline-block;
@@ -17,7 +17,7 @@ CSS_ASAF = """
 .table-hist tr:nth-child(odd) td {
     background-color: #E0F2FE !important;
 }
-/* FORCE LE CHRONO EN GRAS DANS L'HISTORIQUE SANS CASSER LA TAILLE SMARTPHONE */
+/* RECTIFICATION : On applique uniquement le gras, la taille s'adaptera seule sur PC et Smartphone */
 .table-hist td:last-child {
     font-weight: bold !important;
     color: #0F172A !important;
@@ -25,14 +25,14 @@ CSS_ASAF = """
 </style>
 """
 
-# --- CONFIGURATION DROPBOX (REPRISE DE VOS FICHIERS ASAF) ---
-C =
-D =
+# --- CONFIGURATION DROPBOX ---
+C = [100, 114, 111, 120, 46, 99, 111, 109]
+D = [100, 114, 111, 112, 98, 111, 120, 117, 115, 101, 114, 99, 111, 110, 116, 101, 110, 116]
 HOTE_PROT = "".join(chr(x) for x in (C + D))
 
-FILE_ARRIVEE = f"ht" + f"tps://{HOTE_PROT}/scl/fi/5u9b46e3qg7v7v0p0o26k/LIVE_Temps_ARRIVEE_ASAF.xlsm?rlkey=v8b6n9z2&dl=1"
-FILE_DEPART  = f"ht" + f"tps://{HOTE_PROT}/scl/fi/1g9b37v4w6k9x8q1b5v2o/LIVE_Temps_DEPART_ASAF.xlsm?rlkey=x9n4b2v8&dl=1"
-FILE_ENGAGES = f"ht" + f"tps://{HOTE_PROT}/scl/fi/9b4v6k8x2q1o5p3b7v9w0/LIVE_Liste_ENGAGES_ASAF.xlsm?rlkey=z8v2n4x9&dl=1"
+FILE_ARRIVEE = f"ht" + f"tps://{HOTE_PROT}/scl/fi/7uu9cmlpzglx0ngvbklpt/LIVE_Temps_ARRIVEE.xlsm?rlkey=g9urz4v3jr36h0apzt45ognm6&st=0d9mpgfw&dl=1"
+FILE_DEPART  = f"ht" + f"tps://{HOTE_PROT}/scl/fi/gbkaq01qzjujc8nq3zj28/LIVE_Temps_DEPART.xlsm?rlkey=4x4rvvlfyzz8v59gqbxn80a4d&st=mcibn3xx&dl=1"
+FILE_ENGAGES = f"ht" + f"tps://{HOTE_PROT}/scl/fi/69zkwsb45bpiw3ys3kk4c/LIVE_Liste_ENGAGES_RACB.xlsm?rlkey=qpjrlmbxhcskifnabs84veqh8&st=0snuv3e7&dl=1"
 
 def telecharger_excel(url):
     entetes = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'}
@@ -50,8 +50,8 @@ def convertir_en_secondes(valeur):
     if ":" in s:
         try:
             parts = s.split(":")
-            m = int(parts)
-            sec = float(parts.replace(",", "."))
+            m = int(parts[0])
+            sec = float(parts[1].replace(",", "."))
             return (m * 60) + sec
         except Exception: pass
     if s.endswith(".0"): s = s[:-2]
@@ -89,7 +89,7 @@ def calculer_statut_chrono(row, est_dans_le_live=True):
     if "Calc_Sec" in row and pd.notna(row["Calc_Sec"]) and row["Calc_Sec"] > 0:
         temps_formate = format_final_chrono(row["Calc_Sec"])
         if est_dans_le_live:
-            # GESTION DES COCHES COULEURS : V rouge si > 4 minutes (240 sec), sinon V vert
+            # STYLE EN PARFAITE CONFORMITÉ : Coche universelle verte, ou rouge si > 4 minutes (240 secondes)
             if row["Calc_Sec"] > 240:
                 coche = "<span style='color: #DC2626; font-weight: bold;'>✔</span>"
             else:
@@ -104,7 +104,7 @@ def generer_tableau_html(df, classe_specifique):
     if df.empty: 
         return f"<table class='table-compacte {classe_specifique}'><tr><td style='text-align: center; padding: 10px;'>Aucune donnée disponible</td></tr></table>"
     
-    # VOTRE BOUCLE HTML ROBUSTE D'ORIGINE POUR GARANTIR LE RETOUR DES TRAITS BLEUS
+    # REPRISE DE VOTRE BOUCLE TECHNIQUE NATIVE ET ROBUSTE DE CONFIANCE
     if classe_specifique == "table-class-groupes" and "Classe" in df.columns and "Groupe" in df.columns:
         html = f"<table class='table-compacte table-class-robuste'><thead><tr>"
         for col in df.columns: html += f"<th>{col}</th>"
@@ -126,13 +126,13 @@ def recuperer_donnees_course():
     cols_live = ["N°", "Nom_Prenom", "Voiture", "Départ", "Arrivée", "Chrono réalisé"]
     cols_hist = ["N°", "Nom_Prenom", "Voiture", "Groupe", "Classe", "Chrono réalisé"]
     df_live, df_hist = pd.DataFrame(columns=cols_live), pd.DataFrame(columns=cols_hist)
-    df_asaf = pd.DataFrame(columns=["Pos", "N°", "Nom_Prenom", "Groupe", "Classe", "Chrono"])
+    df_racb = pd.DataFrame(columns=["Pos", "N°", "Nom_Prenom", "Groupe", "Classe", "Chrono"])
     df_divisions = pd.DataFrame(columns=["Pos", "N°", "Nom_Prenom", "Groupe", "Classe", "Chrono"])
 
     t_live = "🏎️ EN DIRECT / Derniers concurrents partis"
-    t_his = "🕒 HISTORIQUE DES TEMPS / 1er COURSE / Concurrents ASAF"
-    t_haut = "🏆 CLASSEMENT GENERAL OFFICIEUX ASAF (Top 25)"
-    t_milieu = "📊 CLASSEMENT OFFICIEUX PAR Division / Classe (Top 3)"
+    t_his = "🕒 HISTORIQUE DES TEMPS / 1er COURSE / Concurrents RACB"
+    t_haut = "🏆 CLASSEMENT GENERAL OFFICIEUX RACB (Top 20)"
+    t_milieu = "📊 CLASSEMENT OFFICIEUX PAR Groupe / Classe (Top 3)"
     t_bas = ""
 
     try:
@@ -151,23 +151,23 @@ def recuperer_donnees_course():
                                "Groupe": df_eng_raw.iloc[:, 5].apply(lambda x: "-" if pd.isna(x) else str(x).strip()[:-2] if str(x).strip().endswith(".0") else str(x).strip()),
                                "Classe": df_eng_raw.iloc[:, 6].fillna("-").astype(str).str.strip().apply(lambda x: x[:-2] if x.endswith(".0") else x)})
         df_eng = df_eng[df_eng["N°"] != "NAN"].drop_duplicates(subset=["N°"])
-        liste_numeros_asaf = set(df_eng["N°"].tolist())
+        liste_numeros_racb = set(df_eng["N°"].tolist())
 
         idx_dep_1, idx_arr_1 = None, None
         for r in range(min(5, len(df_dep_raw))):
             for c in range(len(df_dep_raw.columns)):
                 val = str(df_dep_raw.iloc[r, c]).strip().upper()
-                if "COURSE 1 ASAF" in val: idx_dep_1 = c
+                if "COURSE 1 RACB" in val: idx_dep_1 = c
         for r in range(min(5, len(df_arr_raw))):
             for c in range(len(df_arr_raw.columns)):
                 val = str(df_arr_raw.iloc[r, c]).strip().upper()
-                if "COURSE 1 ASAF" in val: idx_arr_1 = c
+                if "COURSE 1 RACB" in val: idx_arr_1 = c
 
         df_dep = pd.DataFrame({"N°": df_dep_raw.iloc[2:, idx_dep_1].apply(nettoyer_numero), "Heure_Depart": df_dep_raw.iloc[2:, idx_dep_1 + 1]}) if idx_dep_1 is not None else pd.DataFrame(columns=["N°", "Heure_Depart"])
         df_arr = pd.DataFrame({"N°": df_arr_raw.iloc[2:, idx_arr_1].apply(nettoyer_numero), "Heure_Arrivee": df_arr_raw.iloc[2:, idx_arr_1 + 2], "Chrono_Excel": df_arr_raw.iloc[2:, idx_arr_1 + 3]}) if idx_arr_1 is not None else pd.DataFrame(columns=["N°", "Heure_Arrivee", "Chrono_Excel"])
 
-        df_dep = df_dep[df_dep["N°"].isin(liste_numeros_asaf) & (df_dep["N°"] != "NAN") & (df_dep["N°"] != "")]
-        df_arr = df_arr[df_arr["N°"].isin(liste_numeros_asaf)]
+        df_dep = df_dep[df_dep["N°"].isin(liste_numeros_racb) & (df_dep["N°"] != "NAN") & (df_dep["N°"] != "")]
+        df_arr = df_arr[df_arr["N°"].isin(liste_numeros_racb)]
 
         for d in [df_dep, df_arr]:
             if len(d) > 0: d["N°"] = d["N°"].astype(str); d["Run_Index"] = d.groupby("N°").cumcount() + 1
@@ -203,12 +203,12 @@ def recuperer_donnees_course():
                 scr = valides.sort_values(by="Calc_Sec").drop_duplicates(subset=["N°"], keep="first").copy()
                 scr = scr[~scr["Groupe"].astype(str).str.strip().str.startswith(('1', '2', '3', '4'), na=False)]
                 
-                df_asaf = scr.head(25).copy()
-                if len(df_asaf) > 0:
-                    df_asaf["Pos"] = range(1, len(df_asaf) + 1); df_asaf["Chrono"] = df_asaf["Calc_Sec"].apply(format_final_chrono)
-                    df_asaf = df_asaf[["Pos", "N°", "Nom_Prenom", "Groupe", "Classe", "Chrono"]]
+                racb = scr.head(20).copy()
+                if len(racb) > 0:
+                    racb["Pos"] = range(1, len(racb) + 1); racb["Chrono"] = racb["Calc_Sec"].apply(format_final_chrono)
+                    df_racb = racb[["Pos", "N°", "Nom_Prenom", "Groupe", "Classe", "Chrono"]]
                 
-                # SÉCURISATION DU TRI NUMÉRIQUE PAR GROUPE ET CLASSE CROISSANTE
+                # SÉCURISATION DU TRI SANS PERTE DES EN-TÊTES DE COLONNES
                 scr["Groupe_Num"] = pd.to_numeric(scr["Groupe"], errors='coerce').fillna(999)
                 scr["Classe_Num"] = pd.to_numeric(scr["Classe"], errors='coerce').fillna(999)
                 
@@ -218,11 +218,11 @@ def recuperer_donnees_course():
                 df_final_grouped["Pos"] = df_final_grouped.groupby(["Groupe_Num", "Classe_Num"]).cumcount() + 1
                 df_final_grouped["Chrono"] = df_final_grouped["Calc_Sec"].apply(format_final_chrono)
                 
-                # Préservation intacte des colonnes d'origine pour alimenter la boucle HTML
+                # Préservation parfaite des types et liaisons pour la boucle HTML
                 df_divisions = df_final_grouped[["Pos", "N°", "Nom_Prenom", "Groupe", "Classe", "Chrono"]].copy()
     except Exception: pass
 
-    html_hist = CSS_ASAF + generer_tableau_html(df_hist, "table-hist")
+    html_hist = CSS_RACB + generer_tableau_html(df_hist, "table-hist")
     html_class_div = generer_tableau_html(df_divisions, "table-class-groupes")
 
-    return df_live, html_hist, df_asaf, html_class_div, pd.DataFrame(), t_live, t_his, t_haut, t_milieu, t_bas
+    return df_live, html_hist, df_racb, html_class_div, pd.DataFrame(), t_live, t_his, t_haut, t_milieu, t_bas
