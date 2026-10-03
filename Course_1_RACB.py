@@ -10,7 +10,6 @@ C = [100, 108, 46, 100, 114, 111, 112, 98, 111, 120, 117, 115, 101, 114]
 D = [99, 111, 110, 116, 101, 110, 116, 46, 99, 111, 109]
 HOTE_PROT = "".join(chr(x) for x in (C + D))
 
-# Adresses internet assemblées
 FILE_ARRIVEE = f"ht" + f"tps://{HOTE_PROT}/scl/fi/7uu9cmlpzglx0ngvbklpt/LIVE_Temps_ARRIVEE.xlsm?rlkey=g9urz4v3jr36h0apzt45ognm6&st=0d9mpgfw&dl=1"
 FILE_DEPART  = f"ht" + f"tps://{HOTE_PROT}/scl/fi/gbkaq01qzjujc8nq3zj28/LIVE_Temps_DEPART.xlsm?rlkey=4x4rvvlfyzz8v59gqbxn80a4d&st=mcibn3xx&dl=1"
 FILE_ENGAGES = f"ht" + f"tps://{HOTE_PROT}/scl/fi/69zkwsb45bpiw3ys3kk4c/LIVE_Liste_ENGAGES_RACB.xlsm?rlkey=qpjrlmbxhcskifnabs84veqh8&st=0snuv3e7&dl=1"
@@ -70,7 +69,7 @@ def calculer_statut_chrono(row, est_dans_le_live=True):
     if "Calc_Sec" in row and pd.notna(row["Calc_Sec"]) and row["Calc_Sec"] > 0:
         temps_formate = format_final_chrono(row["Calc_Sec"])
         return f"{temps_formate}&nbsp;&nbsp;&nbsp;✅" if est_dans_le_live else temps_formate
-    if "Heure_Depart" in row and pd.notna(row["Heure_Depart"]) and ("Heure_Arrivee" in row and pd.isna(row["Heure_Arrivee"])):
+    if "Heure_Depart" in row and pd.notna(row["Heure_Depart"]) and pd.isna(row.get("Heure_Arrivee")):
         return "<span class='vrai-gyrophare'>🚨</span> EN PISTE" if est_dans_le_live else "En Piste"
     return "No Time"
 def recuperer_donnees_course():
@@ -80,6 +79,12 @@ def recuperer_donnees_course():
     df_hist = pd.DataFrame(columns=cols_hist)
     df_racb = pd.DataFrame(columns=["Pos", "N°", "Nom_Prenom", "Groupe", "Classe", "Chrono"])
     html_divisions = "<table class='table-compacte table-class-robuste'><tr><td style='text-align: center; padding: 10px;'>Aucune donnée disponible</td></tr></table>"
+
+    t_live = "🏎️ EN DIRECT / Derniers concurrents partis"
+    t_his = "🕒 HISTORIQUE DES TEMPS / 1er COURSE / Concurrents RACB"
+    t_haut = "🏆 CLASSEMENT GENERAL OFFICIEUX RACB (Top 20)"
+    t_milieu = "📊 CLASSEMENT OFFICIEUX PAR Groupe / Classe (Top 3)"
+    t_bas = ""
 
     try:
         flux_eng = telecharger_excel(FILE_ENGAGES)
@@ -149,7 +154,7 @@ def recuperer_donnees_course():
                 scr = valides.sort_values(by="Calc_Sec").drop_duplicates(subset=["N°"], keep="first").copy()
                 scr = scr[~scr["Groupe"].astype(str).str.strip().str.startswith(('1', '2', '3', '4'), na=False)]
                 
-                racb = scr.head(20).copy() # Restriction Top 20 RACB règlementaire
+                racb = scr.head(20).copy()
                 if len(racb) > 0:
                     racb["Pos"] = range(1, len(racb) + 1); racb["Chrono"] = racb["Calc_Sec"].apply(format_final_chrono)
                     df_racb = racb[["Pos", "N°", "Nom_Prenom", "Groupe", "Classe", "Chrono"]]
@@ -168,26 +173,20 @@ def recuperer_donnees_course():
                         group = group.copy(); group["Pos"] = range(1, len(group) + 1); group["Chrono"] = group["Calc_Sec"].apply(format_final_chrono)
                         sub_df = group[["Pos", "N°", "Nom_Prenom", "Groupe", "Classe", "Chrono"]]
                         
-                        # LOGIQUE HISTORIQUE STRICTE ET INVIOLABLE EXTRAITE DE VOTRE FICHIER JOINT ASAF
+                        # LOGIQUE COPIE CONFORME ASAF : Génération HTML pure
                         sub_html = sub_df.to_html(index=False, header=(current_group==1), classes='table-compacte table-class-robuste', escape=False, border=0)
                         if current_group == 1: html_blocs.append(sub_html.replace("</tbody>\n</table>", ""))
                         else: html_blocs.append(sub_html.split("<tbody>")[-1].replace("</tbody>\n</table>", ""))
                         
-                        # Ligne de séparation d'origine de votre modèle ASAF
+                        # Marquage via la classe CSS externe sécurisée de app.py
                         if current_group < total_groups:
-                            html_blocs.append("<tr>" + "".join(["<td style='border-top: 3px solid #1E3A8A !important; padding:0 !important; background-color:#FFFFFF !important;'></td>" for _ in range(6)]) + "</tr>")
+                            html_blocs.append("<tr class='ligne-bleue-separation'>" + "".join(["<td></td>" for _ in range(6)]) + "</tr>")
                     
                     html_blocs.append("</tbody>\n</table>")
                     html_divisions = "".join(html_blocs)
     except Exception: pass
 
-    t_live = "🏎️ EN DIRECT / Derniers concurrents partis"
-    t_his = "🕒 HISTORIQUE DES TEMPS / 1er COURSE / Concurrents RACB"
-    t_haut = "🏆 CLASSEMENT GENERAL OFFICIEUX RACB (Top 20)"
-    t_milieu = "📊 CLASSEMENT OFFICIEUX PAR Groupe / Classe (Top 3)"
-    t_bas = ""
-
-    # Génération HTML pure identique à votre modèle de confiance
+    # Génération HTML pure et native identique à votre modèle de confiance ASAF
     html_hist = df_hist.to_html(index=False, classes="table-compacte table-hist", escape=False, border=0)
 
     return df_live, html_hist, df_racb, html_divisions, pd.DataFrame(), t_live, t_his, t_haut, t_milieu, t_bas
