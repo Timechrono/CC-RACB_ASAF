@@ -46,7 +46,7 @@ CSS_RACB = """
 @media (min-width: 769px) {
     .table-compacte { table-layout: fixed !important; }
     
-    /* GAUCHE : 1. Tableau En Direct (Largeurs strictes ordonnées à 100%) */
+    /* GAUCHE : 1. Tableau En Direct */
     .table-live th:nth-child(1), .table-live td:nth-child(1) { width: 8% !important; }
     .table-live th:nth-child(2), .table-live td:nth-child(2) { width: 26% !important; }
     .table-live th:nth-child(3), .table-live td:nth-child(3) { width: 18% !important; }
@@ -54,7 +54,7 @@ CSS_RACB = """
     .table-live th:nth-child(5), .table-live td:nth-child(5) { width: 13% !important; }
     .table-live th:nth-child(6), .table-live td:nth-child(6) { width: 22% !important; }
 
-    /* GAUCHE : 2. Tableau Historique (Largeurs strictes ordonnées à 100% - Alignement parfait) */
+    /* GAUCHE : 2. Tableau Historique */
     .table-hist th:nth-child(1), .table-hist td:nth-child(1) { width: 8% !important; }   
     .table-hist th:nth-child(2), .table-hist td:nth-child(2) { width: 30% !important; }  
     .table-hist th:nth-child(3), .table-hist td:nth-child(3) { width: 26% !important; }  
@@ -82,12 +82,12 @@ CSS_RACB = """
         -webkit-overflow-scrolling: touch !important;
     }
     .table-compacte {
-        table-layout: auto !important; /* Mode fluide sur mobile pour ne rien raboter */
+        table-layout: auto !important;
         width: 100% !important;
         min-width: 540px !important;
     }
     .table-compacte th, .table-compacte td { 
-        font-size: 0.65rem !important; /* Écriture réduite spécifique mobile */
+        font-size: 0.65rem !important;
         padding: 1px 3px !important;
         overflow: visible !important;
         text-overflow: clip !important;
@@ -100,8 +100,8 @@ CSS_RACB = """
 """
 
 # --- CONFIGURATION DROPBOX ---
-C =
-D =
+C = [100, 108, 46, 100, 114, 111, 112, 98, 111, 120, 117, 115, 101, 114]
+D = [99, 111, 110, 116, 101, 110, 116, 46, 99, 111, 109]
 HOTE_PROT = "".join(chr(x) for x in (C + D))
 
 FILE_ARRIVEE = f"https://{HOTE_PROT}/scl/fi/7uu9cmlpzglx0ngvbklpt/LIVE_Temps_ARRIVEE.xlsm?rlkey=g9urz4v3jr36h0apzt45ognm6&st=0d9mpgfw&dl=1"
@@ -126,7 +126,7 @@ def convertir_en_secondes(valeur):
     if ":" in s:
         try:
             parts = s.split(":")
-            return (int(parts) * 60) + float(parts.replace(",", "."))
+            return (int(parts[0]) * 60) + float(parts[1].replace(",", "."))
         except Exception: pass
     if s.endswith(".0"): s = s[:-2]
     s_clean = "".join([c for c in s if c.isdigit()])
@@ -267,7 +267,7 @@ def recuperer_donnees_course():
                             group = group.copy(); group["Pos"] = range(1, len(group) + 1); group["Chrono"] = group["Calc_Sec"].apply(format_final_chrono)
                             sub_df = group[["Pos", "N°", "Nom_Prenom", "Groupe", "Classe", "Chrono"]]
                             
-                            # Injection de la classe CSS pour la ligne de coupure
+                            # Injection de la classe CSS pour la ligne de séparation
                             classe_ligne = "class='ligne-separation-officieuse'" if current_group > 1 else ""
                             
                             sub_html = sub_df.to_html(index=False, header=(current_group==1), classes='table-compacte table-class-robuste', escape=False, border=0)
@@ -275,7 +275,6 @@ def recuperer_donnees_course():
                             if current_group == 1: 
                                 html_blocs.append(sub_html.replace("</tbody>\n</table>", ""))
                             else: 
-                                # On force la première ligne de ce nouveau groupe à recevoir la classe de bordure bleue
                                 bloc_tr = sub_html.split("<tbody>")[-1].replace("<tr>", f"<tr {classe_ligne}>", 1)
                                 html_blocs.append(bloc_tr.replace("</tbody>\n</table>", ""))
                         
