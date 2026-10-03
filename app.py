@@ -151,9 +151,9 @@ div.stElementContainer {{
     .titre-live, .titre-hist, .titre-classement {{ font-size: 0.85rem !important; padding: 3px 6px !important; }}
     .table-compacte th, .table-compacte td {{ font-size: 0.65rem !important; padding: 1px 2px !important; }}
     
-    /* MODIFICATION OPTIQUE : Limite la colonne Groupe (4e colonne de l'historique) sur smartphone */
+    /* Limite la colonne Groupe (4e colonne de l'historique) sur smartphone */
     .table-hist td:nth-child(4) {{
-        max-width: 45px !important; /* Largeur physique équivalente à environ 6 caractères */
+        max-width: 45px !important;
         overflow: hidden !important;
         text-overflow: clip !important;
         white-space: nowrap !important;
@@ -164,11 +164,9 @@ div.stElementContainer {{
     .logo-signature {{ height: 32px !important; }}
 }}
 
-/* Correction : Force la bordure bleue foncée sur le BAS des cellules de la ligne de séparation */
-.table-class-robuste tr.ligne-bleue-separation td {
+/* REPOSITIONNÉ ICI : Force la ligne bleue sur le BAS des cellules */
+.table-class-robuste tr.ligne-bleue-separation td {{
     border-bottom: 3px solid #1E3A8A !important;
-}
-
 }}
 </style>
 """, unsafe_allow_html=True)
