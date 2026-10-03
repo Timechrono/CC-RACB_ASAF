@@ -5,7 +5,7 @@ import os
 import requests
 import io
 
-# --- DESIGN MINIMALISTE ET ASSURANCE DU GYROPHARE ---
+# --- DESIGN MINIMALISTE ET ASSURANCE DU CHRONO EN GRAS DANS L'HISTORIQUE ---
 CSS_RACB = """
 <style>
 .vrai-gyrophare {
@@ -16,6 +16,12 @@ CSS_RACB = """
 }
 .table-hist tr:nth-child(odd) td {
     background-color: #E0F2FE !important;
+}
+/* FORCE STRICTEMENT LES TEMPS DE LA COLONNE CHRONO REALISE DE L'HISTORIQUE EN GRAS */
+.table-hist td:last-child {
+    font-weight: bold !important;
+    font-size: 0.94rem !important;
+    color: #0F172A !important;
 }
 </style>
 """
@@ -84,7 +90,6 @@ def calculer_statut_chrono(row, est_dans_le_live=True):
     if "Calc_Sec" in row and pd.notna(row["Calc_Sec"]) and row["Calc_Sec"] > 0:
         temps_formate = format_final_chrono(row["Calc_Sec"])
         if est_dans_le_live:
-            # STYLE EN PARFAITE CONFORMITÉ : Coche universelle verte, ou rouge si > 4 minutes (240 secondes)
             if row["Calc_Sec"] > 240:
                 coche = "<span style='color: #DC2626; font-weight: bold;'>✔</span>"
             else:
@@ -94,12 +99,11 @@ def calculer_statut_chrono(row, est_dans_le_live=True):
     if "Heure_Depart" in row and pd.notna(row["Heure_Depart"]) and pd.isna(row.get("Heure_Arrivee")):
         return "<span class='vrai-gyrophare'>🚨</span> EN PISTE" if est_dans_le_live else "En Piste"
     return "No Time"
-#fin bloc 1
+# fin bloc 1
 def generer_tableau_html(df, classe_specifique):
     if df.empty: 
         return f"<table class='table-compacte {classe_specifique}'><tr><td style='text-align: center; padding: 10px;'>Aucune donnée disponible</td></tr></table>"
     
-    # BOUCLE HTML D'ORIGINE CONSERVÉE INTÉGRALEMENT POUR LES LIGNES BLEUES
     if classe_specifique == "table-class-groupes" and "Classe" in df.columns and "Groupe" in df.columns:
         html = f"<table class='table-compacte table-class-robuste'><thead><tr>"
         for col in df.columns: html += f"<th>{col}</th>"
@@ -203,19 +207,15 @@ def recuperer_donnees_course():
                     racb["Pos"] = range(1, len(racb) + 1); racb["Chrono"] = racb["Calc_Sec"].apply(format_final_chrono)
                     df_racb = racb[["Pos", "N°", "Nom_Prenom", "Groupe", "Classe", "Chrono"]]
                 
-                # RECTIFICATION COMPLÈTE DU TRI NUMÉRIQUE DES GROUPES ET CLASSES
                 scr["Groupe_Num"] = pd.to_numeric(scr["Groupe"], errors='coerce').fillna(999)
                 scr["Classe_Num"] = pd.to_numeric(scr["Classe"], errors='coerce').fillna(999)
-                
-                # Tri mathématique parfait : Groupe d'abord, puis Classe, puis Temps
                 df_grouped = scr.sort_values(by=["Groupe_Num", "Classe_Num", "Calc_Sec"])
                 
-                # Extraction par paquet de 3 et reconstruction propre finale
-                df_final_grouped = df_grouped.groupby(["Groupe_Num", "Classe_Num"]).head(3).copy()
-                df_final_grouped["Pos"] = df_final_grouped.groupby(["Groupe_Num", "Classe_Num"]).cumcount() + 1
-                df_final_grouped["Chrono"] = df_final_grouped["Calc_Sec"].apply(format_final_chrono)
-                
-                df_divisions = pd.DataFrame(df_final_grouped[["Pos", "N°", "Nom_Prenom", "Groupe", "Classe", "Chrono"]].values, columns=["Pos", "N°", "Nom_Prenom", "Groupe", "Classe", "Chrono"])
+                if len(df_grouped) > 0:
+                    df_final_grouped = df_grouped.groupby(["Groupe_Num", "Classe_Num"]).head(3).copy()
+                    df_final_grouped["Pos"] = df_final_grouped.groupby(["Groupe_Num", "Classe_Num"]).cumcount() + 1
+                    df_final_grouped["Chrono"] = df_final_grouped["Calc_Sec"].apply(format_final_chrono)
+                    df_divisions = pd.DataFrame(df_final_grouped[["Pos", "N°", "Nom_Prenom", "Groupe", "Classe", "Chrono"]].values, columns=["Pos", "N°", "Nom_Prenom", "Groupe", "Classe", "Chrono"])
     except Exception: pass
 
     html_hist = CSS_RACB + generer_tableau_html(df_hist, "table-hist")
