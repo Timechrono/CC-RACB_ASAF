@@ -37,8 +37,8 @@ CSS_RACB = """
     background-color: #E0F2FE !important;
 }
 
-/* LE REMÈDE TOTAL : Règle CSS externe prioritaire pour tracer la bordure bleu foncé */
-.table-class-groupes tr.coupure-bleue-classe td {
+/* LE REMÈDE TOTAL : Règle CSS externe globale pour forcer le tracé du trait bleu de 3px */
+tr.coupure-bleue-classe td {
     border-top: 3px solid #1E3A8A !important;
 }
 
@@ -159,13 +159,13 @@ def generer_tableau_html(df, classe_specifique):
         return f"<div class='table-responsive-container'><table class='table-compacte {classe_specifique}'><tr><td style='text-align: center; padding: 10px;'>Aucune donnée disponible</td></tr></table></div>"
     
     if classe_specifique == "table-class-groupes" and "Classe" in df.columns and "Groupe" in df.columns:
-        html = f"<div class='table-responsive-container'><table class='table-compacte table-class-robuste {classe_specifique}'><thead><tr>"
+        html = f"<div class='table-responsive-container'><table class='table-compacte table-class-robuste'><thead><tr>"
         for col in df.columns: html += f"<th>{col}</th>"
         html += "</tr></thead><tbody>"
         for idx in range(len(df)):
             classe_row = ""
             if idx > 0:
-                # Injection de la classe CSS externe sur la ligne si le groupe ou la classe change
+                # Injection syntaxique impeccable de la classe de séparation
                 if df.iloc[idx]["Classe"] != df.iloc[idx - 1]["Classe"] or df.iloc[idx]["Groupe"] != df.iloc[idx - 1]["Groupe"]:
                     classe_row = "class='coupure-bleue-classe'"
             html += f"<tr {classe_row}>"
