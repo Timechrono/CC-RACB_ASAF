@@ -123,8 +123,9 @@ def generer_tableau_html(df, classe_specifique):
     return df.to_html(index=False, classes=f"table-compacte {classe_specifique}", escape=False, border=0)
 
 def recuperer_donnees_course():
-    cols_live = ["N°", "Nom_Prenom", "Voiture", "Départ", "Arrivée", "Chrono réalisé"]
-    cols_hist = ["N°", "Nom_Prenom", "Voiture", "Groupe", "Classe", "Chrono réalisé"]
+    # MODIFICATION : "Chrono réalisé" devient "Chrono" dans la définition des colonnes
+    cols_live = ["N°", "Nom_Prenom", "Voiture", "Départ", "Arrivée", "Chrono"]
+    cols_hist = ["N°", "Nom_Prenom", "Voiture", "Groupe", "Classe", "Chrono"]
     df_live, df_hist = pd.DataFrame(columns=cols_live), pd.DataFrame(columns=cols_hist)
     df_racb = pd.DataFrame(columns=["Pos", "N°", "Nom_Prenom", "Groupe", "Classe", "Chrono"])
     df_divisions = pd.DataFrame(columns=["Pos", "N°", "Nom_Prenom", "Groupe", "Classe", "Chrono"])
@@ -190,13 +191,15 @@ def recuperer_donnees_course():
             if "Heure_Depart" in base.columns and base["Heure_Depart"].notna().any():
                 base_c1 = base[base["Heure_Depart"].notna()].copy(); base_c1["Ordre_Live"] = range(len(base_c1))
                 df_live_base = base_c1.sort_values(by="Ordre_Live", ascending=False).head(5).copy()
-                df_live_base["Chrono réalisé"] = df_live_base.apply(lambda r: calculer_statut_chrono(r, est_dans_le_live=True), axis=1)
+                # MODIFICATION : Assigner à la colonne "Chrono" simplifiée
+                df_live_base["Chrono"] = df_live_base.apply(lambda r: calculer_statut_chrono(r, est_dans_le_live=True), axis=1)
                 df_live_base["Arrivée_Brute"] = df_live_base["Heure_Arrivee"].apply(formater_heure_ecran)
-                df_live = df_live_base[["N°", "Nom_Prenom", "Voiture", "Départ_C1", "Arrivée_Brute", "Chrono réalisé"]].rename(columns={"Départ_C1": "Départ", "Arrivée_Brute": "Arrivée"})
+                df_live = df_live_base[["N°", "Nom_Prenom", "Voiture", "Départ_C1", "Arrivée_Brute", "Chrono"]].rename(columns={"Départ_C1": "Départ", "Arrivée_Brute": "Arrivée"})
 
             base["Chrono_C1_Visual_Hist"] = base.apply(lambda r: "En Piste" if pd.notna(r["Heure_Depart"]) and pd.isna(r["Heure_Arrivee"]) and pd.isna(r["Sec_Excel"]) else format_final_chrono(r["Calc_Sec"]) if pd.notna(r["Calc_Sec"]) and r["Calc_Sec"] > 0 else "No Time", axis=1)
             base["Ordre_Saisie"] = range(len(base))
-            df_hist = base.sort_values(by="Ordre_Saisie", ascending=False)[["N°", "Nom_Prenom", "Voiture", "Groupe", "Classe", "Chrono_C1_Visual_Hist"]].rename(columns={"Chrono_C1_Visual_Hist": "Chrono réalisé"})
+            # MODIFICATION : Renommage ciblé de "Chrono_C1_Visual_Hist" vers "Chrono"
+            df_hist = base.sort_values(by="Ordre_Saisie", ascending=False)[["N°", "Nom_Prenom", "Voiture", "Groupe", "Classe", "Chrono_C1_Visual_Hist"]].rename(columns={"Chrono_C1_Visual_Hist": "Chrono"})
 
             valides = base[base["Calc_Sec"].notna() & (base["Calc_Sec"] > 0)].copy()
             if len(valides) > 0:
@@ -208,7 +211,6 @@ def recuperer_donnees_course():
                     racb["Pos"] = range(1, len(racb) + 1); racb["Chrono"] = racb["Calc_Sec"].apply(format_final_chrono)
                     df_racb = racb[["Pos", "N°", "Nom_Prenom", "Groupe", "Classe", "Chrono"]]
                 
-                # SÉCURISATION DU TRI SANS PERTE DES EN-TÊTES DE COLONNES
                 scr["Groupe_Num"] = pd.to_numeric(scr["Groupe"], errors='coerce').fillna(999)
                 scr["Classe_Num"] = pd.to_numeric(scr["Classe"], errors='coerce').fillna(999)
                 
@@ -218,7 +220,6 @@ def recuperer_donnees_course():
                 df_final_grouped["Pos"] = df_final_grouped.groupby(["Groupe_Num", "Classe_Num"]).cumcount() + 1
                 df_final_grouped["Chrono"] = df_final_grouped["Calc_Sec"].apply(format_final_chrono)
                 
-                # Préservation parfaite des types et liaisons pour la boucle HTML
                 df_divisions = df_final_grouped[["Pos", "N°", "Nom_Prenom", "Groupe", "Classe", "Chrono"]].copy()
     except Exception: pass
 
