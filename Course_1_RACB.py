@@ -206,8 +206,14 @@ def recuperer_donnees_course():
                     df_live_base["Arrivée_Brute"] = df_live_base["Heure_Arrivee"].apply(formater_heure_ecran)
                     df_live = df_live_base[["N°", "Nom_Prenom", "Voiture", "Départ_C1", "Arrivée_Brute", "Chrono réalisé"]].rename(columns={"Départ_C1": "Départ", "Arrivée_Brute": "Arrivée"})
 
-                base["Chrono_C1_Visual_Hist"] = base.apply(lambda r: "En Piste" if pd.notna(r["Heure_Depart"]) and pd.isna(r["Heure_Arrivee"]) and pd.isna(r["Sec_Excel"]) else format_final_chrono(r["Calc_Sec"]) if pd.notna(r["Calc_Sec"]) and r["Calc_Sec"] > 0 else "No Time", axis=1)
-                df_hist = base.sort_values(by=range(len(base)), ascending=False)[["N°", "Nom_Prenom", "Voiture", "Groupe", "Classe", "Chrono_C1_Visual_Hist"]].rename(columns={"Chrono_C1_Visual_Hist": "Chrono réalisé"})
+                def formater_chrono_historique_course1(row):
+                    if pd.notna(row["Heure_Depart"]) and pd.isna(row["Heure_Arrivee"]) and pd.isna(row["Sec_Excel"]): return "En Piste"
+                    return format_final_chrono(row["Calc_Sec"]) if pd.notna(row["Calc_Sec"]) and row["Calc_Sec"] > 0 else "No Time"
+
+                base["Chrono_C1_Visual_Hist"] = base.apply(formater_chrono_historique_course1, axis=1)
+                base["Ordre_Saisie"] = range(len(base))
+                df_hist_base = base.sort_values(by="Ordre_Saisie", ascending=False).copy()
+                df_hist = df_hist_base[["N°", "Nom_Prenom", "Voiture", "Groupe", "Classe", "Chrono_C1_Visual_Hist"]].rename(columns={"Chrono_C1_Visual_Hist": "Chrono réalisé"})
 
                 valides = base[base["Calc_Sec"].notna() & (base["Calc_Sec"] > 0)].copy()
                 if len(valides) > 0:
