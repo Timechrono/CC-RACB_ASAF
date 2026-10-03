@@ -5,7 +5,7 @@ import os
 import requests
 import io
 
-# --- DESIGN SCIENTIFIQUE RIGIDE ET LARGEURS CONSERVÉES À L'IDENTIQUE ---
+# --- DESIGN SCIENTIFIQUE RIGIDE ET CONFIGURATION DES LARGEURS ET ESPACEMENTS ---
 CSS_RACB = """
 <style>
 /* VRAI GYROPHARE DE COURSE STATIQUE (SANS CLIGNOTEMENT) */
@@ -46,7 +46,7 @@ CSS_RACB = """
 .table-live th:nth-child(3), .table-live td:nth-child(3) { width: 18% !important; }
 .table-live th:nth-child(4), .table-live td:nth-child(4) { width: 13% !important; }
 .table-live th:nth-child(5), .table-live td:nth-child(5) { width: 13% !important; }
-.table-live th:nth-child(6), .table-live td:nth-child(6) { width: 22% !important; }
+.table-live th:nth-child(6), .table-live td: z22% !important; }
 
 /* GAUCHE : 2. Tableau Historique Course 1 Réajusté */
 .table-hist th:nth-child(1), .table-hist td:nth-child(1) { width: 8% !important; }   
@@ -64,15 +64,16 @@ CSS_RACB = """
 .table-class-robuste th:nth-child(5), .table-class-robuste td:nth-child(5) { width: 6% !important; }
 .table-class-robuste th:nth-child(6), .table-class-robuste td:nth-child(6) { width: 18% !important; text-align: right !important; }
 
-/* GAUCHE : Espacement discret au-dessus de la ligne du titre Historique */
+/* GAUCHE : Espacement discret au-dessus du titre Historique */
 .titre-hist {
     margin-top: 22px !important;
 }
 
-/* DROITE : HARMONISATION STRICTE DE L'ESPACE ENTRE LES DEUX CLASSEMENTS */
-/* Cette règle cible le titre du second classement pour lui donner exactement le même recul */
-div[data-testid="stHorizontalBlock"] > div:nth-child(2) div[data-testid="stVerticalBlock"] > div:nth-child(3) span.titre-classement {
-    margin-top: 25px !important;
+/* DROITE : HARMONISATION AUTONOME ET STRUCTURÉE DE L'ESPACE DES CLASSEMENTS */
+/* Cible directement le titre de la section "Top 3" pour le faire reculer proprement */
+div[data-testid="element-container"]:has(span[style*="background-color: rgb(30, 58, 138)"]) + div[data-testid="element-container"] + div[data-testid="element-container"] span.titre-classement,
+div.stMarkdown:has(span.titre-classement) + div + div span.titre-classement {
+    margin-top: 22px !important;
 }
 </style>
 """
