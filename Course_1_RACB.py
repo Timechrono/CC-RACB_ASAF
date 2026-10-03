@@ -5,7 +5,7 @@ import os
 import requests
 import io
 
-# --- DESIGN SCIENTIFIQUE RIGIDE ET ADAPTATION TEXTE ULTRA-COMPACT MOBILE ---
+# --- REPRISE STRICTE DE VOTRE DESIGN SCIENTIFIQUE ET PROPORTIONS D'ORIGINE ---
 CSS_RACB = """
 <style>
 /* VRAI GYROPHARE DE COURSE STATIQUE (SANS CLIGNOTEMENT) */
@@ -16,13 +16,8 @@ CSS_RACB = """
     vertical-align: middle !important;
 }
 
-/* Style de base pour Ordinateur */
-.table-compacte { 
-    width: 100% !important; 
-    margin-bottom: 0px !important; 
-    border-collapse: collapse !important; 
-    table-layout: fixed !important; 
-}
+/* RENDU ORDINATEUR STRICT ET INVARIANT */
+.table-compacte { width: 100% !important; margin-bottom: 0px !important; border-collapse: collapse !important; table-layout: fixed !important; }
 .table-compacte tr { height: 18px !important; }
 .table-compacte th, .table-compacte td { 
     height: 18px !important; padding: 1px 5px !important; line-height: 1.1 !important; font-size: 0.85rem !important; color: #000000 !important; 
@@ -31,31 +26,43 @@ CSS_RACB = """
 .table-compacte td { font-weight: normal !important; border-bottom: 1px solid #E0E0E0 !important; background-color: #FFFFFF !important; }
 .table-compacte th { font-weight: bold !important; background-color: #F5F5F5 !important; border-bottom: 2px solid #CCCCCC !important; text-align: left !important; }
 
-.ligne-separation-classe td {
-    border-bottom: 2px solid #1E3A8A !important;
-}
-
 .table-hist td:last-child, .table-live td:last-child, .table-class-robuste td:last-child {
     font-weight: bold !important;
     font-size: 0.94rem !important;
     color: #0F172A !important;
 }
 
-/* COLORIAGE BLEU UNE LIGNE SUR DEUX HISTORIQUE */
+/* RESTAURATION DU COLORIAGE BLEU DE L'HISTORIQUE SUR PC */
 .table-hist tr:nth-child(odd) td {
     background-color: #E0F2FE !important;
 }
 
-/* ORDINATEUR : Alignement strict des largeurs de blocs à 100% */
+/* ORDINATEUR : Forçage des largeurs de colonnes rigides d'origine */
 @media (min-width: 769px) {
-    .table-live { width: 100% !important; }
-    .table-hist { width: 100% !important; }
-    .table-class-robuste { width: 100% !important; }
+    .table-live th:nth-child(1), .table-live td:nth-child(1) { width: 8% !important; }
+    .table-live th:nth-child(2), .table-live td:nth-child(2) { width: 26% !important; }
+    .table-live th:nth-child(3), .table-live td:nth-child(3) { width: 18% !important; }
+    .table-live th:nth-child(4), .table-live td:nth-child(4) { width: 13% !important; }
+    .table-live th:nth-child(5), .table-live td:nth-child(5) { width: 13% !important; }
+    .table-live th:nth-child(6), .table-live td:nth-child(6) { width: 22% !important; }
+
+    .table-hist th:nth-child(1), .table-hist td:nth-child(1) { width: 8% !important; }   
+    .table-hist th:nth-child(2), .table-hist td:nth-child(2) { width: 30% !important; }  
+    .table-hist th:nth-child(3), .table-hist td:nth-child(3) { width: 26% !important; }  
+    .table-hist th:nth-child(4), .table-hist td:nth-child(4) { width: 11% !important; }   
+    .table-hist th:nth-child(5), .table-hist td:nth-child(5) { width: 8% !important; }   
+    .table-hist th:nth-child(6), .table-hist td:nth-child(6) { width: 17% !important; }  
+
+    .table-class-robuste th:nth-child(1), .table-class-robuste td:nth-child(1) { width: 9% !important; }
+    .table-class-robuste th:nth-child(2), .table-class-robuste td:nth-child(2) { width: 11% !important; }
+    .table-class-robuste th:nth-child(3), .table-class-robuste td:nth-child(3) { width: 33% !important; }
+    .table-class-robuste th:nth-child(4), .table-class-robuste td:nth-child(4) { width: 23% !important; }
+    .table-class-robuste th:nth-child(5), .table-class-robuste td:nth-child(5) { width: 6% !important; }
+    .table-class-robuste th:nth-child(6), .table-class-robuste td:nth-child(6) { width: 18% !important; text-align: right !important; }
 }
 
-/* SMARTPHONE (REMÈDE TEXTE COMPACT ET GLISSEMENT) */
+/* AJUSTEMENTS EXCLUSIFS POUR SMARTPHONE SANS TOUCHER AU PC */
 @media (max-width: 768px) {
-    /* Le conteneur autorise le glissement horizontal avec le doigt sans bloquer la page */
     .table-responsive-container {
         width: 100% !important;
         max-width: 100% !important;
@@ -64,24 +71,19 @@ CSS_RACB = """
         clear: both !important;
         -webkit-overflow-scrolling: touch !important;
     }
-    
-    /* Le tableau devient fluide (auto) pour ne plus raboter ni couper les mots */
     .table-compacte {
-        table-layout: auto !important;
+        table-layout: auto !important; /* Fluide uniquement sur mobile pour ne pas raboter */
         width: 100% !important;
-        min-width: 480px !important; /* Donne assez d'espace pour que les textes respirent */
+        min-width: 540px !important;
     }
-    
-    /* Écriture ultra-petite et espaces serrés au maximum pour smartphone */
     .table-compacte th, .table-compacte td { 
-        font-size: 0.62rem !important; /* Police ultra-compacte pour mobile */
+        font-size: 0.65rem !important; /* Caractères plus petits sur mobile */
         padding: 1px 3px !important;
-        text-overflow: clip !important; /* Désactive le rabotage par points de suspension */
         overflow: visible !important;
+        text-overflow: clip !important;
     }
-    
     .table-hist td:last-child, .table-live td:last-child, .table-class-robuste td:last-child {
-        font-size: 0.68rem !important; 
+        font-size: 0.70rem !important; 
     }
 }
 </style>
@@ -154,24 +156,6 @@ def calculer_statut_chrono(row, est_dans_le_live=True):
         return "<span class='vrai-gyrophare'>🚨</span> EN PISTE" if est_dans_le_live else "En Piste"
     return "No Time"
 def generer_tableau_html(df, classe_specifique):
-    if df.empty: 
-        return f"<div class='table-responsive-container'><table class='table-compacte {classe_specifique}'><tr><td style='text-align: center; padding: 10px;'>Aucune donnée disponible</td></tr></table></div>"
-    
-    if classe_specifique == "table-class-groupes" and "Classe" in df.columns and "Groupe" in df.columns:
-        html = f"<div class='table-responsive-container'><table class='table-compacte table-class-robuste'><thead><tr>"
-        for col in df.columns: html += f"<th>{col}</th>"
-        html += "</tr></thead><tbody>"
-        for idx in range(len(df)):
-            classe_row = ""
-            if idx < len(df) - 1:
-                if df.iloc[idx]["Classe"] != df.iloc[idx + 1]["Classe"] or df.iloc[idx]["Groupe"] != df.iloc[idx + 1]["Groupe"]:
-                    classe_row = "class='ligne-separation-classe'"
-            html += f"<tr {classe_row}>"
-            for col in df.columns: html += f"<td>{df.iloc[idx][col]}</td>"
-            html += "</tr>"
-        html += "</tbody></table></div>"
-        return html
-
     html_brut = df.to_html(index=False, classes=f"table-compacte {classe_specifique}", escape=False, border=0)
     return f"<div class='table-responsive-container'>{html_brut}</div>"
 
@@ -261,21 +245,31 @@ def recuperer_donnees_course():
                     
                     scr["Classe_Num"] = pd.to_numeric(scr["Classe"], errors='coerce').fillna(999)
                     df_grouped = scr.sort_values(by=["Groupe", "Classe_Num", "Calc_Sec"]).groupby(["Groupe", "Classe_Num"]).head(3).copy()
+                    
                     if len(df_grouped) > 0:
                         html_blocs = []
                         grouped_objs = df_grouped.groupby(["Groupe", "Classe_Num"])
-                        total_groups, current_group = len(grouped_objs), 0
+                        total_groups = len(grouped_objs)
+                        current_group = 0
+                        
                         for (grp, cl_num), group in grouped_objs:
-                            current_group += 1; group = group.copy(); group["Pos"] = range(1, len(group) + 1); group["Chrono"] = group["Calc_Sec"].apply(format_final_chrono)
-                            sub_html = group[["Pos", "N°", "Nom_Prenom", "Groupe", "Classe", "Chrono"]].to_html(index=False, header=(current_group==1), classes='table-compacte table-class-robuste', escape=False, border=0)
-                            html_blocs.append(sub_html.replace("</tbody>\n</table>", "") if current_group == 1 else sub_html.split("<tbody>")[-1].replace("</tbody>\n</table>", ""))
+                            current_group += 1
+                            group = group.copy(); group["Pos"] = range(1, len(group) + 1); group["Chrono"] = group["Calc_Sec"].apply(format_final_chrono)
+                            sub_df = group[["Pos", "N°", "Nom_Prenom", "Groupe", "Classe", "Chrono"]]
+                            
+                            sub_html = sub_df.to_html(index=False, header=(current_group==1), classes='table-compacte table-class-robuste', escape=False, border=0)
+                            if current_group == 1: html_blocs.append(sub_html.replace("</tbody>\n</table>", ""))
+                            else: html_blocs.append(sub_html.split("<tbody>")[-1].replace("</tbody>\n</table>", ""))
+                            
+                            # REPRODUCTION STRICTE DE VOS SEPARATIONS DE CLASSES DU MODÈLE D'ORIGINE
                             if current_group < total_groups:
                                 html_blocs.append("<tr>" + "".join(["<td style='border-top: 3px solid #1E3A8A !important; padding:0 !important; background-color:#FFFFFF !important;'></td>" for _ in range(6)]) + "</tr>")
+                        
                         html_blocs.append("</tbody>\n</table>")
                         df_divisions = "".join(html_blocs)
         except Exception: pass
 
     html_hist = CSS_RACB + generer_tableau_html(df_hist, "table-hist")
-    html_class_div = df_divisions if isinstance(df_divisions, str) else generer_tableau_html(df_divisions, "table-class-groupes")
+    html_class_div = f"<div class='table-responsive-container'>{df_divisions}</div>" if isinstance(df_divisions, str) else generer_tableau_html(df_divisions, "table-class-groupes")
 
     return df_live, html_hist, df_racb, html_class_div, pd.DataFrame(), t_live, t_his, t_haut, t_milieu, t_bas
