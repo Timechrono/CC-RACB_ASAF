@@ -23,7 +23,7 @@ CSS_RACB = """
     height: 18px !important; padding: 1px 5px !important; line-height: 1.1 !important; font-size: 0.85rem !important; color: #000000 !important; 
     vertical-align: middle !important; overflow: hidden !important; text-overflow: ellipsis !important; white-space: nowrap !important; 
 }
-.table-compacte td { border-bottom: 1px solid #E0E0E0 !important; background-color: #FFFFFF !important; }
+.table-compacte td { font-weight: normal !important; border-bottom: 1px solid #E0E0E0 !important; background-color: #FFFFFF !important; }
 .table-compacte th { font-weight: bold !important; background-color: #F5F5F5 !important; border-bottom: 2px solid #CCCCCC !important; text-align: left !important; }
 
 .table-hist td:last-child, .table-live td:last-child, .table-class-robuste td:last-child {
@@ -35,11 +35,6 @@ CSS_RACB = """
 /* COLORIAGE BLEU UNE LIGNE SUR DEUX HISTORIQUE */
 .table-hist tr:nth-child(odd) td {
     background-color: #E0F2FE !important;
-}
-
-/* CORRECTIF STRICT : Force la bordure bleu foncé à s'afficher en BAS de la ligne de séparation */
-.ligne-separation-officieuse td {
-    border-bottom: 3px solid #1E3A8A !important;
 }
 
 /* --- CONFIGURATION STRICTE POUR ORDINATEUR --- */
@@ -100,8 +95,8 @@ CSS_RACB = """
 """
 
 # --- CONFIGURATION DROPBOX ---
-C =
-D =
+C = [100, 108, 46, 100, 114, 111, 112, 98, 111, 120, 117, 115, 101, 114]
+D = [99, 111, 110, 116, 101, 110, 116, 46, 99, 111, 109]
 HOTE_PROT = "".join(chr(x) for x in (C + D))
 
 FILE_ARRIVEE = f"https://{HOTE_PROT}/scl/fi/7uu9cmlpzglx0ngvbklpt/LIVE_Temps_ARRIVEE.xlsm?rlkey=g9urz4v3jr36h0apzt45ognm6&st=0d9mpgfw&dl=1"
@@ -126,7 +121,7 @@ def convertir_en_secondes(valeur):
     if ":" in s:
         try:
             parts = s.split(":")
-            return (int(parts) * 60) + float(parts.replace(",", "."))
+            return (int(parts[0]) * 60) + float(parts[1].replace(",", "."))
         except Exception: pass
     if s.endswith(".0"): s = s[:-2]
     s_clean = "".join([c for c in s if c.isdigit()])
@@ -173,7 +168,9 @@ def recuperer_donnees_course():
     cols_live = ["N°", "Nom_Prenom", "Voiture", "Départ", "Arrivée", "Chrono réalisé"]
     cols_hist = ["N°", "Nom_Prenom", "Voiture", "Groupe", "Classe", "Chrono réalisé"]
     df_live, df_hist = pd.DataFrame(columns=cols_live), pd.DataFrame(columns=cols_hist)
-    df_racb, df_divisions = pd.DataFrame(columns=["Pos", "N°", "Nom_Prenom", "Groupe", "Classe", "Chrono"]), pd.DataFrame(columns=["Pos", "N°", "Nom_Prenom", "Groupe", "Classe", "Chrono"])
+    df_racb = pd.DataFrame(columns=["Pos", "N°", "Nom_Prenom", "Groupe", "Classe", "Chrono"])
+    df_divisions = pd.DataFrame(columns=["Pos", "N°", "Nom_Prenom", "Groupe", "Classe", "Chrono"])
+    html_divisions = "<table class='table-compacte table-class-robuste'><tr><td style='text-align: center; padding: 10px;'>Aucune donnée disponible</td></tr></table>"
 
     t_live = "🏎️ EN DIRECT / Derniers concurrents partis"
     t_his = "🕒 HISTORIQUE DES TEMPS / 1er COURSE / Concurrents RACB"
@@ -267,6 +264,7 @@ def recuperer_donnees_course():
                             group = group.copy(); group["Pos"] = range(1, len(group) + 1); group["Chrono"] = group["Calc_Sec"].apply(format_final_chrono)
                             sub_df = group[["Pos", "N°", "Nom_Prenom", "Groupe", "Classe", "Chrono"]]
                             
+                            # Logique d'extraction ASAF robuste et native pour reconstruire la table de classement
                             sub_html = sub_df.to_html(index=False, header=(current_group==1), classes='table-compacte table-class-robuste', escape=False, border=0)
                             
                             if current_group == 1: 
@@ -274,17 +272,16 @@ def recuperer_donnees_course():
                             else: 
                                 html_blocs.append(sub_html.split("<tbody>")[-1].replace("</tbody>\n</table>", ""))
                             
-                            # LOGIQUE DE DÉTECTION LOGIQUE CORRIGÉE : 
-                            # On injecte la classe CSS sur la DERNIÈRE ligne du groupe précédent pour tracer le trait en bas de la cellule
+                            # REPRODUCTION STRUCTURÉE ET LÉGÈRE DU SCRIPT UNIFIÉ LOCALE :
+                            # Injection de la ligne bleu foncé (#1E3A8A) forcée directement sur les cellules 
                             if current_group < total_groups:
-                                # On remplace la dernière balise de fermeture de ligne (</tr>) par la ligne de coupure bleutée
-                                html_blocs[-1] = html_blocs[-1].rstrip().rsplit("</tr>", 1)[0] + "<tr class='ligne-separation-officieuse'></tr>"
+                                html_blocs.append("<tr>" + "".join(["<td style='border-top: 3px solid #1E3A8A !important; padding:0 !important; background-color:#FFFFFF !important;'></td>" for _ in range(6)]) + "</tr>")
                         
                         html_blocs.append("</tbody>\n</table>")
-                        df_divisions = "".join(html_blocs)
+                        html_divisions = "".join(html_blocs)
         except Exception: pass
 
     html_hist = CSS_RACB + generer_tableau_html(df_hist, "table-hist")
-    html_class_div = f"<div class='table-responsive-container'>{df_divisions}</div>" if isinstance(df_divisions, str) else generer_tableau_html(df_divisions, "table-class-groupes")
+    html_class_div = f"<div class='table-responsive-container'>{html_divisions}</div>" if isinstance(html_divisions, str) else generer_tableau_html(html_divisions, "table-class-groupes")
 
     return df_live, html_hist, df_racb, html_class_div, pd.DataFrame(), t_live, t_his, t_haut, t_milieu, t_bas
