@@ -72,8 +72,8 @@ CSS_RACB = """
 """
 
 # --- CONFIGURATION DROPBOX ---
-C =
-D =
+C = [100, 108, 46, 100, 114, 111, 112, 98, 111, 120, 117, 115, 101, 114]
+D = [99, 111, 110, 116, 101, 110, 116, 46, 99, 111, 109]
 HOTE_PROT = "".join(chr(x) for x in (C + D))
 
 FILE_ARRIVEE = f"https://{HOTE_PROT}/scl/fi/7uu9cmlpzglx0ngvbklpt/LIVE_Temps_ARRIVEE.xlsm?rlkey=g9urz4v3jr36h0apzt45ognm6&st=0d9mpgfw&dl=1"
@@ -98,7 +98,7 @@ def convertir_en_secondes(valeur):
     if ":" in s:
         try:
             parts = s.split(":")
-            return (int(parts) * 60) + float(parts.replace(",", "."))
+            return (int(parts[0]) * 60) + float(parts[1].replace(",", "."))
         except Exception: pass
     if s.endswith(".0"): s = s[:-2]
     s_clean = "".join([c for c in s if c.isdigit()])
@@ -137,7 +137,6 @@ def calculer_statut_chrono(row, est_dans_le_live=True):
     if "Heure_Depart" in row and pd.notna(row["Heure_Depart"]) and pd.isna(row.get("Heure_Arrivee")):
         return "<span class='vrai-gyrophare'>🚨</span> EN PISTE" if est_dans_le_live else "En Piste"
     return "No Time"
-# fin bloc 1
 def generer_tableau_html(df, classe_specifique):
     if df.empty: 
         return f"<table class='table-compacte {classe_specifique}'><tr><td style='text-align: center; padding: 10px;'>Aucune donnée disponible</td></tr></table>"
@@ -170,7 +169,6 @@ def recuperer_donnees_course():
     df_racb = pd.DataFrame(columns=["Pos", "N°", "Nom_Prenom", "Groupe", "Classe", "Chrono"])
     df_divisions = pd.DataFrame(columns=["Pos", "N°", "Nom_Prenom", "Groupe", "Classe", "Chrono"])
 
-    # LE TITRE S'ADAPTE AUTOMATIQUEMENT AU TOP 20
     t_live = "🏎️ EN DIRECT / Derniers concurrents partis"
     t_his = "🕒 HISTORIQUE DES TEMPS / 1er COURSE / Concurrents RACB"
     t_haut = "🏆 CLASSEMENT GENERAL OFFICIEUX RACB (Top 20)"
@@ -249,7 +247,6 @@ def recuperer_donnees_course():
                     scr = valides.sort_values(by="Calc_Sec").drop_duplicates(subset=["N°"], keep="first").copy()
                     scr = scr[~scr["Groupe"].astype(str).str.strip().str.startswith(('1', '2', '3', '4'), na=False)]
                     
-                    # RÉDUCTION STRICTE : Extraction des 20 premiers concurrents au lieu de 30
                     racb = scr.head(20).copy()
                     if len(racb) > 0:
                         racb["Pos"] = range(1, len(racb) + 1)
