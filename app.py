@@ -134,7 +134,7 @@ div.stElementContainer {{
 
 /* AJUSTEMENT : Hauteur du logo passée à 28px pour être plus grand */
 .logo-signature {{
-    height: 28px !important;
+    height: 42px !important;
     width: auto !important;
     vertical-align: middle !important;
 }}
