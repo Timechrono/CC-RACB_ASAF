@@ -5,6 +5,11 @@ import requests
 import io
 import Essais
 
+# ==============================================================================
+# ⚠️ METTEZ VOTRE LIEN DROPBOX ICI (Assurez-vous qu'il se termine bien par dl=1)
+# ==============================================================================
+LIEN_DROPBOX_LOGO = "https://dropbox.com"
+
 # --- DÉTECTION DES SCRIPTS DE COURSE DISPONIBLES ---
 try:
     import Course_1_ASAF
@@ -45,94 +50,105 @@ except ModuleNotFoundError:
 st.set_page_config(page_title="Live", layout="wide")
 
 # --- CONCEPTION GRAPHIQUE GÉOMÉTRIQUE UNIFIÉE ---
-st.markdown("""
+st.markdown(f"""
 <style>
-[data-testid="stHeader"] { display: none !important; }
-button:focus, div:focus, input:focus, select:focus {
+[data-testid="stHeader"] {{ display: none !important; }}
+button:focus, div:focus, input:focus, select:focus {{
     outline: none !important; border-color: transparent !important; box-shadow: none !important;
-}
-.block-container { 
+}}
+.block-container {{ 
     padding-top: 5px !important; 
     padding-bottom: 0rem !important; 
     padding-left: 0.5rem !important; 
     padding-right: 0.5rem !important; 
-}
-div[data-testid="stMainBlockContainer"] {
+}}
+div[data-testid="stMainBlockContainer"] {{
     padding-top: 5px !important;
     margin-top: 0px !important;
-}
-div[data-testid="stVerticalBlock"] {
+}}
+div[data-testid="stVerticalBlock"] {{
     gap: 0rem !important;
     padding-top: 0px !important;
-}
-div.stElementContainer {
+}}
+div.stElementContainer {{
     margin-top: 0px !important;
     margin-bottom: 0px !important;
     padding-top: 0px !important;
     padding-bottom: 0px !important;
-}
-.titre-live, .titre-hist, .titre-classement {
+}}
+.titre-live, .titre-hist, .titre-classement {{
     color: #FFFFFF !important; font-size: 1.05rem !important; font-weight: bold !important;
     padding: 4px 8px !important; border-radius: 3px !important;
     width: 100% !important; display: block !important; clear: both !important;
-}
-.titre-live { background-color: #15803D !important; margin-top: 0px !important; margin-bottom: 6px !important; }
-.titre-hist { background-color: #475569 !important; margin-top: 25px !important; margin-bottom: 6px !important; }
-.titre-classement { background-color: #1E3A8A !important; margin-top: 0px !important; margin-bottom: 6px !important; }
+}}
+.titre-live {{ background-color: #15803D !important; margin-top: 0px !important; margin-bottom: 6px !important; }}
+.titre-hist {{ background-color: #475569 !important; margin-top: 25px !important; margin-bottom: 6px !important; }}
+.titre-classement {{ background-color: #1E3A8A !important; margin-top: 0px !important; margin-bottom: 6px !important; }}
 
-.refresh-bleu-clair-historique {
+.refresh-bleu-clair-historique {{
     color: #BAE6FD !important;
-}
+}}
 
-.espace-classement-suivant {
+.espace-classement-suivant {{
     margin-top: 25px !important;
-}
+}}
 
-.table-responsive-container {
+.table-responsive-container {{
     width: 100% !important;
     overflow-x: auto !important;
     -webkit-overflow-scrolling: touch !important;
     margin-bottom: 10px !important;
-}
+}}
 
-.table-compacte {
+.table-compacte {{
     width: 100% !important; margin-bottom: 0px !important;
     border-collapse: collapse !important; table-layout: auto !important;
-}
-.table-compacte tr { height: 18px !important; }
-.table-compacte th, .table-compacte td { 
+}}
+.table-compacte tr {{ height: 18px !important; }}
+.table-compacte th, .table-compacte td {{ 
     height: 18px !important; padding: 1px 5px !important; line-height: 1.1 !important; 
     font-size: 0.85rem !important; color: #000000 !important; vertical-align: middle !important; 
     white-space: nowrap !important; 
-}
-.table-compacte td { border-bottom: 1px solid #E0E0E0 !important; background-color: #FFFFFF !important; }
-.table-compacte th { font-weight: bold !important; background-color: #F5F5F5 !important; border-bottom: 2px solid #CCCCCC !important; text-align: left !important; }
-.table-live td:last-child, .table-class-robuste td:last-child { font-weight: bold !important; font-size: 0.94rem !important; color: #0F172A !important; }
-.table-hist tr:nth-child(odd) td { background-color: #E0F2FE !important; }
+}}
+.table-compacte td {{ border-bottom: 1px solid #E0E0E0 !important; background-color: #FFFFFF !important; }}
+.table-compacte th {{ font-weight: bold !important; background-color: #F5F5F5 !important; border-bottom: 2px solid #CCCCCC !important; text-align: left !important; }}
+.table-live td:last-child, .table-class-robuste td:last-child {{ font-weight: bold !important; font-size: 0.94rem !important; color: #0F172A !important; }}
+.table-hist tr:nth-child(odd) td {{ background-color: #E0F2FE !important; }}
 
-/* RECTIFICATION FINALE : Texte agrandi à 0.92rem et remonté près des pointillés */
-.signature-fin-page {
+/* MODIFICATION : Signature alignée en bleu foncé avec pointillés assortis */
+.signature-fin-page {{
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+    gap: 10px !important;
     text-align: center !important;
-    color: #334155 !important;
+    color: #1E3A8A !important;
     font-size: 0.92rem !important;
     font-weight: bold !important;
-    padding-top: 6px !important;
+    padding-top: 8px !important;
     margin-top: 35px !important;
-    border-top: 1px dashed #CBD5E1 !important;
+    border-top: 1px dashed #1E3A8A !important;
     width: 100% !important;
-}
+}}
 
-@media (max-width: 768px) {
-    .block-container { padding-left: 2px !important; padding-right: 2px !important; }
-    .titre-live, .titre-hist, .titre-classement { font-size: 0.85rem !important; padding: 3px 6px !important; }
-    .table-compacte th, .table-compacte td { font-size: 0.65rem !important; padding: 1px 2px !important; }
-    .table-live td:last-child, .table-class-robuste td:last-child { font-size: 0.70rem !important; }
-    .signature-fin-page { font-size: 0.75rem !important; padding-top: 4px !important; }
-}
+.logo-signature {{
+    height: 20px !important;
+    width: auto !important;
+    vertical-align: middle !important;
+}}
 
-.table-class-robuste tr.ligne-bleue-separation td {
+@media (max-width: 768px) {{
+    .block-container {{ padding-left: 2px !important; padding-right: 2px !important; }}
+    .titre-live, .titre-hist, .titre-classement {{ font-size: 0.85rem !important; padding: 3px 6px !important; }}
+    .table-compacte th, .table-compacte td {{ font-size: 0.65rem !important; padding: 1px 2px !important; }}
+    .table-live td:last-child, .table-class-robuste td:last-child {{ font-size: 0.70rem !important; }}
+    .signature-fin-page {{ font-size: 0.75rem !important; padding-top: 4px !important; }}
+    .logo-signature {{ height: 16px !important; }}
+}}
+
+.table-class-robuste tr.ligne-bleue-separation td {{
     border-top: 3px solid #1E3A8A !important;
-}
+}}
 </style>
 """, unsafe_allow_html=True)
 
@@ -144,11 +160,10 @@ def gen_html(df, cl):
     html_table = df.to_html(index=False, classes=f"table-compacte {cl}", escape=False, border=0)
     return f"<div class='table-responsive-container'>{html_table}</div>"
 
-# fin bloc 1
 # --- LECTURE DU PARAMÈTRE DE COURSE DEPUIS L'URL ---
 query_params = st.query_params
 choix_course_url = query_params.get("course", "essais").lower()
-
+# fin bloc 1
 if choix_course_url == "c1asaf" and course1_disponible:
     choix_course = "Course 1 ASAF"
 elif choix_course_url == "c1racb" and course1_racb_disponible:
@@ -220,8 +235,13 @@ with cd:
             st.markdown(f"<span class='titre-classement espace-classement-suivant'>{t_bas}</span>", unsafe_allow_html=True)
             st.markdown(gen_html(d_milieu, "table-class-robuste"), unsafe_allow_html=True)
 
-# Ligne de signature esthétique, agrandie et rendue robuste
-st.markdown("<div class='signature-fin-page'>@ www.timechrono.be</div>", unsafe_allow_html=True)
+# MODIFICATION : Ligne finale avec le logo Dropbox intégré à gauche du texte
+st.markdown(f"""
+<div class='signature-fin-page'>
+    <img src='{LIEN_DROPBOX_LOGO}' class='logo-signature'>
+    www.timechrono.be
+</div>
+""", unsafe_allow_html=True)
 
 # --- REFRESH ET DÉCOMPTE DYNAMIQUE SECONDE PAR SECONDE ---
 for secondes_restantes in range(30, -1, -1):
