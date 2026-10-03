@@ -5,7 +5,7 @@ import os
 import requests
 import io
 
-# --- DESIGN SCIENTIFIQUE RIGIDE ET FORCE DES LARGEURS UNIFIÉES ---
+# --- DESIGN SCIENTIFIQUE RIGIDE ET ADAPTATION TEXTE ULTRA-COMPACT MOBILE ---
 CSS_RACB = """
 <style>
 /* VRAI GYROPHARE DE COURSE STATIQUE (SANS CLIGNOTEMENT) */
@@ -16,7 +16,7 @@ CSS_RACB = """
     vertical-align: middle !important;
 }
 
-/* REMÈDE ALIGNEMENT : On force tous les tableaux à occuper strictement 100% de leur espace */
+/* Style de base pour Ordinateur */
 .table-compacte { 
     width: 100% !important; 
     margin-bottom: 0px !important; 
@@ -46,11 +46,43 @@ CSS_RACB = """
     background-color: #E0F2FE !important;
 }
 
-/* SYMETRIE TOTAL POUR ORDINATEUR (Mêmes largeurs pour tous les blocs) */
+/* ORDINATEUR : Alignement strict des largeurs de blocs à 100% */
 @media (min-width: 769px) {
     .table-live { width: 100% !important; }
     .table-hist { width: 100% !important; }
     .table-class-robuste { width: 100% !important; }
+}
+
+/* SMARTPHONE (REMÈDE TEXTE COMPACT ET GLISSEMENT) */
+@media (max-width: 768px) {
+    /* Le conteneur autorise le glissement horizontal avec le doigt sans bloquer la page */
+    .table-responsive-container {
+        width: 100% !important;
+        max-width: 100% !important;
+        overflow-x: auto !important;
+        display: block !important;
+        clear: both !important;
+        -webkit-overflow-scrolling: touch !important;
+    }
+    
+    /* Le tableau devient fluide (auto) pour ne plus raboter ni couper les mots */
+    .table-compacte {
+        table-layout: auto !important;
+        width: 100% !important;
+        min-width: 480px !important; /* Donne assez d'espace pour que les textes respirent */
+    }
+    
+    /* Écriture ultra-petite et espaces serrés au maximum pour smartphone */
+    .table-compacte th, .table-compacte td { 
+        font-size: 0.62rem !important; /* Police ultra-compacte pour mobile */
+        padding: 1px 3px !important;
+        text-overflow: clip !important; /* Désactive le rabotage par points de suspension */
+        overflow: visible !important;
+    }
+    
+    .table-hist td:last-child, .table-live td:last-child, .table-class-robuste td:last-child {
+        font-size: 0.68rem !important; 
+    }
 }
 </style>
 """
@@ -123,10 +155,10 @@ def calculer_statut_chrono(row, est_dans_le_live=True):
     return "No Time"
 def generer_tableau_html(df, classe_specifique):
     if df.empty: 
-        return f"<table class='table-compacte {classe_specifique}'><tr><td style='text-align: center; padding: 10px;'>Aucune donnée disponible</td></tr></table>"
+        return f"<div class='table-responsive-container'><table class='table-compacte {classe_specifique}'><tr><td style='text-align: center; padding: 10px;'>Aucune donnée disponible</td></tr></table></div>"
     
     if classe_specifique == "table-class-groupes" and "Classe" in df.columns and "Groupe" in df.columns:
-        html = f"<table class='table-compacte table-class-robuste'><thead><tr>"
+        html = f"<div class='table-responsive-container'><table class='table-compacte table-class-robuste'><thead><tr>"
         for col in df.columns: html += f"<th>{col}</th>"
         html += "</tr></thead><tbody>"
         for idx in range(len(df)):
@@ -137,9 +169,11 @@ def generer_tableau_html(df, classe_specifique):
             html += f"<tr {classe_row}>"
             for col in df.columns: html += f"<td>{df.iloc[idx][col]}</td>"
             html += "</tr>"
-        html += "</tbody></table>"
+        html += "</tbody></table></div>"
         return html
-    return df.to_html(index=False, classes=f"table-compacte {classe_specifique}", escape=False, border=0)
+
+    html_brut = df.to_html(index=False, classes=f"table-compacte {classe_specifique}", escape=False, border=0)
+    return f"<div class='table-responsive-container'>{html_brut}</div>"
 
 def recuperer_donnees_course():
     cols_live = ["N°", "Nom_Prenom", "Voiture", "Départ", "Arrivée", "Chrono réalisé"]
@@ -172,6 +206,7 @@ def recuperer_donnees_course():
             chrono_excel_1 = df_arr_raw.iloc[2:, idx_arr_1 + 3] if idx_arr_1 is not None else None
             df_dep = pd.DataFrame({"N°": df_dep_raw.iloc[2:, idx_dep_1].apply(nettoyer_numero), "Heure_Depart": df_dep_raw.iloc[2:, idx_dep_1 + 1]}) if idx_dep_1 is not None else pd.DataFrame(columns=["N°", "Heure_Depart"])
             df_arr = pd.DataFrame({"N°": df_arr_raw.iloc[2:, idx_arr_1].apply(nettoyer_numero), "Heure_Arrivee": df_arr_raw.iloc[2:, idx_arr_1 + 2], "Chrono_Excel": chrono_excel_1}) if idx_arr_1 is not None else pd.DataFrame(columns=["N°", "Heure_Arrivee", "Chrono_Excel"])
+
             df_eng_raw.columns = df_eng_raw.columns.astype(str).str.strip().str.upper()
             df_eng = pd.DataFrame({"N°": df_eng_raw.iloc[:, 0].apply(nettoyer_numero), 
                                    "Nom_Prenom": df_eng_raw.iloc[:, 1].fillna("Pilote Inconnu").astype(str).str.strip(),
