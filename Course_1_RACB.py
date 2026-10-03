@@ -16,9 +16,14 @@ CSS_RACB = """
 .table-hist th:nth-child(5), .table-hist td:nth-child(5) { width: 8% !important; }   
 .table-hist th:nth-child(6), .table-hist td:nth-child(6) { width: 17% !important; }  
 
-/* Force l'espacement de 45px AU-DESSUS du titre de l'historique */
+/* Espacement plus petit et subtil AU-DESSUS du titre de l'historique */
 .titre-hist {
-    margin-top: 45px !important;
+    margin-top: 22px !important;
+}
+
+/* Force le tableau Direct à occuper la même largeur totale sur smartphone */
+.table-live {
+    width: 100% !important;
 }
 </style>
 """
@@ -85,19 +90,18 @@ def calculer_statut_chrono(row, est_dans_le_live=True):
     if "Heure_Depart" in row and pd.notna(row["Heure_Depart"]) and pd.isna(row.get("Heure_Arrivee")):
         return "<span class='vrai-gyrophare'>🚨</span> EN PISTE" if est_dans_le_live else "En Piste"
     return "No Time"
-# fin bloc 1
 def recuperer_donnees_course():
     cols_live = ["N°", "Nom_Prenom", "Voiture", "Départ", "Arrivée", "Chrono réalisé"]
     df_live = pd.DataFrame(columns=cols_live)
     html_hist = "<table class='table-compacte table-hist'><tr><td style='text-align: center; padding: 10px;'>Aucune donnée disponible</td></tr></table>"
     df_racb = pd.DataFrame(columns=["Pos", "N°", "Nom_Prenom", "Groupe", "Classe", "Chrono"])
     
-    # Configuration des titres
-    t_live = "Chronométrage Course 1 RACB"
-    t_his = "Historique Course 1 RACB"
-    t_haut = "CLASSEMENT GENERAL OFFICIEUX RACB (Top 30)"
-    t_milieu = ""
-    t_bas = ""
+    # Rétablissement strict de vos anciens textes d'origine pour les titres
+    t_live = "Chronométrage"
+    t_his = "Historique"
+    t_haut = "Classement Haut"
+    t_milieu = "Classement Milieu"
+    t_bas = "Classement Bas"
 
     data_engages = telecharger_excel(FILE_ENGAGES_RACB)
     data_depart = telecharger_excel(FILE_DEPART)
@@ -164,7 +168,6 @@ def recuperer_donnees_course():
                 base["Chrono_C1_Visual_Hist"] = base.apply(formater_chrono_historique_course1, axis=1)
                 df_hist_base = base.copy()
                 
-                # RE-INJECTION DU STYLE SANS LE BLOC INVISIBLE MAIS AVEC LE CSS CORRIGÉ
                 html_hist = CSS_RACB + "<table class='table-compacte table-hist'><thead><tr><th>N°</th><th>Nom_Prenom</th><th>Voiture</th><th>Groupe</th><th>Classe</th><th>Chrono réalisé</th></tr></thead><tbody>"
                 for idx, row in df_hist_base.iterrows():
                     html_hist += f"<tr><td>{row['N°']}</td><td>{row['Nom_Prenom']}</td><td>{row['Voiture']}</td><td>{row['Groupe']}</td><td>{row['Classe']}</td><td>{row['Chrono_C1_Visual_Hist']}</td></tr>"
