@@ -1,3 +1,4 @@
+# https://www.dropbox.com/scl/fi/hi24fjo0vbal4oiiwt9jl/logo-TimeC.png?rlkey=xlw0oqk9gdnq6v5dgahi0klg0&st=y86yrn6y&dl=1
 import streamlit as st
 import pandas as pd
 import time
@@ -8,7 +9,7 @@ import Essais
 # ==============================================================================
 # ⚠️ METTEZ VOTRE LIEN DROPBOX ICI (Assurez-vous qu'il se termine bien par dl=1)
 # ==============================================================================
-LIEN_DROPBOX_LOGO = "https://www.dropbox.com/scl/fi/hi24fjo0vbal4oiiwt9jl/logo-TimeC.png?rlkey=xlw0oqk9gdnq6v5dgahi0klg0&st=y86yrn6y&dl=1"
+LIEN_DROPBOX_LOGO = "https://dropbox.com"
 
 # --- DÉTECTION DES SCRIPTS DE COURSE DISPONIBLES ---
 try:
@@ -85,9 +86,16 @@ div.stElementContainer {{
 .titre-hist {{ background-color: #475569 !important; margin-top: 25px !important; margin-bottom: 6px !important; }}
 .titre-classement {{ background-color: #1E3A8A !important; margin-top: 0px !important; margin-bottom: 6px !important; }}
 
-/* MODIFICATION : Couleur changée en VERT FLUO pour le décompte */
+/* MODIFICATION : Cadre vert très foncé, texte vert fluo et NON GRAS */
 .refresh-bleu-clair-historique {{
     color: #00FF00 !important;
+    font-weight: normal !important;
+    background-color: #064E3B !important; /* Vert très foncé */
+    border: 1px solid #00FF00 !important;   /* Fine bordure vert fluo */
+    padding: 1px 6px !important;            /* Espace intérieur du cadre */
+    border-radius: 4px !important;          /* Coins arrondis */
+    display: inline-block !important;
+    margin-left: 4px !important;
 }}
 
 .espace-classement-suivant {{
@@ -132,7 +140,7 @@ div.stElementContainer {{
     width: 100% !important;
 }}
 
-/* AJUSTEMENT : Hauteur du logo passée à 28px pour être plus grand */
+/* AJUSTEMENT : Conservé à 42px comme demandé */
 .logo-signature {{
     height: 42px !important;
     width: auto !important;
@@ -145,7 +153,7 @@ div.stElementContainer {{
     .table-compacte th, .table-compacte td {{ font-size: 0.65rem !important; padding: 1px 2px !important; }}
     .table-live td:last-child, .table-class-robuste td:last-child {{ font-size: 0.70rem !important; }}
     .signature-fin-page {{ font-size: 0.75rem !important; padding-top: 4px !important; }}
-    .logo-signature {{ height: 22px !important; }}
+    .logo-signature {{ height: 32px !important; }}
 }}
 
 .table-class-robuste tr.ligne-bleue-separation td {{
@@ -165,6 +173,7 @@ def gen_html(df, cl):
 # --- LECTURE DU PARAMÈTRE DE COURSE DEPUIS L'URL ---
 query_params = st.query_params
 choix_course_url = query_params.get("course", "essais").lower()
+# fin bloc 1
 if choix_course_url == "c1asaf" and course1_disponible:
     choix_course = "Course 1 ASAF"
 elif choix_course_url == "c1racb" and course1_racb_disponible:
