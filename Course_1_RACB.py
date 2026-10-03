@@ -5,7 +5,7 @@ import os
 import requests
 import io
 
-# --- REPRISE STRICTE DE VOTRE DESIGN SCIENTIFIQUE ET PROPORTIONS D'ORIGINE ---
+# --- DESIGN SCIENTIFIQUE RIGIDE ET STRUCTURE UNIFIÉE PC / MOBILE ---
 CSS_RACB = """
 <style>
 /* VRAI GYROPHARE DE COURSE STATIQUE (SANS CLIGNOTEMENT) */
@@ -16,14 +16,14 @@ CSS_RACB = """
     vertical-align: middle !important;
 }
 
-/* RENDU ORDINATEUR STRICT ET INVARIANT */
-.table-compacte { width: 100% !important; margin-bottom: 0px !important; border-collapse: collapse !important; table-layout: fixed !important; }
+/* Style de base unifié pour l'application */
+.table-compacte { width: 100% !important; margin-bottom: 0px !important; border-collapse: collapse !important; }
 .table-compacte tr { height: 18px !important; }
 .table-compacte th, .table-compacte td { 
     height: 18px !important; padding: 1px 5px !important; line-height: 1.1 !important; font-size: 0.85rem !important; color: #000000 !important; 
     vertical-align: middle !important; overflow: hidden !important; text-overflow: ellipsis !important; white-space: nowrap !important; 
 }
-.table-compacte td { font-weight: normal !important; border-bottom: 1px solid #E0E0E0 !important; background-color: #FFFFFF !important; }
+.table-compacte td { border-bottom: 1px solid #E0E0E0 !important; background-color: #FFFFFF !important; }
 .table-compacte th { font-weight: bold !important; background-color: #F5F5F5 !important; border-bottom: 2px solid #CCCCCC !important; text-align: left !important; }
 
 .table-hist td:last-child, .table-live td:last-child, .table-class-robuste td:last-child {
@@ -37,17 +37,16 @@ CSS_RACB = """
     background-color: #E0F2FE !important;
 }
 
-/* LA LIGNE DE SÉPARATION BLEUE TECHNIQUE FONCTIONNELLE DE TOUT À L'HEURE */
+/* LA LIGNE DE SÉPARATION BLEUE TECHNIQUE FONCTIONNELLE */
 .ligne-separation-classe td {
     border-bottom: 2px solid #1E3A8A !important;
 }
 
-/* ORDINATEUR : Forçage des largeurs de colonnes rigides d'origine */
+/* --- CONFIGURATION STRICTE POUR ORDINATEUR --- */
 @media (min-width: 769px) {
-    .table-live { width: 100% !important; }
-    .table-hist { width: 100% !important; }
-    .table-class-robuste { width: 100% !important; }
-
+    .table-compacte { table-layout: fixed !important; }
+    
+    /* GAUCHE : 1. Tableau En Direct */
     .table-live th:nth-child(1), .table-live td:nth-child(1) { width: 8% !important; }
     .table-live th:nth-child(2), .table-live td:nth-child(2) { width: 26% !important; }
     .table-live th:nth-child(3), .table-live td:nth-child(3) { width: 18% !important; }
@@ -55,6 +54,7 @@ CSS_RACB = """
     .table-live th:nth-child(5), .table-live td:nth-child(5) { width: 13% !important; }
     .table-live th:nth-child(6), .table-live td:nth-child(6) { width: 22% !important; }
 
+    /* GAUCHE : 2. Tableau Historique */
     .table-hist th:nth-child(1), .table-hist td:nth-child(1) { width: 8% !important; }   
     .table-hist th:nth-child(2), .table-hist td:nth-child(2) { width: 30% !important; }  
     .table-hist th:nth-child(3), .table-hist td:nth-child(3) { width: 26% !important; }  
@@ -62,6 +62,7 @@ CSS_RACB = """
     .table-hist th:nth-child(5), .table-hist td:nth-child(5) { width: 8% !important; }   
     .table-hist th:nth-child(6), .table-hist td:nth-child(6) { width: 17% !important; }  
 
+    /* DROITE : 3. Tableaux de Classements (Scratch et Divisions) */
     .table-class-robuste th:nth-child(1), .table-class-robuste td:nth-child(1) { width: 9% !important; }
     .table-class-robuste th:nth-child(2), .table-class-robuste td:nth-child(2) { width: 11% !important; }
     .table-class-robuste th:nth-child(3), .table-class-robuste td:nth-child(3) { width: 33% !important; }
@@ -70,7 +71,7 @@ CSS_RACB = """
     .table-class-robuste th:nth-child(6), .table-class-robuste td:nth-child(6) { width: 18% !important; text-align: right !important; }
 }
 
-/* SMARTPHONE */
+/* --- CONFIGURATION ULTRA-COMPACTE POUR SMARTPHONE --- */
 @media (max-width: 768px) {
     .table-responsive-container {
         width: 100% !important;
@@ -125,7 +126,7 @@ def convertir_en_secondes(valeur):
     if ":" in s:
         try:
             parts = s.split(":")
-            return (int(parts) * 60) + float(parts.replace(",", "."))
+            return (int(parts[0]) * 60) + float(parts[1].replace(",", "."))
         except Exception: pass
     if s.endswith(".0"): s = s[:-2]
     s_clean = "".join([c for c in s if c.isdigit()])
@@ -190,7 +191,8 @@ def recuperer_donnees_course():
     cols_live = ["N°", "Nom_Prenom", "Voiture", "Départ", "Arrivée", "Chrono réalisé"]
     cols_hist = ["N°", "Nom_Prenom", "Voiture", "Groupe", "Classe", "Chrono réalisé"]
     df_live, df_hist = pd.DataFrame(columns=cols_live), pd.DataFrame(columns=cols_hist)
-    df_racb, df_divisions = pd.DataFrame(columns=["Pos", "N°", "Nom_Prenom", "Groupe", "Classe", "Chrono"]), pd.DataFrame(columns=["Pos", "N°", "Nom_Prenom", "Groupe", "Classe", "Chrono"])
+    df_racb = pd.DataFrame(columns=["Pos", "N°", "Nom_Prenom", "Groupe", "Classe", "Chrono"])
+    df_divisions = pd.DataFrame(columns=["Pos", "N°", "Nom_Prenom", "Groupe", "Classe", "Chrono"])
 
     t_live = "🏎️ EN DIRECT / Derniers concurrents partis"
     t_his = "🕒 HISTORIQUE DES TEMPS / 1er COURSE / Concurrents RACB"
@@ -271,12 +273,16 @@ def recuperer_donnees_course():
                         df_racb = racb[["Pos", "N°", "Nom_Prenom", "Groupe", "Classe", "Chrono"]]
                     
                     scr["Classe_Num"] = pd.to_numeric(scr["Classe"], errors='coerce').fillna(999)
-                    df_grouped = scr.sort_values(by=["Groupe", "Classe_Num", "Calc_Sec"])
-                    df_divisions = df_grouped.copy()
+                    df_grouped = scr.sort_values(by=["Groupe", "Classe_Num", "Calc_Sec"]).groupby(["Groupe", "Classe_Num"]).head(3).copy()
+                    
+                    if len(df_grouped) > 0:
+                        df_grouped["Pos"] = df_grouped.groupby(["Groupe", "Classe_Num"]).cumcount() + 1
+                        df_grouped["Chrono"] = df_grouped["Calc_Sec"].apply(format_final_chrono)
+                        # ALIGNEMENT REPOUSSÉ : Ordre exact des variables pour matcher les styles d'ordinateur
+                        df_divisions = df_grouped[["Pos", "N°", "Nom_Prenom", "Groupe", "Classe", "Chrono"]]
         except Exception: pass
 
     html_hist = CSS_RACB + generer_tableau_html(df_hist, "table-hist")
     html_class_div = generer_tableau_html(df_divisions, "table-class-groupes")
 
-    # Renvoi propre de toutes les variables vers app.py
     return df_live, html_hist, df_racb, html_class_div, pd.DataFrame(), t_live, t_his, t_haut, t_milieu, t_bas
