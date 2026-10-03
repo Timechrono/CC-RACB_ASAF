@@ -192,9 +192,9 @@ def recuperer_donnees_course():
                         if current_group == 1: html_blocs.append(sub_html.replace("</tbody>\n</table>", ""))
                         else: html_blocs.append(sub_html.split("<tbody>")[-1].replace("</tbody>\n</table>", ""))
                         
-                        # REMÈDE APPORTÉ : Tracé forcé à l'aide d'une vraie ligne physique bleu foncé (<hr>) de 3px d'épaisseur
+                        # REMÈDE DÉFINITIF INFAILLIBLE : On colore l'intérieur d'une ligne d'une hauteur fine de 3px avec votre couleur bleu de course #1E3A8A
                         if current_group < total_groups:
-                            html_blocs.append("<tr>" + "".join(["<td style='padding:0 !important; background-color:#FFFFFF !important;'><hr style='border:0 !important; border-top:3px solid #1E3A8A !important; margin:0 !important; padding:0 !important;'></td>" for _ in range(6)]) + "</tr>")
+                            html_blocs.append("<tr style='height:3px !important; line-height:3px !important;'>" + "".join(["<td style='padding:0 !important; height:3px !important; line-height:3px !important; background-color:#1E3A8A !important;'>&nbsp;</td>" for _ in range(6)]) + "</tr>")
                     
                     html_blocs.append("</tbody>\n</table>")
                     html_divisions = "".join(html_blocs)
