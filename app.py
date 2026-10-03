@@ -80,7 +80,6 @@ div.stElementContainer {
 .titre-hist { background-color: #475569 !important; margin-top: 25px !important; margin-bottom: 6px !important; }
 .titre-classement { background-color: #1E3A8A !important; margin-top: 0px !important; margin-bottom: 6px !important; }
 
-/* RECTIFICATION DE COULEUR : Bleu ciel très clair calqué sur l'historique une ligne sur deux */
 .refresh-bleu-clair-historique {
     color: #BAE6FD !important;
 }
@@ -111,13 +110,13 @@ div.stElementContainer {
 .table-live td:last-child, .table-class-robuste td:last-child { font-weight: bold !important; font-size: 0.94rem !important; color: #0F172A !important; }
 .table-hist tr:nth-child(odd) td { background-color: #E0F2FE !important; }
 
-/* RECTIFICATION DE TAILLE : Agrandissement du texte à 0.85rem pour égaliser avec les concurrents */
+/* RECTIFICATION FINALE : Texte agrandi à 0.92rem et remonté près des pointillés */
 .signature-fin-page {
     text-align: center !important;
-    color: #475569 !important;
-    font-size: 0.85rem !important;
+    color: #334155 !important;
+    font-size: 0.92rem !important;
     font-weight: bold !important;
-    padding-top: 15px !important;
+    padding-top: 6px !important;
     margin-top: 35px !important;
     border-top: 1px dashed #CBD5E1 !important;
     width: 100% !important;
@@ -128,7 +127,7 @@ div.stElementContainer {
     .titre-live, .titre-hist, .titre-classement { font-size: 0.85rem !important; padding: 3px 6px !important; }
     .table-compacte th, .table-compacte td { font-size: 0.65rem !important; padding: 1px 2px !important; }
     .table-live td:last-child, .table-class-robuste td:last-child { font-size: 0.70rem !important; }
-    .signature-fin-page { font-size: 0.65rem !important; }
+    .signature-fin-page { font-size: 0.75rem !important; padding-top: 4px !important; }
 }
 
 .table-class-robuste tr.ligne-bleue-separation td {
@@ -144,6 +143,7 @@ def gen_html(df, cl):
     
     html_table = df.to_html(index=False, classes=f"table-compacte {cl}", escape=False, border=0)
     return f"<div class='table-responsive-container'>{html_table}</div>"
+
 # fin bloc 1
 # --- LECTURE DU PARAMÈTRE DE COURSE DEPUIS L'URL ---
 query_params = st.query_params
