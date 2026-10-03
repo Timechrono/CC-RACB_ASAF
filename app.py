@@ -85,8 +85,9 @@ div.stElementContainer {{
 .titre-hist {{ background-color: #475569 !important; margin-top: 25px !important; margin-bottom: 6px !important; }}
 .titre-classement {{ background-color: #1E3A8A !important; margin-top: 0px !important; margin-bottom: 6px !important; }}
 
+/* MODIFICATION : Couleur changée en VERT FLUO pour le décompte */
 .refresh-bleu-clair-historique {{
-    color: #BAE6FD !important;
+    color: #00FF00 !important;
 }}
 
 .espace-classement-suivant {{
@@ -115,12 +116,12 @@ div.stElementContainer {{
 .table-live td:last-child, .table-class-robuste td:last-child {{ font-weight: bold !important; font-size: 0.94rem !important; color: #0F172A !important; }}
 .table-hist tr:nth-child(odd) td {{ background-color: #E0F2FE !important; }}
 
-/* MODIFICATION : Signature alignée en bleu foncé avec pointillés assortis */
+/* Signature alignée en bleu foncé avec pointillés assortis */
 .signature-fin-page {{
     display: flex !important;
     justify-content: center !important;
     align-items: center !important;
-    gap: 10px !important;
+    gap: 12px !important;
     text-align: center !important;
     color: #1E3A8A !important;
     font-size: 0.92rem !important;
@@ -131,8 +132,9 @@ div.stElementContainer {{
     width: 100% !important;
 }}
 
+/* AJUSTEMENT : Hauteur du logo passée à 28px pour être plus grand */
 .logo-signature {{
-    height: 20px !important;
+    height: 28px !important;
     width: auto !important;
     vertical-align: middle !important;
 }}
@@ -143,7 +145,7 @@ div.stElementContainer {{
     .table-compacte th, .table-compacte td {{ font-size: 0.65rem !important; padding: 1px 2px !important; }}
     .table-live td:last-child, .table-class-robuste td:last-child {{ font-size: 0.70rem !important; }}
     .signature-fin-page {{ font-size: 0.75rem !important; padding-top: 4px !important; }}
-    .logo-signature {{ height: 16px !important; }}
+    .logo-signature {{ height: 22px !important; }}
 }}
 
 .table-class-robuste tr.ligne-bleue-separation td {{
@@ -163,7 +165,6 @@ def gen_html(df, cl):
 # --- LECTURE DU PARAMÈTRE DE COURSE DEPUIS L'URL ---
 query_params = st.query_params
 choix_course_url = query_params.get("course", "essais").lower()
-# fin bloc 1
 if choix_course_url == "c1asaf" and course1_disponible:
     choix_course = "Course 1 ASAF"
 elif choix_course_url == "c1racb" and course1_racb_disponible:
@@ -235,7 +236,7 @@ with cd:
             st.markdown(f"<span class='titre-classement espace-classement-suivant'>{t_bas}</span>", unsafe_allow_html=True)
             st.markdown(gen_html(d_milieu, "table-class-robuste"), unsafe_allow_html=True)
 
-# MODIFICATION : Ligne finale avec le logo Dropbox intégré à gauche du texte
+# Ligne finale avec le logo Dropbox intégré à gauche du texte
 st.markdown(f"""
 <div class='signature-fin-page'>
     <img src='{LIEN_DROPBOX_LOGO}' class='logo-signature'>
