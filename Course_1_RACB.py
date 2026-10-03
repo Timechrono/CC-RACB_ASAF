@@ -26,8 +26,8 @@ CSS_RACB = """
 """
 
 # --- CONFIGURATION DROPBOX ---
-C = [100, 114, 111, 120, 46, 99, 111, 109]
-D = [100, 114, 111, 112, 98, 111, 120, 117, 115, 101, 114, 99, 111, 110, 116, 101, 110, 116]
+C = [100, 108, 46, 100, 114, 111, 112, 98, 111, 120, 117, 115, 101, 114]
+D = [99, 111, 110, 116, 101, 110, 116, 46, 99, 111, 109]
 HOTE_PROT = "".join(chr(x) for x in (C + D))
 
 FILE_ARRIVEE = f"ht" + f"tps://{HOTE_PROT}/scl/fi/7uu9cmlpzglx0ngvbklpt/LIVE_Temps_ARRIVEE.xlsm?rlkey=g9urz4v3jr36h0apzt45ognm6&st=0d9mpgfw&dl=1"
