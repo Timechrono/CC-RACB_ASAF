@@ -188,7 +188,8 @@ st.markdown("<style>@media (min-width: 769px) { .table-hist th:nth-child(1), .ta
 
 cg, cd = st.columns([1.3, 0.9])
 with cg:
-    st.markdown(f"<span class='titre-live'>{t_live}</span>", unsafe_allow_html=True)
+    # Zone dédiée pour le titre dynamique En Direct avec compte à rebours autonome
+    conteneur_titre_live = st.empty()
     st.markdown(gen_html(d_liv, "table-live"), unsafe_allow_html=True)
     
     if t_his: st.markdown(f"<span class='titre-hist'>{t_his}</span>", unsafe_allow_html=True)
@@ -218,10 +219,14 @@ with cd:
 
 st.markdown("<div style='height:20px;'></div>", unsafe_allow_html=True)
 
-# --- REFRESH COMPTEUR TOUTES LES 30 SECONDES ---
-@st.fragment
-def declencher_compteur_auto():
-    time.sleep(30)
-    st.rerun()
+# --- COMPTE À REBOURS DYNAMIQUE INTERNE SECONDE PAR SECONDE ---
+for secondes_restantes in range(30, -1, -1):
+    if "Derniers concurrents" in t_live:
+        conteneur_titre_live.markdown(f"<span class='titre-live'>🏎️ EN DIRECT / Derniers concurrents partis / Refresh {secondes_restantes} Sec.</span>", unsafe_allow_html=True)
+    else:
+        conteneur_titre_live.markdown(f"<span class='titre-live'>{t_live}</span>", unsafe_allow_html=True)
+    
+    if secondes_restantes > 0:
+        time.sleep(1)
 
-declencher_compteur_auto()
+st.rerun()
