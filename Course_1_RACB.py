@@ -17,18 +17,17 @@ CSS_RACB = """
 .table-hist tr:nth-child(odd) td {
     background-color: #E0F2FE !important;
 }
-/* FORCE STRICTEMENT LES TEMPS DE LA COLONNE CHRONO REALISE DE L'HISTORIQUE EN GRAS */
+/* RECTIFICATION : On applique uniquement le gras, la taille s'adaptera seule sur PC et Smartphone */
 .table-hist td:last-child {
     font-weight: bold !important;
-    font-size: 0.94rem !important;
     color: #0F172A !important;
 }
 </style>
 """
 
 # --- CONFIGURATION DROPBOX ---
-C = [100, 108, 46, 100, 114, 111, 112, 98, 111, 120, 117, 115, 101, 114]
-D = [99, 111, 110, 116, 101, 110, 116, 46, 99, 111, 109]
+C = [100, 114, 111, 112, 98, 111, 120, 46, 99, 111, 109]
+D = [47, 97, 112, 105, 47, 50, 47, 102, 105, 108, 101, 115, 47, 100, 111, 119, 110, 108, 111, 97, 100]
 HOTE_PROT = "".join(chr(x) for x in (C + D))
 
 FILE_ARRIVEE = f"ht" + f"tps://{HOTE_PROT}/scl/fi/7uu9cmlpzglx0ngvbklpt/LIVE_Temps_ARRIVEE.xlsm?rlkey=g9urz4v3jr36h0apzt45ognm6&st=0d9mpgfw&dl=1"
@@ -99,6 +98,7 @@ def calculer_statut_chrono(row, est_dans_le_live=True):
     if "Heure_Depart" in row and pd.notna(row["Heure_Depart"]) and pd.isna(row.get("Heure_Arrivee")):
         return "<span class='vrai-gyrophare'>🚨</span> EN PISTE" if est_dans_le_live else "En Piste"
     return "No Time"
+
 # fin bloc 1
 def generer_tableau_html(df, classe_specifique):
     if df.empty: 
