@@ -5,7 +5,7 @@ import requests
 import io
 import Essais
 
-# --- DÉTECTION SIMPLE DES COURSES ---
+# --- DÉTECTION DES SCRIPTS DE COURSE DISPONIBLES ---
 try:
     import Course_1_ASAF
     course1_disponible = True
@@ -44,7 +44,7 @@ except ModuleNotFoundError:
 
 st.set_page_config(page_title="Live", layout="wide")
 
-# --- CONCEPTION GRAPHIQUE GÉOMÉTRIQUE UNIFIÉE AVEC INTERLIGNES SYMÉTRIQUES ---
+# --- CONCEPTION GRAPHIQUE GÉOMÉTRIQUE UNIFIÉE ---
 st.markdown("""
 <style>
 [data-testid="stHeader"] { display: none !important; }
@@ -80,12 +80,12 @@ div.stElementContainer {
 .titre-hist { background-color: #475569 !important; margin-top: 25px !important; margin-bottom: 6px !important; }
 .titre-classement { background-color: #1E3A8A !important; margin-top: 0px !important; margin-bottom: 6px !important; }
 
-/* Forçage de la marge supérieure pour le deuxième classement à droite */
+/* Forçage de la marge supérieure symétrique pour l'alignement horizontal */
 .espace-classement-suivant {
     margin-top: 25px !important;
 }
 
-/* Conteneur pour forcer le glissement horizontal sur mobile */
+/* Conteneur de glissement horizontal fluide sur smartphone */
 .table-responsive-container {
     width: 100% !important;
     overflow-x: auto !important;
@@ -108,7 +108,7 @@ div.stElementContainer {
 .table-live td:last-child, .table-class-robuste td:last-child { font-weight: bold !important; font-size: 0.94rem !important; color: #0F172A !important; }
 .table-hist tr:nth-child(odd) td { background-color: #E0F2FE !important; }
 
-/* --- AJUSTEMENTS ULTRA-SERRÉS POUR SMARTPHONES --- */
+/* --- AJUSTEMENTS POUR SMARTPHONES --- */
 @media (max-width: 768px) {
     .block-container {
         padding-left: 2px !important;
@@ -126,6 +126,11 @@ div.stElementContainer {
         font-size: 0.70rem !important; 
     }
 }
+
+/* --- LOGIQUE DE COUPE : FORCE LE RETOUR DU TRAIT BLEU DE SEPARATION ENTRE LES CLASSES RACB ET ASAF --- */
+.table-class-robuste tr.ligne-bleue-separation td {
+    border-top: 3px solid #1E3A8A !important;
+}
 </style>
 """, unsafe_allow_html=True)
 
@@ -136,7 +141,7 @@ def gen_html(df, cl):
     
     html_table = df.to_html(index=False, classes=f"table-compacte {cl}", escape=False, border=0)
     return f"<div class='table-responsive-container'>{html_table}</div>"
-# --- LECTURE DU CHOIX DE LA COURSE DEPUIS L'URL ---
+# --- LECTURE DU PARAMÈTRE DE COURSE DEPUIS L'URL ---
 query_params = st.query_params
 choix_course_url = query_params.get("course", "essais").lower()
 
@@ -178,7 +183,7 @@ try:
 except Exception as e:
     t_live = "⚠️ Liaison Dropbox ralentie ou instable — Tentative de reconnexon en cours..."
 
-# Ajustement largeurs des colonnes de l'Historique extraites de Course_1_RACB
+# Ajustement forcé des largeurs de colonnes de l'Historique en mode Ordinateur
 st.markdown("<style>@media (min-width: 769px) { .table-hist th:nth-child(1), .table-hist td:nth-child(1) { width: 8% !important; } .table-hist th:nth-child(2), .table-hist td:nth-child(2) { width: 30% !important; } .table-hist th:nth-child(3), .table-hist td:nth-child(3) { width: 26% !important; } .table-hist th:nth-child(4), .table-hist td:nth-child(4) { width: 11% !important; } .table-hist th:nth-child(5), .table-hist td:nth-child(5) { width: 8% !important; } .table-hist th:nth-child(6), .table-hist td:nth-child(6) { width: 17% !important; } }</style>", unsafe_allow_html=True)
 
 cg, cd = st.columns([1.3, 0.9])
@@ -213,7 +218,7 @@ with cd:
 
 st.markdown("<div style='height:20px;'></div>", unsafe_allow_html=True)
 
-# --- SYSTÈME DE RAFRAÎCHISSEMENT NATIF (TOUTES LES 30 SECONDES) ---
+# --- REFRESH COMPTEUR TOUTES LES 30 SECONDES ---
 @st.fragment
 def declencher_compteur_auto():
     time.sleep(30)
