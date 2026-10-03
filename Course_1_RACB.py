@@ -5,17 +5,52 @@ import os
 import requests
 import io
 
-# On conserve un CSS d'origine minimal pour le gyrophare et le coloriage alterné
+# --- DESIGN SCIENTIFIQUE RIGIDE ET FORCE DES LARGEURS UNIFIÉES ---
 CSS_RACB = """
 <style>
+/* VRAI GYROPHARE DE COURSE STATIQUE (SANS CLIGNOTEMENT) */
 .vrai-gyrophare {
     display: inline-block;
     margin-right: 6px;
     font-size: 1.05rem !important;
     vertical-align: middle !important;
 }
+
+/* REMÈDE ALIGNEMENT : On force tous les tableaux à occuper strictement 100% de leur espace */
+.table-compacte { 
+    width: 100% !important; 
+    margin-bottom: 0px !important; 
+    border-collapse: collapse !important; 
+    table-layout: fixed !important; 
+}
+.table-compacte tr { height: 18px !important; }
+.table-compacte th, .table-compacte td { 
+    height: 18px !important; padding: 1px 5px !important; line-height: 1.1 !important; font-size: 0.85rem !important; color: #000000 !important; 
+    vertical-align: middle !important; overflow: hidden !important; text-overflow: ellipsis !important; white-space: nowrap !important; 
+}
+.table-compacte td { font-weight: normal !important; border-bottom: 1px solid #E0E0E0 !important; background-color: #FFFFFF !important; }
+.table-compacte th { font-weight: bold !important; background-color: #F5F5F5 !important; border-bottom: 2px solid #CCCCCC !important; text-align: left !important; }
+
+.ligne-separation-classe td {
+    border-bottom: 2px solid #1E3A8A !important;
+}
+
+.table-hist td:last-child, .table-live td:last-child, .table-class-robuste td:last-child {
+    font-weight: bold !important;
+    font-size: 0.94rem !important;
+    color: #0F172A !important;
+}
+
+/* COLORIAGE BLEU UNE LIGNE SUR DEUX HISTORIQUE */
 .table-hist tr:nth-child(odd) td {
     background-color: #E0F2FE !important;
+}
+
+/* SYMETRIE TOTAL POUR ORDINATEUR (Mêmes largeurs pour tous les blocs) */
+@media (min-width: 769px) {
+    .table-live { width: 100% !important; }
+    .table-hist { width: 100% !important; }
+    .table-class-robuste { width: 100% !important; }
 }
 </style>
 """
@@ -86,14 +121,31 @@ def calculer_statut_chrono(row, est_dans_le_live=True):
     if "Heure_Depart" in row and pd.notna(row["Heure_Depart"]) and pd.isna(row.get("Heure_Arrivee")):
         return "<span class='vrai-gyrophare'>🚨</span> EN PISTE" if est_dans_le_live else "En Piste"
     return "No Time"
+def generer_tableau_html(df, classe_specifique):
+    if df.empty: 
+        return f"<table class='table-compacte {classe_specifique}'><tr><td style='text-align: center; padding: 10px;'>Aucune donnée disponible</td></tr></table>"
+    
+    if classe_specifique == "table-class-groupes" and "Classe" in df.columns and "Groupe" in df.columns:
+        html = f"<table class='table-compacte table-class-robuste'><thead><tr>"
+        for col in df.columns: html += f"<th>{col}</th>"
+        html += "</tr></thead><tbody>"
+        for idx in range(len(df)):
+            classe_row = ""
+            if idx < len(df) - 1:
+                if df.iloc[idx]["Classe"] != df.iloc[idx + 1]["Classe"] or df.iloc[idx]["Groupe"] != df.iloc[idx + 1]["Groupe"]:
+                    classe_row = "class='ligne-separation-classe'"
+            html += f"<tr {classe_row}>"
+            for col in df.columns: html += f"<td>{df.iloc[idx][col]}</td>"
+            html += "</tr>"
+        html += "</tbody></table>"
+        return html
+    return df.to_html(index=False, classes=f"table-compacte {classe_specifique}", escape=False, border=0)
+
 def recuperer_donnees_course():
     cols_live = ["N°", "Nom_Prenom", "Voiture", "Départ", "Arrivée", "Chrono réalisé"]
     cols_hist = ["N°", "Nom_Prenom", "Voiture", "Groupe", "Classe", "Chrono réalisé"]
-    
-    df_live = pd.DataFrame(columns=cols_live)
-    df_hist = pd.DataFrame(columns=cols_hist)
-    df_racb = pd.DataFrame(columns=["Pos", "N°", "Nom_Prenom", "Groupe", "Classe", "Chrono"])
-    html_divisions = "<table class='table-compacte table-class-robuste'><tr><td style='text-align: center; padding: 10px;'>Aucune donnée disponible</td></tr></table>"
+    df_live, df_hist = pd.DataFrame(columns=cols_live), pd.DataFrame(columns=cols_hist)
+    df_racb, df_divisions = pd.DataFrame(columns=["Pos", "N°", "Nom_Prenom", "Groupe", "Classe", "Chrono"]), pd.DataFrame(columns=["Pos", "N°", "Nom_Prenom", "Groupe", "Classe", "Chrono"])
 
     t_live = "🏎️ EN DIRECT / Derniers concurrents partis"
     t_his = "🕒 HISTORIQUE DES TEMPS / 1er COURSE / Concurrents RACB"
@@ -120,7 +172,6 @@ def recuperer_donnees_course():
             chrono_excel_1 = df_arr_raw.iloc[2:, idx_arr_1 + 3] if idx_arr_1 is not None else None
             df_dep = pd.DataFrame({"N°": df_dep_raw.iloc[2:, idx_dep_1].apply(nettoyer_numero), "Heure_Depart": df_dep_raw.iloc[2:, idx_dep_1 + 1]}) if idx_dep_1 is not None else pd.DataFrame(columns=["N°", "Heure_Depart"])
             df_arr = pd.DataFrame({"N°": df_arr_raw.iloc[2:, idx_arr_1].apply(nettoyer_numero), "Heure_Arrivee": df_arr_raw.iloc[2:, idx_arr_1 + 2], "Chrono_Excel": chrono_excel_1}) if idx_arr_1 is not None else pd.DataFrame(columns=["N°", "Heure_Arrivee", "Chrono_Excel"])
-
             df_eng_raw.columns = df_eng_raw.columns.astype(str).str.strip().str.upper()
             df_eng = pd.DataFrame({"N°": df_eng_raw.iloc[:, 0].apply(nettoyer_numero), 
                                    "Nom_Prenom": df_eng_raw.iloc[:, 1].fillna("Pilote Inconnu").astype(str).str.strip(),
@@ -131,13 +182,10 @@ def recuperer_donnees_course():
 
             df_dep = df_dep[(df_dep["N°"] != "NAN") & (df_dep["N°"] != "")]
             for d in [df_dep, df_arr]:
-                if len(d) > 0:
-                    d["N°"] = d["N°"].astype(str)
-                    d["Run_Index"] = d.groupby("N°").cumcount() + 1
+                if len(d) > 0: d["N°"] = d["N°"].astype(str); d["Run_Index"] = d.groupby("N°").cumcount() + 1
 
             df_dep["Sec_Dep"] = df_dep["Heure_Depart"].apply(convertir_en_secondes)
-            df_arr["Sec_Arr"] = df_arr["Heure_Arrivee"].apply(convertir_en_secondes)
-            df_arr["Sec_Excel"] = df_arr["Chrono_Excel"].apply(convertir_en_secondes)
+            df_arr["Sec_Arr"] = df_arr["Heure_Arrivee"].apply(convertir_en_secondes); df_arr["Sec_Excel"] = df_arr["Chrono_Excel"].apply(convertir_en_secondes)
 
             base_runs = df_dep[["N°", "Run_Index"]].copy() if len(df_dep) > 0 else df_eng[["N°"]].copy()
             if "Run_Index" not in base_runs.columns: base_runs["Run_Index"] = 1
@@ -152,72 +200,41 @@ def recuperer_donnees_course():
                 base["Départ_C1"] = base["Heure_Depart"].apply(formater_heure_ecran)
 
                 if "Heure_Depart" in base.columns and base["Heure_Depart"].notna().any():
-                    base_c1 = base[base["Heure_Depart"].notna()].copy()
-                    base_c1["Ordre_Live"] = range(len(base_c1))
+                    base_c1 = base[base["Heure_Depart"].notna()].copy(); base_c1["Ordre_Live"] = range(len(base_c1))
                     df_live_base = base_c1.sort_values(by="Ordre_Live", ascending=False).head(5).copy()
                     df_live_base["Chrono réalisé"] = df_live_base.apply(lambda r: calculer_statut_chrono(r, est_dans_le_live=True), axis=1)
                     df_live_base["Arrivée_Brute"] = df_live_base["Heure_Arrivee"].apply(formater_heure_ecran)
                     df_live = df_live_base[["N°", "Nom_Prenom", "Voiture", "Départ_C1", "Arrivée_Brute", "Chrono réalisé"]].rename(columns={"Départ_C1": "Départ", "Arrivée_Brute": "Arrivée"})
 
-                def formater_chrono_historique_course1(row):
-                    if pd.notna(row["Heure_Depart"]) and pd.isna(row["Heure_Arrivee"]) and pd.isna(row["Sec_Excel"]): return "En Piste"
-                    return format_final_chrono(row["Calc_Sec"]) if pd.notna(row["Calc_Sec"]) and row["Calc_Sec"] > 0 else "No Time"
-
-                base["Chrono_C1_Visual_Hist"] = base.apply(formater_chrono_historique_course1, axis=1)
-                base["Ordre_Saisie"] = range(len(base))
-                df_hist_base = base.sort_values(by="Ordre_Saisie", ascending=False).copy()
-                df_hist = df_hist_base[["N°", "Nom_Prenom", "Voiture", "Groupe", "Classe", "Chrono_C1_Visual_Hist"]].rename(columns={"Chrono_C1_Visual_Hist": "Chrono réalisé"})
+                base["Chrono_C1_Visual_Hist"] = base.apply(lambda r: "En Piste" if pd.notna(r["Heure_Depart"]) and pd.isna(r["Heure_Arrivee"]) and pd.isna(r["Sec_Excel"]) else format_final_chrono(r["Calc_Sec"]) if pd.notna(r["Calc_Sec"]) and r["Calc_Sec"] > 0 else "No Time", axis=1)
+                df_hist = base.sort_values(by=range(len(base)), ascending=False)[["N°", "Nom_Prenom", "Voiture", "Groupe", "Classe", "Chrono_C1_Visual_Hist"]].rename(columns={"Chrono_C1_Visual_Hist": "Chrono réalisé"})
 
                 valides = base[base["Calc_Sec"].notna() & (base["Calc_Sec"] > 0)].copy()
                 if len(valides) > 0:
                     scr = valides.sort_values(by="Calc_Sec").drop_duplicates(subset=["N°"], keep="first").copy()
                     scr = scr[~scr["Groupe"].astype(str).str.strip().str.startswith(('1', '2', '3', '4'), na=False)]
-                    
-                    # Top 20 comme demandé
                     racb = scr.head(20).copy()
                     if len(racb) > 0:
-                        racb["Pos"] = range(1, len(racb) + 1)
-                        racb["Chrono"] = racb["Calc_Sec"].apply(format_final_chrono)
+                        racb["Pos"] = range(1, len(racb) + 1); racb["Chrono"] = racb["Calc_Sec"].apply(format_final_chrono)
                         df_racb = racb[["Pos", "N°", "Nom_Prenom", "Groupe", "Classe", "Chrono"]]
                     
                     scr["Classe_Num"] = pd.to_numeric(scr["Classe"], errors='coerce').fillna(999)
                     df_grouped = scr.sort_values(by=["Groupe", "Classe_Num", "Calc_Sec"]).groupby(["Groupe", "Classe_Num"]).head(3).copy()
-                    
                     if len(df_grouped) > 0:
                         html_blocs = []
                         grouped_objs = df_grouped.groupby(["Groupe", "Classe_Num"])
-                        total_groups = len(grouped_objs)
-                        current_group = 0
-                        
+                        total_groups, current_group = len(grouped_objs), 0
                         for (grp, cl_num), group in grouped_objs:
-                            current_group += 1
-                            group = group.copy()
-                            group["Pos"] = range(1, len(group) + 1)
-                            group["Chrono"] = group["Calc_Sec"].apply(format_final_chrono)
-                            sub_df = group[["Pos", "N°", "Nom_Prenom", "Groupe", "Classe", "Chrono"]]
-                            
-                            sub_html = sub_df.to_html(index=False, header=(current_group==1), classes='table-compacte table-class-robuste', escape=False, border=0)
-                            if current_group == 1: 
-                                html_blocs.append(sub_html.replace("</tbody>\n</table>", ""))
-                            else: 
-                                html_blocs.append(sub_html.split("<tbody>")[-1].replace("</tbody>\n</table>", ""))
-                            
-                            # REPRODUCTION PARFAITE DE VOS BORDURES BLEUES DE SEPARATION
+                            current_group += 1; group = group.copy(); group["Pos"] = range(1, len(group) + 1); group["Chrono"] = group["Calc_Sec"].apply(format_final_chrono)
+                            sub_html = group[["Pos", "N°", "Nom_Prenom", "Groupe", "Classe", "Chrono"]].to_html(index=False, header=(current_group==1), classes='table-compacte table-class-robuste', escape=False, border=0)
+                            html_blocs.append(sub_html.replace("</tbody>\n</table>", "") if current_group == 1 else sub_html.split("<tbody>")[-1].replace("</tbody>\n</table>", ""))
                             if current_group < total_groups:
-                                html_blocs.append("<tr>"
-                                                  "<td style='border-top: 3px solid #1E3A8A !important; padding:0 !important; background-color:#FFFFFF !important;'></td>"
-                                                  "<td style='border-top: 3px solid #1E3A8A !important; padding:0 !important; background-color:#FFFFFF !important;'></td>"
-                                                  "<td style='border-top: 3px solid #1E3A8A !important; padding:0 !important; background-color:#FFFFFF !important;'></td>"
-                                                  "<td style='border-top: 3px solid #1E3A8A !important; padding:0 !important; background-color:#FFFFFF !important;'></td>"
-                                                  "<td style='border-top: 3px solid #1E3A8A !important; padding:0 !important; background-color:#FFFFFF !important;'></td>"
-                                                  "<td style='border-top: 3px solid #1E3A8A !important; padding:0 !important; background-color:#FFFFFF !important;'></td>"
-                                                  "</tr>")
-                        
+                                html_blocs.append("<tr>" + "".join(["<td style='border-top: 3px solid #1E3A8A !important; padding:0 !important; background-color:#FFFFFF !important;'></td>" for _ in range(6)]) + "</tr>")
                         html_blocs.append("</tbody>\n</table>")
-                        html_divisions = "".join(html_blocs)
+                        df_divisions = "".join(html_blocs)
         except Exception: pass
 
-    # Intégration globale des styles pures dans l'historique HTML
-    html_hist = CSS_RACB + df_hist.to_html(index=False, classes="table-compacte table-hist", escape=False, border=0)
+    html_hist = CSS_RACB + generer_tableau_html(df_hist, "table-hist")
+    html_class_div = df_divisions if isinstance(df_divisions, str) else generer_tableau_html(df_divisions, "table-class-groupes")
 
-    return df_live, html_hist, df_racb, html_divisions, pd.DataFrame(), t_live, t_his, t_haut, t_milieu, t_bas
+    return df_live, html_hist, df_racb, html_class_div, pd.DataFrame(), t_live, t_his, t_haut, t_milieu, t_bas
