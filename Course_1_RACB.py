@@ -37,7 +37,7 @@ CSS_RACB = """
     background-color: #E0F2FE !important;
 }
 
-/* LE REMÈDE TOTAL : Règle CSS externe globale pour forcer le tracé du trait bleu de 3px */
+/* FORCE LE TRACÉ DU TRAIT BLEU DE 3PX DE MANIÈRE EXTERNE ET INVIOLABLE */
 tr.coupure-bleue-classe td {
     border-top: 3px solid #1E3A8A !important;
 }
@@ -165,7 +165,7 @@ def generer_tableau_html(df, classe_specifique):
         for idx in range(len(df)):
             classe_row = ""
             if idx > 0:
-                # Injection syntaxique impeccable de la classe de séparation
+                # Injection de la classe de style externe pour dessiner la coupure bleu foncé
                 if df.iloc[idx]["Classe"] != df.iloc[idx - 1]["Classe"] or df.iloc[idx]["Groupe"] != df.iloc[idx - 1]["Groupe"]:
                     classe_row = "class='coupure-bleue-classe'"
             html += f"<tr {classe_row}>"
@@ -264,7 +264,7 @@ def recuperer_donnees_course():
                     
                     scr["Classe_Num"] = pd.to_numeric(scr["Classe"], errors='coerce').fillna(999)
                     df_grouped = scr.sort_values(by=["Groupe", "Classe_Num", "Calc_Sec"])
-                    df_divisions = df_grouped[["Pos", "N°", "Nom_Prenom", "Groupe", "Classe", "Chrono"]].copy()
+                    df_divisions = df_grouped[["Pos", "N°", "Nom_Prenom", "Groupe", "Classe", "Chrono"]]
         except Exception: pass
 
     html_hist = CSS_RACB + generer_tableau_html(df_hist, "table-hist")
