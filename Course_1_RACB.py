@@ -5,10 +5,9 @@ import os
 import requests
 import io
 
-# --- DESIGN SCIENTIFIQUE RIGIDE ET CONFIGURATION DES LARGEURS ET ESPACEMENTS ---
+# --- DESIGN SCIENTIFIQUE RIGIDE ET LARGEURS CONSERVÉES À L'IDENTIQUE ---
 CSS_RACB = """
 <style>
-/* Largeurs strictes des colonnes de l'historique */
 .table-hist th:nth-child(1), .table-hist td:nth-child(1) { width: 8% !important; }   
 .table-hist th:nth-child(2), .table-hist td:nth-child(2) { width: 30% !important; }  
 .table-hist th:nth-child(3), .table-hist td:nth-child(3) { width: 26% !important; }  
@@ -16,14 +15,9 @@ CSS_RACB = """
 .table-hist th:nth-child(5), .table-hist td:nth-child(5) { width: 8% !important; }   
 .table-hist th:nth-child(6), .table-hist td:nth-child(6) { width: 17% !important; }  
 
-/* Espacement plus petit et subtil AU-DESSUS du titre de l'historique */
+/* AJUSTEMENT : Espacement discret au-dessus de la ligne du titre Historique */
 .titre-hist {
     margin-top: 22px !important;
-}
-
-/* Force le tableau Direct à occuper la même largeur totale sur smartphone */
-.table-live {
-    width: 100% !important;
 }
 </style>
 """
@@ -36,7 +30,6 @@ HOTE_PROT = "".join(chr(x) for x in (C + D))
 FILE_ARRIVEE = f"https://{HOTE_PROT}/scl/fi/7uu9cmlpzglx0ngvbklpt/LIVE_Temps_ARRIVEE.xlsm?rlkey=g9urz4v3jr36h0apzt45ognm6&st=0d9mpgfw&dl=1"
 FILE_DEPART  = f"https://{HOTE_PROT}/scl/fi/gbkaq01qzjujc8nq3zj28/LIVE_Temps_DEPART.xlsm?rlkey=4x4rvvlfyzz8v59gqbxn80a4d&st=mcibn3xx&dl=1"
 FILE_ENGAGES_RACB = f"https://{HOTE_PROT}/scl/fi/69zkwsb45bpiw3ys3kk4c/LIVE_Liste_ENGAGES_RACB.xlsm?rlkey=qpjrlmbxhcskifnabs84veqh8&st=0snuv3e7&dl=1"
-
 def telecharger_excel(url):
     try:
         entetes = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'}
@@ -95,13 +88,6 @@ def recuperer_donnees_course():
     df_live = pd.DataFrame(columns=cols_live)
     html_hist = "<table class='table-compacte table-hist'><tr><td style='text-align: center; padding: 10px;'>Aucune donnée disponible</td></tr></table>"
     df_racb = pd.DataFrame(columns=["Pos", "N°", "Nom_Prenom", "Groupe", "Classe", "Chrono"])
-    
-    # Rétablissement strict de vos anciens textes d'origine pour les titres
-    t_live = "Chronométrage"
-    t_his = "Historique"
-    t_haut = "Classement Haut"
-    t_milieu = "Classement Milieu"
-    t_bas = "Classement Bas"
 
     data_engages = telecharger_excel(FILE_ENGAGES_RACB)
     data_depart = telecharger_excel(FILE_DEPART)
@@ -168,6 +154,7 @@ def recuperer_donnees_course():
                 base["Chrono_C1_Visual_Hist"] = base.apply(formater_chrono_historique_course1, axis=1)
                 df_hist_base = base.copy()
                 
+                # RE-INJECTION DU STYLE DE LARGEUR SPÉCIFIQUE RACB
                 html_hist = CSS_RACB + "<table class='table-compacte table-hist'><thead><tr><th>N°</th><th>Nom_Prenom</th><th>Voiture</th><th>Groupe</th><th>Classe</th><th>Chrono réalisé</th></tr></thead><tbody>"
                 for idx, row in df_hist_base.iterrows():
                     html_hist += f"<tr><td>{row['N°']}</td><td>{row['Nom_Prenom']}</td><td>{row['Voiture']}</td><td>{row['Groupe']}</td><td>{row['Classe']}</td><td>{row['Chrono_C1_Visual_Hist']}</td></tr>"
@@ -184,4 +171,6 @@ def recuperer_donnees_course():
                         df_racb = racb[["Pos", "N°", "Nom_Prenom", "Groupe", "Classe", "Chrono"]]
         except Exception: pass
 
-    return df_live, html_hist, df_racb, pd.DataFrame(), pd.DataFrame(), t_live, t_his, t_haut, t_milieu, t_bas
+    # TRANSMISSION PARFAITE DU CONTENU À L'APP SANS FAIRE DE DOUBLON
+    # Structure originale préservée : renvoi des données pures et des titres d'origine (laissés à la gestion d'app.py)
+    return df_live, html_hist, df_racb, pd.DataFrame(), pd.DataFrame(), "Chronométrage", "Historique", "Classement Haut", "Classement Milieu", "Classement Bas"
