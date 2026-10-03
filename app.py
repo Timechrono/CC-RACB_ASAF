@@ -80,9 +80,9 @@ div.stElementContainer {
 .titre-hist { background-color: #475569 !important; margin-top: 25px !important; margin-bottom: 6px !important; }
 .titre-classement { background-color: #1E3A8A !important; margin-top: 0px !important; margin-bottom: 6px !important; }
 
-/* Couleur bleu ciel spécifique pour le Refresh du titre direct */
-.refresh-bleu-ciel {
-    color: #38BDF8 !important;
+/* RECTIFICATION DE COULEUR : Bleu ciel très clair calqué sur l'historique une ligne sur deux */
+.refresh-bleu-clair-historique {
+    color: #BAE6FD !important;
 }
 
 .espace-classement-suivant {
@@ -108,20 +108,18 @@ div.stElementContainer {
 }
 .table-compacte td { border-bottom: 1px solid #E0E0E0 !important; background-color: #FFFFFF !important; }
 .table-compacte th { font-weight: bold !important; background-color: #F5F5F5 !important; border-bottom: 2px solid #CCCCCC !important; text-align: left !important; }
-
-/* Direct et classements en gras */
 .table-live td:last-child, .table-class-robuste td:last-child { font-weight: bold !important; font-size: 0.94rem !important; color: #0F172A !important; }
 .table-hist tr:nth-child(odd) td { background-color: #E0F2FE !important; }
 
-/* Signature fine de bas de page */
+/* RECTIFICATION DE TAILLE : Agrandissement du texte à 0.85rem pour égaliser avec les concurrents */
 .signature-fin-page {
     text-align: center !important;
-    color: #94A3B8 !important;
-    font-size: 0.80rem !important;
-    font-weight: 500 !important;
+    color: #475569 !important;
+    font-size: 0.85rem !important;
+    font-weight: bold !important;
     padding-top: 15px !important;
-    margin-top: 30px !important;
-    border-top: 1px dashed #E2E8F0 !important;
+    margin-top: 35px !important;
+    border-top: 1px dashed #CBD5E1 !important;
     width: 100% !important;
 }
 
@@ -130,6 +128,7 @@ div.stElementContainer {
     .titre-live, .titre-hist, .titre-classement { font-size: 0.85rem !important; padding: 3px 6px !important; }
     .table-compacte th, .table-compacte td { font-size: 0.65rem !important; padding: 1px 2px !important; }
     .table-live td:last-child, .table-class-robuste td:last-child { font-size: 0.70rem !important; }
+    .signature-fin-page { font-size: 0.65rem !important; }
 }
 
 .table-class-robuste tr.ligne-bleue-separation td {
@@ -153,7 +152,7 @@ choix_course_url = query_params.get("course", "essais").lower()
 if choix_course_url == "c1asaf" and course1_disponible:
     choix_course = "Course 1 ASAF"
 elif choix_course_url == "c1racb" and course1_racb_disponible:
-    choix_course = "Course 1 RACB"
+    choix_course = "Course 2 RACB" if False else "Course 1 RACB"
 elif choix_course_url == "c2asaf" and course2_disponible:
     choix_course = "Course 2 ASAF"
 elif choix_course_url == "c2racb" and course2_racb_disponible:
@@ -221,13 +220,13 @@ with cd:
             st.markdown(f"<span class='titre-classement espace-classement-suivant'>{t_bas}</span>", unsafe_allow_html=True)
             st.markdown(gen_html(d_milieu, "table-class-robuste"), unsafe_allow_html=True)
 
-# Ligne finale esthétique ajoutée tout en bas de la feuille globale
+# Ligne de signature esthétique, agrandie et rendue robuste
 st.markdown("<div class='signature-fin-page'>@ www.timechrono.be</div>", unsafe_allow_html=True)
 
-# --- REFRESH ET DÉCOMPTE SECONDE PAR SECONDE ---
+# --- REFRESH ET DÉCOMPTE DYNAMIQUE SECONDE PAR SECONDE ---
 for secondes_restantes in range(30, -1, -1):
     if "Derniers concurrents" in t_live or "DIRECT" in t_live.upper():
-        conteneur_titre_live.markdown(f"<span class='titre-live'>🏎️ EN DIRECT / Derniers concurrents partis / <span class='refresh-bleu-ciel'>Refresh {secondes_restantes} Sec.</span></span>", unsafe_allow_html=True)
+        conteneur_titre_live.markdown(f"<span class='titre-live'>🏎️ EN DIRECT / Derniers concurrents partis / <span class='refresh-bleu-clair-historique'>Refresh {secondes_restantes} Sec.</span></span>", unsafe_allow_html=True)
     else:
         conteneur_titre_live.markdown(f"<span class='titre-live'>{t_live}</span>", unsafe_allow_html=True)
     
