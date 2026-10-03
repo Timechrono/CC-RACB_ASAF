@@ -84,13 +84,17 @@ def calculer_statut_chrono(row, est_dans_le_live=True):
     if "Calc_Sec" in row and pd.notna(row["Calc_Sec"]) and row["Calc_Sec"] > 0:
         temps_formate = format_final_chrono(row["Calc_Sec"])
         if est_dans_le_live:
-            # GESTION DU COCHE VERT ET DE L'ÉCHEC ROUGE : Si > 4 minutes (240 secondes) -> X rouge, sinon V vert
-            coche = "❌" if row["Calc_Sec"] > 240 else "✅"
+            # STYLE UNIQUE ET INVIOLABLE : On utilise le même V textuel décalé coloré en rouge (#DC2626) ou en vert (#16A34A)
+            if row["Calc_Sec"] > 240:
+                coche = "<span style='color: #DC2626; font-weight: bold;'>✔</span>"
+            else:
+                coche = "<span style='color: #16A34A; font-weight: bold;'>✔</span>"
             return f"{temps_formate}&nbsp;&nbsp;&nbsp;{coche}"
         return temps_formate
-    if "Heure_Depart" in row and pd.notna(row["Heure_Depart"]) and ("Heure_Arrivee" in row and pd.isna(row["Heure_Arrivee"])):
+    if "Heure_Depart" in row and pd.notna(row["Heure_Depart"]) and pd.isna(row.get("Heure_Arrivee")):
         return "<span class='vrai-gyrophare'>🚨</span> EN PISTE" if est_dans_le_live else "En Piste"
     return "No Time"
+# fin bloc 1
 def recuperer_donnees_course():
     cols_live = ["N°", "Nom_Prenom", "Voiture", "Départ", "Arrivée", "Chrono réalisé"]
     cols_hist = ["N°", "Nom_Prenom", "Voiture", "Groupe", "Classe", "Chrono réalisé"]
