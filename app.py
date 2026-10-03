@@ -6,9 +6,7 @@ import requests
 import io
 import Essais
 
-# ==============================================================================
-# ⚠️ METTEZ VOTRE LIEN DROPBOX ICI (Assurez-vous qu'il se termine bien par dl=1)
-# ==============================================================================
+
 LIEN_DROPBOX_LOGO = "https://www.dropbox.com/scl/fi/hi24fjo0vbal4oiiwt9jl/logo-TimeC.png?rlkey=xlw0oqk9gdnq6v5dgahi0klg0&st=y86yrn6y&dl=1"
 
 # --- DÉTECTION DES SCRIPTS DE COURSE DISPONIBLES ---
@@ -213,8 +211,8 @@ try:
 except Exception as e:
     t_live = "⚠️ Liaison Dropbox ralentie ou instable — Tentative de reconnexon en cours..."
 
-# Ajustement forcé des largeurs de colonnes de l'Historique en mode Ordinateur
-st.markdown("<style>@media (min-width: 769px) { .table-hist th:nth-child(1), .table-hist td:nth-child(1) { width: 8% !important; } .table-hist th:nth-child(2), .table-hist td:nth-child(2) { width: 30% !important; } .table-hist th:nth-child(3), .table-hist td:nth-child(3) { width: 26% !important; } .table-hist th:nth-child(4), .table-hist td:nth-child(4) { width: 11% !important; } .table-hist th:nth-child(5), .table-hist td:nth-child(5) { width: 8% !important; } .table-hist th:nth-child(6), .table-hist td:nth-child(6) { width: 17% !important; } }</style>", unsafe_allow_html=True)
+# Ajustement forcé des largeurs de colonnes de l'Historique en mode Ordinateur (Cl à la place de Classe)
+st.markdown("<style>@media (min-width: 769px) { .table-hist th:nth-child(1), .table-hist td:nth-child(1) { width: 8% !important; } .table-hist th:nth-child(2), .table-hist td:nth-child(2) { width: 32% !important; } .table-hist th:nth-child(3), .table-hist td:nth-child(3) { width: 28% !important; } .table-hist th:nth-child(4), .table-hist td:nth-child(4) { width: 10% !important; } .table-hist th:nth-child(5), .table-hist td:nth-child(5) { width: 5% !important; } .table-hist th:nth-child(6), .table-hist td:nth-child(6) { width: 17% !important; } }</style>", unsafe_allow_html=True)
 
 cg, cd = st.columns([1.3, 0.9])
 with cg:
