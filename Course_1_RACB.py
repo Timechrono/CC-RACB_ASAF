@@ -8,16 +8,19 @@ import io
 # --- DESIGN SCIENTIFIQUE RIGIDE ET LARGEURS CONSERVÉES À L'IDENTIQUE ---
 CSS_RACB = """
 <style>
-.table-hist th:nth-child(1), .table-hist td:nth-child(1) { width: 8% !important; }   
-.table-hist th:nth-child(2), .table-hist td:nth-child(2) { width: 30% !important; }  
-.table-hist th:nth-child(3), .table-hist td:nth-child(3) { width: 26% !important; }  
-.table-hist th:nth-child(4), .table-hist td:nth-child(4) { width: 11% !important; }   
-.table-hist th:nth-child(5), .table-hist td:nth-child(5) { width: 8% !important; }   
-.table-hist th:nth-child(6), .table-hist td:nth-child(6) { width: 17% !important; }  
+/* Ajustement de l'espacement discret au-dessus du titre Historique */
+.titre-hist {
+    margin-top: 22px !important;
+}
+
+/* Forçage de l'alignement et de la largeur du Direct sur smartphone */
+.table-live {
+    width: 100% !important;
+}
 </style>
 """
 
-# --- CONFIGURATION DROPBOX ---
+# --- CONFIGURATION DROPBOX CORRIGÉE ---
 C = [100, 108, 46, 100, 114, 111, 112, 98, 111, 120, 117, 115, 101, 114]
 D = [99, 111, 110, 116, 101, 110, 116, 46, 99, 111, 109]
 HOTE_PROT = "".join(chr(x) for x in (C + D))
@@ -25,6 +28,7 @@ HOTE_PROT = "".join(chr(x) for x in (C + D))
 FILE_ARRIVEE = f"https://{HOTE_PROT}/scl/fi/7uu9cmlpzglx0ngvbklpt/LIVE_Temps_ARRIVEE.xlsm?rlkey=g9urz4v3jr36h0apzt45ognm6&st=0d9mpgfw&dl=1"
 FILE_DEPART  = f"https://{HOTE_PROT}/scl/fi/gbkaq01qzjujc8nq3zj28/LIVE_Temps_DEPART.xlsm?rlkey=4x4rvvlfyzz8v59gqbxn80a4d&st=mcibn3xx&dl=1"
 FILE_ENGAGES_RACB = f"https://{HOTE_PROT}/scl/fi/69zkwsb45bpiw3ys3kk4c/LIVE_Liste_ENGAGES_RACB.xlsm?rlkey=qpjrlmbxhcskifnabs84veqh8&st=0snuv3e7&dl=1"
+
 def telecharger_excel(url):
     try:
         entetes = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'}
@@ -78,12 +82,24 @@ def calculer_statut_chrono(row, est_dans_le_live=True):
     if "Heure_Depart" in row and pd.notna(row["Heure_Depart"]) and pd.isna(row.get("Heure_Arrivee")):
         return "<span class='vrai-gyrophare'>🚨</span> EN PISTE" if est_dans_le_live else "En Piste"
     return "No Time"
+#fin bloc 1
 def recuperer_donnees_course():
     cols_live = ["N°", "Nom_Prenom", "Voiture", "Départ", "Arrivée", "Chrono réalisé"]
+    cols_hist = ["N°", "Nom_Prenom", "Voiture", "Groupe", "Classe", "Chrono réalisé"]
+    
     df_live = pd.DataFrame(columns=cols_live)
-    html_hist = "<table class='table-compacte table-hist'><tr><td style='text-align: center; padding: 10px;'>Aucune donnée disponible</td></tr></table>"
+    df_hist = pd.DataFrame(columns=cols_hist)
     df_racb = pd.DataFrame(columns=["Pos", "N°", "Nom_Prenom", "Groupe", "Classe", "Chrono"])
+    df_divisions = pd.DataFrame(columns=["Pos", "N°", "Nom_Prenom", "Groupe", "Classe", "Chrono"])
+    
+    # Restauration stricte de vos textes originaux pour les titres
+    t_live = "Chronométrage"
+    t_his = "Historique"
+    t_haut = "Classement Haut"
+    t_milieu = "Classement Milieu"
+    t_bas = "Classement Bas"
 
+    # Téléchargement sécurisé depuis le serveur Cloud
     data_engages = telecharger_excel(FILE_ENGAGES_RACB)
     data_depart = telecharger_excel(FILE_DEPART)
     data_arrivee = telecharger_excel(FILE_ARRIVEE)
@@ -147,13 +163,10 @@ def recuperer_donnees_course():
                     return format_final_chrono(row["Calc_Sec"]) if pd.notna(row["Calc_Sec"]) and row["Calc_Sec"] > 0 else "No Time"
 
                 base["Chrono_C1_Visual_Hist"] = base.apply(formater_chrono_historique_course1, axis=1)
-                df_hist_base = base.copy()
                 
-                # RE-INJECTION DU STYLE DE LARGEUR SPÉCIFIQUE RACB
-                html_hist = CSS_RACB + "<table class='table-compacte table-hist'><thead><tr><th>N°</th><th>Nom_Prenom</th><th>Voiture</th><th>Groupe</th><th>Classe</th><th>Chrono réalisé</th></tr></thead><tbody>"
-                for idx, row in df_hist_base.iterrows():
-                    html_hist += f"<tr><td>{row['N°']}</td><td>{row['Nom_Prenom']}</td><td>{row['Voiture']}</td><td>{row['Groupe']}</td><td>{row['Classe']}</td><td>{row['Chrono_C1_Visual_Hist']}</td></tr>"
-                html_hist += "</tbody></table>"
+                base["Ordre_Saisie"] = range(len(base))
+                df_hist_base = base.sort_values(by="Ordre_Saisie", ascending=False).copy()
+                df_hist = df_hist_base[["N°", "Nom_Prenom", "Voiture", "Groupe", "Classe", "Chrono_C1_Visual_Hist"]].rename(columns={"Chrono_C1_Visual_Hist": "Chrono réalisé"})
 
                 valides = base[base["Calc_Sec"].notna() & (base["Calc_Sec"] > 0)].copy()
                 if len(valides) > 0:
@@ -164,8 +177,18 @@ def recuperer_donnees_course():
                         racb["Pos"] = range(1, len(racb) + 1)
                         racb["Chrono"] = racb["Calc_Sec"].apply(format_final_chrono)
                         df_racb = racb[["Pos", "N°", "Nom_Prenom", "Groupe", "Classe", "Chrono"]]
+                    
+                    scr["Classe_Num"] = pd.to_numeric(scr["Classe"], errors='coerce').fillna(999)
+                    top3_div = scr.sort_values(by=["Groupe", "Classe_Num", "Calc_Sec"])
+                    df_grouped = top3_div.groupby(["Groupe", "Classe_Num"]).head(3).copy()
+                    if len(df_grouped) > 0:
+                        df_grouped["Pos"] = df_grouped.groupby(["Groupe", "Classe_Num"]).cumcount() + 1
+                        df_grouped["Chrono"] = df_grouped["Calc_Sec"].apply(format_final_chrono)
+                        df_divisions = df_grouped[["Pos", "N°", "Nom_Prenom", "Groupe", "Classe", "Chrono"]]
         except Exception: pass
 
-    # TRANSMISSION PARFAITE DU CONTENU À L'APP SANS FAIRE DE DOUBLON
-    # Structure : df_live, df_hist (ici HTML), df_haut, df_milieu, df_bas, Titre1, Titre2, Titre3, Titre4, Titre5
-    return df_live, html_
+    # Injection du style et renvoi propre des 10 variables attendues
+    html_hist = CSS_RACB + df_hist.to_html(index=False, classes="table-compacte table-hist", escape=False, border=0)
+    
+    # Routage propre des classements : df_racb va dans Haut, df_divisions (par groupe/classe) va dans Milieu
+    return df_live, html_hist, df_racb, df_divisions, pd.DataFrame(), t_live, t_his, t_haut, t_milieu, t_bas
