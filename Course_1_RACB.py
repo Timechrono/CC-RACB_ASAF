@@ -95,8 +95,8 @@ CSS_RACB = """
 """
 
 # --- CONFIGURATION DROPBOX ---
-C = [100, 108, 46, 100, 114, 111, 112, 98, 111, 120, 117, 115, 101, 114]
-D = [99, 111, 110, 116, 101, 110, 116, 46, 99, 111, 109]
+C =
+D =
 HOTE_PROT = "".join(chr(x) for x in (C + D))
 
 FILE_ARRIVEE = f"https://{HOTE_PROT}/scl/fi/7uu9cmlpzglx0ngvbklpt/LIVE_Temps_ARRIVEE.xlsm?rlkey=g9urz4v3jr36h0apzt45ognm6&st=0d9mpgfw&dl=1"
@@ -121,7 +121,7 @@ def convertir_en_secondes(valeur):
     if ":" in s:
         try:
             parts = s.split(":")
-            return (int(parts[0]) * 60) + float(parts[1].replace(",", "."))
+            return (int(parts) * 60) + float(parts.replace(",", "."))
         except Exception: pass
     if s.endswith(".0"): s = s[:-2]
     s_clean = "".join([c for c in s if c.isdigit()])
@@ -156,7 +156,8 @@ def formater_heure_ecran(val):
 
 def calculer_statut_chrono(row, est_dans_le_live=True):
     if "Calc_Sec" in row and pd.notna(row["Calc_Sec"]) and row["Calc_Sec"] > 0:
-        return format_final_chrono(row["Calc_Sec"])
+        temps_formate = format_final_chrono(row["Calc_Sec"])
+        return f"{temps_formate}&nbsp;&nbsp;&nbsp;✅" if est_dans_le_live else temps_formate
     if "Heure_Depart" in row and pd.notna(row["Heure_Depart"]) and pd.isna(row.get("Heure_Arrivee")):
         return "<span class='vrai-gyrophare'>🚨</span> EN PISTE" if est_dans_le_live else "En Piste"
     return "No Time"
@@ -168,7 +169,8 @@ def recuperer_donnees_course():
     cols_live = ["N°", "Nom_Prenom", "Voiture", "Départ", "Arrivée", "Chrono réalisé"]
     cols_hist = ["N°", "Nom_Prenom", "Voiture", "Groupe", "Classe", "Chrono réalisé"]
     df_live, df_hist = pd.DataFrame(columns=cols_live), pd.DataFrame(columns=cols_hist)
-    df_racb, df_divisions = pd.DataFrame(columns=["Pos", "N°", "Nom_Prenom", "Groupe", "Classe", "Chrono"]), pd.DataFrame(columns=["Pos", "N°", "Nom_Prenom", "Groupe", "Classe", "Chrono"])
+    df_racb = pd.DataFrame(columns=["Pos", "N°", "Nom_Prenom", "Groupe", "Classe", "Chrono"])
+    html_divisions = "<table class='table-compacte table-class-robuste'><tr><td style='text-align: center; padding: 10px;'>Aucune donnée disponible</td></tr></table>"
 
     t_live = "🏎️ EN DIRECT / Derniers concurrents partis"
     t_his = "🕒 HISTORIQUE DES TEMPS / 1er COURSE / Concurrents RACB"
@@ -227,15 +229,7 @@ def recuperer_donnees_course():
                     base_c1 = base[base["Heure_Depart"].notna()].copy(); base_c1["Ordre_Live"] = range(len(base_c1))
                     df_live_base = base_c1.sort_values(by="Ordre_Live", ascending=False).head(5).copy()
                     df_live_base["Chrono réalisé"] = df_live_base.apply(lambda r: calculer_statut_chrono(r, est_dans_le_live=True), axis=1)
-                    
-                    # LOGIQUE AJOUTÉE : Formate l'heure d'arrivée et greffe le V vert décalé s'il y a un temps
-                    def determiner_arrivee_avec_v_vert(row):
-                        if pd.isna(row["Heure_Arrivee"]) or row["Heure_Arrivee"] == "" or str(row["Heure_Arrivee"]).lower() == "nan":
-                            return "-"
-                        heure_formatee = formater_heure_ecran(row["Heure_Arrivee"])
-                        return f"{heure_formatee}&nbsp;&nbsp;&nbsp;✅"
-                    
-                    df_live_base["Arrivée_Brute"] = df_live_base.apply(determiner_arrivee_avec_v_vert, axis=1)
+                    df_live_base["Arrivée_Brute"] = df_live_base["Heure_Arrivee"].apply(formater_heure_ecran)
                     df_live = df_live_base[["N°", "Nom_Prenom", "Voiture", "Départ_C1", "Arrivée_Brute", "Chrono réalisé"]].rename(columns={"Départ_C1": "Départ", "Arrivée_Brute": "Arrivée"})
 
                 def formater_chrono_historique_course1(row):
@@ -264,19 +258,29 @@ def recuperer_donnees_course():
                         grouped_objs = df_grouped.groupby(["Groupe", "Classe_Num"])
                         total_groups = len(grouped_objs)
                         current_group = 0
-                        for grp, cl_num in grouped_objs.groups.keys():
+                        
+                        for (grp, cl_num), group in grouped_objs:
                             current_group += 1
-                            group = grouped_objs.get_group((grp, cl_num)).copy()
-                            group["Pos"] = range(1, len(group) + 1); group["Chrono"] = group["Calc_Sec"].apply(format_final_chrono)
+                            group = group.copy(); group["Pos"] = range(1, len(group) + 1); group["Chrono"] = group["Calc_Sec"].apply(format_final_chrono)
                             sub_df = group[["Pos", "N°", "Nom_Prenom", "Groupe", "Classe", "Chrono"]]
+                            
                             sub_html = sub_df.to_html(index=False, header=(current_group==1), classes='table-compacte table-class-robuste', escape=False, border=0)
-                            if current_group == 1: html_blocs.append(sub_html.replace("</tbody>\n</table>", ""))
-                            else: html_blocs.append(sub_html.split("<tbody>")[-1].replace("</tbody>\n</table>", ""))
+                            
+                            # REPRISE DE LA MÉTHODE STRUCTURÉE DE VOTRE MODÈLE EXCEL LOCAL :
+                            # Injection de la ligne bleu foncé (#1E3A8A) forcée directement sur les cellules 
+                            if current_group == 1: 
+                                html_blocs.append(sub_html.replace("</tbody>\n</table>", ""))
+                            else: 
+                                html_blocs.append(sub_html.split("<tbody>")[-1].replace("</tbody>\n</table>", ""))
+                            
+                            if current_group < total_groups:
+                                html_blocs.append("<tr>" + "".join(["<td style='border-top: 3px solid #1E3A8A !important; padding:0 !important; background-color:#FFFFFF !important;'></td>" for _ in range(6)]) + "</tr>")
+                        
                         html_blocs.append("</tbody>\n</table>")
-                        df_divisions = "".join(html_blocs)
+                        html_divisions = "".join(html_blocs)
         except Exception: pass
 
     html_hist = CSS_RACB + generer_tableau_html(df_hist, "table-hist")
-    html_class_div = df_divisions if isinstance(df_divisions, str) else generer_tableau_html(df_divisions, "table-class-groupes")
+    html_class_div = f"<div class='table-responsive-container'>{html_divisions}</div>" if isinstance(html_divisions, str) else generer_tableau_html(html_divisions, "table-class-groupes")
 
     return df_live, html_hist, df_racb, html_class_div, pd.DataFrame(), t_live, t_his, t_haut, t_milieu, t_bas
