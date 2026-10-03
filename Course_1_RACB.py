@@ -64,9 +64,15 @@ CSS_RACB = """
 .table-class-robuste th:nth-child(5), .table-class-robuste td:nth-child(5) { width: 6% !important; }
 .table-class-robuste th:nth-child(6), .table-class-robuste td:nth-child(6) { width: 18% !important; text-align: right !important; }
 
-/* AJUSTEMENT : Espacement discret au-dessus de la ligne du titre Historique */
+/* GAUCHE : Espacement discret au-dessus de la ligne du titre Historique */
 .titre-hist {
     margin-top: 22px !important;
+}
+
+/* DROITE : HARMONISATION STRICTE DE L'ESPACE ENTRE LES DEUX CLASSEMENTS */
+/* Cette règle cible le titre du second classement pour lui donner exactement le même recul */
+div[data-testid="stHorizontalBlock"] > div:nth-child(2) div[data-testid="stVerticalBlock"] > div:nth-child(3) span.titre-classement {
+    margin-top: 25px !important;
 }
 </style>
 """
