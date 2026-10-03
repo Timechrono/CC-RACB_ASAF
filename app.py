@@ -80,12 +80,15 @@ div.stElementContainer {
 .titre-hist { background-color: #475569 !important; margin-top: 25px !important; margin-bottom: 6px !important; }
 .titre-classement { background-color: #1E3A8A !important; margin-top: 0px !important; margin-bottom: 6px !important; }
 
-/* Forçage de la marge supérieure symétrique pour l'alignement horizontal */
+/* Couleur bleu ciel spécifique pour le Refresh du titre direct */
+.refresh-bleu-ciel {
+    color: #38BDF8 !important;
+}
+
 .espace-classement-suivant {
     margin-top: 25px !important;
 }
 
-/* Conteneur de glissement horizontal fluide sur smartphone */
 .table-responsive-container {
     width: 100% !important;
     overflow-x: auto !important;
@@ -105,29 +108,30 @@ div.stElementContainer {
 }
 .table-compacte td { border-bottom: 1px solid #E0E0E0 !important; background-color: #FFFFFF !important; }
 .table-compacte th { font-weight: bold !important; background-color: #F5F5F5 !important; border-bottom: 2px solid #CCCCCC !important; text-align: left !important; }
+
+/* Direct et classements en gras */
 .table-live td:last-child, .table-class-robuste td:last-child { font-weight: bold !important; font-size: 0.94rem !important; color: #0F172A !important; }
 .table-hist tr:nth-child(odd) td { background-color: #E0F2FE !important; }
 
-/* --- AJUSTEMENTS POUR SMARTPHONES --- */
-@media (max-width: 768px) {
-    .block-container {
-        padding-left: 2px !important;
-        padding-right: 2px !important;
-    }
-    .titre-live, .titre-hist, .titre-classement {
-        font-size: 0.85rem !important;
-        padding: 3px 6px !important;
-    }
-    .table-compacte th, .table-compacte td { 
-        font-size: 0.65rem !important;
-        padding: 1px 2px !important;
-    }
-    .table-live td:last-child, .table-class-robuste td:last-child { 
-        font-size: 0.70rem !important; 
-    }
+/* Signature fine de bas de page */
+.signature-fin-page {
+    text-align: center !important;
+    color: #94A3B8 !important;
+    font-size: 0.80rem !important;
+    font-weight: 500 !important;
+    padding-top: 15px !important;
+    margin-top: 30px !important;
+    border-top: 1px dashed #E2E8F0 !important;
+    width: 100% !important;
 }
 
-/* --- LOGIQUE DE COUPE : FORCE LE RETOUR DU TRAIT BLEU DE SEPARATION ENTRE LES CLASSES RACB ET ASAF --- */
+@media (max-width: 768px) {
+    .block-container { padding-left: 2px !important; padding-right: 2px !important; }
+    .titre-live, .titre-hist, .titre-classement { font-size: 0.85rem !important; padding: 3px 6px !important; }
+    .table-compacte th, .table-compacte td { font-size: 0.65rem !important; padding: 1px 2px !important; }
+    .table-live td:last-child, .table-class-robuste td:last-child { font-size: 0.70rem !important; }
+}
+
 .table-class-robuste tr.ligne-bleue-separation td {
     border-top: 3px solid #1E3A8A !important;
 }
@@ -141,6 +145,7 @@ def gen_html(df, cl):
     
     html_table = df.to_html(index=False, classes=f"table-compacte {cl}", escape=False, border=0)
     return f"<div class='table-responsive-container'>{html_table}</div>"
+# fin bloc 1
 # --- LECTURE DU PARAMÈTRE DE COURSE DEPUIS L'URL ---
 query_params = st.query_params
 choix_course_url = query_params.get("course", "essais").lower()
@@ -188,7 +193,6 @@ st.markdown("<style>@media (min-width: 769px) { .table-hist th:nth-child(1), .ta
 
 cg, cd = st.columns([1.3, 0.9])
 with cg:
-    # Zone dédiée pour le titre dynamique En Direct avec compte à rebours autonome
     conteneur_titre_live = st.empty()
     st.markdown(gen_html(d_liv, "table-live"), unsafe_allow_html=True)
     
@@ -217,12 +221,13 @@ with cd:
             st.markdown(f"<span class='titre-classement espace-classement-suivant'>{t_bas}</span>", unsafe_allow_html=True)
             st.markdown(gen_html(d_milieu, "table-class-robuste"), unsafe_allow_html=True)
 
-st.markdown("<div style='height:20px;'></div>", unsafe_allow_html=True)
+# Ligne finale esthétique ajoutée tout en bas de la feuille globale
+st.markdown("<div class='signature-fin-page'>@ www.timechrono.be</div>", unsafe_allow_html=True)
 
-# --- COMPTE À REBOURS DYNAMIQUE INTERNE SECONDE PAR SECONDE ---
+# --- REFRESH ET DÉCOMPTE SECONDE PAR SECONDE ---
 for secondes_restantes in range(30, -1, -1):
-    if "Derniers concurrents" in t_live:
-        conteneur_titre_live.markdown(f"<span class='titre-live'>🏎️ EN DIRECT / Derniers concurrents partis / Refresh {secondes_restantes} Sec.</span>", unsafe_allow_html=True)
+    if "Derniers concurrents" in t_live or "DIRECT" in t_live.upper():
+        conteneur_titre_live.markdown(f"<span class='titre-live'>🏎️ EN DIRECT / Derniers concurrents partis / <span class='refresh-bleu-ciel'>Refresh {secondes_restantes} Sec.</span></span>", unsafe_allow_html=True)
     else:
         conteneur_titre_live.markdown(f"<span class='titre-live'>{t_live}</span>", unsafe_allow_html=True)
     
