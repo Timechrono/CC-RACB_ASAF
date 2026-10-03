@@ -8,7 +8,7 @@ import Essais
 # ==============================================================================
 # ⚠️ METTEZ VOTRE LIEN DROPBOX ICI (Assurez-vous qu'il se termine bien par dl=1)
 # ==============================================================================
-LIEN_DROPBOX_LOGO = "https://dropbox.com"
+LIEN_DROPBOX_LOGO = "https://www.dropbox.com/scl/fi/hi24fjo0vbal4oiiwt9jl/logo-TimeC.png?rlkey=xlw0oqk9gdnq6v5dgahi0klg0&st=y86yrn6y&dl=1"
 
 # --- DÉTECTION DES SCRIPTS DE COURSE DISPONIBLES ---
 try:
