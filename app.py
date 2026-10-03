@@ -1,4 +1,4 @@
-import streamlit as st
+import streamlit st
 import pandas as pd
 import time
 import requests
@@ -44,7 +44,7 @@ except ModuleNotFoundError:
 
 st.set_page_config(page_title="Live", layout="wide")
 
-# --- CONCEPTION GRAPHIQUE GÉOMÉTRIQUE OPTIMISÉE POUR ORDINATEUR & MOBILE ---
+# --- CONCEPTION GRAPHIQUE GÉOMÉTRIQUE UNIFIÉE AVEC INTERLIGNES SYMÉTRIQUES ---
 st.markdown("""
 <style>
 [data-testid="stHeader"] { display: none !important; }
@@ -73,12 +73,17 @@ div.stElementContainer {
 }
 .titre-live, .titre-hist, .titre-classement {
     color: #FFFFFF !important; font-size: 1.05rem !important; font-weight: bold !important;
-    padding: 4px 8px !important; border-radius: 3px !important; margin-bottom: 6px !important;
+    padding: 4px 8px !important; border-radius: 3px !important;
     width: 100% !important; display: block !important; clear: both !important;
 }
-.titre-live { background-color: #15803D !important; }
-.titre-hist { background-color: #475569 !important; }
-.titre-classement { background-color: #1E3A8A !important; }
+.titre-live { background-color: #15803D !important; margin-top: 0px !important; margin-bottom: 6px !important; }
+.titre-hist { background-color: #475569 !important; margin-top: 25px !important; margin-bottom: 6px !important; }
+.titre-classement { background-color: #1E3A8A !important; margin-top: 0px !important; margin-bottom: 6px !important; }
+
+/* Forçage de la marge supérieure pour le deuxième et troisième classement à droite */
+.espace-classement-suivant {
+    margin-top: 25px !important;
+}
 
 /* Conteneur pour forcer le glissement horizontal sur mobile */
 .table-responsive-container {
@@ -131,7 +136,6 @@ def gen_html(df, cl):
     
     html_table = df.to_html(index=False, classes=f"table-compacte {cl}", escape=False, border=0)
     return f"<div class='table-responsive-container'>{html_table}</div>"
-
 # --- LECTURE DU CHOIX DE LA COURSE DEPUIS L'URL ---
 query_params = st.query_params
 choix_course_url = query_params.get("course", "essais").lower()
@@ -181,7 +185,7 @@ cg, cd = st.columns([1.3, 0.9])
 with cg:
     st.markdown(f"<span class='titre-live'>{t_live}</span>", unsafe_allow_html=True)
     st.markdown(gen_html(d_liv, "table-live"), unsafe_allow_html=True)
-    st.markdown("<div style='height:35px;'></div>", unsafe_allow_html=True)
+    
     if t_his: st.markdown(f"<span class='titre-hist'>{t_his}</span>", unsafe_allow_html=True)
     st.markdown(gen_html(d_his, "table-hist"), unsafe_allow_html=True)
     
@@ -190,25 +194,21 @@ with cd:
         if t_haut:
             st.markdown(f"<span class='titre-classement'>{t_haut}</span>", unsafe_allow_html=True)
             st.markdown(gen_html(d_haut, "table-class-robuste"), unsafe_allow_html=True)
-            st.markdown("<div style='height: 20px;'></div>", unsafe_allow_html=True)
         if t_milieu:
-            st.markdown(f"<span class='titre-classement'>{t_milieu}</span>", unsafe_allow_html=True)
+            st.markdown(f"<span class='titre-classement espace-classement-suivant'>{t_milieu}</span>", unsafe_allow_html=True)
             st.markdown(gen_html(d_milieu, "table-class-robuste"), unsafe_allow_html=True)
-            st.markdown("<div style='height: 20px;'></div>", unsafe_allow_html=True)
         if t_bas:
-            st.markdown(f"<span class='titre-classement'>{t_bas}</span>", unsafe_allow_html=True)
+            st.markdown(f"<span class='titre-classement espace-classement-suivant'>{t_bas}</span>", unsafe_allow_html=True)
             st.markdown(gen_html(d_bas, "table-class-robuste"), unsafe_allow_html=True)
     else:
         if t_haut:
             st.markdown(f"<span class='titre-classement'>{t_haut}</span>", unsafe_allow_html=True)
             st.markdown(gen_html(d_bas, "table-class-robuste"), unsafe_allow_html=True)
-            st.markdown("<div style='height: 20px;'></div>", unsafe_allow_html=True)
         if t_milieu:
-            st.markdown(f"<span class='titre-classement'>{t_milieu}</span>", unsafe_allow_html=True)
+            st.markdown(f"<span class='titre-classement espace-classement-suivant'>{t_milieu}</span>", unsafe_allow_html=True)
             st.markdown(gen_html(d_haut, "table-class-robuste"), unsafe_allow_html=True)
-            st.markdown("<div style='height: 20px;'></div>", unsafe_allow_html=True)
         if t_bas:
-            st.markdown(f"<span class='titre-classement'>{t_bas}</span>", unsafe_allow_html=True)
+            st.markdown(f"<span class='titre-classement espace-classement-suivant'>{t_bas}</span>", unsafe_allow_html=True)
             st.markdown(gen_html(d_milieu, "table-class-robuste"), unsafe_allow_html=True)
 
 st.markdown("<div style='height:20px;'></div>", unsafe_allow_html=True)
