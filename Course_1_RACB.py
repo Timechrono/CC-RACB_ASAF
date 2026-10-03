@@ -5,17 +5,10 @@ import os
 import requests
 import io
 
-# --- DESIGN SCIENTIFIQUE RIGIDE ET CONFIGURATION DES LARGEURS ET ESPACEMENTS ---
+# --- DESIGN SCIENTIFIQUE RIGIDE ET LARGEURS CONSERVÉES À L'IDENTIQUE ---
 CSS_RACB = """
 <style>
-/* VRAI GYROPHARE DE COURSE STATIQUE (SANS CLIGNOTEMENT) */
-.vrai-gyrophare {
-    display: inline-block;
-    margin-right: 6px;
-    font-size: 1.05rem !important;
-    vertical-align: middle !important;
-}
-
+.vrai-gyrophare { display: inline-block; margin-right: 6px; font-size: 1.05rem !important; vertical-align: middle !important; }
 .table-compacte { width: 100% !important; margin-bottom: 0px !important; border-collapse: collapse !important; table-layout: fixed !important; }
 .table-compacte tr { height: 18px !important; }
 .table-compacte th, .table-compacte td { 
@@ -24,21 +17,9 @@ CSS_RACB = """
 }
 .table-compacte td { font-weight: normal !important; border-bottom: 1px solid #E0E0E0 !important; background-color: #FFFFFF !important; }
 .table-compacte th { font-weight: bold !important; background-color: #F5F5F5 !important; border-bottom: 2px solid #CCCCCC !important; text-align: left !important; }
-
-.ligne-separation-classe td {
-    border-bottom: 2px solid #1E3A8A !important;
-}
-
-.table-hist td:last-child, .table-live td:last-child, .table-class-robuste td:last-child {
-    font-weight: bold !important;
-    font-size: 0.94rem !important;
-    color: #0F172A !important;
-}
-
-/* COLORIAGE BLEU UNE LIGNE SUR DEUX HISTORIQUE */
-.table-hist tr:nth-child(odd) td {
-    background-color: #E0F2FE !important;
-}
+.ligne-separation-classe td { border-bottom: 2px solid #1E3A8A !important; }
+.table-hist td:last-child, .table-live td:last-child, .table-class-robuste td:last-child { font-weight: bold !important; font-size: 0.94rem !important; color: #0F172A !important; }
+.table-hist tr:nth-child(odd) td { background-color: #E0F2FE !important; }
 
 /* GAUCHE : 1. Tableau En Direct */
 .table-live th:nth-child(1), .table-live td:nth-child(1) { width: 8% !important; }
@@ -63,24 +44,12 @@ CSS_RACB = """
 .table-class-robuste th:nth-child(4), .table-class-robuste td:nth-child(4) { width: 23% !important; }
 .table-class-robuste th:nth-child(5), .table-class-robuste td:nth-child(5) { width: 6% !important; }
 .table-class-robuste th:nth-child(6), .table-class-robuste td:nth-child(6) { width: 18% !important; text-align: right !important; }
-
-/* CORRECTION : Réduction de la marge haute à gauche pour qu'elle soit parfaite (15px) */
-.titre-hist {
-    margin-top: 15px !important;
-}
-
-/* Espacement interne pour les bannières fusionnées de droite */
-.separation-classement-droite {
-    height: 15px !important;
-    display: block !important;
-    clear: both !important;
-}
 </style>
 """
 
 # --- CONFIGURATION DROPBOX ---
-C = [100, 108, 46, 100, 114, 111, 112, 98, 111, 120, 117, 115, 101, 114]
-D = [99, 111, 110, 116, 101, 110, 116, 46, 99, 111, 109]
+C =
+D =
 HOTE_PROT = "".join(chr(x) for x in (C + D))
 
 FILE_ARRIVEE = f"https://{HOTE_PROT}/scl/fi/7uu9cmlpzglx0ngvbklpt/LIVE_Temps_ARRIVEE.xlsm?rlkey=g9urz4v3jr36h0apzt45ognm6&st=0d9mpgfw&dl=1"
@@ -105,7 +74,7 @@ def convertir_en_secondes(valeur):
     if ":" in s:
         try:
             parts = s.split(":")
-            return (int(parts[0]) * 60) + float(parts[1].replace(",", "."))
+            return (int(parts) * 60) + float(parts.replace(",", "."))
         except Exception: pass
     if s.endswith(".0"): s = s[:-2]
     s_clean = "".join([c for c in s if c.isdigit()])
@@ -145,7 +114,6 @@ def calculer_statut_chrono(row, est_dans_le_live=True):
         return "<span class='vrai-gyrophare'>🚨</span> EN PISTE" if est_dans_le_live else "En Piste"
     return "No Time"
 def generer_tableau_html(df, classe_specifique):
-    if isinstance(df, str): return df
     if df.empty: 
         return f"<table class='table-compacte {classe_specifique}'><tr><td style='text-align: center; padding: 10px;'>Aucune donnée disponible</td></tr></table>"
     
@@ -271,21 +239,6 @@ def recuperer_donnees_course():
         except Exception: pass
 
     html_hist = CSS_RACB + generer_tableau_html(df_hist, "table-hist")
-    
-    # --- LA DOUBLE FUSION AUTONOME DE LA COLONNE DE DROITE ---
-    # 1. On transforme le Top 20 et le Top 3 en codes HTML pures
-    html_tableau_racb = generer_tableau_html(df_racb, "table-class-robuste")
-    html_tableau_divisions = generer_tableau_html(df_divisions, "table-class-groupes")
-    
-    # 2. On fabrique le bloc complet de droite en y intégrant manuellement l'interligne de 15px et le deuxième titre
-    # De cette façon, Streamlit n'a plus aucun contrôle sur la séparation, elle s'affiche de force.
-    html_colonne_droite_fusionnee = f"""
-    {html_tableau_racb}
-    <div class="separation-classement-droite"></div>
-    <span class="titre-classement">{t_milieu}</span>
-    {html_tableau_divisions}
-    """
+    html_divisions = generer_tableau_html(df_divisions, "table-class-groupes")
 
-    # Pour éviter que app.py ne redessine un deuxième titre parasite, on vide la variable t_milieu
-    # Structure de retour : df_live, html_hist, html_fusion_droite, pd.DataFrame(), pd.DataFrame(), t_live, t_his, t_haut, t_milieu, t_bas
-    return df_live, html_hist, html_colonne_droite_fusionnee, pd.DataFrame(), pd.DataFrame(), t_live, t_his, t_haut, "", t_bas
+    return df_live, html_hist, df_racb, html_divisions, pd.DataFrame(), t_live, t_his, t_haut, t_milieu, t_bas
