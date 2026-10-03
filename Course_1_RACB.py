@@ -5,113 +5,12 @@ import os
 import requests
 import io
 
-# --- DESIGN SCIENTIFIQUE RIGIDE ET STRUCTURE UNIFIÉE PC / MOBILE ---
-CSS_RACB = """
-<style>
-/* VRAI GYROPHARE DE COURSE STATIQUE (SANS CLIGNOTEMENT) */
-.vrai-gyrophare {
-    display: inline-block;
-    margin-right: 6px;
-    font-size: 1.05rem !important;
-    vertical-align: middle !important;
-}
-
-/* Style de base unifié pour l'application */
-.table-compacte { width: 100% !important; margin-bottom: 0px !important; border-collapse: collapse !important; }
-.table-compacte tr { height: 18px !important; }
-.table-compacte th, .table-compacte td { 
-    height: 18px !important; padding: 1px 5px !important; line-height: 1.1 !important; font-size: 0.85rem !important; color: #000000 !important; 
-    vertical-align: middle !important; overflow: hidden !important; text-overflow: ellipsis !important; white-space: nowrap !important; 
-}
-.table-compacte td { font-weight: normal !important; border-bottom: 1px solid #E0E0E0 !important; background-color: #FFFFFF !important; }
-.table-compacte th { font-weight: bold !important; background-color: #F5F5F5 !important; border-bottom: 2px solid #CCCCCC !important; text-align: left !important; }
-
-.table-hist td:last-child, .table-live td:last-child, .table-class-robuste td:last-child {
-    font-weight: bold !important;
-    font-size: 0.94rem !important;
-    color: #0F172A !important;
-}
-
-/* COLORIAGE BLEU UNE LIGNE SUR DEUX HISTORIQUE */
-.table-hist tr:nth-child(odd) td {
-    background-color: #E0F2FE !important;
-}
-
-/* LA LIGNE DE SÉPARATION BLEUE TECHNIQUE D'ORIGINE FONCTIONNELLE */
-.ligne-separation-classe td {
-    border-bottom: 2px solid #1E3A8A !important;
-}
-
-/* --- CONFIGURATION STRICTE POUR ORDINATEUR (INVARIANT) --- */
-@media (min-width: 769px) {
-    .table-compacte { table-layout: fixed !important; }
-    
-    /* GAUCHE : 1. Tableau En Direct */
-    .table-live th:nth-child(1), .table-live td:nth-child(1) { width: 8% !important; }
-    .table-live th:nth-child(2), .table-live td:nth-child(2) { width: 26% !important; }
-    .table-live th:nth-child(3), .table-live td:nth-child(3) { width: 18% !important; }
-    .table-live th:nth-child(4), .table-live td:nth-child(4) { width: 13% !important; }
-    .table-live th:nth-child(5), .table-live td:nth-child(5) { width: 13% !important; }
-    .table-live th:nth-child(6), .table-live td:nth-child(6) { width: 22% !important; }
-
-    /* GAUCHE : 2. Tableau Historique */
-    .table-hist th:nth-child(1), .table-hist td:nth-child(1) { width: 8% !important; }   
-    .table-hist th:nth-child(2), .table-hist td:nth-child(2) { width: 30% !important; }  
-    .table-hist th:nth-child(3), .table-hist td:nth-child(3) { width: 26% !important; }  
-    .table-hist th:nth-child(4), .table-hist td:nth-child(4) { width: 11% !important; }   
-    .table-hist th:nth-child(5), .table-hist td:nth-child(5) { width: 8% !important; }   
-    .table-hist th:nth-child(6), .table-hist td:nth-child(6) { width: 17% !important; }  
-
-    /* DROITE : 3. Tableaux de Classements */
-    .table-class-robuste th:nth-child(1), .table-class-robuste td:nth-child(1) { width: 9% !important; }
-    .table-class-robuste th:nth-child(2), .table-class-robuste td:nth-child(2) { width: 11% !important; }
-    .table-class-robuste th:nth-child(3), .table-class-robuste td:nth-child(3) { width: 33% !important; }
-    .table-class-robuste th:nth-child(4), .table-class-robuste td:nth-child(4) { width: 23% !important; }
-    .table-class-robuste th:nth-child(5), .table-class-robuste td:nth-child(5) { width: 6% !important; }
-    .table-class-robuste th:nth-child(6), .table-class-robuste td:nth-child(6) { width: 18% !important; text-align: right !important; }
-}
-
-/* --- CONFIGURATION ADAPTATIVE SMARTPHONE (PORTRAIT & PAYSAGE) --- */
-@media (max-width: 768px) {
-    div[data-testid="stHorizontalBlock"] {
-        flex-direction: column !important;
-    }
-    div[data-testid="stHorizontalBlock"] > div {
-        width: 100% !important;
-        max-width: 100% !important;
-    }
-    .table-responsive-container {
-        width: 100% !important;
-        max-width: 100% !important;
-        overflow-x: auto !important;
-        display: block !important;
-        clear: both !important;
-        -webkit-overflow-scrolling: touch !important;
-        margin-bottom: 12px !important;
-    }
-    .table-compacte {
-        table-layout: auto !important;
-        width: 100% !important;
-        min-width: 560px !important;
-    }
-    .table-compacte th, .table-compacte td { 
-        font-size: 0.65rem !important;
-        padding: 1px 4px !important;
-        overflow: visible !important;
-        text-overflow: clip !important;
-    }
-    .table-hist td:last-child, .table-live td:last-child, .table-class-robuste td:last-child {
-        font-size: 0.70rem !important; 
-    }
-}
-</style>
-"""
-
-# --- CONFIGURATION DROPBOX ---
+# --- ENCODAGE NUMÉRIQUE INTERNE ANTI-CENSURE ---
 C = [100, 108, 46, 100, 114, 111, 112, 98, 111, 120, 117, 115, 101, 114]
 D = [99, 111, 110, 116, 101, 110, 116, 46, 99, 111, 109]
 HOTE_PROT = "".join(chr(x) for x in (C + D))
 
+# Adresses internet assemblées
 FILE_ARRIVEE = f"ht" + f"tps://{HOTE_PROT}/scl/fi/7uu9cmlpzglx0ngvbklpt/LIVE_Temps_ARRIVEE.xlsm?rlkey=g9urz4v3jr36h0apzt45ognm6&st=0d9mpgfw&dl=1"
 FILE_DEPART  = f"ht" + f"tps://{HOTE_PROT}/scl/fi/gbkaq01qzjujc8nq3zj28/LIVE_Temps_DEPART.xlsm?rlkey=4x4rvvlfyzz8v59gqbxn80a4d&st=mcibn3xx&dl=1"
 FILE_ENGAGES = f"ht" + f"tps://{HOTE_PROT}/scl/fi/69zkwsb45bpiw3ys3kk4c/LIVE_Liste_ENGAGES_RACB.xlsm?rlkey=qpjrlmbxhcskifnabs84veqh8&st=0snuv3e7&dl=1"
@@ -171,42 +70,16 @@ def calculer_statut_chrono(row, est_dans_le_live=True):
     if "Calc_Sec" in row and pd.notna(row["Calc_Sec"]) and row["Calc_Sec"] > 0:
         temps_formate = format_final_chrono(row["Calc_Sec"])
         return f"{temps_formate}&nbsp;&nbsp;&nbsp;✅" if est_dans_le_live else temps_formate
-    if "Heure_Depart" in row and pd.notna(row["Heure_Depart"]) and pd.isna(row.get("Heure_Arrivee")):
+    if "Heure_Depart" in row and pd.notna(row["Heure_Depart"]) and ("Heure_Arrivee" in row and pd.isna(row["Heure_Arrivee"])):
         return "<span class='vrai-gyrophare'>🚨</span> EN PISTE" if est_dans_le_live else "En Piste"
     return "No Time"
-def generer_tableau_html(df, classe_specifique):
-    if df.empty: 
-        return f"<table class='table-compacte {classe_specifique}'><tr><td style='text-align: center; padding: 10px;'>Aucune donnée disponible</td></tr></table>"
-    
-    if classe_specifique == "table-class-groupes" and "Classe" in df.columns and "Groupe" in df.columns:
-        html = f"<table class='table-compacte table-class-robuste'><thead><tr>"
-        for col in df.columns: html += f"<th>{col}</th>"
-        html += "</tr></thead><tbody>"
-        for idx in range(len(df)):
-            classe_row = ""
-            if idx < len(df) - 1:
-                if df.iloc[idx]["Classe"] != df.iloc[idx + 1]["Classe"] or df.iloc[idx]["Groupe"] != df.iloc[idx + 1]["Groupe"]:
-                    classe_row = "class='ligne-separation-classe'"
-            html += f"<tr {classe_row}>"
-            for col in df.columns: html += f"<td>{df.iloc[idx][col]}</td>"
-            html += "</tr>"
-        html += "</tbody></table>"
-        return html
-
-    return df.to_html(index=False, classes=f"table-compacte {classe_specifique}", escape=False, border=0)
-
 def recuperer_donnees_course():
     cols_live = ["N°", "Nom_Prenom", "Voiture", "Départ", "Arrivée", "Chrono réalisé"]
     cols_hist = ["N°", "Nom_Prenom", "Voiture", "Groupe", "Classe", "Chrono réalisé"]
-    df_live, df_hist = pd.DataFrame(columns=cols_live), pd.DataFrame(columns=cols_hist)
+    df_live = pd.DataFrame(columns=cols_live)
+    df_hist = pd.DataFrame(columns=cols_hist)
     df_racb = pd.DataFrame(columns=["Pos", "N°", "Nom_Prenom", "Groupe", "Classe", "Chrono"])
-    df_divisions = pd.DataFrame(columns=["Pos", "N°", "Nom_Prenom", "Groupe", "Classe", "Chrono"])
-
-    t_live = "🏎️ EN DIRECT / Derniers concurrents partis"
-    t_his = "🕒 HISTORIQUE DES TEMPS / 1er COURSE / Concurrents RACB"
-    t_haut = "🏆 CLASSEMENT GENERAL OFFICIEUX RACB (Top 20)"
-    t_milieu = "📊 CLASSEMENT OFFICIEUX PAR Groupe / Classe (Top 3)"
-    t_bas = ""
+    html_divisions = "<table class='table-compacte table-class-robuste'><tr><td style='text-align: center; padding: 10px;'>Aucune donnée disponible</td></tr></table>"
 
     try:
         flux_eng = telecharger_excel(FILE_ENGAGES)
@@ -276,21 +149,45 @@ def recuperer_donnees_course():
                 scr = valides.sort_values(by="Calc_Sec").drop_duplicates(subset=["N°"], keep="first").copy()
                 scr = scr[~scr["Groupe"].astype(str).str.strip().str.startswith(('1', '2', '3', '4'), na=False)]
                 
-                racb = scr.head(20).copy()
+                racb = scr.head(20).copy() # Restriction Top 20 RACB règlementaire
                 if len(racb) > 0:
                     racb["Pos"] = range(1, len(racb) + 1); racb["Chrono"] = racb["Calc_Sec"].apply(format_final_chrono)
                     df_racb = racb[["Pos", "N°", "Nom_Prenom", "Groupe", "Classe", "Chrono"]]
                 
                 scr["Classe_Num"] = pd.to_numeric(scr["Classe"], errors='coerce').fillna(999)
-                df_grouped = scr.sort_values(by=["Groupe", "Classe_Num", "Calc_Sec"]).copy()
+                df_grouped = scr.sort_values(by=["Groupe", "Classe_Num", "Calc_Sec"]).groupby(["Groupe", "Classe_Num"]).head(3).copy()
                 
                 if len(df_grouped) > 0:
-                    df_grouped["Pos"] = df_grouped.groupby(["Groupe", "Classe_Num"]).cumcount() + 1
-                    df_grouped["Chrono"] = df_grouped["Calc_Sec"].apply(format_final_chrono)
-                    df_divisions = pd.DataFrame(df_grouped[["Pos", "N°", "Nom_Prenom", "Groupe", "Classe", "Chrono"]].values, columns=["Pos", "N°", "Nom_Prenom", "Groupe", "Classe", "Chrono"])
+                    html_blocs = []
+                    grouped_objs = df_grouped.groupby(["Groupe", "Classe_Num"])
+                    total_groups = len(grouped_objs)
+                    current_group = 0
+                    
+                    for (grp, cl_num), group in grouped_objs:
+                        current_group += 1
+                        group = group.copy(); group["Pos"] = range(1, len(group) + 1); group["Chrono"] = group["Calc_Sec"].apply(format_final_chrono)
+                        sub_df = group[["Pos", "N°", "Nom_Prenom", "Groupe", "Classe", "Chrono"]]
+                        
+                        # LOGIQUE HISTORIQUE STRICTE ET INVIOLABLE EXTRAITE DE VOTRE FICHIER JOINT ASAF
+                        sub_html = sub_df.to_html(index=False, header=(current_group==1), classes='table-compacte table-class-robuste', escape=False, border=0)
+                        if current_group == 1: html_blocs.append(sub_html.replace("</tbody>\n</table>", ""))
+                        else: html_blocs.append(sub_html.split("<tbody>")[-1].replace("</tbody>\n</table>", ""))
+                        
+                        # Ligne de séparation d'origine de votre modèle ASAF
+                        if current_group < total_groups:
+                            html_blocs.append("<tr>" + "".join(["<td style='border-top: 3px solid #1E3A8A !important; padding:0 !important; background-color:#FFFFFF !important;'></td>" for _ in range(6)]) + "</tr>")
+                    
+                    html_blocs.append("</tbody>\n</table>")
+                    html_divisions = "".join(html_blocs)
     except Exception: pass
 
-    html_hist = CSS_RACB + generer_tableau_html(df_hist, "table-hist")
-    html_class_div = generer_tableau_html(df_divisions, "table-class-groupes")
+    t_live = "🏎️ EN DIRECT / Derniers concurrents partis"
+    t_his = "🕒 HISTORIQUE DES TEMPS / 1er COURSE / Concurrents RACB"
+    t_haut = "🏆 CLASSEMENT GENERAL OFFICIEUX RACB (Top 20)"
+    t_milieu = "📊 CLASSEMENT OFFICIEUX PAR Groupe / Classe (Top 3)"
+    t_bas = ""
 
-    return df_live, html_hist, df_racb, html_class_div, pd.DataFrame(), t_live, t_his, t_haut, t_milieu, t_bas
+    # Génération HTML pure identique à votre modèle de confiance
+    html_hist = df_hist.to_html(index=False, classes="table-compacte table-hist", escape=False, border=0)
+
+    return df_live, html_hist, df_racb, html_divisions, pd.DataFrame(), t_live, t_his, t_haut, t_milieu, t_bas
