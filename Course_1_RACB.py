@@ -5,7 +5,7 @@ import os
 import requests
 import io
 
-# --- DESIGN SCIENTIFIQUE RIGIDE ET CONFIGURATION DES LARGEURS ET ESPACEMENTS ---
+# --- DESIGN SCIENTIFIQUE RIGIDE ET LARGEURS CONSERVÉES À L'IDENTIQUE ---
 CSS_RACB = """
 <style>
 /* VRAI GYROPHARE DE COURSE STATIQUE (SANS CLIGNOTEMENT) */
@@ -46,7 +46,7 @@ CSS_RACB = """
 .table-live th:nth-child(3), .table-live td:nth-child(3) { width: 18% !important; }
 .table-live th:nth-child(4), .table-live td:nth-child(4) { width: 13% !important; }
 .table-live th:nth-child(5), .table-live td:nth-child(5) { width: 13% !important; }
-.table-live th:nth-child(6), .table-live td: z22% !important; }
+.table-live th:nth-child(6), .table-live td:nth-child(6) { width: 22% !important; }
 
 /* GAUCHE : 2. Tableau Historique Course 1 Réajusté */
 .table-hist th:nth-child(1), .table-hist td:nth-child(1) { width: 8% !important; }   
@@ -66,13 +66,6 @@ CSS_RACB = """
 
 /* GAUCHE : Espacement discret au-dessus du titre Historique */
 .titre-hist {
-    margin-top: 22px !important;
-}
-
-/* DROITE : HARMONISATION AUTONOME ET STRUCTURÉE DE L'ESPACE DES CLASSEMENTS */
-/* Cible directement le titre de la section "Top 3" pour le faire reculer proprement */
-div[data-testid="element-container"]:has(span[style*="background-color: rgb(30, 58, 138)"]) + div[data-testid="element-container"] + div[data-testid="element-container"] span.titre-classement,
-div.stMarkdown:has(span.titre-classement) + div + div span.titre-classement {
     margin-top: 22px !important;
 }
 </style>
@@ -145,6 +138,7 @@ def calculer_statut_chrono(row, est_dans_le_live=True):
         return "<span class='vrai-gyrophare'>🚨</span> EN PISTE" if est_dans_le_live else "En Piste"
     return "No Time"
 def generer_tableau_html(df, classe_specifique):
+    if isinstance(df, str): return df
     if df.empty: 
         return f"<table class='table-compacte {classe_specifique}'><tr><td style='text-align: center; padding: 10px;'>Aucune donnée disponible</td></tr></table>"
     
@@ -189,8 +183,8 @@ def recuperer_donnees_course():
     if data_engages and data_depart and data_arrivee:
         try:
             df_eng_raw = pd.read_excel(data_engages, skiprows=1, engine='openpyxl')
-            df_dep_raw = pd.read_excel(data_depart, header=None, engine='openpyxl')
-            df_arr_raw = pd.read_excel(data_arrivee, header=None, engine='openpyxl')
+            df_dep_raw = pd.read_excel(data_DEPART, header=None, engine='openpyxl')
+            df_arr_raw = pd.read_excel(data_ARRIVEE, header=None, engine='openpyxl')
 
             idx_dep_1, idx_arr_1 = None, None
             for c_idx in range(len(df_dep_raw.columns)):
@@ -270,6 +264,10 @@ def recuperer_donnees_course():
         except Exception: pass
 
     html_hist = CSS_RACB + generer_tableau_html(df_hist, "table-hist")
-    html_divisions = generer_tableau_html(df_divisions, "table-class-groupes")
+    
+    # L'ASTUCE SANS TOUCHER À APP.PY : On injecte l'espace HTML directement au-dessus du tableau par divisions
+    html_brut_divisions = generer_tableau_html(df_divisions, "table-class-groupes")
+    html_divisions_avec_espace = f"<div style='height: 15px;'></div>{html_brut_divisions}"
 
-    return df_live, html_hist, df_racb, html_divisions, pd.DataFrame(), t_live, t_his, t_haut, t_milieu, t_bas
+    # On transmet cette structure augmentée dans la variable df_milieu (4ème paramètre) vers app.py
+    return df_live, html_hist, df_racb, html_divisions_avec_espace, pd.DataFrame(), t_live, t_his, t_haut, t_milieu, t_bas
