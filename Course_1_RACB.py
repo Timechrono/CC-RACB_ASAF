@@ -99,7 +99,7 @@ def generer_tableau_html(df, classe_specifique):
     if df.empty: 
         return f"<table class='table-compacte {classe_specifique}'><tr><td style='text-align: center; padding: 10px;'>Aucune donnée disponible</td></tr></table>"
     
-    # RESTAURATION DE VOTRE BOUCLE HISTORIQUE EXACTE QUI TRACE LES LIGNES BLEUES
+    # BOUCLE HTML D'ORIGINE CONSERVÉE INTÉGRALEMENT POUR LES LIGNES BLEUES
     if classe_specifique == "table-class-groupes" and "Classe" in df.columns and "Groupe" in df.columns:
         html = f"<table class='table-compacte table-class-robuste'><thead><tr>"
         for col in df.columns: html += f"<th>{col}</th>"
@@ -203,16 +203,18 @@ def recuperer_donnees_course():
                     racb["Pos"] = range(1, len(racb) + 1); racb["Chrono"] = racb["Calc_Sec"].apply(format_final_chrono)
                     df_racb = racb[["Pos", "N°", "Nom_Prenom", "Groupe", "Classe", "Chrono"]]
                 
-                # RECTIFICATION ULTRA-STRICTE DU TRI CROISSANT MATHEMATIQUE
+                # RECTIFICATION COMPLÈTE DU TRI NUMÉRIQUE DES GROUPES ET CLASSES
+                scr["Groupe_Num"] = pd.to_numeric(scr["Groupe"], errors='coerce').fillna(999)
                 scr["Classe_Num"] = pd.to_numeric(scr["Classe"], errors='coerce').fillna(999)
-                df_grouped = scr.sort_values(by=["Groupe", "Classe_Num", "Calc_Sec"])
                 
-                # Regroupement par paquet de 3 et extraction propre
-                df_final_grouped = df_grouped.groupby(["Groupe", "Classe_Num"]).head(3).copy()
-                df_final_grouped["Pos"] = df_final_grouped.groupby(["Groupe", "Classe_Num"]).cumcount() + 1
+                # Tri mathématique parfait : Groupe d'abord, puis Classe, puis Temps
+                df_grouped = scr.sort_values(by=["Groupe_Num", "Classe_Num", "Calc_Sec"])
+                
+                # Extraction par paquet de 3 et reconstruction propre finale
+                df_final_grouped = df_grouped.groupby(["Groupe_Num", "Classe_Num"]).head(3).copy()
+                df_final_grouped["Pos"] = df_final_grouped.groupby(["Groupe_Num", "Classe_Num"]).cumcount() + 1
                 df_final_grouped["Chrono"] = df_final_grouped["Calc_Sec"].apply(format_final_chrono)
                 
-                # Reconstruction ordonnée finale envoyée à votre boucle HTML fonctionnelle de confiance
                 df_divisions = pd.DataFrame(df_final_grouped[["Pos", "N°", "Nom_Prenom", "Groupe", "Classe", "Chrono"]].values, columns=["Pos", "N°", "Nom_Prenom", "Groupe", "Classe", "Chrono"])
     except Exception: pass
 
