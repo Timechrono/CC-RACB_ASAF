@@ -5,7 +5,7 @@ import os
 import requests
 import io
 
-# --- DESIGN SCIENTIFIQUE RIGIDE ET LARGEURS CONSERVÉES À L'IDENTIQUE ---
+# --- DESIGN SCIENTIFIQUE RIGIDE ET LARGEURS AUTOMATIQUEMENT ADAPTATIVES SUR MOBILE ---
 CSS_RACB = """
 <style>
 /* VRAI GYROPHARE DE COURSE STATIQUE (SANS CLIGNOTEMENT) */
@@ -40,29 +40,40 @@ CSS_RACB = """
     background-color: #E0F2FE !important;
 }
 
-/* GAUCHE : 1. Tableau En Direct */
-.table-live th:nth-child(1), .table-live td:nth-child(1) { width: 8% !important; }
-.table-live th:nth-child(2), .table-live td:nth-child(2) { width: 26% !important; }
-.table-live th:nth-child(3), .table-live td:nth-child(3) { width: 18% !important; }
-.table-live th:nth-child(4), .table-live td:nth-child(4) { width: 13% !important; }
-.table-live th:nth-child(5), .table-live td:nth-child(5) { width: 13% !important; }
-.table-live th:nth-child(6), .table-live td:nth-child(6) { width: 22% !important; }
+/* ORDINATEUR : Configuration stricte des largeurs */
+@media (min-width: 769px) {
+    .table-live th:nth-child(1), .table-live td:nth-child(1) { width: 8% !important; }
+    .table-live th:nth-child(2), .table-live td:nth-child(2) { width: 26% !important; }
+    .table-live th:nth-child(3), .table-live td:nth-child(3) { width: 18% !important; }
+    .table-live th:nth-child(4), .table-live td:nth-child(4) { width: 13% !important; }
+    .table-live th:nth-child(5), .table-live td:nth-child(5) { width: 13% !important; }
+    .table-live th:nth-child(6), .table-live td:nth-child(6) { width: 22% !important; }
 
-/* GAUCHE : 2. Tableau Historique Course 1 Réajusté */
-.table-hist th:nth-child(1), .table-hist td:nth-child(1) { width: 8% !important; }   
-.table-hist th:nth-child(2), .table-hist td:nth-child(2) { width: 30% !important; }  
-.table-hist th:nth-child(3), .table-hist td:nth-child(3) { width: 26% !important; }  
-.table-hist th:nth-child(4), .table-hist td:nth-child(4) { width: 11% !important; }   
-.table-hist th:nth-child(5), .table-hist td:nth-child(5) { width: 8% !important; }   
-.table-hist th:nth-child(6), .table-hist td:nth-child(6) { width: 17% !important; }  
+    .table-hist th:nth-child(1), .table-hist td:nth-child(1) { width: 8% !important; }   
+    .table-hist th:nth-child(2), .table-hist td:nth-child(2) { width: 30% !important; }  
+    .table-hist th:nth-child(3), .table-hist td:nth-child(3) { width: 26% !important; }  
+    .table-hist th:nth-child(4), .table-hist td:nth-child(4) { width: 11% !important; }   
+    .table-hist th:nth-child(5), .table-hist td:nth-child(5) { width: 8% !important; }   
+    .table-hist th:nth-child(6), .table-hist td:nth-child(6) { width: 17% !important; }  
 
-/* DROITE : 3. Tableaux de Classements */
-.table-class-robuste th:nth-child(1), .table-class-robuste td:nth-child(1) { width: 9% !important; }
-.table-class-robuste th:nth-child(2), .table-class-robuste td:nth-child(2) { width: 11% !important; }
-.table-class-robuste th:nth-child(3), .table-class-robuste td:nth-child(3) { width: 33% !important; }
-.table-class-robuste th:nth-child(4), .table-class-robuste td:nth-child(4) { width: 23% !important; }
-.table-class-robuste th:nth-child(5), .table-class-robuste td:nth-child(5) { width: 6% !important; }
-.table-class-robuste th:nth-child(6), .table-class-robuste td:nth-child(6) { width: 18% !important; text-align: right !important; }
+    .table-class-robuste th:nth-child(1), .table-class-robuste td:nth-child(1) { width: 9% !important; }
+    .table-class-robuste th:nth-child(2), .table-class-robuste td:nth-child(2) { width: 11% !important; }
+    .table-class-robuste th:nth-child(3), .table-class-robuste td:nth-child(3) { width: 33% !important; }
+    .table-class-robuste th:nth-child(4), .table-class-robuste td:nth-child(4) { width: 23% !important; }
+    .table-class-robuste th:nth-child(5), .table-class-robuste td:nth-child(5) { width: 6% !important; }
+    .table-class-robuste th:nth-child(6), .table-class-robuste td:nth-child(6) { width: 18% !important; text-align: right !important; }
+}
+
+/* SMARTPHONE (REMÈDE DÉFINITIF) : On déverrouille le blocage pour que le tableau se cale à 100% de l'écran */
+@media (max-width: 768px) {
+    .table-compacte {
+        table-layout: auto !important; /* Rend le tableau fluide et auto-ajustable */
+        width: 100% !important;
+    }
+    .table-compacte th, .table-compacte td {
+        padding: 1px 3px !important; /* Resserre les cellules pour éviter la coupure */
+    }
+}
 </style>
 """
 
@@ -164,7 +175,6 @@ def recuperer_donnees_course():
     df_racb = pd.DataFrame(columns=["Pos", "N°", "Nom_Prenom", "Groupe", "Classe", "Chrono"])
     df_divisions = pd.DataFrame(columns=["Pos", "N°", "Nom_Prenom", "Groupe", "Classe", "Chrono"])
 
-    # Titres exacts originaux transmis proprement à app.py
     t_live = "🏎️ EN DIRECT / Derniers concurrents partis"
     t_his = "🕒 HISTORIQUE DES TEMPS / 1er COURSE / Concurrents RACB"
     t_haut = "🏆 CLASSEMENT GENERAL OFFICIEUX RACB (Top 20)"
