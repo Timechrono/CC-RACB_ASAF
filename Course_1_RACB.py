@@ -176,7 +176,6 @@ def recuperer_donnees_course():
     t_milieu = "📊 CLASSEMENT OFFICIEUX PAR Groupe / Classe (Top 3)"
     t_bas = ""
 
-    # CORRECTION DES PERMISSIONS ET CASSE DE VARIABLES : Appel aux variables d'origine
     data_engages = telecharger_excel(FILE_ENGAGES)
     data_depart = telecharger_excel(FILE_DEPART)
     data_arrivee = telecharger_excel(FILE_ARRIVEE)
@@ -265,9 +264,13 @@ def recuperer_donnees_course():
         except Exception: pass
 
     html_hist = CSS_RACB + generer_tableau_html(df_hist, "table-hist")
+    html_divisions = generer_tableau_html(df_divisions, "table-class-groupes")
     
-    # AJUSTEMENT : Injection propre de la coupure de séparation de 15px entre les deux blocs de droite
-    html_brut_divisions = generer_tableau_html(df_divisions, "table-class-groupes")
-    html_divisions_avec_espace = f"<div style='height: 15px;'></div>{html_brut_divisions}"
+    # REPOSITIONNEMENT PARFAIT DE L'ESPACE :
+    # On nettoie le tableau des divisions et on injecte la coupure invisible de 15px 
+    # à la suite immédiate du tableau du Scratch (Top 20) pour pousser la bannière bleue vers le bas
+    html_brut_racb = generer_tableau_html(df_racb, "table-class-robuste")
+    html_racb_avec_espace_dessous = f"{html_brut_racb}<div style='height: 15px;'></div>"
 
-    return df_live, html_hist, df_racb, html_divisions_avec_espace, pd.DataFrame(), t_live, t_his, t_haut, t_milieu, t_bas
+    # On transmet les structures ordonnées vers app.py
+    return df_live, html_hist, html_racb_avec_espace_dessous, html_divisions, pd.DataFrame(), t_live, t_his, t_haut, t_milieu, t_bas
