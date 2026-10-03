@@ -5,7 +5,7 @@ import os
 import requests
 import io
 
-# --- REPRISE STRICTE DE VOTRE DESIGN SCIENTIFIQUE ET PROPORTIONS D'ORIGINE ---
+# --- DESIGN SCIENTIFIQUE RIGIDE ET STRUCTURE UNIFIÉE PC / MOBILE ---
 CSS_RACB = """
 <style>
 /* VRAI GYROPHARE DE COURSE STATIQUE (SANS CLIGNOTEMENT) */
@@ -16,8 +16,8 @@ CSS_RACB = """
     vertical-align: middle !important;
 }
 
-/* RENDU ORDINATEUR STRICT ET INVARIANT */
-.table-compacte { width: 100% !important; margin-bottom: 0px !important; border-collapse: collapse !important; table-layout: fixed !important; }
+/* Style de base unifié pour l'application */
+.table-compacte { width: 100% !important; margin-bottom: 0px !important; border-collapse: collapse !important; }
 .table-compacte tr { height: 18px !important; }
 .table-compacte th, .table-compacte td { 
     height: 18px !important; padding: 1px 5px !important; line-height: 1.1 !important; font-size: 0.85rem !important; color: #000000 !important; 
@@ -32,13 +32,21 @@ CSS_RACB = """
     color: #0F172A !important;
 }
 
-/* RESTAURATION DU COLORIAGE BLEU DE L'HISTORIQUE SUR PC */
+/* COLORIAGE BLEU UNE LIGNE SUR DEUX HISTORIQUE */
 .table-hist tr:nth-child(odd) td {
     background-color: #E0F2FE !important;
 }
 
-/* ORDINATEUR : Forçage des largeurs de colonnes rigides d'origine */
+/* FORCE LES LIGNES DE SÉPARATION BLEUES DANS LE TABLEAU PAR GROUPES / CLASSES */
+.ligne-separation-officieuse td {
+    border-top: 3px solid #1E3A8A !important;
+}
+
+/* --- CONFIGURATION STRICTE POUR ORDINATEUR --- */
 @media (min-width: 769px) {
+    .table-compacte { table-layout: fixed !important; }
+    
+    /* GAUCHE : 1. Tableau En Direct (Largeurs strictes ordonnées à 100%) */
     .table-live th:nth-child(1), .table-live td:nth-child(1) { width: 8% !important; }
     .table-live th:nth-child(2), .table-live td:nth-child(2) { width: 26% !important; }
     .table-live th:nth-child(3), .table-live td:nth-child(3) { width: 18% !important; }
@@ -46,6 +54,7 @@ CSS_RACB = """
     .table-live th:nth-child(5), .table-live td:nth-child(5) { width: 13% !important; }
     .table-live th:nth-child(6), .table-live td:nth-child(6) { width: 22% !important; }
 
+    /* GAUCHE : 2. Tableau Historique (Largeurs strictes ordonnées à 100% - Alignement parfait) */
     .table-hist th:nth-child(1), .table-hist td:nth-child(1) { width: 8% !important; }   
     .table-hist th:nth-child(2), .table-hist td:nth-child(2) { width: 30% !important; }  
     .table-hist th:nth-child(3), .table-hist td:nth-child(3) { width: 26% !important; }  
@@ -53,6 +62,7 @@ CSS_RACB = """
     .table-hist th:nth-child(5), .table-hist td:nth-child(5) { width: 8% !important; }   
     .table-hist th:nth-child(6), .table-hist td:nth-child(6) { width: 17% !important; }  
 
+    /* DROITE : 3. Tableaux de Classements */
     .table-class-robuste th:nth-child(1), .table-class-robuste td:nth-child(1) { width: 9% !important; }
     .table-class-robuste th:nth-child(2), .table-class-robuste td:nth-child(2) { width: 11% !important; }
     .table-class-robuste th:nth-child(3), .table-class-robuste td:nth-child(3) { width: 33% !important; }
@@ -61,7 +71,7 @@ CSS_RACB = """
     .table-class-robuste th:nth-child(6), .table-class-robuste td:nth-child(6) { width: 18% !important; text-align: right !important; }
 }
 
-/* AJUSTEMENTS EXCLUSIFS POUR SMARTPHONE SANS TOUCHER AU PC */
+/* --- CONFIGURATION ULTRA-COMPACTE POUR SMARTPHONE --- */
 @media (max-width: 768px) {
     .table-responsive-container {
         width: 100% !important;
@@ -72,12 +82,12 @@ CSS_RACB = """
         -webkit-overflow-scrolling: touch !important;
     }
     .table-compacte {
-        table-layout: auto !important; /* Fluide uniquement sur mobile pour ne pas raboter */
+        table-layout: auto !important; /* Mode fluide sur mobile pour ne rien raboter */
         width: 100% !important;
         min-width: 540px !important;
     }
     .table-compacte th, .table-compacte td { 
-        font-size: 0.65rem !important; /* Caractères plus petits sur mobile */
+        font-size: 0.65rem !important; /* Écriture réduite spécifique mobile */
         padding: 1px 3px !important;
         overflow: visible !important;
         text-overflow: clip !important;
@@ -90,8 +100,8 @@ CSS_RACB = """
 """
 
 # --- CONFIGURATION DROPBOX ---
-C = [100, 108, 46, 100, 114, 111, 112, 98, 111, 120, 117, 115, 101, 114]
-D = [99, 111, 110, 116, 101, 110, 116, 46, 99, 111, 109]
+C =
+D =
 HOTE_PROT = "".join(chr(x) for x in (C + D))
 
 FILE_ARRIVEE = f"https://{HOTE_PROT}/scl/fi/7uu9cmlpzglx0ngvbklpt/LIVE_Temps_ARRIVEE.xlsm?rlkey=g9urz4v3jr36h0apzt45ognm6&st=0d9mpgfw&dl=1"
@@ -116,7 +126,7 @@ def convertir_en_secondes(valeur):
     if ":" in s:
         try:
             parts = s.split(":")
-            return (int(parts[0]) * 60) + float(parts[1].replace(",", "."))
+            return (int(parts) * 60) + float(parts.replace(",", "."))
         except Exception: pass
     if s.endswith(".0"): s = s[:-2]
     s_clean = "".join([c for c in s if c.isdigit()])
@@ -257,13 +267,17 @@ def recuperer_donnees_course():
                             group = group.copy(); group["Pos"] = range(1, len(group) + 1); group["Chrono"] = group["Calc_Sec"].apply(format_final_chrono)
                             sub_df = group[["Pos", "N°", "Nom_Prenom", "Groupe", "Classe", "Chrono"]]
                             
-                            sub_html = sub_df.to_html(index=False, header=(current_group==1), classes='table-compacte table-class-robuste', escape=False, border=0)
-                            if current_group == 1: html_blocs.append(sub_html.replace("</tbody>\n</table>", ""))
-                            else: html_blocs.append(sub_html.split("<tbody>")[-1].replace("</tbody>\n</table>", ""))
+                            # Injection de la classe CSS pour la ligne de coupure
+                            classe_ligne = "class='ligne-separation-officieuse'" if current_group > 1 else ""
                             
-                            # REPRODUCTION STRICTE DE VOS SEPARATIONS DE CLASSES DU MODÈLE D'ORIGINE
-                            if current_group < total_groups:
-                                html_blocs.append("<tr>" + "".join(["<td style='border-top: 3px solid #1E3A8A !important; padding:0 !important; background-color:#FFFFFF !important;'></td>" for _ in range(6)]) + "</tr>")
+                            sub_html = sub_df.to_html(index=False, header=(current_group==1), classes='table-compacte table-class-robuste', escape=False, border=0)
+                            
+                            if current_group == 1: 
+                                html_blocs.append(sub_html.replace("</tbody>\n</table>", ""))
+                            else: 
+                                # On force la première ligne de ce nouveau groupe à recevoir la classe de bordure bleue
+                                bloc_tr = sub_html.split("<tbody>")[-1].replace("<tr>", f"<tr {classe_ligne}>", 1)
+                                html_blocs.append(bloc_tr.replace("</tbody>\n</table>", ""))
                         
                         html_blocs.append("</tbody>\n</table>")
                         df_divisions = "".join(html_blocs)
