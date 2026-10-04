@@ -122,7 +122,8 @@ div.stElementContainer {{
 .table-compacte td {{ border-bottom: 1px solid #E0E0E0 !important; background-color: #FFFFFF !important; }}
 .table-compacte th {{ font-weight: bold !important; background-color: #F5F5F5 !important; border-bottom: 2px solid #CCCCCC !important; text-align: left !important; }}
 .table-live td:last-child, .table-class-robuste td:last-child {{ font-weight: bold !important; font-size: 0.94rem !important; color: #0F172A !important; }}
-.table-hist tr:nth-child(odd) td {{ background-color: #E0F2FE !important; }}
+.table-hist td:last-child { font-weight: bold !important; color: #0F172A !important; }
+
 
 /* Signature alignée en bleu foncé avec pointillés assortis */
 .signature-fin-page {{
