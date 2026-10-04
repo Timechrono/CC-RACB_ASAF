@@ -6,7 +6,7 @@ import io
 
 st.set_page_config(layout="wide")
 
-# --- DESIGN SCIENTIFIQUE RIGIDE RESTAURÉ ---
+# --- DESIGN SCIENTIFIQUE RIGIDE RESTAURÉ EN DIRECT ---
 st.markdown("""
     <style>
     [data-testid="stHeader"] { display: none !important; }
@@ -52,7 +52,7 @@ st.markdown("""
         box-shadow: inset 0 -3px 0 0 #1E3A8A !important; 
     }
     
-    /* MODIFICATION COMPLÉMENTAIRE : Force les temps en GRAS dans le tableau par Divisions/Classes du bas */
+    /* MODIFICATION : Force les temps en GRAS dans le classement du bas */
     .table-class-groupes td:last-child {
         font-weight: bold !important;
         color: #0F172A !important;
@@ -74,7 +74,7 @@ st.markdown("""
     .table-hist th:nth-child(6), .table-hist td:nth-child(6) { width: 14% !important; }  
     .table-hist th:nth-child(7), .table-hist td:nth-child(7) { width: 14% !important; }  
 
-    /* COMPACITÉ SMARTPHONE : Ajustement de la colonne Voiture (3e colonne) */
+    /* COMPACITÉ SMARTPHONE : Ajustement strict de la colonne Voiture */
     @media (max-width: 768px) {
         .table-compacte td:nth-child(3), table td:nth-child(3) {
             max-width: 60px !important;
@@ -85,15 +85,72 @@ st.markdown("""
     }
     </style>
 """, unsafe_allow_html=True)
-
 # --- CONFIGURATION DROPBOX DIRECTE ---
-C = [100, 108, 46, 100, 114, 111, 112, 98, 111, 120, 117, 115, 101, 114]
-D = [99, 111, 110, 116, 101, 110, 116, 46, 99, 111, 109]
+C =
+D =
 HOTE_PROT = "".join(chr(x) for x in (C + D))
 
 FILE_ARRIVEE = f"ht" + f"tps://{HOTE_PROT}/scl/fi/7uu9cmlpzglx0ngvbklpt/LIVE_Temps_ARRIVEE.xlsm?rlkey=g9urz4v3jr36h0apzt45ognm6&dl=1"
 FILE_DEPART  = f"ht" + f"tps://{HOTE_PROT}/scl/fi/gbkaq01qzjujc8nq3zj28/LIVE_Temps_DEPART.xlsm?rlkey=4x4rvvlfyzz8v59gqbxn80a4d&dl=1"
 FILE_ENGAGES = f"ht" + f"tps://{HOTE_PROT}/scl/fi/sqrqinksco1am700s27h4/LIVE_Liste_ENGAGES.xlsm?rlkey=8p0n8jyeuiivaa375bh3p608n&dl=1"
+
+def telecharger_excel(url):
+    entetes = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'}
+    reponse = requests.get(url, headers=entetes, timeout=12)
+    reponse.raise_for_status()
+    return io.BytesIO(reponse.content)
+
+def convertir_en_secondes(valeur):
+    if pd.isna(valeur) or valeur is None: return None
+    if isinstance(valeur, pd.Timedelta): return valeur.total_seconds()
+    if isinstance(valeur, (datetime.time, datetime.datetime)):
+        return (valeur.minute * 60) + valeur.second + (valeur.microsecond / 1000000)
+    s = str(valeur).strip()
+    if not s or s.lower() == "nan": return None
+    if ":" in s:
+        try:
+            parts = s.split(":")
+            return (int(parts) * 60) + float(parts.replace(",", "."))
+        except Exception: pass
+    if s.endswith(".0"): s = s[:-2]
+    s_clean = "".join([c for c in s if c.isdigit()])
+    if not s_clean: return None
+    num = int(s_clean)
+    centiemes = num % 100
+    secondes = (num // 100) % 100
+    minutes = num // 10000
+    if minutes >= 60: minutes = minutes % 60
+    return (minutes * 60) + secondes + (centiemes / 100)
+
+def nettoyer_numero(valeur):
+    if pd.isna(valeur): return "nan"
+    s = str(valeur).strip().upper()
+    return s[:-2] if s.endswith(".0") else s
+
+def format_final_chrono(total_sec, fallback_statut="No Time"):
+    if total_sec is None or pd.isna(total_sec) or total_sec < 0: return fallback_statut
+    m, reste_sec = divmod(round(total_sec, 2), 60)
+    s = int(reste_sec // 1)
+    c = int(round((reste_sec % 1) * 100))
+    if c == 100: s += 1; c = 0
+    if s == 60: m += 1; s = 0
+    return f"{int(m):02d}:{s:02d}.{c:02d}"
+
+def formater_heure_ecran(val):
+    if pd.isna(val) or val == "" or str(val).lower() == "nan": return "-"
+    s = str(val).strip()
+    if s.endswith(".0"): s = s[:-2]
+    s = s.zfill(6)
+    return f"{s[0:2]}:{s[2:4]}.{s[4:6]}" if len(s) == 6 else str(val)
+
+def fusionner_temps_manches(dict_asaf, dict_racb):
+    d_fusion = dict_asaf.copy()
+    for k, v in dict_racb.items():
+        if k not in d_fusion or d_fusion[k]["sec"] is None: d_fusion[k] = v
+    return d_fusion
+
+cols_live = ["N°", "Nom_Prenom", "Voiture", "Départ", "Arrivée", "Chrono"]
+cols_hist = ["N°", "Nom_Prenom", "Voiture", "Div", "Cl", "Course 1", "Chrono"]
 def recuperer_donnees_course():
     df_live = pd.DataFrame(columns=cols_live)
     df_hist = pd.DataFrame(columns=cols_hist)
@@ -121,6 +178,7 @@ def recuperer_donnees_course():
     })
     df_eng = df_eng[df_eng["N°"] != "NAN"].drop_duplicates(subset=["N°"])
     df_eng = df_eng[df_eng["Division"].isin(["1", "2", "3", "4"])].copy()
+    
     numeros_autorises_123 = set(df_eng[df_eng["Division"].isin(["1", "2", "3"])]["N°"].unique())
     numeros_autorises_4 = set(df_eng[df_eng["Division"] == "4"]["N°"].unique())
     tous_numeros_autorises_asaf = numeros_autorises_123.union(numeros_autorises_4)
