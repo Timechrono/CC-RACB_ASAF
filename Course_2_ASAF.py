@@ -51,12 +51,12 @@ st.markdown("""
         background-color: #E0F2FE !important;
     }
     
-    /* Forçage de la ligne bleue de séparation par ombre portée interne sur les cellules */
-    .ligne-separation-classe td { 
+    /* MODIFICATION ROBUSTE : Dessin forcé de la ligne bleue de séparation en bas des cellules */
+    .table-class-groupes tr.ligne-separation-classe td { 
         box-shadow: inset 0 -3px 0 0 #1E3A8A !important; 
     }
     
-    /* LARGEURS DE COLONNES FIGÉES */
+    /* LARGEURS DE COLONNES FIGÉES SUR PC */
     .table-live th:nth-child(1), .table-live td:nth-child(1) { width: 8% !important; }
     .table-live th:nth-child(2), .table-live td:nth-child(2) { width: 26% !important; }
     .table-live th:nth-child(3), .table-live td:nth-child(3) { width: 18% !important; }
@@ -89,12 +89,23 @@ st.markdown("""
     .block-container { padding-top: 0.3rem !important; padding-bottom: 0rem !important; }
     div[data-testid="stVerticalBlock"] { gap: 0rem !important; }
     hr { margin: 6px 0px !important; border: 0 !important; height: 0 !important; }
+
+    /* ZONE SMARTPHONE : Ajustements tactiles intelligents */
+    @media (max-width: 768px) {
+        /* MODIFICATION SMARTPHONE : Limite l'affichage de la colonne Voiture (3e colonne) aux 2 premiers mots */
+        .table-live td:nth-child(3), .table-hist td:nth-child(3) {
+            max-width: 65px !important;
+            overflow: hidden !important;
+            text-overflow: ellipsis !important;
+            white-space: nowrap !important;
+        }
+    }
     </style>
 """, unsafe_allow_html=True)
 
 BASE_DIR = "Dropbox Cloud"
 
-# --- ENCODAGE NUMÉRIQUE INTERNE ANTI-CENSURE ---
+# --- ENCODAGE NUMÉRIQUE INTERNE ANTI-CENSURE (VOS VALEURS VALIDÉES) ---
 C = [100, 108, 46, 100, 114, 111, 112, 98, 111, 120, 117, 115, 101, 114]
 D = [99, 111, 110, 116, 101, 110, 116, 46, 99, 111, 109]
 HOTE_PROT = "".join(chr(x) for x in (C + D))
@@ -160,6 +171,7 @@ def generer_tableau_html(df, classe_specifique):
 cols_live = ["N°", "Nom_Prenom", "Voiture", "Départ", "Arrivée", "Chrono"]
 cols_hist = ["N°", "Nom_Prenom", "Voiture", "Div", "Cl", "Course 1", "Chrono"]
 affichage_dynamique = st.empty()
+
 # fin bloc 1
 def recuperer_donnees_course():
     df_live = pd.DataFrame(columns=cols_live)
