@@ -47,13 +47,14 @@ st.markdown("""
     .table-compacte td { font-weight: normal !important; border-bottom: 1px solid #E0E0E0 !important; background-color: #FFFFFF !important; }
     .table-compacte th { font-weight: bold !important; background-color: #F5F5F5 !important; border-bottom: 2px solid #CCCCCC !important; text-align: left !important; }
     
-    /* ALTERNANCE BLEU CIEL UNE LIGNE SUR DEUX UNIQUEMENT POUR LE SCRATCH (TABLE-CLASS-ROBUSTE) */
     .table-class-robuste tr:nth-child(odd) td {
         background-color: #E0F2FE !important;
     }
     
-    /* Séparateur de classe bleu de 2px de large */
-    .ligne-separation-classe td { border-bottom: 2px solid #1E3A8A !important; }
+    /* Forçage de la ligne bleue de séparation par ombre portée interne sur les cellules */
+    .ligne-separation-classe td { 
+        box-shadow: inset 0 -3px 0 0 #1E3A8A !important; 
+    }
     
     /* LARGEURS DE COLONNES FIGÉES */
     .table-live th:nth-child(1), .table-live td:nth-child(1) { width: 8% !important; }
@@ -93,12 +94,11 @@ st.markdown("""
 
 BASE_DIR = "Dropbox Cloud"
 
-# --- ENCODAGE NUMÉRIQUE INTERNE ANTI-CENSURE (VOS VALEURS VALIDÉES) ---
+# --- ENCODAGE NUMÉRIQUE INTERNE ANTI-CENSURE ---
 C = [100, 108, 46, 100, 114, 111, 112, 98, 111, 120, 117, 115, 101, 114]
 D = [99, 111, 110, 116, 101, 110, 116, 46, 99, 111, 109]
 HOTE_PROT = "".join(chr(x) for x in (C + D))
 
-# Restauration stricte de vos adresses d'origine avec le bon fichier ENGAGES des Essais
 FILE_ARRIVEE = f"ht" + f"tps://{HOTE_PROT}/scl/fi/7uu9cmlpzglx0ngvbklpt/LIVE_Temps_ARRIVEE.xlsm?rlkey=g9urz4v3jr36h0apzt45ognm6&dl=1"
 FILE_DEPART  = f"ht" + f"tps://{HOTE_PROT}/scl/fi/gbkaq01qzjujc8nq3zj28/LIVE_Temps_DEPART.xlsm?rlkey=4x4rvvlfyzz8v59gqbxn80a4d&dl=1"
 FILE_ENGAGES = f"ht" + f"tps://{HOTE_PROT}/scl/fi/sqrqinksco1am700s27h4/LIVE_Liste_ENGAGES.xlsm?rlkey=8p0n8jyeuiivaa375bh3p608n&dl=1"
@@ -111,23 +111,16 @@ def telecharger_excel(url):
 
 def convertir_en_secondes(valeur):
     if pd.isna(valeur) or valeur is None: return None
-    if isinstance(valeur, pd.Timedelta):
-        return valeur.total_seconds()
+    if isinstance(valeur, pd.Timedelta): return valeur.total_seconds()
     if isinstance(valeur, (datetime.time, datetime.datetime)):
         return (valeur.minute * 60) + valeur.second + (valeur.microsecond / 1000000)
-    
     s = str(valeur).strip()
     if not s or s.lower() == "nan": return None
-
     if ":" in s:
         try:
             parts = s.split(":")
-            minutes = int(parts[0])
-            secondes_centièmes = float(parts[1].replace(",", "."))
-            return (minutes * 60) + secondes_centièmes
-        except Exception:
-            pass
-
+            return (int(parts[0]) * 60) + float(parts[1].replace(",", "."))
+        except Exception: pass
     if s.endswith(".0"): s = s[:-2]
     s_clean = "".join([c for c in s if c.isdigit()])
     if not s_clean: return None
@@ -162,37 +155,18 @@ def formater_heure_ecran(val):
 def generer_tableau_html(df, classe_specifique):
     if df.empty: 
         return f"<table class='table-compacte {classe_specifique}'><tr><td style='text-align: center; padding: 10px;'>Aucune donnée disponible</td></tr></table>"
-    
-    if classe_specifique == "table-class-groupes" and "Classe" in df.columns and "Division" in df.columns:
-        html = f"<table class='table-compacte table-class-groupes'><thead><tr>"
-        for col in df.columns:
-            html += f"<th>{col}</th>"
-        html += "</tr></thead><tbody>"
-        for idx in range(len(df)):
-            classe_row = ""
-            if idx < len(df) - 1:
-                if str(df.iloc[idx]["Classe"]) != str(df.iloc[idx + 1]["Classe"]) or str(df.iloc[idx]["Division"]) != str(df.iloc[idx + 1]["Division"]):
-                    classe_row = "class='ligne-separation-classe'"
-            html += f"<tr {classe_row}>"
-            for col in df.columns:
-                html += f"<td>{df.iloc[idx][col]}</td>"
-            html += "</tr>"
-        html += "</tbody></table>"
-        return html
-
     return df.to_html(index=False, classes=f"table-compacte {classe_specifique}", escape=False, border=0)
 
-cols_live = ["N°", "Nom_Prenom", "Voiture", "Départ", "Arrivée", "Chrono réalisé"]
-cols_hist = ["N°", "Nom_Prenom", "Voiture", "Division", "Classe", "Course 1", "Chrono réalisé"]
+cols_live = ["N°", "Nom_Prenom", "Voiture", "Départ", "Arrivée", "Chrono"]
+cols_hist = ["N°", "Nom_Prenom", "Voiture", "Div", "Cl", "Course 1", "Chrono"]
 affichage_dynamique = st.empty()
-
-#fin partie 1
+# fin bloc 1
 def recuperer_donnees_course():
     df_live = pd.DataFrame(columns=cols_live)
     df_hist = pd.DataFrame(columns=cols_hist)
-    df_asaf123 = pd.DataFrame(columns=["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"])
-    df_asaf4 = pd.DataFrame(columns=["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"])
-    df_divisions = pd.DataFrame(columns=["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"])
+    df_asaf123 = pd.DataFrame(columns=["Pos", "N°", "Nom_Prenom", "Div", "Cl", "Chrono"])
+    df_asaf4 = pd.DataFrame(columns=["Pos", "N°", "Nom_Prenom", "Div", "Cl", "Chrono"])
+    df_divisions = pd.DataFrame(columns=["Pos", "N°", "Nom_Prenom", "Div", "Cl", "Chrono"])
 
     try:
         df_eng_raw = pd.read_excel(telecharger_excel(FILE_ENGAGES), skiprows=1, engine='openpyxl')
@@ -237,14 +211,8 @@ def recuperer_donnees_course():
                 val_dep = df_arr_raw.iloc[r_idx, col_dossard + 1]
                 val_arr = df_arr_raw.iloc[r_idx, col_dossard + 2]
                 val_calc = df_arr_raw.iloc[r_idx, col_dossard + 3]
-                s_calc = convertir_en_secondes(val_calc)
-                d_manche[nv] = {"h_dep": val_dep if pd.notna(val_dep) else None, "h_arr": val_arr if pd.notna(val_arr) else None, "sec": s_calc}
+                d_manche[nv] = {"h_dep": val_dep if pd.notna(val_dep) else None, "h_arr": val_arr if pd.notna(val_arr) else None, "sec": convertir_en_secondes(val_calc)}
             return d_manche
-
-        dict_c1_asaf = extraire_manche_selon_regles_asaf(df_arr_raw, "COURSE 1", "ASAF")
-        dict_c1_racb = extraire_manche_selon_regles_asaf(df_arr_raw, "COURSE 1", "RACB")
-        dict_c2_asaf = extraire_manche_selon_regles_asaf(df_arr_raw, "COURSE 2", "ASAF")
-        dict_c2_racb = extraire_manche_selon_regles_asaf(df_arr_raw, "COURSE 2", "RACB")
 
         def fusionner_temps_manches(dict_asaf, dict_racb):
             d_fusion = dict_asaf.copy()
@@ -252,8 +220,8 @@ def recuperer_donnees_course():
                 if k not in d_fusion or d_fusion[k]["sec"] is None: d_fusion[k] = v
             return d_fusion
 
-        dict_c1 = fusionner_temps_manches(dict_c1_asaf, dict_c1_racb)
-        dict_c2 = fusionner_temps_manches(dict_c2_asaf, dict_c2_racb)
+        dict_c1 = fusionner_temps_manches(extraire_manche_selon_regles_asaf(df_arr_raw, "COURSE 1", "ASAF"), extraire_manche_selon_regles_asaf(df_arr_raw, "COURSE 1", "RACB"))
+        dict_c2 = fusionner_temps_manches(extraire_manche_selon_regles_asaf(df_arr_raw, "COURSE 2", "ASAF"), extraire_manche_selon_regles_asaf(df_arr_raw, "COURSE 2", "RACB"))
 
         if not df_eng.empty:
             rows_data = []
@@ -270,23 +238,25 @@ def recuperer_donnees_course():
             
             base = pd.DataFrame(rows_data)
             base = base[base["N°"].isin(tous_numeros_autorises_asaf)].copy()
-
+# fin bloc 2A
             if len(base) > 0:
                 base["Course_1_Txt"] = base["Calc_Sec_1"].apply(lambda x: format_final_chrono(x, fallback_statut="No Time"))
 
                 if "Heure_Depart_2" in base.columns and base["Heure_Depart_2"].notna().any():
                     base_c2 = base[base["Heure_Depart_2"].notna()].copy()
                     def calculer_statut_live(row):
-                        if pd.notna(row["Calc_Sec_2"]) and row["Calc_Sec_2"] > 0: return format_final_chrono(row["Calc_Sec_2"])
+                        if pd.notna(row["Calc_Sec_2"]) and row["Calc_Sec_2"] > 0:
+                            # MODIFICATION : C'est bien une COCHE ROUGE réglementaire si > 4 minutes
+                            coche = "<span style='color: #DC2626; font-weight: bold;'>✔</span>" if row["Calc_Sec_2"] > 240 else "<span style='color: #16A34A; font-weight: bold;'>✔</span>"
+                            return f"{format_final_chrono(row['Calc_Sec_2'])}&nbsp;&nbsp;&nbsp;{coche}"
                         if pd.notna(row["Heure_Depart_2"]) and pd.isna(row["Heure_Arrivee_2"]): return "<span class='vrai-gyrophare'>🚨</span> EN PISTE"
                         return "No Time"
                     base_c2["Chrono réalisé"] = base_c2.apply(calculer_statut_live, axis=1)
                     base_c2["Départ"] = base_c2["Heure_Depart_2"].apply(formater_heure_ecran)
                     base_c2["Arrivée"] = base_c2["Heure_Arrivee_2"].apply(formater_heure_ecran)
-                    df_live = base_c2.sort_values(by="Heure_Depart_2", ascending=False).head(5)[["N°", "Nom_Prenom", "Voiture", "Départ", "Arrivée", "Chrono réalisé"]]
+                    df_live = base_c2.sort_values(by="Heure_Depart_2", ascending=False).head(5)[["N°", "Nom_Prenom", "Voiture", "Départ", "Arrivée", "Chrono réalisé"]].rename(columns={"Chrono réalisé": "Chrono"})
 
-                df_hist_base = base[base["Calc_Sec_1"].notna() | base["Calc_Sec_2"].notna()].copy()
-                df_hist_base = df_hist_base.sort_values(by="Heure_Depart_2", ascending=False, na_position="last")
+                df_hist_base = base[base["Calc_Sec_1"].notna() | base["Calc_Sec_2"].notna()].copy().sort_values(by="Heure_Depart_2", ascending=False, na_position="last")
                 def formater_chrono_historique_pur(row):
                     t2 = row["Calc_Sec_2"]; t1 = row["Calc_Sec_1"]
                     if pd.notna(row["Heure_Depart_2"]) and pd.isna(row["Heure_Arrivee_2"]): return "En Piste"
@@ -296,8 +266,8 @@ def recuperer_donnees_course():
                         if t2 < t1: return f"{txt_c2} <span style='color: #22C55E; font-size: 1.65rem; line-height: 1; vertical-align: -0.15rem;'>▲</span>"
                         elif t2 > t1: return f"{txt_c2} <span style='color: #EF4444; font-size: 1.65rem; line-height: 1; vertical-align: -0.15rem;'>▼</span>"
                     return txt_c2
-                df_hist_base["Chrono réalisé"] = df_hist_base.apply(formater_chrono_historique_pur, axis=1)
-                df_hist = df_hist_base[["N°", "Nom_Prenom", "Voiture", "Division", "Classe", "Course_1_Txt", "Chrono réalisé"]].rename(columns={"Course_1_Txt": "Course 1"})
+                df_hist_base["Chrono"] = df_hist_base.apply(formater_chrono_historique_pur, axis=1)
+                df_hist = df_hist_base[["N°", "Nom_Prenom", "Voiture", "Division", "Classe", "Course_1_Txt", "Chrono"]].rename(columns={"Course_1_Txt": "Course 1", "Division": "Div", "Classe": "Cl"})
 
                 valides_cumul = base[base["Calc_Sec_1"].notna() & (base["Calc_Sec_1"] > 0) & base["Calc_Sec_2"].notna() & (base["Calc_Sec_2"] > 0)].copy()
                 if len(valides_cumul) > 0:
@@ -305,21 +275,36 @@ def recuperer_donnees_course():
                     scr = valides_cumul.sort_values(by="Cumul_Sec").drop_duplicates(subset=["N°"], keep="first").copy()
                     
                     asaf123 = scr[scr["N°"].isin(numeros_autorises_123)].head(25).copy()
-                    if len(asaf123) > 0: asaf123["Pos"] = range(1, len(asaf123) + 1); asaf123["Chrono"] = asaf123["Cumul_Sec"].apply(format_final_chrono); df_asaf123 = asaf123[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]]
+                    if len(asaf123) > 0: asaf123["Pos"] = range(1, len(asaf123) + 1); asaf123["Chrono"] = asaf123["Cumul_Sec"].apply(format_final_chrono); df_asaf123 = asaf123[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]].rename(columns={"Division": "Div", "Classe": "Cl"})
                     
                     asaf4 = scr[scr["N°"].isin(numeros_autorises_4)].head(10).copy()
-                    if len(asaf4) > 0: asaf4["Pos"] = range(1, len(asaf4) + 1); asaf4["Chrono"] = asaf4["Cumul_Sec"].apply(format_final_chrono); df_asaf4 = asaf4[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]]
+                    if len(asaf4) > 0: asaf4["Pos"] = range(1, len(asaf4) + 1); asaf4["Chrono"] = asaf4["Cumul_Sec"].apply(format_final_chrono); df_asaf4 = asaf4[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]].rename(columns={"Division": "Div", "Classe": "Cl"})
                     
                     scr["Classe_Num"] = pd.to_numeric(scr["Classe"], errors='coerce').fillna(999)
-                    df_divisions = scr.sort_values(by=["Division", "Classe_Num", "Cumul_Sec"]).groupby(["Division", "Classe_Num"]).head(3).copy()
-                    if len(df_divisions) > 0: df_divisions["Pos"] = df_divisions.groupby(["Division", "Classe_Num"]).cumcount() + 1; df_divisions["Chrono"] = df_divisions["Cumul_Sec"].apply(format_final_chrono); df_divisions = df_divisions[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]]
+                    df_div_raw = scr.sort_values(by=["Division", "Classe_Num", "Cumul_Sec"]).groupby(["Division", "Classe_Num"]).head(3).copy()
+                    
+                    if len(df_div_raw) > 0:
+                        df_div_raw["Pos"] = df_div_raw.groupby(["Division", "Classe_Num"]).cumcount() + 1
+                        df_div_raw["Chrono"] = df_div_raw["Cumul_Sec"].apply(format_final_chrono)
+                        df_divisions_clean = df_div_raw[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]].rename(columns={"Division": "Div", "Classe": "Cl"})
+                        
+                        html_table = "<table class='table-compacte table-class-groupes'><thead><tr><th>Pos</th><th>N°</th><th>Nom_Prenom</th><th>Div</th><th>Cl</th><th>Chrono</th></tr></thead><tbody>"
+                        for idx_row in range(len(df_divisions_clean)):
+                            classe_row = ""
+                            if idx_row < len(df_divisions_clean) - 1:
+                                if str(df_divisions_clean.iloc[idx_row]["Cl"]) != str(df_divisions_clean.iloc[idx_row + 1]["Cl"]) or str(df_divisions_clean.iloc[idx_row]["Div"]) != str(df_divisions_clean.iloc[idx_row + 1]["Div"]):
+                                    classe_row = "class='ligne-separation-classe'"
+                            html_table += f"<tr {classe_row}>"
+                            for col_name in df_divisions_clean.columns: html_table += f"<td>{df_divisions_clean.iloc[idx_row][col_name]}</td>"
+                            html_table += "</tr>"
+                        html_table += "</tbody></table>"
+                        df_divisions = html_table
     except Exception: pass
 
     t_live = "🏎️ EN DIRECT / 2ème Course / Concurrents ASAF"
     t_his = "🕒 HISTORIQUE DES TEMPS / 2ème COURSE / Concurrents ASAF"
     t_haut = "🏆 CLASSEMENT GENERAL OFFICIEUX Division 123 (Top 25)"
     t_milieu = "🏆 CLASSEMENT GENERAL OFFICIEUX Division 4 (Top 10)"
-    t_bas = "📊 CLASSEMENT PAR Division / Classe (Top 3)"
+    t_bas = "🏆 CLASSEMENT OFFICIEUX PAR Division / Classe (Top 3)"
 
     return df_live, df_hist, df_asaf123, df_asaf4, df_divisions, t_live, t_his, t_haut, t_milieu, t_bas
-
