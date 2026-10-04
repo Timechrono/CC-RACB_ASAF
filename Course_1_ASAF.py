@@ -214,17 +214,19 @@ def recuperer_donnees_course():
                             group = group.copy(); group["Pos"] = range(1, len(group) + 1); group["Chrono"] = group["Calc_Sec"].apply(format_final_chrono)
                             sub_df = group[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]].rename(columns={"Division": "Gr/Div", "Classe": "Cl"})
                             
-                            sub_html = group.to_html(index=False, header=(current_group==1), classes='table-compacte table-class-robuste', escape=False, border=0)
+                            # Correction du bug : On extrait les entêtes uniquement sur le premier bloc
+                            sub_html = sub_df.to_html(index=False, header=(current_group==1), classes='table-compacte table-class-robuste', escape=False, border=0)
                             
                             lignes_uniquement = ""
                             for _, r_data in sub_df.iterrows():
+                                # Application robuste du trait de séparation bleu de fin de groupe
                                 style_tr = "class='ligne-bleue-separation'" if current_group < total_groups and r_data.equals(sub_df.iloc[-1]) else ""
                                 lignes_uniquement += f"<tr {style_tr}>"
                                 for cell in r_data: lignes_uniquement += f"<td>{cell}</td>"
                                 lignes_uniquement += "</tr>"
                                 
                             if current_group == 1:
-                                entetes_html = sub_html.split("<tbody>") + "<tbody>"
+                                entetes_html = sub_html.split("<tbody>")[0] + "<tbody>"
                                 html_blocs.append(entetes_html + lignes_uniquement)
                             else:
                                 html_blocs.append(lignes_uniquement)
@@ -233,11 +235,11 @@ def recuperer_donnees_course():
                         html_divisions = "".join(html_blocs)
     except Exception: pass
 
-    # --- TITRES CENTRALISÉS NETTOYÉS ET SÉCURISÉS ---
+    # --- MODIFICATION : LES NOUVEAUX TITRES DEMANDÉS ---
     t_live = "🏎️ EN DIRECT / 1er Course / Concurrents ASAF"
     t_his = "🕒 HISTORIQUE DES TEMPS / 1er Course / Concurrents ASAF"
-    t_haut = "🏆 CLASSEMENT GENERAL Division 123 (Course 1)"
-    t_milieu = "🏆 CLASSEMENT GENERAL Division 4 (Course 1)"
-    t_bas = "🏆 CLASSEMENT PAR DIVISIONS / CLASSES (Course 1)"
+    t_haut = "🏆 CLASSEMENT OFFICIEUX Division 123 (Top 25)"
+    t_milieu = "🏆 CLASSEMENT OFFICIEUX Division 4 (Top 10)"
+    t_bas = "🏆 CLASSEMENT OFFICIEUX PAR Division / Classe (Top 3)"
 
     return df_live, df_hist, df_asaf123, df_asaf4, html_divisions, t_live, t_his, t_haut, t_milieu, t_bas
