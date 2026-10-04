@@ -190,7 +190,7 @@ def recuperer_donnees_course():
         if len(df_dep) > 0: base = pd.merge(base, df_dep, on=["N°", "Run_Index"], how="left")
         if len(df_arr) > 0: base = pd.merge(base, df_arr, on=["N°", "Run_Index"], how="left")
 # fin bloc 2A
-        if len(base) > 0:
+                if len(base) > 0:
             base["Calc_Sec"] = base["Sec_Excel"].fillna((base["Sec_Arr"] - base["Sec_Dep"]).apply(lambda x: x + 3600 if (x is not None and not pd.isna(x) and x < 0) else x))
             base["Départ_C1"] = base["Heure_Depart"].apply(formater_heure_ecran)
 
@@ -240,14 +240,13 @@ def recuperer_donnees_course():
                             
                             lignes_uniquement = ""
                             for _, r_data in sub_df.iterrows():
-                                # Ajout du style de demarcation sur la ligne si on change de classe
                                 style_tr = "class='ligne-bleue-separation'" if current_group < total_groups and r_data.equals(sub_df.iloc[-1]) else ""
                                 lignes_uniquement += f"<tr {style_tr}>"
                                 for cell in r_data: lignes_uniquement += f"<td>{cell}</td>"
                                 lignes_uniquement += "</tr>"
                                 
                             if current_group == 1:
-                                entetes_html = sub_html.split("<tbody>")[0] + "<tbody>"
+                                entetes_html = sub_html.split("<tbody>") + "<tbody>"
                                 html_blocs.append(entetes_html + lignes_uniquement)
                             else:
                                 html_blocs.append(lignes_uniquement)
@@ -256,8 +255,9 @@ def recuperer_donnees_course():
                         html_divisions = "".join(html_blocs)
     except Exception: pass
 
+    # --- TITRES CENTRALISÉS NETTOYÉS ET SÉCURISÉS (Directement gérés dans la feuille) ---
     t_live = "🏎️ EN DIRECT / 1er Course / Concurrents ASAF"
-    t_his = CSS_ASAF + "🕒 HISTORIQUE DES TEMPS / 1er Course / Concurrents ASAF"
+    t_his = "🕒 HISTORIQUE DES TEMPS / 1er Course / Concurrents ASAF"
     t_haut = "🏆 CLASSEMENT GENERAL Division 123 (Course 1)"
     t_milieu = "🏆 CLASSEMENT GENERAL Division 4 (Course 1)"
     t_bas = "🏆 CLASSEMENT PAR DIVISIONS / CLASSES (Course 1)"
