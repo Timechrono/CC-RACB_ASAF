@@ -239,8 +239,9 @@ with cg:
     conteneur_titre_live = st.empty()
     st.markdown(gen_html(d_liv, "table-live"), unsafe_allow_html=True)
     
-    # Titre en div pour corriger définitivement le bug d'affichage
-    if t_his: st.markdown(f"<div class='titre-hist'>{t_his}</div>", unsafe_allow_html=True)
+    # SOLUTION SANS BUG : Utilisation d'un vrai bloc de titre Markdown natif Streamlit
+    if t_his: 
+        st.markdown(f"### {t_his}")
     st.markdown(gen_html(d_his, "table-hist"), unsafe_allow_html=True)
     
 with cd:
