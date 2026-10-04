@@ -1,12 +1,16 @@
 import streamlit as st
 import pandas as pd
+import numpy as np
 import datetime
-import requests
+import os
+import time
 import io
+import requests
 
 st.set_page_config(layout="wide")
+st.cache_data.clear()
 
-# --- DESIGN D'ORIGINE RESPECTÉ ET ADAPTÉ ---
+# --- DESIGN SCIENTIFIQUE RIGIDE RESTAURÉ ---
 st.markdown("""
     <style>
     [data-testid="stHeader"] { display: none !important; }
@@ -43,15 +47,54 @@ st.markdown("""
     .table-compacte td { font-weight: normal !important; border-bottom: 1px solid #E0E0E0 !important; background-color: #FFFFFF !important; }
     .table-compacte th { font-weight: bold !important; background-color: #F5F5F5 !important; border-bottom: 2px solid #CCCCCC !important; text-align: left !important; }
     
-    /* Ligne bleue de séparation par ombre portée pour contourner le bug des navigateurs */
-    .table-class-groupes tr.ligne-separation-classe td { 
+    .table-class-robuste tr:nth-child(odd) td {
+        background-color: #E0F2FE !important;
+    }
+    
+    /* CORRECTION IMPACTANTE : Applique l'ombre portée directement sur les td des tr identifiés pour forcer la ligne bleue */
+    tr.ligne-separation-classe td, .table-compacte tr.ligne-separation-classe td { 
         box-shadow: inset 0 -3px 0 0 #1E3A8A !important; 
     }
     
+    /* LARGEURS DE COLONNES FIGÉES */
+    .table-live th:nth-child(1), .table-live td:nth-child(1) { width: 8% !important; }
+    .table-live th:nth-child(2), .table-live td:nth-child(2) { width: 26% !important; }
+    .table-live th:nth-child(3), .table-live td:nth-child(3) { width: 18% !important; }
+    .table-live th:nth-child(4), .table-live td:nth-child(4) { width: 13% !important; }
+    .table-live th:nth-child(5), .table-live td:nth-child(5) { width: 13% !important; }
+    .table-live th:nth-child(6), .table-live td:nth-child(6) { width: 22% !important; }
+
+    .table-hist th:nth-child(1), .table-hist td:nth-child(1) { width: 7% !important; }   
+    .table-hist th:nth-child(2), .table-hist td:nth-child(2) { width: 23% !important; }  
+    .table-hist th:nth-child(3), .table-hist td:nth-child(3) { width: 25% !important; }  
+    .table-hist th:nth-child(4), .table-hist td:nth-child(4) { width: 10% !important; }   
+    .table-hist th:nth-child(5), .table-hist td:nth-child(5) { width: 7% !important; }   
+    .table-hist th:nth-child(6), .table-hist td:nth-child(6) { width: 14% !important; }  
+    .table-hist th:nth-child(7), .table-hist td:nth-child(7) { width: 14% !important; }  
+
+    .table-class-robuste th:nth-child(1), .table-class-robuste td:nth-child(1) { width: 9% !important; }
+    .table-class-robuste th:nth-child(2), .table-class-robuste td:nth-child(2) { width: 11% !important; }
+    .table-class-robuste th:nth-child(3), .table-class-robuste td:nth-child(3) { width: 33% !important; }
+    .table-class-robuste th:nth-child(4), .table-class-robuste td:nth-child(4) { width: 15% !important; }
+    .table-class-robuste th:nth-child(5), .table-class-robuste td:nth-child(5) { width: 14% !important; }
+    .table-class-robuste th:nth-child(6), .table-class-robuste td:nth-child(6) { width: 18% !important; text-align: right !important; }
+
+    .table-class-groupes th:nth-child(1), .table-class-groupes td:nth-child(1) { width: 9% !important; }
+    .table-class-groupes th:nth-child(2), .table-class-groupes td:nth-child(2) { width: 11% !important; }
+    .table-class-groupes th:nth-child(3), .table-class-groupes td:nth-child(3) { width: 33% !important; }
+    .table-class-groupes th:nth-child(4), .table-class-groupes td:nth-child(4) { width: 15% !important; }
+    .table-class-groupes th:nth-child(5), .table-class-groupes td:nth-child(5) { width: 14% !important; }
+    .table-class-groupes th:nth-child(6), .table-class-groupes td:nth-child(6) { width: 18% !important; text-align: right !important; }
+
+    .block-container { padding-top: 0.3rem !important; padding-bottom: 0rem !important; }
+    div[data-testid="stVerticalBlock"] { gap: 0rem !important; }
+    hr { margin: 6px 0px !important; border: 0 !important; height: 0 !important; }
+
+    /* CORRECTION PRIORITAIRE SMARTPHONE */
     @media (max-width: 768px) {
-        /* LIMITE LA VOITURE AUX 2 PREMIERS MOTS : Largeur bridée à 65px maximum sur smartphone */
-        .table-live td:nth-child(3), .table-hist td:nth-child(3) {
-            max-width: 65px !important;
+        /* On cible de force la 3e colonne (Voiture) des tables HTML générées */
+        .table-compacte td:nth-child(3), table td:nth-child(3) {
+            max-width: 60px !important;
             overflow: hidden !important;
             text-overflow: ellipsis !important;
             white-space: nowrap !important;
@@ -60,9 +103,11 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# --- CONFIGURATION DROPBOX DIRECTE ---
-C = [100, 108, 46, 100, 114, 111, 112, 98, 111, 120, 117, 115, 101, 114]
-D = [99, 111, 110, 116, 101, 110, 116, 46, 99, 111, 109]
+BASE_DIR = "Dropbox Cloud"
+
+# --- ENCODAGE NUMÉRIQUE INTERNE ANTI-CENSURE ---
+C =
+D =
 HOTE_PROT = "".join(chr(x) for x in (C + D))
 
 FILE_ARRIVEE = f"ht" + f"tps://{HOTE_PROT}/scl/fi/7uu9cmlpzglx0ngvbklpt/LIVE_Temps_ARRIVEE.xlsm?rlkey=g9urz4v3jr36h0apzt45ognm6&dl=1"
@@ -70,7 +115,7 @@ FILE_DEPART  = f"ht" + f"tps://{HOTE_PROT}/scl/fi/gbkaq01qzjujc8nq3zj28/LIVE_Tem
 FILE_ENGAGES = f"ht" + f"tps://{HOTE_PROT}/scl/fi/sqrqinksco1am700s27h4/LIVE_Liste_ENGAGES.xlsm?rlkey=8p0n8jyeuiivaa375bh3p608n&dl=1"
 
 def telecharger_excel(url):
-    entetes = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'}
+    entetes = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'}
     reponse = requests.get(url, headers=entetes, timeout=12)
     reponse.raise_for_status()
     return io.BytesIO(reponse.content)
@@ -118,8 +163,15 @@ def formater_heure_ecran(val):
     s = s.zfill(6)
     return f"{s[0:2]}:{s[2:4]}.{s[4:6]}" if len(s) == 6 else str(val)
 
+def generer_tableau_html(df, classe_specifique):
+    if df.empty: 
+        return f"<table class='table-compacte {classe_specifique}'><tr><td style='text-align: center; padding: 10px;'>Aucune donnée disponible</td></tr></table>"
+    return df.to_html(index=False, classes=f"table-compacte {classe_specifique}", escape=False, border=0)
+
 cols_live = ["N°", "Nom_Prenom", "Voiture", "Départ", "Arrivée", "Chrono"]
 cols_hist = ["N°", "Nom_Prenom", "Voiture", "Div", "Cl", "Course 1", "Chrono"]
+affichage_dynamique = st.empty()
+
 # fin bloc 1
 def recuperer_donnees_course():
     df_live = pd.DataFrame(columns=cols_live)
