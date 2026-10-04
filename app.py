@@ -9,7 +9,7 @@ import Essais
 # ==============================================================================
 # ⚠️ METTEZ VOTRE LIEN DROPBOX ICI (Assurez-vous qu'il se termine bien par dl=1)
 # ==============================================================================
-LIEN_DROPBOX_LOGO = "https://www.dropbox.com/scl/fi/hi24fjo0vbal4oiiwt9jl/logo-TimeC.png?rlkey=xlw0oqk9gdnq6v5dgahi0klg0&st=y86yrn6y&dl=1"
+LIEN_DROPBOX_LOGO = "https://dropbox.com"
 
 # --- DÉTECTION DES SCRIPTS DE COURSE DISPONIBLES ---
 try:
@@ -83,7 +83,7 @@ div.stElementContainer {{
     width: 100% !important; display: block !important; clear: both !important;
 }}
 .titre-live {{ background-color: #15803D !important; margin-top: 0px !important; margin-bottom: 6px !important; }}
-.titre-hist {{ background-color: #475569 !important; margin-top: 25px !important; margin-bottom: 8px !important; }}
+.titre-hist {{ background-color: #475569 !important; margin-top: 25px !important; margin-bottom: 6px !important; }}
 .titre-classement {{ background-color: #1E3A8A !important; margin-top: 0px !important; margin-bottom: 6px !important; }}
 
 /* Style en gras sur la dernière colonne de l'historique */
@@ -165,6 +165,14 @@ div.stElementContainer {{
         white-space: nowrap !important;
     }}
     
+    /* MODIFICATION GLOBALE PRIORITAIRE SMARTPHONE : Limite la colonne Voiture (3e colonne) */
+    .table-compacte td:nth-child(3), table td:nth-child(3) {{
+        max-width: 60px !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        white-space: nowrap !important;
+    }}
+    
     .table-live td:last-child, .table-class-robuste td:last-child {{ font-size: 0.70rem !important; }}
     .signature-fin-page {{ font-size: 0.75rem !important; padding-top: 4px !important; }}
     .logo-signature {{ height: 32px !important; }}
@@ -173,6 +181,10 @@ div.stElementContainer {{
 /* Force la ligne bleue sur le BAS des cellules */
 .table-class-robuste tr.ligne-bleue-separation td {{
     box-shadow: inset 0 -3px 0 0 #1E3A8A !important;
+}}
+/* Forçage de la ligne de séparation de classe ASAF */
+tr.ligne-separation-classe td, .table-compacte tr.ligne-separation-classe td {{ 
+    box-shadow: inset 0 -3px 0 0 #1E3A8A !important; 
 }}
 </style>
 """, unsafe_allow_html=True)
@@ -184,7 +196,6 @@ def gen_html(df, cl):
     
     html_table = df.to_html(index=False, classes=f"table-compacte {cl}", escape=False, border=0)
     return f"<div class='table-responsive-container'>{html_table}</div>"
-# fin bloc
 # --- LECTURE DU PARAMÈTRE DE COURSE DEPUIS L'URL ---
 query_params = st.query_params
 choix_course_url = query_params.get("course", "essais").lower()
@@ -221,6 +232,7 @@ try:
 
     with ThreadPoolExecutor(max_workers=1) as executor:
         future = executor.submit(recuperer_avec_timeout)
+        # RECTIFICATION : Nettoyage de la commande de timeout d'origine
         res = future.result(timeout=3.5)
         if res and len(res) == 10:
             d_liv, d_his, d_haut, d_milieu, d_bas, t_live, t_his, t_haut, t_milieu, t_bas = res
@@ -234,8 +246,6 @@ cg, cd = st.columns([1.3, 0.9])
 with cg:
     conteneur_titre_live = st.empty()
     st.markdown(gen_html(d_liv, "table-live"), unsafe_allow_html=True)
-    
-    # REPRISE RECTIFIÉE : Alignement strict sur la forme des autres titres d'origine (balise span)
     if t_his: 
         st.markdown(f"<span class='titre-hist'>{t_his}</span>", unsafe_allow_html=True)
     st.markdown(gen_html(d_his, "table-hist"), unsafe_allow_html=True)
@@ -276,7 +286,6 @@ for secondes_restantes in range(30, -1, -1):
         conteneur_titre_live.markdown(f"<span class='titre-live'>🏎️ EN DIRECT / Derniers concurrents partis / <span class='refresh-bleu-clair-historique'>Refresh {secondes_restantes} Sec.</span></span>", unsafe_allow_html=True)
     else:
         conteneur_titre_live.markdown(f"<span class='titre-live'>{t_live}</span>", unsafe_allow_html=True)
-    
     if secondes_restantes > 0:
         time.sleep(1)
 
