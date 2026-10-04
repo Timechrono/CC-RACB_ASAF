@@ -235,9 +235,9 @@ with cg:
     conteneur_titre_live = st.empty()
     st.markdown(gen_html(d_liv, "table-live"), unsafe_allow_html=True)
     
-    # Titre de l'Historique configuré nativement en Markdown sans bug
+    # CORRECTION DÉFINITIVE : On applique la classe titre-hist sur un bloc div propre pour forcer le bandeau gris d'origine
     if t_his: 
-        st.markdown(f"### {t_his}")
+        st.markdown(f"<div class='titre-hist'>{t_his}</div>", unsafe_allow_html=True)
     st.markdown(gen_html(d_his, "table-hist"), unsafe_allow_html=True)
     
 with cd:
