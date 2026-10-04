@@ -17,26 +17,6 @@ FILE_DEPART  = f"ht" + f"tps://{HOTE_PROT}/scl/fi/gbkaq01qzjujc8nq3zj28/LIVE_Tem
 FILE_ENGAGES_ASAF = f"ht" + f"tps://{HOTE_PROT}/scl/fi/wyof20d4bg4lbmnv0c7m5/LIVE_Liste_ENGAGES_ASAF.xlsm?rlkey=8q59lu88046nxu8mr8gs5ufvc&st=vny281ln&dl=1"
 FILE_ENGAGES_RACB = f"ht" + f"tps://{HOTE_PROT}/scl/fi/69zkwsb45bpiw3ys3kk4c/LIVE_Liste_ENGAGES_RACB.xlsm?rlkey=qpjrlmbxhcskifnabs84veqh8&st=0snuv3e7&dl=1"
 
-# CSS additionnel pour assurer le gras stable de l'historique et le dessin de la ligne de séparation
-CSS_ASAF = """
-<style>
-.table-hist td:last-child {
-    font-weight: bold !important;
-    color: #0F172A !important;
-}
-.vrai-gyrophare {
-    display: inline-block;
-    margin-right: 6px;
-    font-size: 1.05rem !important;
-    vertical-align: middle !important;
-}
-/* Forçage de la ligne bleue de séparation par ombre portée interne sur les cellules */
-.ligne-bleue-separation td {
-    box-shadow: inset 0 -3px 0 0 #1E3A8A !important;
-}
-</style>
-"""
-
 def telecharger_excel(url):
     entetes = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'}
     reponse = requests.get(url, headers=entetes, timeout=12)
@@ -92,7 +72,6 @@ def calculer_statut_chrono(row, est_dans_le_live=True):
     if "Calc_Sec" in row and pd.notna(row["Calc_Sec"]) and row["Calc_Sec"] > 0:
         temps_formate = format_final_chrono(row["Calc_Sec"])
         if est_dans_le_live:
-            # MODIFICATION : Intégration des coches verte et rouge réglementaires (> 4 minutes)
             if row["Calc_Sec"] > 240:
                 coche = "<span style='color: #DC2626; font-weight: bold;'>✔</span>"
             else:
@@ -116,7 +95,6 @@ def extraire_engages(flux):
     return df_clean[df_clean["N°"] != "NAN"]
 # fin bloc 1
 def recuperer_donnees_course():
-    # MODIFICATION : Harmonisation globale des en-têtes en "Gr/Div", "Cl" et "Chrono"
     cols_live = ["N°", "Nom_Prenom", "Voiture", "Départ", "Arrivée", "Chrono"]
     cols_hist = ["N°", "Nom_Prenom", "Voiture", "Gr/Div", "Cl", "Chrono"]
     df_live = pd.DataFrame(columns=cols_live)
@@ -190,7 +168,7 @@ def recuperer_donnees_course():
         if len(df_dep) > 0: base = pd.merge(base, df_dep, on=["N°", "Run_Index"], how="left")
         if len(df_arr) > 0: base = pd.merge(base, df_arr, on=["N°", "Run_Index"], how="left")
 # fin bloc 2A
-                if len(base) > 0:
+        if len(base) > 0:
             base["Calc_Sec"] = base["Sec_Excel"].fillna((base["Sec_Arr"] - base["Sec_Dep"]).apply(lambda x: x + 3600 if (x is not None and not pd.isna(x) and x < 0) else x))
             base["Départ_C1"] = base["Heure_Depart"].apply(formater_heure_ecran)
 
@@ -255,7 +233,7 @@ def recuperer_donnees_course():
                         html_divisions = "".join(html_blocs)
     except Exception: pass
 
-    # --- TITRES CENTRALISÉS NETTOYÉS ET SÉCURISÉS (Directement gérés dans la feuille) ---
+    # --- TITRES CENTRALISÉS NETTOYÉS ET SÉCURISÉS ---
     t_live = "🏎️ EN DIRECT / 1er Course / Concurrents ASAF"
     t_his = "🕒 HISTORIQUE DES TEMPS / 1er Course / Concurrents ASAF"
     t_haut = "🏆 CLASSEMENT GENERAL Division 123 (Course 1)"
