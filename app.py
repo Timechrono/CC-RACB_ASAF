@@ -9,7 +9,7 @@ import Essais
 # ==============================================================================
 # ⚠️ METTEZ VOTRE LIEN DROPBOX ICI (Assurez-vous qu'il se termine bien par dl=1)
 # ==============================================================================
-LIEN_DROPBOX_LOGO = "https://www.dropbox.com/scl/fi/hi24fjo0vbal4oiiwt9jl/logo-TimeC.png?rlkey=xlw0oqk9gdnq6v5dgahi0klg0&st=y86yrn6y&dl=1"
+LIEN_DROPBOX_LOGO = "https://dropbox.com"
 
 # --- DÉTECTION DES SCRIPTS DE COURSE DISPONIBLES ---
 try:
@@ -84,8 +84,8 @@ div.stElementContainer {{
 }}
 .titre-live {{ background-color: #15803D !important; margin-top: 0px !important; margin-bottom: 6px !important; }}
 
-/* AJUSTEMENT : Ajout d'une marge en bas de 12px pour que le tableau ne recouvre plus le titre */
-.titre-hist {{ background-color: #475569 !important; margin-top: 25px !important; margin-bottom: 12px !important; }}
+/* AJUSTEMENT DU BLOC TITRE : Remplacé en bloc physique pour éviter le chevauchement */
+.titre-hist {{ background-color: #475569 !important; margin-top: 25px !important; margin-bottom: 8px !important; }}
 
 .titre-classement {{ background-color: #1E3A8A !important; margin-top: 0px !important; margin-bottom: 6px !important; }}
 
@@ -160,7 +160,7 @@ div.stElementContainer {{
     .titre-live, .titre-hist, .titre-classement {{ font-size: 0.85rem !important; padding: 3px 6px !important; }}
     .table-compacte th, .table-compacte td {{ font-size: 0.65rem !important; padding: 1px 2px !important; }}
     
-    /* MODIFICATION : Largeur limitée à 32px (4 caractères maximum) pour la colonne Gr/Div */
+    /* OPTIMISATION OPTIQUE : Limite la colonne Gr/Div ou Groupe à 4 caractères max sur smartphone */
     .table-hist td:nth-child(4) {{
         max-width: 32px !important;
         overflow: hidden !important;
@@ -191,7 +191,6 @@ def gen_html(df, cl):
 # --- LECTURE DU PARAMÈTRE DE COURSE DEPUIS L'URL ---
 query_params = st.query_params
 choix_course_url = query_params.get("course", "essais").lower()
-
 # fin bloc 1
 if choix_course_url == "c1asaf" and course1_disponible:
     choix_course = "Course 1 ASAF"
@@ -225,7 +224,7 @@ try:
 
     with ThreadPoolExecutor(max_workers=1) as executor:
         future = executor.submit(recuperer_avec_timeout)
-        res = future.result(timeout=3.5)
+        res = future.submit().result(timeout=3.5)
         if res and len(res) == 10:
             d_liv, d_his, d_haut, d_milieu, d_bas, t_live, t_his, t_haut, t_milieu, t_bas = res
 except Exception as e:
@@ -239,7 +238,8 @@ with cg:
     conteneur_titre_live = st.empty()
     st.markdown(gen_html(d_liv, "table-live"), unsafe_allow_html=True)
     
-    if t_his: st.markdown(f"<span class='titre-hist'>{t_his}</span>", unsafe_allow_html=True)
+    # RECTIFICATION : Changé en div pour corriger définitivement le bug d'affichage
+    if t_his: st.markdown(f"<div class='titre-hist'>{t_his}</div>", unsafe_allow_html=True)
     st.markdown(gen_html(d_his, "table-hist"), unsafe_allow_html=True)
     
 with cd:
