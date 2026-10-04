@@ -83,10 +83,13 @@ div.stElementContainer {{
     width: 100% !important; display: block !important; clear: both !important;
 }}
 .titre-live {{ background-color: #15803D !important; margin-top: 0px !important; margin-bottom: 6px !important; }}
-.titre-hist {{ background-color: #475569 !important; margin-top: 25px !important; margin-bottom: 6px !important; }}
+
+/* AJUSTEMENT : Ajout d'une marge en bas de 12px pour que le tableau ne recouvre plus le titre */
+.titre-hist {{ background-color: #475569 !important; margin-top: 25px !important; margin-bottom: 12px !important; }}
+
 .titre-classement {{ background-color: #1E3A8A !important; margin-top: 0px !important; margin-bottom: 6px !important; }}
 
-/* Force le style en gras sur la dernière colonne de l'historique de manière sécurisée */
+/* Style en gras sur la dernière colonne de l'historique */
 .table-hist td:last-child {{ 
     font-weight: bold !important; 
     color: #0F172A !important; 
@@ -157,9 +160,9 @@ div.stElementContainer {{
     .titre-live, .titre-hist, .titre-classement {{ font-size: 0.85rem !important; padding: 3px 6px !important; }}
     .table-compacte th, .table-compacte td {{ font-size: 0.65rem !important; padding: 1px 2px !important; }}
     
-    /* Limite la colonne Groupe / Division (4e colonne de l'historique) à 5 caractères max sur smartphone */
+    /* MODIFICATION : Largeur limitée à 32px (4 caractères maximum) pour la colonne Gr/Div */
     .table-hist td:nth-child(4) {{
-        max-width: 40px !important;
+        max-width: 32px !important;
         overflow: hidden !important;
         text-overflow: clip !important;
         white-space: nowrap !important;
