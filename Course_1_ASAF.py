@@ -238,8 +238,8 @@ def recuperer_donnees_course():
     # --- MODIFICATION : LES NOUVEAUX TITRES DEMANDÉS ---
     t_live = "🏎️ EN DIRECT / 1er Course / Concurrents ASAF"
     t_his = "🕒 HISTORIQUE DES TEMPS / 1er Course / Concurrents ASAF"
-    t_haut = "🏆 CLASSEMENT OFFICIEUX Division 123 (Top 25)"
-    t_milieu = "🏆 CLASSEMENT OFFICIEUX Division 4 (Top 10)"
+    t_haut = "🏆 CLASSEMENT GENERAL OFFICIEUX Division 123 (Top 25)"
+    t_milieu = "🏆 CLASSEMENT GENERAL OFFICIEUX Division 4 (Top 10)"
     t_bas = "🏆 CLASSEMENT OFFICIEUX PAR Division / Classe (Top 3)"
 
     return df_live, df_hist, df_asaf123, df_asaf4, html_divisions, t_live, t_his, t_haut, t_milieu, t_bas
