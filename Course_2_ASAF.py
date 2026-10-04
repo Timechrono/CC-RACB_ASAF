@@ -47,7 +47,7 @@ st.markdown("""
         background-color: #E0F2FE !important;
     }
     
-    /* FORÇAGE DE LA LIGNE BLEUE DE SÉPARATION : Ombre portée interne sur les cellules */
+    /* FORÇAGE DE LA LIGNE BLEUE DE SÉPARATION */
     tr.ligne-separation-classe td, .table-compacte tr.ligne-separation-classe td { 
         box-shadow: inset 0 -3px 0 0 #1E3A8A !important; 
     }
@@ -68,9 +68,8 @@ st.markdown("""
     .table-hist th:nth-child(6), .table-hist td:nth-child(6) { width: 14% !important; }  
     .table-hist th:nth-child(7), .table-hist td:nth-child(7) { width: 14% !important; }  
 
-    /* AJUSTEMENT SMARTPHONE PRIORITAIRE */
+    /* AJUSTEMENT SMARTPHONE : Limitation de la colonne Voiture */
     @media (max-width: 768px) {
-        /* Masquage propre du surplus de texte de la colonne Voiture (3e colonne) */
         .table-compacte td:nth-child(3), table td:nth-child(3) {
             max-width: 60px !important;
             overflow: hidden !important;
@@ -138,7 +137,6 @@ def formater_heure_ecran(val):
     s = s.zfill(6)
     return f"{s[0:2]}:{s[2:4]}.{s[4:6]}" if len(s) == 6 else str(val)
 
-# AJOUT SÉCURISÉ : Définition de la fonction de fusion manquante
 def fusionner_temps_manches(dict_asaf, dict_racb):
     d_fusion = dict_asaf.copy()
     for k, v in dict_racb.items():
@@ -148,6 +146,79 @@ def fusionner_temps_manches(dict_asaf, dict_racb):
 
 cols_live = ["N°", "Nom_Prenom", "Voiture", "Départ", "Arrivée", "Chrono"]
 cols_hist = ["N°", "Nom_Prenom", "Voiture", "Div", "Cl", "Course 1", "Chrono"]
+def recuperer_donnees_course():
+    df_live = pd.DataFrame(columns=cols_live)
+    df_hist = pd.DataFrame(columns=cols_hist)
+    df_asaf123 = pd.DataFrame(columns=["Pos", "N°", "Nom_Prenom", "Div", "Cl", "Chrono"])
+    df_asaf4 = pd.DataFrame(columns=["Pos", "N°", "Nom_Prenom", "Div", "Cl", "Chrono"])
+    html_divisions = "<table class='table-compacte table-class-groupes'><tr><td style='text-align: center; padding: 10px;'>Aucune donnée disponible</td></tr></table>"
+
+    try:
+        df_eng_raw = pd.read_excel(telecharger_excel(FILE_ENGAGES), skiprows=1, engine='openpyxl')
+        df_dep_raw = pd.read_excel(telecharger_excel(FILE_DEPART), header=None, engine='openpyxl')
+        df_arr_raw = pd.read_excel(telecharger_excel(FILE_ARRIVEE), header=None, engine='openpyxl')
+
+        def extraire_chiffre_division(txt):
+            if pd.isna(txt) or txt is None: return "-"
+            s = str(txt).strip()
+            if s.endswith(".0"): s = s[:-2]
+            chiffres = [c for c in s if c.isdigit()]
+            return "".join(chiffres) if chiffres else s
+
+        df_eng = pd.DataFrame({
+            "N°": df_eng_raw.iloc[:, 0].apply(nettoyer_numero), 
+            "Nom_Prenom": df_eng_raw.iloc[:, 1].fillna("Pilote Inconnu").astype(str).str.strip(),
+            "Voiture": df_eng_raw.iloc[:, 4].fillna("").astype(str).str.strip(),
+            "Division": df_eng_raw.iloc[:, 5].apply(extraire_chiffre_division),
+            "Classe": df_eng_raw.iloc[:, 6].fillna("-").astype(str).str.strip().apply(lambda x: x[:-2] if x.endswith(".0") else x)
+        })
+        df_eng = df_eng[df_eng["N°"] != "NAN"].drop_duplicates(subset=["N°"])
+        df_eng = df_eng[df_eng["Division"].isin(["1", "2", "3", "4"])].copy()
+        
+        numeros_autorises_123 = set(df_eng[df_eng["Division"].isin(["1", "2", "3"])]["N°"].unique())
+        numeros_autorises_4 = set(df_eng[df_eng["Division"] == "4"]["N°"].unique())
+        tous_numeros_autorises_asaf = numeros_autorises_123.union(numeros_autorises_4)
+
+        def trouver_index_colonne_titre(df, chaine_recherche):
+            for c_idx in range(len(df.columns)):
+                val = str(df.iloc[1, c_idx]).strip().upper()
+                if chaine_recherche.upper() in val: return c_idx
+            return None
+
+        def extraire_manche_selon_regles_asaf(df_arr_raw, nom_manche, label_categorie):
+            d_manche = {}
+            col_dossard = trouver_index_colonne_titre(df_arr_raw, f"{nom_manche} {label_categorie}")
+            if col_dossard is None: return d_manche
+            for r_idx in range(2, len(df_arr_raw)):
+                nv = nettoyer_numero(df_arr_raw.iloc[r_idx, col_dossard])
+                if nv == "" or nv == "NAN" or nv not in tous_numeros_autorises_asaf: continue
+                d_manche[nv] = {
+                    "h_dep": df_arr_raw.iloc[r_idx, col_dossard + 1] if pd.notna(df_arr_raw.iloc[r_idx, col_dossard + 1]) else None, 
+                    "h_arr": df_arr_raw.iloc[r_idx, col_dossard + 2] if pd.notna(df_arr_raw.iloc[r_idx, col_dossard + 2]) else None, 
+                    "sec": convertir_en_secondes(df_arr_raw.iloc[r_idx, col_dossard + 3])
+                }
+            return d_manche
+
+        dict_c1 = fusionner_temps_manches(extraire_manche_selon_regles_asaf(df_arr_raw, "COURSE 1", "ASAF"), extraire_manche_selon_regles_asaf(df_arr_raw, "COURSE 1", "RACB"))
+        dict_c2 = fusionner_temps_manches(extraire_manche_selon_regles_asaf(df_arr_raw, "COURSE 2", "ASAF"), extraire_manche_selon_regles_asaf(df_arr_raw, "COURSE 2", "RACB"))
+
+        if not df_eng.empty:
+            rows_data = []
+            for _, pilot in df_eng.iterrows():
+                num = pilot["N°"]
+                c1 = dict_c1.get(num, {"h_dep": None, "h_arr": None, "sec": None})
+                c2 = dict_c2.get(num, {"h_dep": None, "h_arr": None, "sec": None})
+                rows_data.append({
+                    "N°": num, "Nom_Prenom": pilot["Nom_Prenom"], "Voiture": pilot["Voiture"],
+                    "Division": pilot["Division"], "Classe": pilot["Classe"],
+                    "Heure_Depart_2": c2["h_dep"], "Heure_Arrivee_2": c2["h_arr"],
+                    "Calc_Sec_1": c1["sec"], "Calc_Sec_2": c2["sec"]
+                })
+            
+            base = pd.DataFrame(rows_data)
+            base = base[base["N°"].isin(tous_numeros_autorises_asaf)].copy()
+    except Exception: pass
+    return df_live, df_hist, df_asaf123, df_asaf4, html_divisions, "Chronométrage", "Historique", "Classement Haut", "Classement Milieu", "Classement Bas"
         if len(base) > 0:
             base["Course_1_Txt"] = base["Calc_Sec_1"].apply(lambda x: format_final_chrono(x, fallback_statut="No Time"))
 
@@ -176,6 +247,7 @@ cols_hist = ["N°", "Nom_Prenom", "Voiture", "Div", "Cl", "Course 1", "Chrono"]
                 return txt_c2
             df_hist_base["Chrono"] = df_hist_base.apply(formater_chrono_historique_pur, axis=1)
             df_hist = df_hist_base[["N°", "Nom_Prenom", "Voiture", "Division", "Classe", "Course_1_Txt", "Chrono"]].rename(columns={"Course_1_Txt": "Course 1", "Division": "Div", "Classe": "Cl"})
+
             valides_cumul = base[base["Calc_Sec_1"].notna() & (base["Calc_Sec_1"] > 0) & base["Calc_Sec_2"].notna() & (base["Calc_Sec_2"] > 0)].copy()
             if len(valides_cumul) > 0:
                 valides_cumul["Cumul_Sec"] = valides_cumul["Calc_Sec_1"] + valides_cumul["Calc_Sec_2"]
