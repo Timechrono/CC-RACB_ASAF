@@ -86,6 +86,12 @@ div.stElementContainer {{
 .titre-hist {{ background-color: #475569 !important; margin-top: 25px !important; margin-bottom: 6px !important; }}
 .titre-classement {{ background-color: #1E3A8A !important; margin-top: 0px !important; margin-bottom: 6px !important; }}
 
+/* Force le style en gras sur la dernière colonne de l'historique de manière sécurisée */
+.table-hist td:last-child {{ 
+    font-weight: bold !important; 
+    color: #0F172A !important; 
+}}
+
 /* Cadre vert très foncé, texte BLANC et NON GRAS */
 .refresh-bleu-clair-historique {{
     color: #FFFFFF !important;
@@ -122,8 +128,7 @@ div.stElementContainer {{
 .table-compacte td {{ border-bottom: 1px solid #E0E0E0 !important; background-color: #FFFFFF !important; }}
 .table-compacte th {{ font-weight: bold !important; background-color: #F5F5F5 !important; border-bottom: 2px solid #CCCCCC !important; text-align: left !important; }}
 .table-live td:last-child, .table-class-robuste td:last-child {{ font-weight: bold !important; font-size: 0.94rem !important; color: #0F172A !important; }}
-.table-hist td:last-child { font-weight: bold !important; color: #0F172A !important; }
-
+.table-hist tr:nth-child(odd) td {{ background-color: #E0F2FE !important; }}
 
 /* Signature alignée en bleu foncé avec pointillés assortis */
 .signature-fin-page {{
@@ -152,9 +157,9 @@ div.stElementContainer {{
     .titre-live, .titre-hist, .titre-classement {{ font-size: 0.85rem !important; padding: 3px 6px !important; }}
     .table-compacte th, .table-compacte td {{ font-size: 0.65rem !important; padding: 1px 2px !important; }}
     
-    /* Limite la colonne Groupe (4e colonne de l'historique) sur smartphone */
+    /* Limite la colonne Groupe / Division (4e colonne de l'historique) à 5 caractères max sur smartphone */
     .table-hist td:nth-child(4) {{
-        max-width: 45px !important;
+        max-width: 40px !important;
         overflow: hidden !important;
         text-overflow: clip !important;
         white-space: nowrap !important;
@@ -165,9 +170,9 @@ div.stElementContainer {{
     .logo-signature {{ height: 32px !important; }}
 }}
 
-/* REPOSITIONNÉ ICI : Force la ligne bleue sur le BAS des cellules */
+/* Force la ligne bleue sur le BAS des cellules */
 .table-class-robuste tr.ligne-bleue-separation td {{
-    border-bottom: 3px solid #1E3A8A !important;
+    box-shadow: inset 0 -3px 0 0 #1E3A8A !important;
 }}
 </style>
 """, unsafe_allow_html=True)
