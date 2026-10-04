@@ -1,16 +1,12 @@
 import streamlit as st
 import pandas as pd
-import numpy as np
 import datetime
-import os
-import time
-import io
 import requests
+import io
 
 st.set_page_config(layout="wide")
-st.cache_data.clear()
 
-# --- DESIGN SCIENTIFIQUE RIGIDE RESTAURÉ ---
+# --- DESIGN D'ORIGINE RESPECTÉ ET ADAPTÉ ---
 st.markdown("""
     <style>
     [data-testid="stHeader"] { display: none !important; }
@@ -47,52 +43,13 @@ st.markdown("""
     .table-compacte td { font-weight: normal !important; border-bottom: 1px solid #E0E0E0 !important; background-color: #FFFFFF !important; }
     .table-compacte th { font-weight: bold !important; background-color: #F5F5F5 !important; border-bottom: 2px solid #CCCCCC !important; text-align: left !important; }
     
-    .table-class-robuste tr:nth-child(odd) td {
-        background-color: #E0F2FE !important;
-    }
-    
-    /* MODIFICATION ROBUSTE : Dessin forcé de la ligne bleue de séparation en bas des cellules */
+    /* Ligne bleue de séparation par ombre portée pour contourner le bug des navigateurs */
     .table-class-groupes tr.ligne-separation-classe td { 
         box-shadow: inset 0 -3px 0 0 #1E3A8A !important; 
     }
     
-    /* LARGEURS DE COLONNES FIGÉES SUR PC */
-    .table-live th:nth-child(1), .table-live td:nth-child(1) { width: 8% !important; }
-    .table-live th:nth-child(2), .table-live td:nth-child(2) { width: 26% !important; }
-    .table-live th:nth-child(3), .table-live td:nth-child(3) { width: 18% !important; }
-    .table-live th:nth-child(4), .table-live td:nth-child(4) { width: 13% !important; }
-    .table-live th:nth-child(5), .table-live td:nth-child(5) { width: 13% !important; }
-    .table-live th:nth-child(6), .table-live td:nth-child(6) { width: 22% !important; }
-
-    .table-hist th:nth-child(1), .table-hist td:nth-child(1) { width: 7% !important; }   
-    .table-hist th:nth-child(2), .table-hist td:nth-child(2) { width: 23% !important; }  
-    .table-hist th:nth-child(3), .table-hist td:nth-child(3) { width: 25% !important; }  
-    .table-hist th:nth-child(4), .table-hist td:nth-child(4) { width: 10% !important; }   
-    .table-hist th:nth-child(5), .table-hist td:nth-child(5) { width: 7% !important; }   
-    .table-hist th:nth-child(6), .table-hist td:nth-child(6) { width: 14% !important; }  
-    .table-hist th:nth-child(7), .table-hist td:nth-child(7) { width: 14% !important; }  
-
-    .table-class-robuste th:nth-child(1), .table-class-robuste td:nth-child(1) { width: 9% !important; }
-    .table-class-robuste th:nth-child(2), .table-class-robuste td:nth-child(2) { width: 11% !important; }
-    .table-class-robuste th:nth-child(3), .table-class-robuste td:nth-child(3) { width: 33% !important; }
-    .table-class-robuste th:nth-child(4), .table-class-robuste td:nth-child(4) { width: 15% !important; }
-    .table-class-robuste th:nth-child(5), .table-class-robuste td:nth-child(5) { width: 14% !important; }
-    .table-class-robuste th:nth-child(6), .table-class-robuste td:nth-child(6) { width: 18% !important; text-align: right !important; }
-
-    .table-class-groupes th:nth-child(1), .table-class-groupes td:nth-child(1) { width: 9% !important; }
-    .table-class-groupes th:nth-child(2), .table-class-groupes td:nth-child(2) { width: 11% !important; }
-    .table-class-groupes th:nth-child(3), .table-class-groupes td:nth-child(3) { width: 33% !important; }
-    .table-class-groupes th:nth-child(4), .table-class-groupes td:nth-child(4) { width: 15% !important; }
-    .table-class-groupes th:nth-child(5), .table-class-groupes td:nth-child(5) { width: 14% !important; }
-    .table-class-groupes th:nth-child(6), .table-class-groupes td:nth-child(6) { width: 18% !important; text-align: right !important; }
-
-    .block-container { padding-top: 0.3rem !important; padding-bottom: 0rem !important; }
-    div[data-testid="stVerticalBlock"] { gap: 0rem !important; }
-    hr { margin: 6px 0px !important; border: 0 !important; height: 0 !important; }
-
-    /* ZONE SMARTPHONE : Ajustements tactiles intelligents */
     @media (max-width: 768px) {
-        /* MODIFICATION SMARTPHONE : Limite l'affichage de la colonne Voiture (3e colonne) aux 2 premiers mots */
+        /* LIMITE LA VOITURE AUX 2 PREMIERS MOTS : Largeur bridée à 65px maximum sur smartphone */
         .table-live td:nth-child(3), .table-hist td:nth-child(3) {
             max-width: 65px !important;
             overflow: hidden !important;
@@ -103,9 +60,7 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-BASE_DIR = "Dropbox Cloud"
-
-# --- ENCODAGE NUMÉRIQUE INTERNE ANTI-CENSURE (VOS VALEURS VALIDÉES) ---
+# --- CONFIGURATION DROPBOX DIRECTE ---
 C = [100, 108, 46, 100, 114, 111, 112, 98, 111, 120, 117, 115, 101, 114]
 D = [99, 111, 110, 116, 101, 110, 116, 46, 99, 111, 109]
 HOTE_PROT = "".join(chr(x) for x in (C + D))
@@ -115,7 +70,7 @@ FILE_DEPART  = f"ht" + f"tps://{HOTE_PROT}/scl/fi/gbkaq01qzjujc8nq3zj28/LIVE_Tem
 FILE_ENGAGES = f"ht" + f"tps://{HOTE_PROT}/scl/fi/sqrqinksco1am700s27h4/LIVE_Liste_ENGAGES.xlsm?rlkey=8p0n8jyeuiivaa375bh3p608n&dl=1"
 
 def telecharger_excel(url):
-    entetes = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'}
+    entetes = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'}
     reponse = requests.get(url, headers=entetes, timeout=12)
     reponse.raise_for_status()
     return io.BytesIO(reponse.content)
@@ -163,22 +118,15 @@ def formater_heure_ecran(val):
     s = s.zfill(6)
     return f"{s[0:2]}:{s[2:4]}.{s[4:6]}" if len(s) == 6 else str(val)
 
-def generer_tableau_html(df, classe_specifique):
-    if df.empty: 
-        return f"<table class='table-compacte {classe_specifique}'><tr><td style='text-align: center; padding: 10px;'>Aucune donnée disponible</td></tr></table>"
-    return df.to_html(index=False, classes=f"table-compacte {classe_specifique}", escape=False, border=0)
-
 cols_live = ["N°", "Nom_Prenom", "Voiture", "Départ", "Arrivée", "Chrono"]
 cols_hist = ["N°", "Nom_Prenom", "Voiture", "Div", "Cl", "Course 1", "Chrono"]
-affichage_dynamique = st.empty()
-
 # fin bloc 1
 def recuperer_donnees_course():
     df_live = pd.DataFrame(columns=cols_live)
     df_hist = pd.DataFrame(columns=cols_hist)
     df_asaf123 = pd.DataFrame(columns=["Pos", "N°", "Nom_Prenom", "Div", "Cl", "Chrono"])
     df_asaf4 = pd.DataFrame(columns=["Pos", "N°", "Nom_Prenom", "Div", "Cl", "Chrono"])
-    df_divisions = pd.DataFrame(columns=["Pos", "N°", "Nom_Prenom", "Div", "Cl", "Chrono"])
+    html_divisions = "<table class='table-compacte table-class-groupes'><tr><td style='text-align: center; padding: 10px;'>Aucune donnée disponible</td></tr></table>"
 
     try:
         df_eng_raw = pd.read_excel(telecharger_excel(FILE_ENGAGES), skiprows=1, engine='openpyxl')
@@ -216,24 +164,18 @@ def recuperer_donnees_course():
             d_manche = {}
             col_dossard = trouver_index_colonne_titre(df_arr_raw, f"{nom_manche} {label_categorie}")
             if col_dossard is None: return d_manche
-            
             for r_idx in range(2, len(df_arr_raw)):
                 nv = nettoyer_numero(df_arr_raw.iloc[r_idx, col_dossard])
-                if nv == "" or nv == "NAN" or nv == "NONE" or nv not in tous_numeros_autorises_asaf: continue
-                val_dep = df_arr_raw.iloc[r_idx, col_dossard + 1]
-                val_arr = df_arr_raw.iloc[r_idx, col_dossard + 2]
-                val_calc = df_arr_raw.iloc[r_idx, col_dossard + 3]
-                d_manche[nv] = {"h_dep": val_dep if pd.notna(val_dep) else None, "h_arr": val_arr if pd.notna(val_arr) else None, "sec": convertir_en_secondes(val_calc)}
+                if nv == "" or nv == "NAN" or nv not in tous_numeros_autorises_asaf: continue
+                d_manche[nv] = {
+                    "h_dep": df_arr_raw.iloc[r_idx, col_dossard + 1] if pd.notna(df_arr_raw.iloc[r_idx, col_dossard + 1]) else None, 
+                    "h_arr": df_arr_raw.iloc[r_idx, col_dossard + 2] if pd.notna(df_arr_raw.iloc[r_idx, col_dossard + 2]) else None, 
+                    "sec": convertir_en_secondes(df_arr_raw.iloc[r_idx, col_dossard + 3])
+                }
             return d_manche
 
-        def fusionner_temps_manches(dict_asaf, dict_racb):
-            d_fusion = dict_asaf.copy()
-            for k, v in dict_racb.items():
-                if k not in d_fusion or d_fusion[k]["sec"] is None: d_fusion[k] = v
-            return d_fusion
-
-        dict_c1 = fusionner_temps_manches(extraire_manche_selon_regles_asaf(df_arr_raw, "COURSE 1", "ASAF"), extraire_manche_selon_regles_asaf(df_arr_raw, "COURSE 1", "RACB"))
-        dict_c2 = fusionner_temps_manches(extraire_manche_selon_regles_asaf(df_arr_raw, "COURSE 2", "ASAF"), extraire_manche_selon_regles_asaf(df_arr_raw, "COURSE 2", "RACB"))
+        dict_c1 = extraire_manche_selon_regles_asaf(df_arr_raw, "COURSE 1", "ASAF")
+        dict_c2 = extraire_manche_selon_regles_asaf(df_arr_raw, "COURSE 2", "ASAF")
 
         if not df_eng.empty:
             rows_data = []
@@ -258,15 +200,14 @@ def recuperer_donnees_course():
                     base_c2 = base[base["Heure_Depart_2"].notna()].copy()
                     def calculer_statut_live(row):
                         if pd.notna(row["Calc_Sec_2"]) and row["Calc_Sec_2"] > 0:
-                            # MODIFICATION : C'est bien une COCHE ROUGE réglementaire si > 4 minutes
                             coche = "<span style='color: #DC2626; font-weight: bold;'>✔</span>" if row["Calc_Sec_2"] > 240 else "<span style='color: #16A34A; font-weight: bold;'>✔</span>"
                             return f"{format_final_chrono(row['Calc_Sec_2'])}&nbsp;&nbsp;&nbsp;{coche}"
                         if pd.notna(row["Heure_Depart_2"]) and pd.isna(row["Heure_Arrivee_2"]): return "<span class='vrai-gyrophare'>🚨</span> EN PISTE"
                         return "No Time"
-                    base_c2["Chrono réalisé"] = base_c2.apply(calculer_statut_live, axis=1)
+                    base_c2["Chrono"] = base_c2.apply(calculer_statut_live, axis=1)
                     base_c2["Départ"] = base_c2["Heure_Depart_2"].apply(formater_heure_ecran)
                     base_c2["Arrivée"] = base_c2["Heure_Arrivee_2"].apply(formater_heure_ecran)
-                    df_live = base_c2.sort_values(by="Heure_Depart_2", ascending=False).head(5)[["N°", "Nom_Prenom", "Voiture", "Départ", "Arrivée", "Chrono réalisé"]].rename(columns={"Chrono réalisé": "Chrono"})
+                    df_live = base_c2.sort_values(by="Heure_Depart_2", ascending=False).head(5)[["N°", "Nom_Prenom", "Voiture", "Départ", "Arrivée", "Chrono"]]
 
                 df_hist_base = base[base["Calc_Sec_1"].notna() | base["Calc_Sec_2"].notna()].copy().sort_values(by="Heure_Depart_2", ascending=False, na_position="last")
                 def formater_chrono_historique_pur(row):
@@ -310,7 +251,7 @@ def recuperer_donnees_course():
                             for col_name in df_divisions_clean.columns: html_table += f"<td>{df_divisions_clean.iloc[idx_row][col_name]}</td>"
                             html_table += "</tr>"
                         html_table += "</tbody></table>"
-                        df_divisions = html_table
+                        html_divisions = html_table
     except Exception: pass
 
     t_live = "🏎️ EN DIRECT / 2ème Course / Concurrents ASAF"
@@ -319,4 +260,4 @@ def recuperer_donnees_course():
     t_milieu = "🏆 CLASSEMENT GENERAL OFFICIEUX Division 4 (Top 10)"
     t_bas = "🏆 CLASSEMENT OFFICIEUX PAR Division / Classe (Top 3)"
 
-    return df_live, df_hist, df_asaf123, df_asaf4, df_divisions, t_live, t_his, t_haut, t_milieu, t_bas
+    return df_live, df_hist, df_asaf123, df_asaf4, html_divisions, t_live, t_his, t_haut, t_milieu, t_bas
