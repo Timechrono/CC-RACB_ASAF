@@ -235,7 +235,7 @@ def recuperer_donnees_course():
                         html_divisions = "".join(html_blocs)
     except Exception: pass
 
-    # --- MODIFICATION : LES NOUVEAUX TITRES DEMANDÉS ---
+        # --- TITRES ENTIÈREMENT CENTRALISÉS AVEC "GENERAL" AJOUTÉ ---
     t_live = "🏎️ EN DIRECT / 1er Course / Concurrents ASAF"
     t_his = "🕒 HISTORIQUE DES TEMPS / 1er Course / Concurrents ASAF"
     t_haut = "🏆 CLASSEMENT GENERAL OFFICIEUX Division 123 (Top 25)"
