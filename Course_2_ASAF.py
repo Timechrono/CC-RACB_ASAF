@@ -52,7 +52,7 @@ st.markdown("""
         box-shadow: inset 0 -3px 0 0 #1E3A8A !important; 
     }
     
-    /* MODIFICATION : Force les temps en GRAS dans le classement du bas */
+    /* Force les temps en GRAS dans le classement du bas */
     .table-class-groupes td:last-child {
         font-weight: bold !important;
         color: #0F172A !important;
@@ -86,8 +86,8 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 # --- CONFIGURATION DROPBOX DIRECTE ---
-C =
-D =
+C = [100, 108, 46, 100, 114, 111, 112, 98, 111, 120, 117, 115, 101, 114]
+D = [99, 111, 110, 116, 101, 110, 116, 46, 99, 111, 109]
 HOTE_PROT = "".join(chr(x) for x in (C + D))
 
 FILE_ARRIVEE = f"ht" + f"tps://{HOTE_PROT}/scl/fi/7uu9cmlpzglx0ngvbklpt/LIVE_Temps_ARRIVEE.xlsm?rlkey=g9urz4v3jr36h0apzt45ognm6&dl=1"
@@ -110,7 +110,7 @@ def convertir_en_secondes(valeur):
     if ":" in s:
         try:
             parts = s.split(":")
-            return (int(parts) * 60) + float(parts.replace(",", "."))
+            return (int(parts) * 60) + float(parts[1].replace(",", "."))
         except Exception: pass
     if s.endswith(".0"): s = s[:-2]
     s_clean = "".join([c for c in s if c.isdigit()])
