@@ -224,7 +224,6 @@ try:
 
     with ThreadPoolExecutor(max_workers=1) as executor:
         future = executor.submit(recuperer_avec_timeout)
-        # CORRECTION : Suppression du .submit() erroné
         res = future.result(timeout=3.5)
         if res and len(res) == 10:
             d_liv, d_his, d_haut, d_milieu, d_bas, t_live, t_his, t_haut, t_milieu, t_bas = res
@@ -239,7 +238,7 @@ with cg:
     conteneur_titre_live = st.empty()
     st.markdown(gen_html(d_liv, "table-live"), unsafe_allow_html=True)
     
-    # SOLUTION SANS BUG : Utilisation d'un vrai bloc de titre Markdown natif Streamlit
+    # MODIFICATION CORRIGÉE : Utilisation d'un vrai bloc de titre Markdown natif
     if t_his: 
         st.markdown(f"### {t_his}")
     st.markdown(gen_html(d_his, "table-hist"), unsafe_allow_html=True)
