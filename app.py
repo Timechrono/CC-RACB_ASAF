@@ -9,7 +9,7 @@ import Essais
 # ==============================================================================
 # ⚠️ METTEZ VOTRE LIEN DROPBOX ICI (Assurez-vous qu'il se termine bien par dl=1)
 # ==============================================================================
-LIEN_DROPBOX_LOGO = "https://dropbox.com"
+LIEN_DROPBOX_LOGO = "https://www.dropbox.com/scl/fi/hi24fjo0vbal4oiiwt9jl/logo-TimeC.png?rlkey=xlw0oqk9gdnq6v5dgahi0klg0&st=y86yrn6y&dl=1"
 
 # --- DÉTECTION DES SCRIPTS DE COURSE DISPONIBLES ---
 try:
@@ -224,7 +224,8 @@ try:
 
     with ThreadPoolExecutor(max_workers=1) as executor:
         future = executor.submit(recuperer_avec_timeout)
-        res = future.submit().result(timeout=3.5)
+        # CORRECTION : Suppression du .submit() erroné
+        res = future.result(timeout=3.5)
         if res and len(res) == 10:
             d_liv, d_his, d_haut, d_milieu, d_bas, t_live, t_his, t_haut, t_milieu, t_bas = res
 except Exception as e:
@@ -238,7 +239,7 @@ with cg:
     conteneur_titre_live = st.empty()
     st.markdown(gen_html(d_liv, "table-live"), unsafe_allow_html=True)
     
-    # RECTIFICATION : Changé en div pour corriger définitivement le bug d'affichage
+    # Titre en div pour corriger définitivement le bug d'affichage
     if t_his: st.markdown(f"<div class='titre-hist'>{t_his}</div>", unsafe_allow_html=True)
     st.markdown(gen_html(d_his, "table-hist"), unsafe_allow_html=True)
     
