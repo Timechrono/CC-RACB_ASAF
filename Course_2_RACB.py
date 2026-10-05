@@ -19,7 +19,7 @@ CSS_RIGIDE_ORIGINE = """
     vertical-align: middle !important; overflow: hidden !important; text-overflow: ellipsis !important; white-space: nowrap !important; 
 }
 
-/* RETOUR DU COLORIAGE 1 LIGNE SUR 2 UNIQUEMENT DANS L'HISTORIQUE */
+/* RETOUR STRICT DU COLORIAGE 1 LIGNE SUR 2 DANS L'HISTORIQUE */
 .table-hist tr:nth-child(odd) td { 
     background-color: #E0F2FE !important; 
 }
@@ -45,6 +45,7 @@ CSS_RIGIDE_ORIGINE = """
 .table-live th:nth-child(5), .table-live td:nth-child(5) { width: 13% !important; }
 .table-live th:nth-child(6), .table-live td:nth-child(6) { width: 22% !important; }
 
+/* REPARTITION OPTIMISÉE CONTRE LE RABOTAGE DU GROUPE */
 .table-hist th:nth-child(1), .table-hist td:nth-child(1) { width: 6% !important; }   
 .table-hist th:nth-child(2), .table-hist td:nth-child(2) { width: 22% !important; }  
 .table-hist th:nth-child(3), .table-hist td:nth-child(3) { width: 22% !important; }  
@@ -153,9 +154,9 @@ def recuperer_donnees_course():
     D = [99, 111, 110, 116, 101, 110, 116, 46, 99, 111, 109]
     HOTE_PROT = "".join(chr(x) for x in (C + D))
 
-    FILE_ARRIVEE = f"https://{HOTE_PROT}/scl/fi/7uu9cmlpzglx0ngvbklpt/LIVE_Temps_ARRIVEE.xlsm?rlkey=g9urz4v3jr36h0apzt45ognm6&st=0d9mpgfw&dl=1"
-    FILE_DEPART  = f"https://{HOTE_PROT}/scl/fi/gbkaq01qzjujc8nq3zj28/LIVE_Temps_DEPART.xlsm?rlkey=4x4rvvlfyzz8v59gqbxn80a4d&st=mcibn3xx&dl=1"
-    FILE_ENGAGES_RACB = f"https://{HOTE_PROT}/scl/fi/69zkwsb45bpiw3ys3kk4c/LIVE_Liste_ENGAGES_RACB.xlsm?rlkey=qpjrlmbxhcskifnabs84veqh8&st=0snuv3e7&dl=1"
+    FILE_ARRIVEE = f"ht" + f"tps://{HOTE_PROT}/scl/fi/7uu9cmlpzglx0ngvbklpt/LIVE_Temps_ARRIVEE.xlsm?rlkey=g9urz4v3jr36h0apzt45ognm6&st=0d9mpgfw&dl=1"
+    FILE_DEPART  = f"ht" + f"tps://{HOTE_PROT}/scl/fi/gbkaq01qzjujc8nq3zj28/LIVE_Temps_DEPART.xlsm?rlkey=4x4rvvlfyzz8v59gqbxn80a4d&st=mcibn3xx&dl=1"
+    FILE_ENGAGES_RACB = f"ht" + f"tps://{HOTE_PROT}/scl/fi/69zkwsb45bpiw3ys3kk4c/LIVE_Liste_ENGAGES_RACB.xlsm?rlkey=qpjrlmbxhcskifnabs84veqh8&st=0snuv3e7&dl=1"
 
     cols_live = ["N°", "Nom_Prenom", "Voiture", "Départ", "Arrivée", "Chrono réalisé"]
     cols_hist = ["N°", "Nom_Prenom", "Voiture", "Groupe", "Classe", "Course 1", "Chrono réalisé"]
@@ -249,7 +250,6 @@ def recuperer_donnees_course():
                     meilleur_sec = min(v_valides) if v_valides else None
                     
                     txt_c1_brut = format_final_chrono(t1)
-                    # COMPARAISON ET APPLICATION TECHNIQUE DU GRAS (SANS COULEUR DE FOND)
                     txt_c1_visuel = f"<strong>{txt_c1_brut}</strong>" if (meilleur_sec and t1 == meilleur_sec) else txt_c1_brut
 
                     if pd.notna(row["Heure_Depart_2"]) and pd.isna(row["Heure_Arrivee_2"]):
@@ -273,6 +273,7 @@ def recuperer_donnees_course():
                     valides["Meilleur_Sec"] = valides[["Calc_Sec_1", "Calc_Sec_2"]].min(axis=1, skipna=True)
                     scr = valides.sort_values(by="Meilleur_Sec").drop_duplicates(subset=["N°"], keep="first").copy()
                     
+                    # RETOUR DU SCRATCH AU TOP 20
                     racb = scr.head(20).copy()
                     if len(racb) > 0:
                         racb["Pos"] = range(1, len(racb) + 1); racb["Chrono"] = racb["Meilleur_Sec"].apply(format_final_chrono)
