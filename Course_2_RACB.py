@@ -12,6 +12,13 @@ CSS_RIGIDE_ORIGINE = """
     vertical-align: middle !important;
 }
 
+.table-scroll-smartphone {
+    width: 100% !important;
+    overflow-x: scroll !important;
+    -webkit-overflow-scrolling: touch !important;
+    display: block !important;
+}
+
 .table-compacte { width: 100% !important; margin-bottom: 0px !important; border-collapse: collapse !important; table-layout: fixed !important; }
 .table-compacte tr { height: 18px !important; }
 .table-compacte th, .table-compacte td { 
@@ -57,9 +64,8 @@ CSS_RIGIDE_ORIGINE = """
     .table-hist th:nth-child(7), .table-hist td:nth-child(7) { width: 17% !important; }  
 }
 
-/* CORRECTIF RESPONSIVE RADICAL SUR SMARTPHONE (MAX-WIDTH: 768px) */
+/* CONFIGURATION HARMONISÉE SMARTPHONE (MAX-WIDTH: 768px) */
 @media (max-width: 768px) {
-    /* Extraction forcée de l'architecture bloquante des colonnes Streamlit */
     .table-scroll-smartphone {
         width: 100% !important;
         overflow-x: scroll !important;
@@ -68,7 +74,6 @@ CSS_RIGIDE_ORIGINE = """
         -webkit-overflow-scrolling: touch !important;
     }
     
-    /* On donne une dimension cible plus grande que l'écran pour forcer le doigt à faire glisser */
     .table-compacte {
         width: 440px !important;
         min-width: 440px !important;
@@ -114,57 +119,6 @@ CSS_RIGIDE_ORIGINE = """
 .table-class-groupes tr td { background-color: #FFFFFF !important; }
 </style>
 """
-
-def telecharger_excel(url):
-    entetes = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'}
-    reponse = requests.get(url, headers=entetes, timeout=12)
-    reponse.raise_for_status()
-    return io.BytesIO(reponse.content)
-
-def convertir_en_secondes(valeur):
-    if pd.isna(valeur) or valeur is None: return None
-    if isinstance(valeur, pd.Timedelta): return valeur.total_seconds()
-    if isinstance(valeur, (datetime.time, datetime.datetime)):
-        return (valeur.minute * 60) + valeur.second + (valeur.microsecond / 1000000)
-    s = str(valeur).strip()
-    if not s or s.lower() == "nan": return None
-    if ":" in s:
-        try:
-            parts = s.split(":")
-            m = int(parts[0])
-            sec = float(parts[1].replace(",", "."))
-            return (m * 60) + sec
-        except Exception: pass
-    if s.endswith(".0"): s = s[:-2]
-    s_clean = "".join([c for c in s if c.isdigit()])
-    if not s_clean: return None
-    num = int(s_clean)
-    centiemes = num % 100
-    secondes = (num // 100) % 100
-    minutes = num // 10000
-    if minutes >= 60: minutes = minutes % 60
-    return (minutes * 60) + secondes + (centiemes / 100)
-
-def nettoyer_numero(valeur):
-    if pd.isna(valeur): return "nan"
-    s = str(valeur).strip().upper()
-    return s[:-2] if s.endswith(".0") else s
-
-def format_final_chrono(total_sec, fallback_statut="No Time"):
-    if total_sec is None or pd.isna(total_sec) or total_sec < 0: return fallback_statut
-    m, reste_sec = divmod(round(total_sec, 2), 60)
-    s = int(reste_sec // 1)
-    c = int(round((reste_sec % 1) * 100))
-    if c == 100: s += 1; c = 0
-    if s == 60: m += 1; s = 0
-    return f"{int(m):02d}:{s:02d}.{c:02d}"
-
-def formater_heure_ecran(val):
-    if pd.isna(val) or val == "" or str(val).lower() == "nan": return "-"
-    s = str(val).strip()
-    if s.endswith(".0"): s = s[:-2]
-    s = s.zfill(6)
-    return f"{s[0:2]}:{s[2:4]}.{s[4:6]}" if len(s) == 6 else str(val)
 def calculer_statut_chrono(row, est_dans_le_live=True):
     if "Calc_Sec_2" in row and pd.notna(row["Calc_Sec_2"]) and row["Calc_Sec_2"] > 0:
         chrono_txt = format_final_chrono(row["Calc_Sec_2"])
@@ -174,7 +128,7 @@ def calculer_statut_chrono(row, est_dans_le_live=True):
             else:
                 return f"{chrono_txt} &nbsp;<span style='color: #22C55E; font-weight: bold;'>✓</span>"
         return chrono_txt
-    if "Heure_Depart_2" in row and pd.notna(row["Heure_Depart_2"]) and ("Heure_Arrivee_2" in row and pd.isna(row["Heure_Arrivee_2"])):
+    if "Heure_Depart_2" in row wholesaler and pd.notna(row["Heure_Depart_2"]) and ("Heure_Arrivee_2" in row and pd.isna(row["Heure_Arrivee_2"])):
         return "<span class='vrai-gyrophare'>🚨</span> EN PISTE" if est_dans_le_live else "En Piste"
     return "No Time"
 
@@ -287,6 +241,7 @@ def recuperer_donnees_course():
 
                 df_hist_base = base.assign(Ordre_Saisie=range(len(base))).sort_values(by="Ordre_Saisie", ascending=False).copy()
                 
+                # SÉCURISÉ : RECONSTRUCTION SANS ERREUR DE CONCATÉNATION DE CHAÎNE
                 html_hist = CSS_RIGIDE_ORIGINE
                 html_hist += "<div class='table-scroll-smartphone'>"
                 html_hist += "<table class='table-compacte table-hist'><thead><tr><th>N°</th><th>Nom_Prenom</th><th>Voiture</th><th>Groupe</th><th>Cl</th><th>Course 1</th><th>Chrono</th></tr></thead><tbody>"
