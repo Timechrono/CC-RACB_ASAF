@@ -57,13 +57,13 @@ CSS_RIGIDE_ORIGINE = """
     .table-hist th:nth-child(7), .table-hist td:nth-child(7) { width: 17% !important; }  /* Chrono */
 }
 
-/* ADAPTATION SMARTPHONE MOBILE (MAX-WIDTH: 768px) */
+/* ADAPTATION SMARTPHONE MOBILE COMPLÈTE (MAX-WIDTH: 768px) */
 @media (max-width: 768px) {
     .table-compacte th, .table-compacte td { 
         font-size: 0.65rem !important; 
         padding: 1px 2px !important; 
     }
-    /* Compression Voiture (3e) et Groupe (4e) */
+    /* Resserrement Voiture (3e) et Groupe (4e) pour sauver la colonne Nom_Prenom */
     .table-hist th:nth-child(3), .table-hist td:nth-child(3),
     .table-hist th:nth-child(4), .table-hist td:nth-child(4) {
         width: 35px !important;
@@ -72,7 +72,7 @@ CSS_RIGIDE_ORIGINE = """
         text-overflow: clip !important;
         white-space: nowrap !important;
     }
-    /* RÉDUCTION DES CARACTÈRES POUR COURSE 1 ET CHRONO (AVEC MAINTIEN DES TEMPS VISIBLES) */
+    /* RÉDUCTION CIBLÉE DES CARACTÈRES POUR COURSE 1 (6e) ET CHRONO (7e) */
     .table-hist th:nth-child(6), .table-hist td:nth-child(6),
     .table-hist th:nth-child(7), .table-hist td:nth-child(7) {
         width: 65px !important;
@@ -113,8 +113,8 @@ def convertir_en_secondes(valeur):
     if ":" in s:
         try:
             parts = s.split(":")
-            m = int(parts)
-            sec = float(parts.replace(",", "."))
+            m = int(parts[0])
+            sec = float(parts[1].replace(",", "."))
             return (m * 60) + sec
         except Exception: pass
     if s.endswith(".0"): s = s[:-2]
@@ -177,8 +177,8 @@ def extraire_suffixe_pour_tri(valeur_classe):
     chiffres = "".join([c for c in s if c.isdigit()])
     return s[len(chiffres):].strip()
 def recuperer_donnees_course():
-    C =
-    D =
+    C = [100, 108, 46, 100, 114, 111, 112, 98, 111, 120, 117, 115, 101, 114]
+    D = [99, 111, 110, 116, 101, 110, 116, 46, 99, 111, 109]
     HOTE_PROT = "".join(chr(x) for x in (C + D))
 
     FILE_ARRIVEE = f"https://{HOTE_PROT}/scl/fi/7uu9cmlpzglx0ngvbklpt/LIVE_Temps_ARRIVEE.xlsm?rlkey=g9urz4v3jr36h0apzt45ognm6&st=0d9mpgfw&dl=1"
