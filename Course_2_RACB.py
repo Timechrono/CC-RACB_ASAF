@@ -13,9 +13,9 @@ def injecter_styles_css():
         <style>
         [data-testid="stHeader"] { display: none !important; }
         
-        /* TEXTE PUR SANS FOND POUR LES COCHES */
-        .coche-verte { color: #22C55E !important; font-weight: bold !important; font-size: 1.1rem !important; margin-right: 6px; }
-        .coche-rouge { color: #EF4444 !important; font-weight: bold !important; font-size: 1.1rem !important; margin-right: 6px; }
+        /* TEXTE PUR SANS FOND POUR LES COCHES (A DROITE) */
+        .coche-verte { color: #22C55E !important; font-weight: bold !important; font-size: 1.1rem !important; margin-left: 6px; }
+        .coche-rouge { color: #EF4444 !important; font-weight: bold !important; font-size: 1.1rem !important; margin-left: 6px; }
         .vrai-gyrophare { display: inline-block; margin-right: 6px; font-size: 1.05rem !important; vertical-align: middle !important; }
         
         .titre-live, .titre-hist, .titre-classement {
@@ -35,7 +35,10 @@ def injecter_styles_css():
         }
         .table-compacte td { font-weight: normal !important; border-bottom: 1px solid #E0E0E0 !important; background-color: #FFFFFF !important; }
         .table-compacte th { font-weight: bold !important; background-color: #F5F5F5 !important; border-bottom: 2px solid #CCCCCC !important; text-align: left !important; }
-        .table-compacte td.meilleur-temps { background-color: #d9fcec !important; color: #000000 !important; font-weight: bold !important; }
+        
+        /* FOND VERT PASTEL DE CHRONO SUR TEXTE UNIQUEMENT */
+        .txt-meilleur { background-color: #d9fcec !important; font-weight: bold !important; padding: 1px 3px !important; border-radius: 2px !important; }
+        
         .table-class-robuste tr:nth-child(odd) td { background-color: #E0F2FE !important; }
         .ligne-separation-classe td { border-bottom: 2px solid #1E3A8A !important; }
         
@@ -43,31 +46,37 @@ def injecter_styles_css():
             font-weight: bold !important; font-size: 0.94rem !important; color: #0F172A !important;
         }
         
+        /* GAUCHE : Largeurs En Direct */
         .table-live th:nth-child(1), .table-live td:nth-child(1) { width: 8% !important; }
         .table-live th:nth-child(2), .table-live td:nth-child(2) { width: 26% !important; }
         .table-live th:nth-child(3), .table-live td:nth-child(3) { width: 18% !important; }
         .table-live th:nth-child(4), .table-live td:nth-child(4) { width: 13% !important; }
         .table-live th:nth-child(5), .table-live td:nth-child(5) { width: 13% !important; }
         .table-live th:nth-child(6), .table-live td:nth-child(6) { width: 22% !important; }
-        .table-hist th:nth-child(1), .table-hist td:nth-child(1) { width: 7% !important; }   
-        .table-hist th:nth-child(2), .table-hist td:nth-child(2) { width: 23% !important; }  
-        .table-hist th:nth-child(3), .table-hist td:nth-child(3) { width: 25% !important; }  
-        .table-hist th:nth-child(4), .table-hist td:nth-child(4) { width: 10% !important; }   
-        .table-hist th:nth-child(5), .table-hist td:nth-child(5) { width: 7% !important; }   
-        .table-hist th:nth-child(6), .table-hist td:nth-child(6) { width: 14% !important; }  
-        .table-hist th:nth-child(7), .table-hist td:nth-child(7) { width: 14% !important; }  
+
+        /* GAUCHE : Largeurs Historique Course (Optimisées contre le rabotage) */
+        .table-hist th:nth-child(1), .table-hist td:nth-child(1) { width: 6% !important; }   /* N° */
+        .table-hist th:nth-child(2), .table-hist td:nth-child(2) { width: 22% !important; }  /* Nom_Prenom */
+        .table-hist th:nth-child(3), .table-hist td:nth-child(3) { width: 22% !important; }  /* Voiture */
+        .table-hist th:nth-child(4), .table-hist td:nth-child(4) { width: 10% !important; }  /* Groupe */
+        .table-hist th:nth-child(5), .table-hist td:nth-child(5) { width: 6% !important; }   /* Cl */
+        .table-hist th:nth-child(6), .table-hist td:nth-child(6) { width: 17% !important; }  /* Course 1 */
+        .table-hist th:nth-child(7), .table-hist td:nth-child(7) { width: 17% !important; }  /* Chrono */
+
         .table-class-robuste th:nth-child(1), .table-class-robuste td:nth-child(1) { width: 9% !important; }
         .table-class-robuste th:nth-child(2), .table-class-robuste td:nth-child(2) { width: 11% !important; }
         .table-class-robuste th:nth-child(3), .table-class-robuste td:nth-child(3) { width: 33% !important; }
         .table-class-robuste th:nth-child(4), .table-class-robuste td:nth-child(4) { width: 23% !important; }
         .table-class-robuste th:nth-child(5), .table-class-robuste td:nth-child(5) { width: 6% !important; }
         .table-class-robuste th:nth-child(6), .table-class-robuste td:nth-child(6) { width: 18% !important; text-align: right !important; }
+
         .table-class-groupes th:nth-child(1), .table-class-groupes td:nth-child(1) { width: 5% !important; }   
         .table-class-groupes th:nth-child(2), .table-class-groupes td:nth-child(2) { width: 8% !important; }   
         .table-class-groupes th:nth-child(3), .table-class-groupes td:nth-child(3) { width: 35% !important; }  
         .table-class-groupes th:nth-child(4), .table-class-groupes td:nth-child(4) { width: 21% !important; }  
         .table-class-groupes th:nth-child(5), .table-class-groupes td:nth-child(5) { width: 11% !important; }  
         .table-class-groupes th:nth-child(6), .table-class-groupes td:nth-child(6) { width: 14% !important; text-align: right !important; } 
+
         .table-class-groupes tr td { background-color: #FFFFFF !important; }
         .block-container { padding-top: 0.3rem !important; padding-bottom: 0rem !important; }
         div[data-testid="stVerticalBlock"] { gap: 0rem !important; }
@@ -119,10 +128,10 @@ def calculer_statut_chrono(row, est_dans_le_live=True):
     if "Calc_Sec_2" in row and pd.notna(row["Calc_Sec_2"]) and row["Calc_Sec_2"] > 0:
         chrono_txt = format_final_chrono(row["Calc_Sec_2"])
         if est_dans_le_live:
-            if row["Calc_Sec_2"] >= 240: # Seuil strict de 4 minutes
-                return f"<span class='coche-rouge'>✗</span> {chrono_txt}"
+            if row["Calc_Sec_2"] >= 240:
+                return f"{chrono_txt} <span class='coche-rouge'>✗</span>"
             else:
-                return f"<span class='coche-verte'>✓</span> {chrono_txt}"
+                return f"{chrono_txt} <span class='coche-verte'>✓</span>"
         return chrono_txt
     if "Heure_Depart_2" in row and pd.notna(row["Heure_Depart_2"]) and ("Heure_Arrivee_2" in row and pd.isna(row["Heure_Arrivee_2"])):
         return "<span class='vrai-gyrophare'>🚨</span> EN PISTE" if est_dans_le_live else "En Piste"
@@ -169,11 +178,10 @@ def afficher_course_2_racb():
     FILE_ENGAGES_RACB = f"ht" + f"tps://{HOTE_PROT}/scl/fi/69zkwsb45bpiw3ys3kk4c/LIVE_Liste_ENGAGES_RACB.xlsm?rlkey=qpjrlmbxhcskifnabs84veqh8&st=0snuv3e7&dl=1"
 
     cols_live = ["N°", "Nom_Prenom", "Voiture", "Départ", "Arrivée", "Chrono réalisé"]
-    cols_hist = ["N°", "Nom_Prenom", "Voiture", "Groupe", "Classe", "Course 1", "Chrono réalisé"]
     affichage_dynamique = st.empty()
 
     while True:
-        html_hist = "<table class='table-compacte table-hist'><tr><td style='text-align: center; padding: 10px;'>Aucune donnée disponible</td></tr></table>"
+        html_hist = "<table class='table-compacte table-hist'><tr><td style='text-align: center; padding: 10px;'>Aucune donnée disponible pour le plateau RACB</td></tr></table>"
         df_live = pd.DataFrame(columns=cols_live)
         df_racb = pd.DataFrame(columns=["Pos", "N°", "Nom_Prenom", "Groupe", "Classe", "Chrono"])
         df_divisions = pd.DataFrame(columns=["Pos", "N°", "Nom_Prenom", "Groupe", "Classe", "Chrono"])
@@ -181,7 +189,7 @@ def afficher_course_2_racb():
         try:
             file_engages_bytes = telecharger_excel(FILE_ENGAGES_RACB)
             file_depart_bytes = telecharger_excel(FILE_DEPART)
-            file_arrivee_bytes = telecharger_excel(FILE_ARRIVEE)
+            file_arrivee_bytes = telecharger_excel(URL_ARRIVEE if 'URL_ARRIVEE' in locals() else FILE_ARRIVEE)
             fichiers_prets = True
         except:
             fichiers_prets = False
@@ -255,29 +263,41 @@ def afficher_course_2_racb():
                         df_live = df_live_base[["N°", "Nom_Prenom", "Voiture", "Départ_C2", "Arrivée_C2", "Chrono réalisé"]].rename(columns={"Départ_C2": "Départ", "Arrivée_C2": "Arrivée"})
 
                     df_hist_base = base.assign(Ordre_Saisie=range(len(base))).sort_values(by="Ordre_Saisie", ascending=False).copy()
+                    
+                    # Rendu HTML de l'Historique avec Nouveaux En-têtes (Cl et Chrono)
                     html_hist = "<table class='table-compacte table-hist'><thead><tr>"
-                    for col in ["N°", "Nom_Prenom", "Voiture", "Groupe", "Classe", "Course 1", "Chrono réalisé"]: html_hist += f"<th>{col}</th>"
+                    for col in ["N°", "Nom_Prenom", "Voiture", "Groupe", "Cl", "Course 1", "Chrono"]: 
+                        html_hist += f"<th>{col}</th>"
                     html_hist += "</tr></thead><tbody>"
 
                     for idx, row in df_hist_base.iterrows():
                         t1, t2 = row["Calc_Sec_1"], row["Calc_Sec_2"]
                         v_valides = [v for v in [t1, t2] if pd.notna(v) and v > 0]
                         meilleur_sec = min(v_valides) if v_valides else None
-                        s1 = "class='meilleur-temps'" if (meilleur_sec and t1 == meilleur_sec) else ""
-                        s2 = "class='meilleur-temps'" if (meilleur_sec and t2 == meilleur_sec) else ""
+                        
+                        txt_c1_brut = format_final_chrono(t1)
+                        txt_c1_visuel = f"<span class='txt-meilleur'>{txt_c1_brut}</span>" if (meilleur_sec and t1 == meilleur_sec) else txt_c1_brut
 
                         if pd.notna(row["Heure_Depart_2"]) and pd.isna(row["Heure_Arrivee_2"]):
-                            txt_c2_visuel, s2 = "En Piste", ""
+                            txt_c2_visuel = "En Piste"
                         elif pd.isna(t2) or t2 <= 0:
                             txt_c2_visuel = "No Time"
                         else:
-                            txt_c2 = format_final_chrono(t2)
-                            if pd.notna(t1) and t1 > 0:
-                                txt_c2_visuel = f"{txt_c2} <span style='color: #22C55E; font-size: 1.65rem; line-height:1;'>▲</span>" if t2 < t1 else f"{txt_c2} <span style='color: #EF4444; font-size: 1.65rem; line-height:1;'>▼</span>" if t2 > t1 else txt_c2
+                            txt_c2_brut = format_final_chrono(t2)
+                            # Isolation du fond vert pastel sur le texte uniquement (pas sur la flèche)
+                            if meilleur_sec and t2 == meilleur_sec:
+                                base_txt = f"<span class='txt-meilleur'>{txt_c2_brut}</span>"
                             else:
-                                txt_c2_visuel = txt_c2
+                                base_txt = txt_c2_brut
+                                
+                            if pd.notna(t1) and t1 > 0:
+                                if t2 < t1: txt_c2_visuel = f"{base_txt} <span style='color: #22C55E; font-size: 1.65rem; line-height:1; font-weight:normal;'>▲</span>"
+                                elif t2 > t1: txt_c2_visuel = f"{base_txt} <span style='color: #EF4444; font-size: 1.65rem; line-height:1; font-weight:normal;'>▼</span>"
+                                else: txt_c2_visuel = base_txt
+                            else:
+                                txt_c2_visuel = base_txt
 
-                        html_hist += f"<tr><td>{row['N°']}</td><td>{row['Nom_Prenom']}</td><td>{row['Voiture']}</td><td>{row['Groupe']}</td><td>{row['Classe']}</td><td {s1}>{format_final_chrono(t1)}</td><td {s2}>{txt_c2_visuel}</td></tr>"
+                        html_hist += f"<tr><td>{row['N°']}</td><td>{row['Nom_Prenom']}</td><td>{row['Voiture']}</td><td>{row['Groupe']}</td><td>{row['Classe']}</td><td>{txt_c1_visuel}</td><td>{txt_c2_visuel}</td></tr>"
                     html_hist += "</tbody></table>"
 
                     valides = base[((base["Calc_Sec_1"].notna() & (base["Calc_Sec_1"] > 0)) | (base["Calc_Sec_2"].notna() & (base["Calc_Sec_2"] > 0)))].copy()
@@ -312,7 +332,7 @@ def afficher_course_2_racb():
                     st.markdown("<span class='titre-live'>🏎️ EN DIRECT / Derniers concurrents partis</span>", unsafe_allow_html=True)
                     st.markdown(generer_tableau_html(df_live, "table-live"), unsafe_allow_html=True)
                     st.markdown("<div style='height: 35px;'></div>", unsafe_allow_html=True)
-                    st.markdown("<span class='titre-hist'>🕒 HISTORIQUE DES TEMPS / 2ème COURSE</span>", unsafe_allow_html=True)
+                    st.markdown("<span class='titre-hist'>🕒 HISTORIQUE DES TEMPS / 2ème COURSE / Concurrents RACB</span>", unsafe_allow_html=True)
                     st.markdown(html_hist, unsafe_allow_html=True)
                 with cd:
                     st.markdown("<span class='titre-classement'>🏆 CLASSEMENT EVOLUTIF OFFICIEUX (Top 30)</span>", unsafe_allow_html=True)
@@ -322,4 +342,6 @@ def afficher_course_2_racb():
                     st.markdown(generer_tableau_html(df_divisions, "table-class-groupes"), unsafe_allow_html=True)
                     
         time.sleep(1)
+
+# Lancement strict du script
 afficher_course_2_racb()
