@@ -59,7 +59,7 @@ st.markdown("""
         background-color: #E0F2FE !important;
     }
     
-    /* Séparateur de classe bleu foncé de 2px de large sur les cellules tr */
+    /* Séparateur de classe bleu de 2px de large */
     .table-class-groupes tr.ligne-separation-classe td { 
         border-bottom: 2px solid #1E3A8A !important; 
     }
@@ -301,26 +301,26 @@ def recuperer_donnees_course():
                     df_grouped = scr.sort_values(by=["Division", "Classe_Num", "Cumul_Sec"]).groupby(["Division", "Classe_Num"]).head(3).copy()
                     
                     if len(df_grouped) > 0:
-                        # Tri physique des pilotes pour injecter la bordure au bon endroit
-                        df_grouped = df_grouped.sort_values(by=["Division", "Classe_Num", "Cumul_Sec"]).reset_index(drop=True)
-                        df_grouped["Pos"] = df_grouped.groupby(["Division", "Classe_Num"]).cumcount() + 1
-                        
                         hb = []
+                        go = df_grouped.groupby(["Division", "Classe_Num"])
+                        tg, cg = len(go), 0
+                        
                         hb.append("<div class='zone-defilement-tactile'><table class='table-compacte table-class-groupes'><thead><tr><th>Pos</th><th>N°</th><th>Nom_Prenom</th><th>Div</th><th>Cl</th><th>Chrono</th></tr></thead><tbody>")
                         
-                        # ALGORITHME DE SÉPARATION DE CLASSE ULTRA-SÉCURISÉ (ZÉRO RISQUE DE DEBORDEMENT D'INDEX)
-                        for idx_g in range(len(df_grouped)):
-                            r_g = df_grouped.iloc[idx_g]
-                            chrono_txt_classe = format_final_chrono(r_g['Cumul_Sec']) # Somme des 2 meilleurs temps
+                        # LOGIQUE SÉCURISÉE PAR BLOC : On traite chaque classe de manière totalement isolée (Plus aucun risque d'IndexError)
+                        for (div, cl), g in go:
+                            cg += 1
+                            g = g.copy()
+                            g["Pos"] = range(1, len(g) + 1)
+                            g["Chrono"] = g["Cumul_Sec"].apply(format_final_chrono)
                             
-                            classe_style_row = ""
-                            if idx_g < len(df_grouped) - 1:
-                                r_suivant = df_grouped.iloc[idx_g + 1]
-                                # Si le pilote suivant change de classe ou de division, on trace la ligne bleue d'interruption
-                                if str(r_g['Division']) != str(r_suivant['Division']) or str(r_g['Classe']) != str(r_suivant['Classe']):
-                                    classe_style_row = "class='ligne-separation-classe'"
-                                    
-                            hb.append(f"<tr {classe_style_row}><td>{r_g['Pos']}</td><td>{r_g['N°']}</td><td>{r_g['Nom_Prenom']}</td><td>{r_g['Division']}</td><td>{r_g['Classe']}</td><td>{chrono_txt_classe}</td></tr>")
+                            # Injection des lignes du groupe actuel
+                            for idx_g, r_g in g.iterrows():
+                                hb.append(f"<tr><td>{r_g['Pos']}</td><td>{r_g['N°']}</td><td>{r_g['Nom_Prenom']}</td><td>{r_g['Division']}</td><td>{r_g['Classe']}</td><td>{r_g['Chrono']}</td></tr>")
+                            
+                            # Si on n'est pas au dernier groupe, on injecte la ligne de séparation bleue
+                            if cg < tg:
+                                hb.append("<tr class='ligne-separation-classe'><td colspan='6' style='padding:0 !important;'></td></tr>")
                                 
                         hb.append("</tbody></table></div>")
                         df_divisions = "".join(hb)
