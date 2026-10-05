@@ -12,13 +12,6 @@ CSS_RIGIDE_ORIGINE = """
     vertical-align: middle !important;
 }
 
-.table-scroll-smartphone {
-    width: 100% !important;
-    overflow-x: scroll !important;
-    -webkit-overflow-scrolling: touch !important;
-    display: block !important;
-}
-
 .table-compacte { width: 100% !important; margin-bottom: 0px !important; border-collapse: collapse !important; table-layout: fixed !important; }
 .table-compacte tr { height: 18px !important; }
 .table-compacte th, .table-compacte td { 
@@ -46,63 +39,21 @@ CSS_RIGIDE_ORIGINE = """
     font-size: 0.94rem !important; color: #0F172A !important;
 }
 
-/* LARGEURS DE COLONNES STRICTES SUR ORDINATEUR (MIN-WIDTH: 769px) */
-@media (min-width: 769px) {
-    .table-live th:nth-child(1), .table-live td:nth-child(1) { width: 8% !important; }
-    .table-live th:nth-child(2), .table-live td:nth-child(2) { width: 26% !important; }
-    .table-live th:nth-child(3), .table-live td:nth-child(3) { width: 18% !important; }
-    .table-live th:nth-child(4), .table-live td:nth-child(4) { width: 13% !important; }
-    .table-live th:nth-child(5), .table-live td:nth-child(5) { width: 13% !important; }
-    .table-live th:nth-child(6), .table-live td:nth-child(6) { width: 22% !important; }
+/* LARGEURS STRICTES PC */
+.table-live th:nth-child(1), .table-live td:nth-child(1) { width: 8% !important; }
+.table-live th:nth-child(2), .table-live td:nth-child(2) { width: 26% !important; }
+.table-live th:nth-child(3), .table-live td:nth-child(3) { width: 18% !important; }
+.table-live th:nth-child(4), .table-live td:nth-child(4) { width: 13% !important; }
+.table-live th:nth-child(5), .table-live td:nth-child(5) { width: 13% !important; }
+.table-live th:nth-child(6), .table-live td:nth-child(6) { width: 22% !important; }
 
-    .table-hist th:nth-child(1), .table-hist td:nth-child(1) { width: 6% !important; }   
-    .table-hist th:nth-child(2), .table-hist td:nth-child(2) { width: 22% !important; }  
-    .table-hist th:nth-child(3), .table-hist td:nth-child(3) { width: 22% !important; }  
-    .table-hist th:nth-child(4), .table-hist td:nth-child(4) { width: 13% !important; }   
-    .table-hist th:nth-child(5), .table-hist td:nth-child(5) { width: 6% !important; }   
-    .table-hist th:nth-child(6), .table-hist td:nth-child(6) { width: 14% !important; }  
-    .table-hist th:nth-child(7), .table-hist td:nth-child(7) { width: 17% !important; }  
-}
-
-/* SMARTPHONE (MAX-WIDTH: 768px) : GLISSEMENT FORCE TACTILE */
-@media (max-width: 768px) {
-    .table-scroll-smartphone {
-        width: 100% !important;
-        overflow-x: scroll !important;
-        overflow-y: hidden !important;
-        display: block !important;
-        -webkit-overflow-scrolling: touch !important;
-    }
-    
-    .table-compacte {
-        width: 440px !important;
-        min-width: 440px !important;
-        display: table !important;
-    }
-
-    .table-compacte th, .table-compacte td { 
-        font-size: 0.65rem !important; 
-        padding: 1px 2px !important; 
-    }
-    
-    /* EN DIRECT SUR SMARTPHONE */
-    .table-live th:nth-child(1), .table-live td:nth-child(1) { width: 30px !important; }
-    .table-live th:nth-child(2), .table-live td:nth-child(2) { width: 110px !important; }
-    .table-live th:nth-child(3), .table-live td:nth-child(3) { width: 45px !important; }
-    .table-live th:nth-child(6), .table-live td:nth-child(6) { font-size: 0.58rem !important; font-weight: bold !important; }
-    
-    /* HISTORIQUE SUR SMARTPHONE */
-    .table-hist th:nth-child(1), .table-hist td:nth-child(1) { width: 25px !important; }
-    .table-hist th:nth-child(2), .table-hist td:nth-child(2) { width: 110px !important; }
-    .table-hist th:nth-child(3), .table-hist td:nth-child(3) { width: 40px !important; }
-    .table-hist th:nth-child(4), .table-hist td:nth-child(4) { width: 40px !important; }
-    .table-hist th:nth-child(5), .table-hist td:nth-child(5) { width: 20px !important; }
-    .table-hist th:nth-child(6), .table-hist td:nth-child(6) { width: 60px !important; font-size: 0.70rem !important; }
-    .table-hist th:nth-child(7), .table-hist td:nth-child(7) { width: 65px !important; font-size: 0.70rem !important; }
-    
-    /* CLASSEMENT SCRATCH GENERAL */
-    .table-class-robuste th:nth-child(6), .table-class-robuste td:nth-child(6) { font-size: 0.70rem !important; font-weight: bold !important; }
-}
+.table-hist th:nth-child(1), .table-hist td:nth-child(1) { width: 6% !important; }   
+.table-hist th:nth-child(2), .table-hist td:nth-child(2) { width: 22% !important; }  
+.table-hist th:nth-child(3), .table-hist td:nth-child(3) { width: 22% !important; }  
+.table-hist th:nth-child(4), .table-hist td:nth-child(4) { width: 13% !important; }   
+.table-hist th:nth-child(5), .table-hist td:nth-child(5) { width: 6% !important; }   
+.table-hist th:nth-child(6), .table-hist td:nth-child(6) { width: 14% !important; }  
+.table-hist th:nth-child(7), .table-hist td:nth-child(7) { width: 17% !important; }  
 
 .table-class-robuste th:nth-child(1), .table-class-robuste td:nth-child(1) { width: 9% !important; }
 .table-class-robuste th:nth-child(2), .table-class-robuste td:nth-child(2) { width: 11% !important; }
@@ -110,6 +61,7 @@ CSS_RIGIDE_ORIGINE = """
 .table-class-robuste th:nth-child(4), .table-class-robuste td:nth-child(4) { width: 23% !important; }
 .table-class-robuste th:nth-child(5), .table-class-robuste td:nth-child(5) { width: 6% !important; }
 .table-class-robuste th:nth-child(6), .table-class-robuste td:nth-child(6) { width: 18% !important; text-align: right !important; }
+
 .table-class-groupes th:nth-child(1), .table-class-groupes td:nth-child(1) { width: 5% !important; }   
 .table-class-groupes th:nth-child(2), .table-class-groupes td:nth-child(2) { width: 8% !important; }   
 .table-class-groupes th:nth-child(3), .table-class-groupes td:nth-child(3) { width: 35% !important; }  
@@ -117,6 +69,13 @@ CSS_RIGIDE_ORIGINE = """
 .table-class-groupes th:nth-child(5), .table-class-groupes td:nth-child(5) { width: 11% !important; }  
 .table-class-groupes th:nth-child(6), .table-class-groupes td:nth-child(6) { width: 14% !important; text-align: right !important; } 
 .table-class-groupes tr td { background-color: #FFFFFF !important; }
+
+/* STYLE EXCLUSIF DE DEFILEMENT POUR SENS TACTILE SMARTPHONE */
+.zone-defilement-tactile {
+    width: 100% !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+}
 </style>
 """
 
@@ -185,8 +144,13 @@ def calculer_statut_chrono(row, est_dans_le_live=True):
 
 def generer_tableau_html(df, classe_specifique):
     if df.empty: 
-        return f"<div class='table-scroll-smartphone'><table class='table-compacte {classe_specifique}'><tr><td style='text-align: center; padding: 10px;'>Aucune donnée disponible</td></tr></table></div>"
-    return f"<div class='table-scroll-smartphone'>" + df.to_html(index=False, classes=f"table-compacte {classe_specifique}", escape=False, border=0) + "</div>"
+        return f"<table class='table-compacte {classe_specifique}'><tr><td style='text-align: center; padding: 10px;'>Aucune donnée disponible</td></tr></table>"
+    
+    # APPLICATION DU SCROLL UNIQUEMENT SI C'EST LA TABLE DIRECT (TABLE-LIVE) OU LES AUTRES CAS SPÉCIFIQUES SOUHAITÉS
+    html_brut = df.to_html(index=False, classes=f"table-compacte {classe_specifique}", escape=False, border=0)
+    if "table-live" in classe_specifique:
+        return f"<div class='zone-defilement-tactile'>{html_brut}</div>"
+    return html_brut
 
 def decomposer_classe_pour_tri(valeur_classe):
     s = str(valeur_classe).strip().upper()
@@ -200,13 +164,13 @@ def extraire_suffixe_pour_tri(valeur_classe):
     chiffres = "".join([c for c in s if c.isdigit()])
     return s[len(chiffres):].strip()
 def recuperer_donnees_course():
-    C = [119, 119, 119, 46, 100, 114, 111, 112, 98, 111, 120, 46, 99, 111, 109]
-    D = []
+    C =
+    D =
     HOTE_PROT = "".join(chr(x) for x in (C + D))
 
-    FILE_ARRIVEE = f"https://{HOTE_PROT}/scl/fi/7uu9cmlpzglx0ngvbklpt/LIVE_Temps_ARRIVEE.xlsm?rlkey=g9urz4v3jr36h0apzt45ognm6&dl=1"
-    FILE_DEPART  = f"https://{HOTE_PROT}/scl/fi/gbkaq01qzjujc8nq3zj28/LIVE_Temps_DEPART.xlsm?rlkey=4x4rvvlfyzz8v59gqbxn80a4d&dl=1"
-    FILE_ENGAGES_RACB = f"https://{HOTE_PROT}/scl/fi/69zkwsb45bpiw3ys3kk4c/LIVE_Liste_ENGAGES_RACB.xlsm?rlkey=qpjrlmbxhcskifnabs84veqh8&dl=1"
+    FILE_ARRIVEE = f"https://{HOTE_PROT}/scl/fi/7uu9cmlpzglx0ngvbklpt/LIVE_Temps_ARRIVEE.xlsm?rlkey=g9urz4v3jr36h0apzt45ognm6&st=0d9mpgfw&dl=1"
+    FILE_DEPART  = f"https://{HOTE_PROT}/scl/fi/gbkaq01qzjujc8nq3zj28/LIVE_Temps_DEPART.xlsm?rlkey=4x4rvvlfyzz8v59gqbxn80a4d&st=mcibn3xx&dl=1"
+    FILE_ENGAGES_RACB = f"https://{HOTE_PROT}/scl/fi/69zkwsb45bpiw3ys3kk4c/LIVE_Liste_ENGAGES_RACB.xlsm?rlkey=qpjrlmbxhcskifnabs84veqh8&st=0snuv3e7&dl=1"
 
     cols_live = ["N°", "Nom_Prenom", "Voiture", "Départ", "Arrivée", "Chrono réalisé"]
     cols_hist = ["N°", "Nom_Prenom", "Voiture", "Groupe", "Classe", "Course 1", "Chrono réalisé"]
@@ -292,8 +256,8 @@ def recuperer_donnees_course():
 
                 df_hist_base = base.assign(Ordre_Saisie=range(len(base))).sort_values(by="Ordre_Saisie", ascending=False).copy()
                 
-                html_hist = CSS_RIGIDE_ORIGINE
-                html_hist += "<div class='table-scroll-smartphone'>"
+                # SÉCURISATION ET ENCAPSULATION STRICTE DE LA TABLE HISTORIQUE DANS SON CONTENEUR TACTILE MOBILE
+                html_hist = "<div class='zone-defilement-tactile'>"
                 html_hist += "<table class='table-compacte table-hist'><thead><tr><th>N°</th><th>Nom_Prenom</th><th>Voiture</th><th>Groupe</th><th>Cl</th><th>Course 1</th><th>Chrono</th></tr></thead><tbody>"
 
                 for idx, row in df_hist_base.iterrows():
@@ -341,18 +305,18 @@ def recuperer_donnees_course():
             pass
 
     if not fichiers_prets:
-        html_hist = f"{CSS_RIGIDE_ORIGINE}<div class='table-scroll-smartphone'><table class='table-compacte table-hist'><tr><td style='text-align: center; padding: 10px;'>Aucune donnée disponible pour le plateau RACB</td></tr></table></div>"
+        html_hist = f"{CSS_RIGIDE_ORIGINE}<table class='table-compacte table-hist'><tr><td style='text-align: center; padding: 10px;'>Aucune donnée disponible pour le plateau RACB</td></tr></table>"
 
     if not df_divisions.empty:
-        html_class_div = f"<div class='table-scroll-smartphone'><table class='table-compacte table-class-groupes'><thead><tr><th>Pos</th><th>N°</th><th>Nom_Prenom</th><th>Groupe</th><th>Cl</th><th>Chrono</th></tr></thead><tbody>"
+        html_class_div = f"<table class='table-compacte table-class-groupes'><thead><tr><th>Pos</th><th>N°</th><th>Nom_Prenom</th><th>Groupe</th><th>Cl</th><th>Chrono</th></tr></thead><tbody>"
         for idx in range(len(df_divisions)):
             classe_row = ""
             if idx < len(df_divisions) - 1:
                 if str(df_divisions.iloc[idx]["Cl"]) != str(df_divisions.iloc[idx + 1]["Cl"]):
                     classe_row = "class='ligne-separation-classe'"
             html_class_div += f"<tr {classe_row}><td>{df_divisions.iloc[idx]['Pos']}</td><td>{df_divisions.iloc[idx]['N°']}</td><td>{df_divisions.iloc[idx]['Nom_Prenom']}</td><td>{df_divisions.iloc[idx]['Groupe']}</td><td>{df_divisions.iloc[idx]['Cl']}</td><td>{df_divisions.iloc[idx]['Chrono']}</td></tr>"
-        html_class_div += "</tbody></table></div>"
+        html_class_div += "</tbody></table>"
     else:
-        html_class_div = f"<div class='table-scroll-smartphone'><table class='table-compacte table-class-groupes'><tr><td style='text-align: center; padding: 10px;'>Aucune donnée disponible</td></tr></table></div>"
+        html_class_div = f"<table class='table-compacte table-class-groupes'><tr><td style='text-align: center; padding: 10px;'>Aucune donnée disponible</td></tr></table>"
 
     return df_live, html_hist, df_racb, html_class_div, pd.DataFrame(), t_live, t_his, t_haut, t_milieu, t_bas
