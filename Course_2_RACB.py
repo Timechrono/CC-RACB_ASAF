@@ -48,33 +48,42 @@ CSS_RIGIDE_ORIGINE = """
     .table-live th:nth-child(5), .table-live td:nth-child(5) { width: 13% !important; }
     .table-live th:nth-child(6), .table-live td:nth-child(6) { width: 22% !important; }
 
-    .table-hist th:nth-child(1), .table-hist td:nth-child(1) { width: 6% !important; }   /* N° */
-    .table-hist th:nth-child(2), .table-hist td:nth-child(2) { width: 22% !important; }  /* Nom_Prenom */
-    .table-hist th:nth-child(3), .table-hist td:nth-child(3) { width: 22% !important; }  /* Voiture */
-    .table-hist th:nth-child(4), .table-hist td:nth-child(4) { width: 13% !important; }  /* Groupe */
-    .table-hist th:nth-child(5), .table-hist td:nth-child(5) { width: 6% !important; }   /* Cl */
-    .table-hist th:nth-child(6), .table-hist td:nth-child(6) { width: 14% !important; }  /* Course 1 */
-    .table-hist th:nth-child(7), .table-hist td:nth-child(7) { width: 17% !important; }  /* Chrono */
+    .table-hist th:nth-child(1), .table-hist td:nth-child(1) { width: 6% !important; }   
+    .table-hist th:nth-child(2), .table-hist td:nth-child(2) { width: 22% !important; }  
+    .table-hist th:nth-child(3), .table-hist td:nth-child(3) { width: 22% !important; }  
+    .table-hist th:nth-child(4), .table-hist td:nth-child(4) { width: 13% !important; }   
+    .table-hist th:nth-child(5), .table-hist td:nth-child(5) { width: 6% !important; }   
+    .table-hist th:nth-child(6), .table-hist td:nth-child(6) { width: 14% !important; }  
+    .table-hist th:nth-child(7), .table-hist td:nth-child(7) { width: 17% !important; }  
 }
 
-/* CONFIGURATION EXCLUSIVE SMARTPHONE SMARTPHONE (MAX-WIDTH: 768px) */
+/* CONFIGURATION POUR SMARTPHONE (MAX-WIDTH: 768px) */
 @media (max-width: 768px) {
     .table-compacte th, .table-compacte td { 
         font-size: 0.65rem !important; 
         padding: 1px 2px !important; 
     }
     
-    /* 1. EN DIRECT : RÉDUCTION STRICTE DES CARACTÈRES DE LA COLONNE CHRONO RÉALISÉ (6e colonne) */
+    /* 1. EN DIRECT : RÉDUCTION POLICE CHRONO RÉALISÉ */
     .table-live th:nth-child(6), .table-live td:nth-child(6) {
         font-size: 0.58rem !important;
         font-weight: bold !important;
     }
     
-    /* 2. HISTORIQUE : RÉDUCTION MAXIMUM DE N° (1er) ET Cl (5e) POUR SMARTPHONE */
-    .table-hist th:nth-child(1), .table-hist td:nth-child(1) { width: 25px !important; max-width: 25px !important; }
-    .table-hist th:nth-child(5), .table-hist td:nth-child(5) { width: 20px !important; max-width: 20px !important; }
+    /* 2. HISTORIQUE : CONFINEMENT DE N° ET CL */
+    .table-hist th:nth-child(1), .table-hist td:nth-child(1) { width: 22px !important; max-width: 25px !important; }
+    .table-hist th:nth-child(5), .table-hist td:nth-child(5) { width: 18px !important; max-width: 20px !important; }
     
-    /* 3. HISTORIQUE : RE-CALIBRAGE RADICAL DE VOITURE (3e) ET GROUPE (4e) POUR ÉVITER LE RABOTAGE DU NOM */
+    /* 3. HISTORIQUE : CALIBRAGE DE NOM_PRENOM AJUSTÉ SUR LE PILOTE LE PLUS LARGE (SANS VIDE) */
+    .table-hist th:nth-child(2), .table-hist td:nth-child(2) {
+        width: 110px !important;
+        max-width: 110px !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        white-space: nowrap !important;
+    }
+    
+    /* 4. HISTORIQUE : RÉDUCTION COMPLÈTE DE VOITURE ET GROUPE */
     .table-hist th:nth-child(3), .table-hist td:nth-child(3),
     .table-hist th:nth-child(4), .table-hist td:nth-child(4) {
         width: 30px !important;
@@ -84,20 +93,18 @@ CSS_RIGIDE_ORIGINE = """
         white-space: nowrap !important;
     }
     
-    /* 4. HISTORIQUE : DÉBLOCAGE ET AFFICHAGE EN ENTIER DE LA COLONNE NOM_PRENOM */
-    .table-hist th:nth-child(2), .table-hist td:nth-child(2) {
-        width: auto !important;
-        overflow: visible !important;
-        text-overflow: unset !important;
-        white-space: nowrap !important;
-    }
-    
-    /* 5. HISTORIQUE : AFFICHAGE ASSURÉ ET LISIBLE DE COURSE 1 (6e) ET CHRONO (7e) */
+    /* 5. HISTORIQUE : ASSURANCE LARGEUR COURSE 1 ET CHRONO */
     .table-hist th:nth-child(6), .table-hist td:nth-child(6),
     .table-hist th:nth-child(7), .table-hist td:nth-child(7) {
-        width: 58px !important;
-        min-width: 58px !important;
+        width: 60px !important;
+        min-width: 60px !important;
         font-size: 0.70rem !important;
+    }
+    
+    /* 6. CLASSEMENT EVOLUTIF OFFICIEUX : RÉDUCTION DES CARACTÈRES DE LA COLONNE CHRONO */
+    .table-class-robuste th:nth-child(6), .table-class-robuste td:nth-child(6) {
+        font-size: 0.70rem !important;
+        font-weight: bold !important;
     }
 }
 
@@ -133,8 +140,8 @@ def convertir_en_secondes(valeur):
     if ":" in s:
         try:
             parts = s.split(":")
-            m = int(parts[0])
-            sec = float(parts[1].replace(",", "."))
+            m = int(parts)
+            sec = float(parts.replace(",", "."))
             return (m * 60) + sec
         except Exception: pass
     if s.endswith(".0"): s = s[:-2]
@@ -288,7 +295,10 @@ def recuperer_donnees_course():
                     df_live = df_live_base[["N°", "Nom_Prenom", "Voiture", "Départ_C2", "Arrivée_C2", "Chrono réalisé"]].rename(columns={"Départ_C2": "Départ", "Arrivée_C2": "Arrivée"})
 
                 df_hist_base = base.assign(Ordre_Saisie=range(len(base))).sort_values(by="Ordre_Saisie", ascending=False).copy()
-                html_hist = CSS_RIGIDE_ORIGINE
+                
+                # RE-CONSTRUCTION : COUCHE DE SCROLL HORIZONTAL MOBILE INTEGREE SANS PERTURBER LE RESTE
+                html_hist = "<div style='width: 100% !important; overflow-x: auto !important; -webkit-overflow-scrolling: touch !important;'>"
+                html_hist += CSS_RIGIDE_ORIGINE
                 html_hist += "<table class='table-compacte table-hist'><thead><tr><th>N°</th><th>Nom_Prenom</th><th>Voiture</th><th>Groupe</th><th>Cl</th><th>Course 1</th><th>Chrono</th></tr></thead><tbody>"
 
                 for idx, row in df_hist_base.iterrows():
@@ -313,7 +323,7 @@ def recuperer_donnees_course():
                             txt_c2_visuel = base_txt
 
                     html_hist += f"<tr><td>{row['N°']}</td><td>{row['Nom_Prenom']}</td><td>{row['Voiture']}</td><td>{row['Groupe']}</td><td>{row['Classe']}</td><td>{txt_c1_visuel}</td><td>{txt_c2_visuel}</td></tr>"
-                html_hist += "</tbody></table>"
+                html_hist += "</tbody></table></div>"
 
                 valides = base[((base["Calc_Sec_1"].notna() & (base["Calc_Sec_1"] > 0)) | (base["Calc_Sec_2"].notna() & (base["Calc_Sec_2"] > 0)))].copy()
                 if len(valides) > 0:
