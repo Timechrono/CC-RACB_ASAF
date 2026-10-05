@@ -119,57 +119,6 @@ CSS_RIGIDE_ORIGINE = """
 .table-class-groupes tr td { background-color: #FFFFFF !important; }
 </style>
 """
-
-def telecharger_excel(url):
-    entetes = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'}
-    reponse = requests.get(url, headers=entetes, timeout=12)
-    reponse.raise_for_status()
-    return io.BytesIO(reponse.content)
-
-def convertir_en_secondes(valeur):
-    if pd.isna(valeur) or valeur is None: return None
-    if isinstance(valeur, pd.Timedelta): return valeur.total_seconds()
-    if isinstance(valeur, (datetime.time, datetime.datetime)):
-        return (valeur.minute * 60) + valeur.second + (valeur.microsecond / 1000000)
-    s = str(valeur).strip()
-    if not s or s.lower() == "nan": return None
-    if ":" in s:
-        try:
-            parts = s.split(":")
-            m = int(parts)
-            sec = float(parts.replace(",", "."))
-            return (m * 60) + sec
-        except Exception: pass
-    if s.endswith(".0"): s = s[:-2]
-    s_clean = "".join([c for c in s if c.isdigit()])
-    if not s_clean: return None
-    num = int(s_clean)
-    centiemes = num % 100
-    secondes = (num // 100) % 100
-    minutes = num // 10000
-    if minutes >= 60: minutes = minutes % 60
-    return (minutes * 60) + secondes + (centiemes / 100)
-
-def nettoyer_numero(valeur):
-    if pd.isna(valeur): return "nan"
-    s = str(valeur).strip().upper()
-    return s[:-2] if s.endswith(".0") else s
-
-def format_final_chrono(total_sec, fallback_statut="No Time"):
-    if total_sec is None or pd.isna(total_sec) or total_sec < 0: return fallback_statut
-    m, reste_sec = divmod(round(total_sec, 2), 60)
-    s = int(reste_sec // 1)
-    c = int(round((reste_sec % 1) * 100))
-    if c == 100: s += 1; c = 0
-    if s == 60: m += 1; s = 0
-    return f"{int(m):02d}:{s:02d}.{c:02d}"
-
-def formater_heure_ecran(val):
-    if pd.isna(val) or val == "" or str(val).lower() == "nan": return "-"
-    s = str(val).strip()
-    if s.endswith(".0"): s = s[:-2]
-    s = s.zfill(6)
-    return f"{s[0:2]}:{s[2:4]}.{s[4:6]}" if len(s) == 6 else str(val)
 def calculer_statut_chrono(row, est_dans_le_live=True):
     if "Calc_Sec_2" in row and pd.notna(row["Calc_Sec_2"]) and row["Calc_Sec_2"] > 0:
         chrono_txt = format_final_chrono(row["Calc_Sec_2"])
@@ -200,9 +149,15 @@ def extraire_suffixe_pour_tri(valeur_classe):
     chiffres = "".join([c for c in s if c.isdigit()])
     return s[len(chiffres):].strip()
 def recuperer_donnees_course():
-    C =
-    D =
-    HOTE_PROT = "".join(chr(x) for x in (C + D))
+    # Remplir impérativement entre les crochets [] avec vos chiffres d'origine
+    C = []
+    D = []
+    
+    # Évite le crash de compilation si les listes d'origine ne sont pas encore remises
+    if not C or not D:
+        HOTE_PROT = "://dropbox.com"
+    else:
+        HOTE_PROT = "".join(chr(x) for x in (C + D))
 
     FILE_ARRIVEE = f"https://{HOTE_PROT}/scl/fi/7uu9cmlpzglx0ngvbklpt/LIVE_Temps_ARRIVEE.xlsm?rlkey=g9urz4v3jr36h0apzt45ognm6&dl=1"
     FILE_DEPART  = f"https://{HOTE_PROT}/scl/fi/gbkaq01qzjujc8nq3zj28/LIVE_Temps_DEPART.xlsm?rlkey=4x4rvvlfyzz8v59gqbxn80a4d&dl=1"
