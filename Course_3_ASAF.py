@@ -7,7 +7,7 @@ import time
 import io
 import requests
 
-st.set_page_config(layout="wide")
+# Nettoyage du cache au chargement
 st.cache_data.clear()
 
 # --- DESIGN SCIENTIFIQUE RIGIDE RESTAURÉ ---
@@ -165,7 +165,6 @@ def calculer_statut_chrono_live(valeur_sec):
     if pd.isna(valeur_sec) or valeur_sec <= 0:
         return "No Time"
     chrono_txt = format_final_chrono(valeur_sec)
-    # RÈGLE DU DIRECT : Coche rouge d'élimination si le temps dépasse 4 minutes (240 secondes)
     if valeur_sec >= 240:
         return f"{chrono_txt} &nbsp;<span style='color: #EF4444; font-weight: bold;'>✗</span>"
     else:
@@ -306,7 +305,6 @@ def recuperer_donnees_course():
                     df_grouped = scr.sort_values(by=["Division", "Classe_Num", "Cumul_Sec"]).groupby(["Division", "Classe_Num"]).head(3).copy()
                     
                     if len(df_grouped) > 0:
-                        # Tri linéaire physique strict d'origine restauré
                         df_grouped = df_grouped.sort_values(by=["Division", "Classe_Num", "Cumul_Sec"]).reset_index(drop=True)
                         df_grouped["Pos"] = df_grouped.groupby(["Division", "Classe_Num"]).cumcount() + 1
                         
@@ -314,10 +312,10 @@ def recuperer_donnees_course():
                         # RENOMMAGE APPLIQUÉ DANS L'EN-TÊTE COMPACTÉ : Div et Cl
                         hb.append("<div class='zone-defilement-tactile'><table class='table-compacte table-class-groupes'><thead><tr><th>Pos</th><th>N°</th><th>Nom_Prenom</th><th>Div</th><th>Cl</th><th>Chrono</th></tr></thead><tbody>")
                         
-                        # ALGORITHME DE COMPARAISON SÉCURISÉ LIGNE PAR LIGNE CHRONOLOGIQUE SANS BOUCLE INTRINSÈQUE INFECTÉE
+                        # ALGORITHME DE COMPARAISON SÉCURISÉ LIGNE PAR LIGNE CHRONOLOGIQUE
                         for idx_g in range(len(df_grouped)):
                             r_g = df_grouped.iloc[idx_g]
-                            # RÈGLE DU CLASSEMENT PAR CLASSE : Reprise exacte de l'addition des 2 meilleurs temps (Cumul_Sec)
+                            # RÈGLE DU CLASSEMENT PAR CLASSE : L'addition des 2 meilleurs temps (Cumul_Sec) alimente la colonne Chrono
                             chrono_txt_classe = format_final_chrono(r_g['Cumul_Sec'])
                             
                             classe_style_row = ""
