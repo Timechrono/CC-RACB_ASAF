@@ -161,6 +161,22 @@ def formater_heure_ecran(val):
     if s.endswith(".0"): s = s[:-2]
     s = s.zfill(6)
     return f"{s[0:2]}:{s[2:4]}.{s[4:6]}" if len(s) == 6 else str(val)
+def calculer_statut_chrono_live(valeur_sec):
+    if pd.isna(valeur_sec) or valeur_sec <= 0:
+        return "No Time"
+    chrono_txt = format_final_chrono(valeur_sec)
+    # RÈGLE DU DIRECT : Coche rouge d'élimination si le temps dépasse 4 minutes (240 secondes)
+    if valeur_sec >= 240:
+        return f"{chrono_txt} &nbsp;<span style='color: #EF4444; font-weight: bold;'>✗</span>"
+    else:
+        return f"{chrono_txt} &nbsp;<span style='color: #22C55E; font-weight: bold;'>✓</span>"
+
+def generer_tableau_html(df, classe_specifique):
+    if df.empty: 
+        return f"<div class='zone-defilement-tactile'><table class='table-compacte {classe_specifique}'><tr><td style='text-align: center; padding: 10px;'>Aucune donnée disponible</td></tr></table></div>"
+    
+    html_brut = df.to_html(index=False, classes=f"table-compacte {classe_specifique}", escape=False, border=0)
+    return f"<div class='zone-defilement-tactile'>{html_brut}</div>"
 def recuperer_donnees_course():
     import pandas as pd
     import datetime
