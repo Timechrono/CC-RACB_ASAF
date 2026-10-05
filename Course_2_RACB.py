@@ -95,8 +95,8 @@ def convertir_en_secondes(valeur):
     if ":" in s:
         try:
             parts = s.split(":")
-            m = int(parts[0])
-            sec = float(parts[1].replace(",", "."))
+            m = int(parts)
+            sec = float(parts.replace(",", "."))
             return (m * 60) + sec
         except Exception: pass
     if s.endswith(".0"): s = s[:-2]
@@ -147,7 +147,6 @@ def generer_tableau_html(df, classe_specifique):
         return f"<table class='table-compacte {classe_specifique}'><tr><td style='text-align: center; padding: 10px;'>Aucune donnée disponible</td></tr></table>"
     
     html_brut = df.to_html(index=False, classes=f"table-compacte {classe_specifique}", escape=False, border=0)
-    # LE SCROLL TACTILE EST APPLIQUÉ UNIQUEMENT SUR LA TABLE EN DIRECT
     if "table-live" in classe_specifique:
         return f"<div class='zone-defilement-tactile'>{html_brut}</div>"
     return html_brut
@@ -165,7 +164,7 @@ def extraire_suffixe_pour_tri(valeur_classe):
     return s[len(chiffres):].strip()
 def recuperer_donnees_course():
     C = [119, 119, 119, 46, 100, 114, 111, 112, 98, 111, 120, 46, 99, 111, 109]
-    D = []
+    D = [46, 99, 111, 109]
     HOTE_PROT = "".join(chr(x) for x in (C + D))
 
     FILE_ARRIVEE = f"https://{HOTE_PROT}/scl/fi/7uu9cmlpzglx0ngvbklpt/LIVE_Temps_ARRIVEE.xlsm?rlkey=g9urz4v3jr36h0apzt45ognm6&st=0d9mpgfw&dl=1"
@@ -256,17 +255,16 @@ def recuperer_donnees_course():
 
                 df_hist_base = base.assign(Ordre_Saisie=range(len(base))).sort_values(by="Ordre_Saisie", ascending=False).copy()
                 
-                # LE SCROLL TACTILE EST APPLIQUÉ UNIQUEMENT SUR LA TABLE HISTORIQUE
+                # TABLE HISTORIQUE SÉCURISÉE SANS AUCUNE BALISE DE TEXTE EN GRAS
                 html_hist = "<div class='zone-defilement-tactile'>"
                 html_hist += "<table class='table-compacte table-hist'><thead><tr><th>N°</th><th>Nom_Prenom</th><th>Voiture</th><th>Groupe</th><th>Cl</th><th>Course 1</th><th>Chrono</th></tr></thead><tbody>"
 
                 for idx, row in df_hist_base.iterrows():
                     t1, t2 = row["Calc_Sec_1"], row["Calc_Sec_2"]
-                    v_valides = [v for v in [t1, t2] if pd.notna(v) and v > 0]
-                    meilleur_sec = min(v_valides) if v_valides else None
+                    has_t1 = pd.notna(t1) and isinstance(t1, (int, float)) and t1 > 0
                     
                     txt_c1_brut = format_final_chrono(t1)
-                    txt_c1_visuel = f"<strong><span style='color: #22C55E;'>•</span>&nbsp;{txt_c1_brut}</strong>" if (meilleur_sec and t1 == meilleur_sec) else txt_c1_brut
+                    txt_c1_visuel = f"<span style='color: #22C55E;'>•</span>&nbsp;{txt_c1_brut}" if (has_t1 and (pd.isna(t2) or t2 <= 0 or t1 < t2)) else txt_c1_brut
 
                     if pd.notna(row["Heure_Depart_2"]) and pd.isna(row["Heure_Arrivee_2"]):
                         txt_c2_visuel = "En Piste"
@@ -274,9 +272,9 @@ def recuperer_donnees_course():
                         txt_c2_visuel = "No Time"
                     else:
                         txt_c2_brut = format_final_chrono(t2)
-                        base_txt = f"<strong><span style='color: #22C55E;'>•</span>&nbsp;{txt_c2_brut}</strong>" if (meilleur_sec and t2 == meilleur_sec) else txt_c2_brut
+                        base_txt = f"<span style='color: #22C55E;'>•</span>&nbsp;{txt_c2_brut}" if (not has_t1 or t2 < t1) else txt_c2_brut
                         
-                        if pd.notna(t1) and t1 > 0:
+                        if has_t1:
                             txt_c2_visuel = f"{base_txt} &nbsp;<span style='color: #22C55E; font-size: 1.25rem; vertical-align: middle; display: inline-block; line-height: 1;'>▲</span>" if t2 < t1 else f"{base_txt} &nbsp;<span style='color: #EF4444; font-size: 1.25rem; vertical-align: middle; display: inline-block; line-height: 1;'>▼</span>" if t2 > t1 else base_txt
                         else:
                             txt_c2_visuel = base_txt
