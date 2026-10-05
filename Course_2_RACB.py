@@ -25,7 +25,6 @@ CSS_RIGIDE_ORIGINE = """
     vertical-align: middle !important; overflow: hidden !important; text-overflow: ellipsis !important; white-space: nowrap !important; 
 }
 
-/* NEUTRALISATION ABSOLUE DU FOND ALTERNÉ : On force toutes les lignes en blanc pur */
 .table-hist tr td, .table-hist tr:nth-child(odd) td { 
     background-color: #FFFFFF !important; 
 }
@@ -33,7 +32,6 @@ CSS_RIGIDE_ORIGINE = """
 .table-compacte td { font-weight: normal !important; border-bottom: 1px solid #E0E0E0 !important; }
 .table-compacte th { font-weight: bold !important; background-color: #F5F5F5 !important; border-bottom: 2px solid #CCCCCC !important; text-align: left !important; }
 
-/* LA LIGNE BLEUE DE SEPARATION PAR CLASSE SUR LE BAS DES CELLULES */
 .table-class-groupes tr.ligne-separation-classe td { 
     border-bottom: 2px solid #1E3A8A !important; 
 }
@@ -48,13 +46,16 @@ CSS_RIGIDE_ORIGINE = """
 .table-live th:nth-child(4), .table-live td:nth-child(4) { width: 13% !important; }
 .table-live th:nth-child(5), .table-live td:nth-child(5) { width: 13% !important; }
 .table-live th:nth-child(6), .table-live td:nth-child(6) { width: 22% !important; }
+
+/* RE-REPARTITION : GROUPE AGRANDI (10% -> 13%) / COURSE 1 DIMINUÉ (17% -> 14%) */
 .table-hist th:nth-child(1), .table-hist td:nth-child(1) { width: 6% !important; }   
 .table-hist th:nth-child(2), .table-hist td:nth-child(2) { width: 22% !important; }  
 .table-hist th:nth-child(3), .table-hist td:nth-child(3) { width: 22% !important; }  
-.table-hist th:nth-child(4), .table-hist td:nth-child(4) { width: 10% !important; }   
+.table-hist th:nth-child(4), .table-hist td:nth-child(4) { width: 13% !important; }   
 .table-hist th:nth-child(5), .table-hist td:nth-child(5) { width: 6% !important; }   
-.table-hist th:nth-child(6), .table-hist td:nth-child(6) { width: 17% !important; }  
+.table-hist th:nth-child(6), .table-hist td:nth-child(6) { width: 14% !important; }  
 .table-hist th:nth-child(7), .table-hist td:nth-child(7) { width: 17% !important; }  
+
 .table-class-robuste th:nth-child(1), .table-class-robuste td:nth-child(1) { width: 9% !important; }
 .table-class-robuste th:nth-child(2), .table-class-robuste td:nth-child(2) { width: 11% !important; }
 .table-class-robuste th:nth-child(3), .table-class-robuste td:nth-child(3) { width: 33% !important; }
@@ -272,7 +273,6 @@ def recuperer_donnees_course():
                     valides["Meilleur_Sec"] = valides[["Calc_Sec_1", "Calc_Sec_2"]].min(axis=1, skipna=True)
                     scr = valides.sort_values(by="Meilleur_Sec").drop_duplicates(subset=["N°"], keep="first").copy()
                     
-                    # SCRATCH : STRICTEMENT LE TOP 20
                     racb = scr.head(20).copy()
                     if len(racb) > 0:
                         racb["Pos"] = range(1, len(racb) + 1); racb["Chrono"] = racb["Meilleur_Sec"].apply(format_final_chrono)
@@ -291,7 +291,6 @@ def recuperer_donnees_course():
     if not fichiers_prets:
         html_hist = f"{CSS_RIGIDE_ORIGINE}<table class='table-compacte table-hist'><tr><td style='text-align: center; padding: 10px;'>Aucune donnée disponible pour le plateau RACB</td></tr></table>"
 
-    # RECONSTRUCTION DU TABLEAU PAR CLASSE AVEC LA LIGNE BLEUE DE SÉPARATION APPLIQUÉE SUR LE FOND BLANC PUR
     if not df_divisions.empty:
         html_class_div = f"<table class='table-compacte table-class-groupes'><thead><tr><th>Pos</th><th>N°</th><th>Nom_Prenom</th><th>Groupe</th><th>Cl</th><th>Chrono</th></tr></thead><tbody>"
         for idx in range(len(df_divisions)):
