@@ -37,7 +37,7 @@ CSS_RACB = """
 }
 
 /* ========================================================================= */
-/* 🖥️ CONFIGURATION DES LARGEURS RIGIDES (PC ET MOBILE COMBINÉS)             */
+/* 🖥️ CONFIGURATION DES LARGEURS RIGIDES AVEC AUTO-AJUSTEMENT DU NOM        */
 /* ========================================================================= */
 /* HISTORIQUE : CONFIGURATION DE VOS LARGEURS D'ORIGINE */
 .table-hist th:nth-child(1), .table-hist td:nth-child(1) { width: 6% !important; }   
@@ -49,23 +49,28 @@ CSS_RACB = """
 .table-hist th:nth-child(7), .table-hist td:nth-child(7) { width: 10% !important; }  
 .table-hist th:nth-child(8), .table-hist td:nth-child(8) { width: 14% !important; }  
 
-/* SCRATCH ET PAR CLASSE : VERROUILLAGE DES COLONNES SECONDAIRES AU MINIMUM */
+/* DESACTIVATION DU LAYOUT FIXE POUR LE SCRATCH ET LES CLASSES POUR PERMETTRE L'AJUSTEMENT AU NOM LE PLUS LARGE */
+.table-scratch-robuste, .table-class-groupes {
+    table-layout: auto !important;
+}
+
+/* SCRATCH ET PAR CLASSE : VERROUILLAGE DES COLONNES SECONDAIRES AU MINIMUM VISUEL */
 .table-scratch-robuste th:nth-child(1), .table-scratch-robuste td:nth-child(1),
-.table-class-groupes th:nth-child(1), .table-class-groupes td:nth-child(1) { width: 35px !important; } /* Pos */
+.table-class-groupes th:nth-child(1), .table-class-groupes td:nth-child(1) { width: 35px !important; min-width: 35px !important; } /* Pos */
 
 .table-scratch-robuste th:nth-child(2), .table-scratch-robuste td:nth-child(2),
-.table-class-groupes th:nth-child(2), .table-class-groupes td:nth-child(2) { width: 35px !important; } /* N° */
+.table-class-groupes th:nth-child(2), .table-class-groupes td:nth-child(2) { width: 35px !important; min-width: 35px !important; } /* N° */
 
 .table-scratch-robuste th:nth-child(4), .table-scratch-robuste td:nth-child(4),
-.table-class-groupes th:nth-child(4), .table-class-groupes td:nth-child(4) { width: 55px !important; } /* Division / Div */
+.table-class-groupes th:nth-child(4), .table-class-groupes td:nth-child(4) { width: 60px !important; min-width: 60px !important; } /* Division / Div */
 
 .table-scratch-robuste th:nth-child(5), .table-scratch-robuste td:nth-child(5),
-.table-class-groupes th:nth-child(5), .table-class-groupes td:nth-child(5) { width: 35px !important; } /* Classe / Cl */
+.table-class-groupes th:nth-child(5), .table-class-groupes td:nth-child(5) { width: 35px !important; min-width: 35px !important; } /* Classe / Cl */
 
 .table-scratch-robuste th:nth-child(6), .table-scratch-robuste td:nth-child(6),
-.table-class-groupes th:nth-child(6), .table-class-groupes td:nth-child(6) { width: 65px !important; text-align: right !important; } /* Chrono */
+.table-class-groupes th:nth-child(6), .table-class-groupes td:nth-child(6) { width: 70px !important; min-width: 70px !important; text-align: right !important; } /* Chrono */
 
-/* === FORCE L'AJUSTEMENT AUTOMATIQUE PIXEL PAR PIXEL SUR LE NOM LE PLUS LARGE === */
+/* LA COLONNE S'AJUSTE SUR LE NOM LE PLUS LONG ET COUPE JUSTE APRÈS SANS ESPACE VIDE INUTILE */
 .table-scratch-robuste th:nth-child(3), .table-scratch-robuste td:nth-child(3),
 .table-class-groupes th:nth-child(3), .table-class-groupes td:nth-child(3) {
     width: 1% !important;
