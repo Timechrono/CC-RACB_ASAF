@@ -11,13 +11,7 @@ CSS_RIGIDE_ORIGINE = """
     font-size: 1.05rem !important;
     vertical-align: middle !important;
 }
-.txt-meilleur { 
-    background-color: #d9fcec !important; 
-    font-weight: bold !important; 
-    padding: 1px 3px !important; 
-    border-radius: 2px !important; 
-    color: #000000 !important;
-}
+
 .table-compacte { width: 100% !important; margin-bottom: 0px !important; border-collapse: collapse !important; table-layout: fixed !important; }
 .table-compacte tr { height: 18px !important; }
 .table-compacte th, .table-compacte td { 
@@ -25,7 +19,11 @@ CSS_RIGIDE_ORIGINE = """
     vertical-align: middle !important; overflow: hidden !important; text-overflow: ellipsis !important; white-space: nowrap !important; 
 }
 
-.table-hist tr td, .table-hist tr:nth-child(odd) td { 
+/* RETOUR DU COLORIAGE 1 LIGNE SUR 2 UNIQUEMENT DANS L'HISTORIQUE */
+.table-hist tr:nth-child(odd) td { 
+    background-color: #E0F2FE !important; 
+}
+.table-hist tr:nth-child(even) td { 
     background-color: #FFFFFF !important; 
 }
 
@@ -38,7 +36,7 @@ CSS_RIGIDE_ORIGINE = """
 
 .table-hist td:nth-last-child(2), .table-hist td:last-child,
 .table-live td:last-child, .table-class-robuste td:last-child {
-    font-weight: bold !important; font-size: 0.94rem !important; color: #0F172A !important;
+    font-size: 0.94rem !important; color: #0F172A !important;
 }
 .table-live th:nth-child(1), .table-live td:nth-child(1) { width: 8% !important; }
 .table-live th:nth-child(2), .table-live td:nth-child(2) { width: 26% !important; }
@@ -47,7 +45,6 @@ CSS_RIGIDE_ORIGINE = """
 .table-live th:nth-child(5), .table-live td:nth-child(5) { width: 13% !important; }
 .table-live th:nth-child(6), .table-live td:nth-child(6) { width: 22% !important; }
 
-/* RE-REPARTITION : GROUPE AGRANDI (10% -> 13%) / COURSE 1 DIMINUÉ (17% -> 14%) */
 .table-hist th:nth-child(1), .table-hist td:nth-child(1) { width: 6% !important; }   
 .table-hist th:nth-child(2), .table-hist td:nth-child(2) { width: 22% !important; }  
 .table-hist th:nth-child(3), .table-hist td:nth-child(3) { width: 22% !important; }  
@@ -250,8 +247,10 @@ def recuperer_donnees_course():
                     t1, t2 = row["Calc_Sec_1"], row["Calc_Sec_2"]
                     v_valides = [v for v in [t1, t2] if pd.notna(v) and v > 0]
                     meilleur_sec = min(v_valides) if v_valides else None
+                    
                     txt_c1_brut = format_final_chrono(t1)
-                    txt_c1_visuel = f"<span class='txt-meilleur'>{txt_c1_brut}</span>" if (meilleur_sec and t1 == meilleur_sec) else txt_c1_brut
+                    # COMPARAISON ET APPLICATION TECHNIQUE DU GRAS (SANS COULEUR DE FOND)
+                    txt_c1_visuel = f"<strong>{txt_c1_brut}</strong>" if (meilleur_sec and t1 == meilleur_sec) else txt_c1_brut
 
                     if pd.notna(row["Heure_Depart_2"]) and pd.isna(row["Heure_Arrivee_2"]):
                         txt_c2_visuel = "En Piste"
@@ -259,9 +258,10 @@ def recuperer_donnees_course():
                         txt_c2_visuel = "No Time"
                     else:
                         txt_c2_brut = format_final_chrono(t2)
-                        base_txt = f"<span class='txt-meilleur'>{txt_c2_brut}</span>" if (meilleur_sec and t2 == meilleur_sec) else txt_c2_brut
+                        base_txt = f"<strong>{txt_c2_brut}</strong>" if (meilleur_sec and t2 == meilleur_sec) else txt_c2_brut
+                        
                         if pd.notna(t1) and t1 > 0:
-                            txt_c2_visuel = f"{base_txt} &nbsp;<span style='color: #22C55E; font-size: 1.65rem; line-height:1;'>▲</span>" if t2 < t1 else f"{base_txt} &nbsp;<span style='color: #EF4444; font-size: 1.65rem; line-height:1;'>▼</span>" if t2 > t1 else base_txt
+                            txt_c2_visuel = f"{base_txt} &nbsp;<span style='color: #22C55E; font-size: 1.65rem; line-height:1; font-weight: normal;'>▲</span>" if t2 < t1 else f"{base_txt} &nbsp;<span style='color: #EF4444; font-size: 1.65rem; line-height:1; font-weight: normal;'>▼</span>" if t2 > t1 else base_txt
                         else:
                             txt_c2_visuel = base_txt
 
