@@ -7,6 +7,20 @@ import io
 
 CSS_RACB = """
 <style>
+.vrai-gyrophare {
+    display: inline-block;
+    margin-right: 6px;
+    font-size: 1.05rem !important;
+    vertical-align: middle !important;
+}
+
+.table-compacte { width: 100% !important; margin-bottom: 0px !important; border-collapse: collapse !important; table-layout: fixed !important; }
+.table-compacte tr { height: 18px !important; }
+.table-compacte th, .table-compacte td { 
+    height: 18px !important; padding: 1px 5px !important; line-height: 1.1 !important; font-size: 0.85rem !important; color: #000000 !important; 
+    vertical-align: middle !important; overflow: hidden !important; text-overflow: ellipsis !important; white-space: nowrap !important; 
+}
+
 .table-hist th:nth-child(1), .table-hist td:nth-child(1) { width: 6% !important; }   
 .table-hist th:nth-child(2), .table-hist td:nth-child(2) { width: 23% !important; }  
 .table-hist th:nth-child(3), .table-hist td:nth-child(3) { width: 21% !important; }  
@@ -15,6 +29,13 @@ CSS_RACB = """
 .table-hist th:nth-child(6), .table-hist td:nth-child(6) { width: 10% !important; }  
 .table-hist th:nth-child(7), .table-hist td:nth-child(7) { width: 10% !important; }  
 .table-hist th:nth-child(8), .table-hist td:nth-child(8) { width: 14% !important; }  
+
+/* STYLE EXCLUSIF DE DEFILEMENT POUR SENS TACTILE SMARTPHONE */
+.zone-defilement-tactile {
+    width: 100% !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+}
 </style>
 """
 
@@ -64,6 +85,15 @@ def formater_heure_ecran(val):
     if s.endswith(".0"): s = s[:-2]
     s = s.zfill(6)
     return f"{s[0:2]}:{s[2:4]}.{s[4:6]}" if len(s) == 6 else str(val)
+def generer_tableau_html(df, classe_specifique):
+    if df.empty: 
+        return f"<table class='table-compacte {classe_specifique}'><tr><td style='text-align: center; padding: 10px;'>Aucune donnée disponible</td></tr></table>"
+    
+    html_brut = df.to_html(index=False, classes=f"table-compacte {classe_specifique}", escape=False, border=0)
+    # AJOUT DU GLISSEMENT FORCE UNIQUEMENT SUR LA TABLE EN DIRECT SUR SMARTPHONE
+    if "table-live" in classe_specifique:
+        return f"<div class='zone-defilement-tactile'>{html_brut}</div>"
+    return html_brut
 def recuperer_donnees_course():
     cols_live = ["N°", "Nom_Prenom", "Voiture", "Départ", "Arrivée", "Chrono réalisé"]
     df_live = pd.DataFrame(columns=cols_live)
@@ -114,7 +144,6 @@ def recuperer_donnees_course():
             dict_c2.update({k: v for k, v in extraire_manche_selon_regles_racb(df_arr_raw, "COURSE 2", "ASAF").items() if k not in dict_c2 or dict_c2[k]["sec"] is None})
             dict_c3 = extraire_manche_selon_regles_racb(df_arr_raw, "COURSE 3", "RACB")
             dict_c3.update({k: v for k, v in extraire_manche_selon_regles_racb(df_arr_raw, "COURSE 3", "ASAF").items() if k not in dict_c3 or dict_c3[k]["sec"] is None})
-
             if not df_eng.empty:
                 rows_data = []
                 for _, pilot in df_eng.iterrows():
@@ -141,28 +170,39 @@ def recuperer_donnees_course():
                     df_hist_base = base[(base["Calc_Sec_1"].notna() | base["Calc_Sec_2"].notna() | base["Calc_Sec_3"].notna())].copy()
                     if not df_hist_base.empty:
                         df_hist_base = df_hist_base.sort_values(by="Heure_Depart_3", ascending=False, na_position="last")
-                        html_hist = CSS_RACB + "<table class='table-compacte table-hist'><thead><tr><th>N°</th><th>Nom_Prenom</th><th>Voiture</th><th>Division</th><th>Classe</th><th>Course 1</th><th>Course 2</th><th>Chrono réalisé</th></tr></thead><tbody>"
+                        
+                        # ENCAPSULATION DU SCROLL TACTILE MOBILES AUTOUR DE LA TABLE HISTORIQUE SOUHAITÉE
+                        html_hist = CSS_RACB + "<div class='zone-defilement-tactile'>"
+                        html_hist += "<table class='table-compacte table-hist'><thead><tr><th>N°</th><th>Nom_Prenom</th><th>Voiture</th><th>Division</th><th>Classe</th><th>Course 1</th><th>Course 2</th><th>Chrono réalisé</th></tr></thead><tbody>"
 
                         for idx, row in df_hist_base.iterrows():
                             t1, t2, t3 = row["Calc_Sec_1"], row["Calc_Sec_2"], row["Calc_Sec_3"]
                             valeurs_valides = [v for v in [t1, t2, t3] if pd.notna(v) and v > 0]
                             meilleur_sec = min(valeurs_valides) if valeurs_valides else None
 
-                            s1 = "class='meilleur-temps'" if (meilleur_sec and t1 == meilleur_sec) else ""
-                            s2 = "class='meilleur-temps'" if (meilleur_sec and t2 == meilleur_sec) else ""
-                            s3 = "class='meilleur-temps'" if (meilleur_sec and t3 == meilleur_sec) else ""
+                            # REPARÉ ET SÉCURISÉ : Plus aucune mise en gras (balise strong ou classe meilleur-temps retirées)
+                            txt_c1_visuel = f"<span style='color: #22C55E;'>•</span>&nbsp;{format_final_chrono(t1)}" if (meilleur_sec and t1 == meilleur_sec) else format_final_chrono(t1)
+                            txt_c2_visuel = f"<span style='color: #22C55E;'>•</span>&nbsp;{format_final_chrono(t2)}" if (meilleur_sec and t2 == meilleur_sec) else format_final_chrono(t2)
 
-                            if pd.notna(row["Heure_Depart_3"]) and pd.isna(row["Heure_Arrivee_3"]): txt_c3_visuel, s3 = "En Piste", ""
-                            elif pd.isna(t3) or t3 <= 0: txt_c3_visuel = "No Time"
+                            if pd.notna(row["Heure_Depart_3"]) and pd.isna(row["Heure_Arrivee_3"]): 
+                                txt_c3_visuel = "En Piste"
+                            elif pd.isna(t3) or t3 <= 0: 
+                                txt_c3_visuel = "No Time"
                             else:
                                 txt_c3 = format_final_chrono(t3)
+                                txt_c3_base = f"<span style='color: #22C55E;'>•</span>&nbsp;{txt_c3}" if (meilleur_sec and t3 == meilleur_sec) else txt_c3
                                 temps_precedents = [t for t in [t1, t2] if pd.notna(t) and t > 0]
-                                if temps_precedents and t3 < min(temps_precedents): txt_c3_visuel = f"{txt_c3} <span style='color: #22C55E; font-size: 1.65rem; line-height: 1; vertical-align: -0.15rem;'>▲</span>"
-                                elif temps_precedents and t3 > min(temps_precedents): txt_c3_visuel = f"{txt_c3} <span style='color: #EF4444; font-size: 1.65rem; line-height: 1; vertical-align: -0.15rem;'>▼</span>"
-                                else: txt_c3_visuel = txt_c3
+                                
+                                # RE-PARAMÉTRAGE DES ARCS DE TRIANGLES : Intégration du vertical-align et display inline-block
+                                if temps_precedents and t3 < min(temps_precedents): 
+                                    txt_c3_visuel = f"{txt_c3_base} &nbsp;<span style='color: #22C55E; font-size: 1.25rem; vertical-align: middle; display: inline-block; line-height: 1;'>▲</span>"
+                                elif temps_precedents and t3 > min(temps_precedents): 
+                                    txt_c3_visuel = f"{txt_c3_base} &nbsp;<span style='color: #EF4444; font-size: 1.25rem; vertical-align: middle; display: inline-block; line-height: 1;'>▼</span>"
+                                else: 
+                                    txt_c3_visuel = txt_c3_base
 
-                            html_hist += f"<tr><td>{row['N°']}</td><td>{row['Nom_Prenom']}</td><td>{row['Voiture']}</td><td>{row['Division']}</td><td>{row['Classe']}</td><td {s1}>{format_final_chrono(t1)}</td><td {s2}>{format_final_chrono(t2)}</td><td {s3}>{txt_c3_visuel}</td></tr>"
-                        html_hist += "</tbody></table>"
+                            html_hist += f"<tr><td>{row['N°']}</td><td>{row['Nom_Prenom']}</td><td>{row['Voiture']}</td><td>{row['Division']}</td><td>{row['Classe']}</td><td>{txt_c1_visuel}</td><td>{txt_c2_visuel}</td><td>{txt_c3_visuel}</td></tr>"
+                        html_hist += "</tbody></table></div>"
 
                     def calc_cumul_strict(row):
                         t = [v for v in [row["Calc_Sec_1"], row["Calc_Sec_2"], row["Calc_Sec_3"]] if pd.notna(v) and v > 0]
