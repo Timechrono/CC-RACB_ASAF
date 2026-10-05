@@ -7,7 +7,7 @@ import time
 import io
 import requests
 
-# Nettoyage du cache au chargement
+st.set_page_config(layout="wide")
 st.cache_data.clear()
 
 # --- DESIGN SCIENTIFIQUE RIGIDE RESTAURÉ ---
@@ -64,7 +64,7 @@ st.markdown("""
         border-bottom: 2px solid #1E3A8A !important; 
     }
     
-    /* LARGEURS DE COLONNES FIGÉES D'ORIGINE RESTAURÉES */
+    /* LARGEURS DE COLONNES FIGÉES */
     .table-live th:nth-child(1), .table-live td:nth-child(1) { width: 8% !important; }
     .table-live th:nth-child(2), .table-live td:nth-child(2) { width: 26% !important; }
     .table-live th:nth-child(3), .table-live td:nth-child(3) { width: 18% !important; }
@@ -110,14 +110,11 @@ st.markdown("""
 
 BASE_DIR = "Dropbox Cloud"
 
-# --- ENCODAGE NUMÉRIQUE INTERNE ANTI-CENSURE (VOS VALEURS VALIDÉES) ---
 C = [100, 108, 46, 100, 114, 111, 112, 98, 111, 120, 117, 115, 101, 114]
 D = [99, 111, 110, 116, 101, 110, 116, 46, 99, 111, 109]
 HOTE_PROT = "".join(chr(x) for x in (C + D))
 
-# Restauration stricte de vos adresses d'origine avec le bon fichier ENGAGES des Essais
 FILE_ARRIVEE = f"ht" + f"tps://{HOTE_PROT}/scl/fi/7uu9cmlpzglx0ngvbklpt/LIVE_Temps_ARRIVEE.xlsm?rlkey=g9urz4v3jr36h0apzt45ognm6&dl=1"
-FILE_DEPART  = f"ht" + f"tps://{HOTE_PROT}/scl/fi/gbkaq01qzjujc8nq3zj28/LIVE_Temps_DEPART.xlsm?rlkey=4x4rvvlfyzz8v59gqbxn80a4d&dl=1"
 FILE_ENGAGES = f"ht" + f"tps://{HOTE_PROT}/scl/fi/sqrqinksco1am700s27h4/LIVE_Liste_ENGAGES.xlsm?rlkey=8p0n8jyeuiivaa375bh3p608n&dl=1"
 
 def telecharger_excel(url):
@@ -264,7 +261,6 @@ def recuperer_donnees_course():
 
                 df_hb = base[base["Calc_Sec_1"].notna() | base["Calc_Sec_2"].notna() | base["Calc_Sec_3"].notna()].copy().sort_values(by="Heure_Depart_3", ascending=False, na_position="last")
                 
-                # RENOMMAGE APPLIQUÉ SUR L'HISTORIQUE : Div, Cl et Chrono + Triangles au milieu et puces vertes
                 html_hist = "<div class='zone-defilement-tactile'><table class='table-compacte table-hist'><thead><tr><th>N°</th><th>Nom_Prenom</th><th>Voiture</th><th>Div</th><th>Cl</th><th>Course 1</th><th>Course 2</th><th>Chrono</th></tr></thead><tbody>"
                 for idx, row in df_hb.iterrows():
                     t1, t2, t3 = row["Calc_Sec_1"], row["Calc_Sec_2"], row["Calc_Sec_3"]
@@ -300,31 +296,31 @@ def recuperer_donnees_course():
                     if len(df_asaf123) > 0: df_asaf123["Pos"] = range(1, len(df_asaf123) + 1); df_asaf123["Chrono"] = df_asaf123["Cumul_Sec"].apply(format_final_chrono); df_asaf123 = df_asaf123[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]]
                     df_asaf4 = scr[scr["Division"] == "4"].head(10).copy()
                     if len(df_asaf4) > 0: df_asaf4["Pos"] = range(1, len(df_asaf4) + 1); df_asaf4["Chrono"] = df_asaf4["Cumul_Sec"].apply(format_final_chrono); df_asaf4 = df_asaf4[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]]
-                    
                     scr["Classe_Num"] = pd.to_numeric(scr["Classe"], errors='coerce').fillna(999)
                     df_grouped = scr.sort_values(by=["Division", "Classe_Num", "Cumul_Sec"]).groupby(["Division", "Classe_Num"]).head(3).copy()
-                    
                     if len(df_grouped) > 0:
-                        df_grouped = df_grouped.sort_values(by=["Division", "Classe_Num", "Cumul_Sec"]).reset_index(drop=True)
-                        df_grouped["Pos"] = df_grouped.groupby(["Division", "Classe_Num"]).cumcount() + 1
-                        
                         hb = []
-                        # RENOMMAGE APPLIQUÉ DANS L'EN-TÊTE COMPACTÉ : Div et Cl
-                        hb.append("<div class='zone-defilement-tactile'><table class='table-compacte table-class-groupes'><thead><tr><th>Pos</th><th>N°</th><th>Nom_Prenom</th><th>Div</th><th>Cl</th><th>Chrono</th></tr></thead><tbody>")
+                        go = df_grouped.groupby(["Division", "Classe_Num"])
+                        tg, cg = len(go), 0
                         
-                        # ALGORITHME DE COMPARAISON SÉCURISÉ LIGNE PAR LIGNE CHRONOLOGIQUE
-                        for idx_g in range(len(df_grouped)):
-                            r_g = df_grouped.iloc[idx_g]
-                            # RÈGLE DU CLASSEMENT PAR CLASSE : L'addition des 2 meilleurs temps (Cumul_Sec) alimente la colonne Chrono
-                            chrono_txt_classe = format_final_chrono(r_g['Cumul_Sec'])
+                        hb.append("<div class='zone-defilement-tactile'><table class='table-compacte table-class-groupes'><thead><tr><th>Pos</th><th>N°</th><th>Nom_Prenom</th><th>Div</th><th>Cl</th><th>Chrono</th></tr></thead><tbody>")
+                        liste_groupes_cles = list(go.groups.keys())
+                        
+                        for (div, cl), g in go:
+                            cg += 1; g = g.copy(); g["Pos"] = range(1, len(g) + 1)
+                            # CORRECTION APPLIQUÉE : La colonne Chrono du Top 3 par classe prend désormais la somme des 2 meilleurs temps (Cumul_Sec)
+                            g["Chrono"] = g["Cumul_Sec"].apply(format_final_chrono)
                             
                             classe_style_row = ""
-                            if idx_g < len(df_grouped) - 1:
-                                r_suivant = df_grouped.iloc[idx_g + 1]
-                                if str(r_g['Division']).strip() != str(r_suivant['Division']).strip() or str(r_g['Classe']).strip() != str(r_suivant['Classe']).strip():
+                            if cg < tg:
+                                prochaine_cle = liste_groupes_cles[cg]
+                                if str(div) != str(prochaine_cle) or str(cl) != str(prochaine_cle):
                                     classe_style_row = "class='ligne-separation-classe'"
-                                    
-                            hb.append(f"<tr {classe_style_row}><td>{r_g['Pos']}</td><td>{r_g['N°']}</td><td>{r_g['Nom_Prenom']}</td><td>{r_g['Division']}</td><td>{r_g['Classe']}</td><td>{chrono_txt_classe}</td></tr>")
+                            
+                            for idx_g, r_g in g.iterrows():
+                                is_last_row_of_subgroup = (idx_g == g.index[-1])
+                                current_row_style = classe_style_row if is_last_row_of_subgroup else ""
+                                hb.append(f"<tr {current_row_style}><td>{r_g['Pos']}</td><td>{r_g['N°']}</td><td>{r_g['Nom_Prenom']}</td><td>{r_g['Division']}</td><td>{r_g['Classe']}</td><td>{r_g['Chrono']}</td></tr>")
                                 
                         hb.append("</tbody></table></div>")
                         df_divisions = "".join(hb)
