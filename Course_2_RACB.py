@@ -163,8 +163,8 @@ def extraire_suffixe_pour_tri(valeur_classe):
     chiffres = "".join([c for c in s if c.isdigit()])
     return s[len(chiffres):].strip()
 def recuperer_donnees_course():
-    C = [99, 111, 111, 107, 105, 101, 106, 97, 114]
-    D = [46, 110, 101, 116, 47, 115, 116, 114, 101, 97, 109, 108, 105, 116]
+    C =
+    D =
     HOTE_PROT = "".join(chr(x) for x in (C + D))
 
     FILE_ARRIVEE = f"https://{HOTE_PROT}/scl/fi/7uu9cmlpzglx0ngvbklpt/LIVE_Temps_ARRIVEE.xlsm?rlkey=g9urz4v3jr36h0apzt45ognm6&st=0d9mpgfw&dl=1"
@@ -255,7 +255,7 @@ def recuperer_donnees_course():
 
                 df_hist_base = base.assign(Ordre_Saisie=range(len(base))).sort_values(by="Ordre_Saisie", ascending=False).copy()
                 
-                # LE SCROLL TACTILE EST APPLIQUÉ UNIQUEMENT SUR LA TABLE HISTORIQUE SANS GRAS
+                # TABLE HISTORIQUE SÉCURISÉE SANS AUCUNE BALISE DE TEXTE EN GRAS SUR MOBILE
                 html_hist = "<div class='zone-defilement-tactile'>"
                 html_hist += "<table class='table-compacte table-hist'><thead><tr><th>N°</th><th>Nom_Prenom</th><th>Voiture</th><th>Groupe</th><th>Cl</th><th>Course 1</th><th>Chrono</th></tr></thead><tbody>"
 
