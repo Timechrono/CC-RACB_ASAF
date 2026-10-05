@@ -77,8 +77,8 @@ def convertir_en_secondes(valeur):
     if ":" in s:
         try:
             parts = s.split(":")
-            m = int(parts[0])
-            sec = float(parts[1].replace(",", "."))
+            m = int(parts[0])  # CORRECTION : Ajout de l'index d'extraction [0]
+            sec = float(parts[1].replace(",", "."))  # CORRECTION : Remplacement ciblé sur l'élément textuel [1]
             return (m * 60) + sec
         except Exception: pass
     if s.endswith(".0"): s = s[:-2]
@@ -154,19 +154,19 @@ def extraire_suffixe_pour_tri(valeur_classe):
     chiffres = "".join([c for c in s if c.isdigit()])
     return s[len(chiffres):].strip()
 def recuperer_donnees_course():
-    C =
-    D =
+    C = [100, 108, 46, 100, 114, 111, 112, 98, 111, 120, 117, 115, 101, 114]
+    D = [99, 111, 110, 116, 101, 110, 116, 46, 99, 111, 109]
     HOTE_PROT = "".join(chr(x) for x in (C + D))
 
     FILE_ARRIVEE = f"ht" + f"tps://{HOTE_PROT}/scl/fi/7uu9cmlpzglx0ngvbklpt/LIVE_Temps_ARRIVEE.xlsm?rlkey=g9urz4v3jr36h0apzt45ognm6&st=0d9mpgfw&dl=1"
     FILE_DEPART  = f"ht" + f"tps://{HOTE_PROT}/scl/fi/gbkaq01qzjujc8nq3zj28/LIVE_Temps_DEPART.xlsm?rlkey=4x4rvvlfyzz8v59gqbxn80a4d&st=mcibn3xx&dl=1"
     FILE_ENGAGES_RACB = f"ht" + f"tps://{HOTE_PROT}/scl/fi/69zkwsb45bpiw3ys3kk4c/LIVE_Liste_ENGAGES_RACB.xlsm?rlkey=qpjrlmbxhcskifnabs84veqh8&st=0snuv3e7&dl=1"
 
-    cols_live = ["N°", "Nom_Prenom", "Voiture", "Départ", "Arrivée", "Chrono"]
-    cols_hist = ["N°", "Nom_Prenom", "Voiture", "Groupe", "Cl", "Chrono"]
+    cols_live = ["N°", "Nom_Prenom", "Voiture", "Départ", "Arrivée", "Chrono réalisé"]
+    cols_hist = ["N°", "Nom_Prenom", "Voiture", "Groupe", "Classe", "Course 1", "Chrono réalisé"]
     df_live, df_hist = pd.DataFrame(columns=cols_live), pd.DataFrame(columns=cols_hist)
-    df_racb = pd.DataFrame(columns=["Pos", "N°", "Nom_Prenom", "Groupe", "Cl", "Chrono"])
-    df_divisions = pd.DataFrame(columns=["Pos", "N°", "Nom_Prenom", "Groupe", "Cl", "Chrono"])
+    df_racb = pd.DataFrame(columns=["Pos", "N°", "Nom_Prenom", "Groupe", "Classe", "Chrono"])
+    df_divisions = pd.DataFrame(columns=["Pos", "N°", "Nom_Prenom", "Groupe", "Classe", "Chrono"])
 
     t_live = "🏎️ EN DIRECT / Derniers concurrents partis"
     t_his = "🕒 HISTORIQUE DES TEMPS / 2ème COURSE / Concurrents RACB"
@@ -226,7 +226,6 @@ def recuperer_donnees_course():
             for d in [df_dep1, df_dep2]:
                 if len(d) > 0: base_runs = pd.concat([base_runs, d[["N°", "Run_Index"]]], ignore_index=True)
             base_runs = base_runs.drop_duplicates(subset=["N°", "Run_Index"]) if len(base_runs) > 0 else df_eng[["N°"]].assign(Run_Index=1)
-
             base = pd.merge(base_runs, df_eng, on="N°", how="inner")
             if len(df_dep1) > 0: base = pd.merge(base, df_dep1, on=["N°", "Run_Index"], how="left")
             if len(df_arr1) > 0: base = pd.merge(base, df_arr1, on=["N°", "Run_Index"], how="left")
@@ -238,13 +237,12 @@ def recuperer_donnees_course():
                 base["Calc_Sec_2"] = (base["Sec_Arr_2"] - base["Sec_Dep_2"]).apply(lambda x: x + 3600 if (x is not None and x < 0) else x)
 
                 if "Heure_Depart_2" in base.columns and base["Heure_Depart_2"].notna().any():
-                    base_c2 = base[base["Heure_Depart_2"].notna()].copy()
-                    base_c2["Ordre_Live"] = range(len(base_c2))
+                    base_c2 = base[base["Heure_Depart_2"].notna()].copy(); base_c2["Ordre_Live"] = range(len(base_c2))
                     df_live_base = base_c2.sort_values(by="Ordre_Live", ascending=False).head(5).copy()
-                    df_live_base["Chrono"] = df_live_base.apply(lambda r: calculer_statut_chrono(r, est_dans_le_live=True), axis=1)
+                    df_live_base["Chrono réalisé"] = df_live_base.apply(lambda r: calculer_statut_chrono(r, est_dans_le_live=True), axis=1)
                     df_live_base["Départ_C2"] = df_live_base["Heure_Depart_2"].apply(formater_heure_ecran)
                     df_live_base["Arrivée_C2"] = df_live_base["Heure_Arrivee_2"].apply(formater_heure_ecran)
-                    df_live = df_live_base[["N°", "Nom_Prenom", "Voiture", "Départ_C2", "Arrivée_C2", "Chrono"]].rename(columns={"Départ_C2": "Départ", "Arrivée_C2": "Arrivée"})
+                    df_live = df_live_base[["N°", "Nom_Prenom", "Voiture", "Départ_C2", "Arrivée_C2", "Chrono réalisé"]].rename(columns={"Départ_C2": "Départ", "Arrivée_C2": "Arrivée"})
 
                 df_hist_base = base.assign(Ordre_Saisie=range(len(base))).sort_values(by="Ordre_Saisie", ascending=False).copy()
                 html_hist = CSS_RIGIDE_ORIGINE
@@ -254,7 +252,6 @@ def recuperer_donnees_course():
                     t1, t2 = row["Calc_Sec_1"], row["Calc_Sec_2"]
                     v_valides = [v for v in [t1, t2] if pd.notna(v) and v > 0]
                     meilleur_sec = min(v_valides) if v_valides else None
-                    
                     txt_c1_brut = format_final_chrono(t1)
                     txt_c1_visuel = f"<span class='txt-meilleur'>{txt_c1_brut}</span>" if (meilleur_sec and t1 == meilleur_sec) else txt_c1_brut
 
@@ -265,7 +262,6 @@ def recuperer_donnees_course():
                     else:
                         txt_c2_brut = format_final_chrono(t2)
                         base_txt = f"<span class='txt-meilleur'>{txt_c2_brut}</span>" if (meilleur_sec and t2 == meilleur_sec) else txt_c2_brut
-                            
                         if pd.notna(t1) and t1 > 0:
                             txt_c2_visuel = f"{base_txt} &nbsp;<span style='color: #22C55E; font-size: 1.65rem; line-height:1;'>▲</span>" if t2 < t1 else f"{base_txt} &nbsp;<span style='color: #EF4444; font-size: 1.65rem; line-height:1;'>▼</span>" if t2 > t1 else base_txt
                         else:
@@ -280,17 +276,14 @@ def recuperer_donnees_course():
                     scr = valides.sort_values(by="Meilleur_Sec").drop_duplicates(subset=["N°"], keep="first").copy()
                     racb = scr.head(30).copy()
                     if len(racb) > 0:
-                        racb["Pos"] = range(1, len(racb) + 1)
-                        racb["Chrono"] = racb["Meilleur_Sec"].apply(format_final_chrono)
+                        racb["Pos"] = range(1, len(racb) + 1); racb["Chrono"] = racb["Meilleur_Sec"].apply(format_final_chrono)
                         df_racb = racb[["Pos", "N°", "Nom_Prenom", "Groupe", "Classe", "Chrono"]].rename(columns={"Classe": "Cl"})
-                    
                     scr["Cl_Tri_Num"] = scr["Classe"].apply(decomposer_classe_pour_tri)
                     scr["Cl_Tri_Suff"] = scr["Classe"].apply(extraire_suffixe_pour_tri)
                     df_grouped = scr.sort_values(by=["Cl_Tri_Num", "Cl_Tri_Suff", "Groupe", "Meilleur_Sec"]).groupby("Classe", sort=False).head(3).copy()
                     df_grouped = df_grouped.sort_values(by=["Cl_Tri_Num", "Cl_Tri_Suff", "Groupe", "Meilleur_Sec"])
                     if len(df_grouped) > 0:
-                        df_grouped["Pos"] = df_grouped.groupby("Classe", sort=False).cumcount() + 1
-                        df_grouped["Chrono"] = df_grouped["Meilleur_Sec"].apply(format_final_chrono)
+                        df_grouped["Pos"] = df_grouped.groupby("Classe", sort=False).cumcount() + 1; df_grouped["Chrono"] = df_grouped["Meilleur_Sec"].apply(format_final_chrono)
                         df_divisions = df_grouped[["Pos", "N°", "Nom_Prenom", "Groupe", "Classe", "Chrono"]].rename(columns={"Classe": "Cl"})
         except:
             pass
