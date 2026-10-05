@@ -322,3 +322,4 @@ def afficher_course_2_racb():
                     st.markdown(generer_tableau_html(df_divisions, "table-class-groupes"), unsafe_allow_html=True)
                     
         time.sleep(1)
+afficher_course_2_racb()
