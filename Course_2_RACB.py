@@ -165,6 +165,7 @@ df_live = pd.DataFrame(columns=cols_live)
 df_racb = pd.DataFrame(columns=["Pos", "N°", "Nom_Prenom", "Groupe", "Classe", "Chrono"])
 df_divisions = pd.DataFrame(columns=["Pos", "N°", "Nom_Prenom", "Groupe", "Classe", "Chrono"])
 
+fichiers_prets = False
 try:
     file_engages_bytes = telecharger_excel(FILE_ENGAGES_RACB)
     file_depart_bytes = telecharger_excel(FILE_DEPART)
@@ -200,6 +201,7 @@ if fichiers_prets:
         df_eng = df_eng[df_eng["N°"] != "NAN"].drop_duplicates(subset=["N°"])
     except:
         pass
+if fichiers_prets:
     try:
         df_dep1 = df_dep1[(df_dep1["N°"] != "NAN") & (df_dep1["N°"] != "")]
         df_dep2 = df_dep2[(df_dep2["N°"] != "NAN") & (df_dep2["N°"] != "")]
