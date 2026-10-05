@@ -57,13 +57,13 @@ CSS_RIGIDE_ORIGINE = """
     .table-hist th:nth-child(7), .table-hist td:nth-child(7) { width: 17% !important; }  /* Chrono */
 }
 
-/* ADAPTATION SMARTPHONE CORRIGÉE ET SÉCURISÉE (MAX-WIDTH: 768px) */
+/* ADAPTATION SMARTPHONE MOBILE (MAX-WIDTH: 768px) */
 @media (max-width: 768px) {
     .table-compacte th, .table-compacte td { 
         font-size: 0.65rem !important; 
         padding: 1px 2px !important; 
     }
-    /* Réduction stricte des colonnes Voiture (3e) et Groupe (4e) pour préserver le nom */
+    /* Compression Voiture (3e) et Groupe (4e) */
     .table-hist th:nth-child(3), .table-hist td:nth-child(3),
     .table-hist th:nth-child(4), .table-hist td:nth-child(4) {
         width: 35px !important;
@@ -72,11 +72,12 @@ CSS_RIGIDE_ORIGINE = """
         text-overflow: clip !important;
         white-space: nowrap !important;
     }
-    /* Maintien de l'espace pour voir l'intégralité des chronos réalisés */
+    /* RÉDUCTION DES CARACTÈRES POUR COURSE 1 ET CHRONO (AVEC MAINTIEN DES TEMPS VISIBLES) */
     .table-hist th:nth-child(6), .table-hist td:nth-child(6),
     .table-hist th:nth-child(7), .table-hist td:nth-child(7) {
         width: 65px !important;
         min-width: 65px !important;
+        font-size: 0.72rem !important;
     }
 }
 
@@ -112,8 +113,8 @@ def convertir_en_secondes(valeur):
     if ":" in s:
         try:
             parts = s.split(":")
-            m = int(parts[0])
-            sec = float(parts[1].replace(",", "."))
+            m = int(parts)
+            sec = float(parts.replace(",", "."))
             return (m * 60) + sec
         except Exception: pass
     if s.endswith(".0"): s = s[:-2]
@@ -176,13 +177,13 @@ def extraire_suffixe_pour_tri(valeur_classe):
     chiffres = "".join([c for c in s if c.isdigit()])
     return s[len(chiffres):].strip()
 def recuperer_donnees_course():
-    C = [100, 108, 46, 100, 114, 111, 112, 98, 111, 120, 117, 115, 101, 114]
-    D = [99, 111, 110, 116, 101, 110, 116, 46, 99, 111, 109]
+    C =
+    D =
     HOTE_PROT = "".join(chr(x) for x in (C + D))
 
-    FILE_ARRIVEE = f"https://{HOTE_PROT}/scl/fi/7uu9cmlpzglx0ngvbklpt/LIVE_Temps_ARRIVEE.xlsm?rlkey=g9urz4v3jr36h0apzt45ognm6&dl=1"
-    FILE_DEPART  = f"https://{HOTE_PROT}/scl/fi/gbkaq01qzjujc8nq3zj28/LIVE_Temps_DEPART.xlsm?rlkey=4x4rvvlfyzz8v59gqbxn80a4d&dl=1"
-    FILE_ENGAGES_RACB = f"https://{HOTE_PROT}/scl/fi/69zkwsb45bpiw3ys3kk4c/LIVE_Liste_ENGAGES_RACB.xlsm?rlkey=qpjrlmbxhcskifnabs84veqh8&dl=1"
+    FILE_ARRIVEE = f"https://{HOTE_PROT}/scl/fi/7uu9cmlpzglx0ngvbklpt/LIVE_Temps_ARRIVEE.xlsm?rlkey=g9urz4v3jr36h0apzt45ognm6&st=0d9mpgfw&dl=1"
+    FILE_DEPART  = f"https://{HOTE_PROT}/scl/fi/gbkaq01qzjujc8nq3zj28/LIVE_Temps_DEPART.xlsm?rlkey=4x4rvvlfyzz8v59gqbxn80a4d&st=mcibn3xx&dl=1"
+    FILE_ENGAGES_RACB = f"https://{HOTE_PROT}/scl/fi/69zkwsb45bpiw3ys3kk4c/LIVE_Liste_ENGAGES_RACB.xlsm?rlkey=qpjrlmbxhcskifnabs84veqh8&st=0snuv3e7&dl=1"
 
     cols_live = ["N°", "Nom_Prenom", "Voiture", "Départ", "Arrivée", "Chrono réalisé"]
     cols_hist = ["N°", "Nom_Prenom", "Voiture", "Groupe", "Classe", "Course 1", "Chrono réalisé"]
