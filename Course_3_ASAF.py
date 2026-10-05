@@ -298,28 +298,27 @@ def recuperer_donnees_course():
                     df_asaf4 = scr[scr["Division"] == "4"].head(10).copy()
                     if len(df_asaf4) > 0: df_asaf4["Pos"] = range(1, len(df_asaf4) + 1); df_asaf4["Chrono"] = df_asaf4["Cumul_Sec"].apply(format_final_chrono); df_asaf4 = df_asaf4[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]]
                     
-                    scr["Classe_Num"] = pd.to_numeric(scr["Classe"], errors='coerce').fillna(999)
+                                        scr["Classe_Num"] = pd.to_numeric(scr["Classe"], errors='coerce').fillna(999)
                     df_grouped = scr.sort_values(by=["Division", "Classe_Num", "Cumul_Sec"]).groupby(["Division", "Classe_Num"]).head(3).copy()
-                    
                     if len(df_grouped) > 0:
-                        # Tri linéaire strict converti en chaînes de texte nettoyées pour bloquer le chargement infini
+                        # Tri linéaire physique strict des pilotes pour injecter la bordure au bon endroit
                         df_grouped = df_grouped.sort_values(by=["Division", "Classe_Num", "Cumul_Sec"]).reset_index(drop=True)
                         df_grouped["Pos"] = df_grouped.groupby(["Division", "Classe_Num"]).cumcount() + 1
                         
                         hb = []
-                        # RENOMMAGE APPLIQUÉ DANS LE CLASSEMENT PAR CLASSE : Div et Cl
+                        # RENOMMAGE APPLIQUÉ DANS L'EN-TÊTE COMPACTÉ : Div et Cl
                         hb.append("<div class='zone-defilement-tactile'><table class='table-compacte table-class-groupes'><thead><tr><th>Pos</th><th>N°</th><th>Nom_Prenom</th><th>Div</th><th>Cl</th><th>Chrono</th></tr></thead><tbody>")
                         
-                        # ALGORITHME DE COMPARAISON SÉCURISÉ LIGNE PAR LIGNE
+                        # ALGORITHME DE COMPARAISON SÉCURISÉ LIGNE PAR LIGNE (ZÉRO RISQUE DE BOUCLE INFINIE)
                         for idx_g in range(len(df_grouped)):
                             r_g = df_grouped.iloc[idx_g]
-                            # REGLE CLASSEMENT PAR CLASSE : Remplacement du Chrono par la somme des 2 meilleurs temps (Cumul_Sec)
+                            # RÈGLE APPLIQUÉE : La colonne Chrono affiche l'addition des 2 meilleurs temps (Cumul_Sec)
                             chrono_txt_classe = format_final_chrono(r_g['Cumul_Sec'])
                             
                             classe_style_row = ""
                             if idx_g < len(df_grouped) - 1:
                                 r_suivant = df_grouped.iloc[idx_g + 1]
-                                # Trace la ligne de séparation bleu foncé si la classe ou la division change à la ligne d'après
+                                # Si le pilote de la ligne suivante change de classe ou de division, on prépare la ligne bleue
                                 if str(r_g['Division']).strip() != str(r_suivant['Division']).strip() or str(r_g['Classe']).strip() != str(r_suivant['Classe']).strip():
                                     classe_style_row = "class='ligne-separation-classe'"
                                     
@@ -336,3 +335,4 @@ def recuperer_donnees_course():
     t_bas = "📊 CLASSEMENT OFFICIEUX par Division / Classe (Top 3)"
 
     return df_live, html_hist, df_asaf123, df_asaf4, df_divisions, t_live, t_his, t_haut, t_milieu, t_bas
+
