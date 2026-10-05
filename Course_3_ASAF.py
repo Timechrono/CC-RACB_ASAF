@@ -308,13 +308,13 @@ def recuperer_donnees_course():
                         
                         for (div, cl), g in go:
                             cg += 1; g = g.copy(); g["Pos"] = range(1, len(g) + 1)
-                            # CORRECTION APPLIQUÉE : La colonne Chrono du Top 3 par classe prend désormais la somme des 2 meilleurs temps (Cumul_Sec)
                             g["Chrono"] = g["Cumul_Sec"].apply(format_final_chrono)
                             
                             classe_style_row = ""
                             if cg < tg:
                                 prochaine_cle = liste_groupes_cles[cg]
-                                if str(div) != str(prochaine_cle) or str(cl) != str(prochaine_cle):
+                                # CORRECTION SÉCURISÉE DE LA SYNTAXE PYTHON DE RUPTURE DE CLASSE
+                                if str(div) != str(prochaine_cle[0]) or str(cl) != str(prochaine_cle[1]):
                                     classe_style_row = "class='ligne-separation-classe'"
                             
                             for idx_g, r_g in g.iterrows():
