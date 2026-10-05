@@ -79,6 +79,8 @@ CSS_RIGIDE_ORIGINE = """
 </style>
 """
 
+# SÉCURISATION BRIDAGE : 10 secondes maximum pour protéger Dropbox contre les blocages de 11h
+@st.cache_data(ttl=15)
 def telecharger_excel(url):
     entetes = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'}
     reponse = requests.get(url, headers=entetes, timeout=12)
