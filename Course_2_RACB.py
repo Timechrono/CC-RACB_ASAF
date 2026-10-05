@@ -24,7 +24,13 @@ CSS_RIGIDE_ORIGINE = """
     height: 18px !important; padding: 1px 5px !important; line-height: 1.1 !important; font-size: 0.85rem !important; color: #000000 !important; 
     vertical-align: middle !important; overflow: hidden !important; text-overflow: ellipsis !important; white-space: nowrap !important; 
 }
-.table-compacte td { font-weight: normal !important; border-bottom: 1px solid #E0E0E0 !important; background-color: #FFFFFF !important; }
+
+/* NEUTRALISATION ABSOLUE DU FOND ALTERNÉ : On force toutes les lignes en blanc pur */
+.table-hist tr td, .table-hist tr:nth-child(odd) td { 
+    background-color: #FFFFFF !important; 
+}
+
+.table-compacte td { font-weight: normal !important; border-bottom: 1px solid #E0E0E0 !important; }
 .table-compacte th { font-weight: bold !important; background-color: #F5F5F5 !important; border-bottom: 2px solid #CCCCCC !important; text-align: left !important; }
 
 /* LA LIGNE BLEUE DE SEPARATION PAR CLASSE SUR LE BAS DES CELLULES */
@@ -149,9 +155,9 @@ def recuperer_donnees_course():
     D = [99, 111, 110, 116, 101, 110, 116, 46, 99, 111, 109]
     HOTE_PROT = "".join(chr(x) for x in (C + D))
 
-    FILE_ARRIVEE = f"ht" + f"tps://{HOTE_PROT}/scl/fi/7uu9cmlpzglx0ngvbklpt/LIVE_Temps_ARRIVEE.xlsm?rlkey=g9urz4v3jr36h0apzt45ognm6&st=0d9mpgfw&dl=1"
-    FILE_DEPART  = f"ht" + f"tps://{HOTE_PROT}/scl/fi/gbkaq01qzjujc8nq3zj28/LIVE_Temps_DEPART.xlsm?rlkey=4x4rvvlfyzz8v59gqbxn80a4d&st=mcibn3xx&dl=1"
-    FILE_ENGAGES_RACB = f"ht" + f"tps://{HOTE_PROT}/scl/fi/69zkwsb45bpiw3ys3kk4c/LIVE_Liste_ENGAGES_RACB.xlsm?rlkey=qpjrlmbxhcskifnabs84veqh8&st=0snuv3e7&dl=1"
+    FILE_ARRIVEE = f"https://{HOTE_PROT}/scl/fi/7uu9cmlpzglx0ngvbklpt/LIVE_Temps_ARRIVEE.xlsm?rlkey=g9urz4v3jr36h0apzt45ognm6&st=0d9mpgfw&dl=1"
+    FILE_DEPART  = f"https://{HOTE_PROT}/scl/fi/gbkaq01qzjujc8nq3zj28/LIVE_Temps_DEPART.xlsm?rlkey=4x4rvvlfyzz8v59gqbxn80a4d&st=mcibn3xx&dl=1"
+    FILE_ENGAGES_RACB = f"https://{HOTE_PROT}/scl/fi/69zkwsb45bpiw3ys3kk4c/LIVE_Liste_ENGAGES_RACB.xlsm?rlkey=qpjrlmbxhcskifnabs84veqh8&st=0snuv3e7&dl=1"
 
     cols_live = ["N°", "Nom_Prenom", "Voiture", "Départ", "Arrivée", "Chrono réalisé"]
     cols_hist = ["N°", "Nom_Prenom", "Voiture", "Groupe", "Classe", "Course 1", "Chrono réalisé"]
@@ -161,8 +167,6 @@ def recuperer_donnees_course():
 
     t_live = "🏎️ EN DIRECT / Derniers concurrents partis"
     t_his = "🕒 HISTORIQUE DES TEMPS / 2ème COURSE / Concurrents RACB"
-    
-    # RE-PARAMETRAGE DU SCRATCH DU TOP 30 AU TOP 20
     t_haut = "🏆 CLASSEMENT EVOLUTIF OFFICIEUX RACB (Top 20)"
     t_milieu = "📊 CLASSEMENT EVOLUTIF OFFICIEUX PAR Classe (Top 3)"
     t_bas = ""
@@ -268,7 +272,7 @@ def recuperer_donnees_course():
                     valides["Meilleur_Sec"] = valides[["Calc_Sec_1", "Calc_Sec_2"]].min(axis=1, skipna=True)
                     scr = valides.sort_values(by="Meilleur_Sec").drop_duplicates(subset=["N°"], keep="first").copy()
                     
-                    # CORRECTION DU SCRATCH : FORCE LE TOP 20 EXCLUSIF AU LIEU DU TOP 30
+                    # SCRATCH : STRICTEMENT LE TOP 20
                     racb = scr.head(20).copy()
                     if len(racb) > 0:
                         racb["Pos"] = range(1, len(racb) + 1); racb["Chrono"] = racb["Meilleur_Sec"].apply(format_final_chrono)
@@ -287,13 +291,12 @@ def recuperer_donnees_course():
     if not fichiers_prets:
         html_hist = f"{CSS_RIGIDE_ORIGINE}<table class='table-compacte table-hist'><tr><td style='text-align: center; padding: 10px;'>Aucune donnée disponible pour le plateau RACB</td></tr></table>"
 
-    # RECONSTRUCTION EMBARQUÉE DU TABLEAU PAR CLASSE AVEC LA LIGNE BLEUE DE SÉPARATION NATIVE
+    # RECONSTRUCTION DU TABLEAU PAR CLASSE AVEC LA LIGNE BLEUE DE SÉPARATION APPLIQUÉE SUR LE FOND BLANC PUR
     if not df_divisions.empty:
         html_class_div = f"<table class='table-compacte table-class-groupes'><thead><tr><th>Pos</th><th>N°</th><th>Nom_Prenom</th><th>Groupe</th><th>Cl</th><th>Chrono</th></tr></thead><tbody>"
         for idx in range(len(df_divisions)):
             classe_row = ""
             if idx < len(df_divisions) - 1:
-                # Injection de la classe si la valeur de la colonne "Cl" change à la ligne d'après
                 if str(df_divisions.iloc[idx]["Cl"]) != str(df_divisions.iloc[idx + 1]["Cl"]):
                     classe_row = "class='ligne-separation-classe'"
             html_class_div += f"<tr {classe_row}><td>{df_divisions.iloc[idx]['Pos']}</td><td>{df_divisions.iloc[idx]['N°']}</td><td>{df_divisions.iloc[idx]['Nom_Prenom']}</td><td>{df_divisions.iloc[idx]['Groupe']}</td><td>{df_divisions.iloc[idx]['Cl']}</td><td>{df_divisions.iloc[idx]['Chrono']}</td></tr>"
