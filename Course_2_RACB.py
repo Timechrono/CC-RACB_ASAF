@@ -95,8 +95,8 @@ def convertir_en_secondes(valeur):
     if ":" in s:
         try:
             parts = s.split(":")
-            m = int(parts)
-            sec = float(parts.replace(",", "."))
+            m = int(parts[0])
+            sec = float(parts[1].replace(",", "."))
             return (m * 60) + sec
         except Exception: pass
     if s.endswith(".0"): s = s[:-2]
@@ -146,8 +146,8 @@ def generer_tableau_html(df, classe_specifique):
     if df.empty: 
         return f"<table class='table-compacte {classe_specifique}'><tr><td style='text-align: center; padding: 10px;'>Aucune donnée disponible</td></tr></table>"
     
-    # APPLICATION DU SCROLL UNIQUEMENT SI C'EST LA TABLE DIRECT (TABLE-LIVE) OU LES AUTRES CAS SPÉCIFIQUES SOUHAITÉS
     html_brut = df.to_html(index=False, classes=f"table-compacte {classe_specifique}", escape=False, border=0)
+    # LE SCROLL TACTILE EST APPLIQUÉ UNIQUEMENT SUR LA TABLE EN DIRECT
     if "table-live" in classe_specifique:
         return f"<div class='zone-defilement-tactile'>{html_brut}</div>"
     return html_brut
@@ -164,8 +164,8 @@ def extraire_suffixe_pour_tri(valeur_classe):
     chiffres = "".join([c for c in s if c.isdigit()])
     return s[len(chiffres):].strip()
 def recuperer_donnees_course():
-    C =
-    D =
+    C = [119, 119, 119, 46, 100, 114, 111, 112, 98, 111, 120, 46, 99, 111, 109]
+    D = []
     HOTE_PROT = "".join(chr(x) for x in (C + D))
 
     FILE_ARRIVEE = f"https://{HOTE_PROT}/scl/fi/7uu9cmlpzglx0ngvbklpt/LIVE_Temps_ARRIVEE.xlsm?rlkey=g9urz4v3jr36h0apzt45ognm6&st=0d9mpgfw&dl=1"
@@ -256,7 +256,7 @@ def recuperer_donnees_course():
 
                 df_hist_base = base.assign(Ordre_Saisie=range(len(base))).sort_values(by="Ordre_Saisie", ascending=False).copy()
                 
-                # SÉCURISATION ET ENCAPSULATION STRICTE DE LA TABLE HISTORIQUE DANS SON CONTENEUR TACTILE MOBILE
+                # LE SCROLL TACTILE EST APPLIQUÉ UNIQUEMENT SUR LA TABLE HISTORIQUE
                 html_hist = "<div class='zone-defilement-tactile'>"
                 html_hist += "<table class='table-compacte table-hist'><thead><tr><th>N°</th><th>Nom_Prenom</th><th>Voiture</th><th>Groupe</th><th>Cl</th><th>Course 1</th><th>Chrono</th></tr></thead><tbody>"
 
