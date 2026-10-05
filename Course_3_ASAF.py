@@ -184,12 +184,18 @@ def recuperer_donnees_course():
     df_divisions = "<div class='zone-defilement-tactile'><table class='table-compacte table-class-groupes'><tr><td style='text-align: center; padding: 10px;'>Aucune donnée disponible</td></tr></table></div>"
     df_eng = pd.DataFrame()
 
-    try:
+        try:
         flux_eng = telecharger_excel(FILE_ENGAGES)
         flux_arr = telecharger_excel(FILE_ARRIVEE)
         
+        # SI LES FICHIERS DROPOX SONT VIDES, ON FORCE L'AFFICHAGE DE L'ERREUR
+        if flux_eng is None or flux_arr is None:
+            st.error("❌ Erreur de connexion : Impossible de récupérer les fichiers depuis Dropbox. Vérifiez les liens ou le serveur.")
+            return df_live, html_hist, df_asaf123, df_asaf4, df_divisions, t_live, t_his, t_haut, t_milieu, t_bas
+
         df_eng_raw = pd.read_excel(flux_eng, skiprows=1, engine='openpyxl')
         df_arr_raw = pd.read_excel(flux_arr, header=None, engine='openpyxl')
+
 
         def extraire_chiffre_division(txt):
             if pd.isna(txt) or txt is None: return "-"
