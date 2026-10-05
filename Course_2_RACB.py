@@ -136,8 +136,8 @@ def convertir_en_secondes(valeur):
     if ":" in s:
         try:
             parts = s.split(":")
-            m = int(parts)
-            sec = float(parts.replace(",", "."))
+            m = int(parts[0])
+            sec = float(parts[1].replace(",", "."))
             return (m * 60) + sec
         except Exception: pass
     if s.endswith(".0"): s = s[:-2]
