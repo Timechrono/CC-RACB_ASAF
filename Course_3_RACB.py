@@ -28,7 +28,17 @@ CSS_RACB = """
     border-bottom: 2px solid #1E3A8A !important; 
 }
 
-/* === ARCHITECTURE DES LARGEURS DE COLONNES FIXÉES POUR PC ET SMARTPHONE === */
+/* COLORIAGE ALTERNÉ 1 LIGNE SUR 2 DANS L'HISTORIQUE */
+.table-hist tr:nth-child(odd) td { 
+    background-color: #E0F2FE !important; 
+}
+.table-hist tr:nth-child(even) td { 
+    background-color: #FFFFFF !important; 
+}
+
+/* ========================================================================= */
+/* 🖥️ CONFIGURATION DES LARGEURS RIGIDES (PC ET MOBILE COMBINÉS)             */
+/* ========================================================================= */
 /* HISTORIQUE : CONFIGURATION DE VOS LARGEURS D'ORIGINE */
 .table-hist th:nth-child(1), .table-hist td:nth-child(1) { width: 6% !important; }   
 .table-hist th:nth-child(2), .table-hist td:nth-child(2) { width: 23% !important; }  
@@ -39,7 +49,7 @@ CSS_RACB = """
 .table-hist th:nth-child(7), .table-hist td:nth-child(7) { width: 10% !important; }  
 .table-hist th:nth-child(8), .table-hist td:nth-child(8) { width: 14% !important; }  
 
-/* SCRATCH ET PAR CLASSE : RESSERREMENT ET LIBÉRATION DE PLACE POUR LE NOM_PRENOM (PC & MOBILE) */
+/* SCRATCH ET PAR CLASSE : VERROUILLAGE DES COLONNES SECONDAIRES AU MINIMUM */
 .table-scratch-robuste th:nth-child(1), .table-scratch-robuste td:nth-child(1),
 .table-class-groupes th:nth-child(1), .table-class-groupes td:nth-child(1) { width: 35px !important; } /* Pos */
 
@@ -55,16 +65,16 @@ CSS_RACB = """
 .table-scratch-robuste th:nth-child(6), .table-scratch-robuste td:nth-child(6),
 .table-class-groupes th:nth-child(6), .table-class-groupes td:nth-child(6) { width: 65px !important; text-align: right !important; } /* Chrono */
 
-/* LA COLONNE NOM_PRENOM PREND TOUT LE RESTE DE L'ÉCRAN DE MANIÈRE AUTO-ÉTIRABLE (PC & MOBILE) */
+/* === FORCE L'AJUSTEMENT AUTOMATIQUE PIXEL PAR PIXEL SUR LE NOM LE PLUS LARGE === */
 .table-scratch-robuste th:nth-child(3), .table-scratch-robuste td:nth-child(3),
 .table-class-groupes th:nth-child(3), .table-class-groupes td:nth-child(3) {
-    width: auto !important;
+    width: 1% !important;
+    white-space: nowrap !important;
     overflow: hidden !important;
     text-overflow: ellipsis !important;
-    white-space: nowrap !important;
 }
 
-/* SMARTPHONE EXCLUSIF : RÉDUCTION GLOBALE DE LA TAILLE DE TEXTE */
+/* SMARTPHONE EXCLUSIF : RÉDUCTION GLOBALE DE LA TAILLE DE POLICE */
 @media (max-width: 768px) {
     .table-compacte th, .table-compacte td { 
         font-size: 0.65rem !important; 
