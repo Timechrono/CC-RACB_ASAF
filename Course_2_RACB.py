@@ -6,16 +6,13 @@ import time
 import requests  
 import io        
 
-st.set_page_config(layout="wide")
-
 def injecter_styles_css():
     st.markdown("""
         <style>
         [data-testid="stHeader"] { display: none !important; }
         
-        /* TEXTE PUR SANS FOND POUR LES COCHES (A DROITE) */
         .coche-verte { color: #22C55E !important; font-weight: bold !important; font-size: 1.1rem !important; margin-left: 6px; }
-        .coche-rouge { color: #EF4444 !important; font-weight: bold !important; font-size: 1.1rem !important; margin-left: 6px; }
+        .coche-rouge { color: #EF4444 !important; font-weight: bold !important; font-size: 1.1rem !important; margin-right: 6px; }
         .vrai-gyrophare { display: inline-block; margin-right: 6px; font-size: 1.05rem !important; vertical-align: middle !important; }
         
         .titre-live, .titre-hist, .titre-classement {
@@ -36,9 +33,7 @@ def injecter_styles_css():
         .table-compacte td { font-weight: normal !important; border-bottom: 1px solid #E0E0E0 !important; background-color: #FFFFFF !important; }
         .table-compacte th { font-weight: bold !important; background-color: #F5F5F5 !important; border-bottom: 2px solid #CCCCCC !important; text-align: left !important; }
         
-        /* FOND VERT PASTEL DE CHRONO SUR TEXTE UNIQUEMENT */
         .txt-meilleur { background-color: #d9fcec !important; font-weight: bold !important; padding: 1px 3px !important; border-radius: 2px !important; }
-        
         .table-class-robuste tr:nth-child(odd) td { background-color: #E0F2FE !important; }
         .ligne-separation-classe td { border-bottom: 2px solid #1E3A8A !important; }
         
@@ -46,7 +41,6 @@ def injecter_styles_css():
             font-weight: bold !important; font-size: 0.94rem !important; color: #0F172A !important;
         }
         
-        /* GAUCHE : Largeurs En Direct */
         .table-live th:nth-child(1), .table-live td:nth-child(1) { width: 8% !important; }
         .table-live th:nth-child(2), .table-live td:nth-child(2) { width: 26% !important; }
         .table-live th:nth-child(3), .table-live td:nth-child(3) { width: 18% !important; }
@@ -54,14 +48,13 @@ def injecter_styles_css():
         .table-live th:nth-child(5), .table-live td:nth-child(5) { width: 13% !important; }
         .table-live th:nth-child(6), .table-live td:nth-child(6) { width: 22% !important; }
 
-        /* GAUCHE : Largeurs Historique Course (Optimisées contre le rabotage) */
-        .table-hist th:nth-child(1), .table-hist td:nth-child(1) { width: 6% !important; }   /* N° */
-        .table-hist th:nth-child(2), .table-hist td:nth-child(2) { width: 22% !important; }  /* Nom_Prenom */
-        .table-hist th:nth-child(3), .table-hist td:nth-child(3) { width: 22% !important; }  /* Voiture */
-        .table-hist th:nth-child(4), .table-hist td:nth-child(4) { width: 10% !important; }  /* Groupe */
-        .table-hist th:nth-child(5), .table-hist td:nth-child(5) { width: 6% !important; }   /* Cl */
-        .table-hist th:nth-child(6), .table-hist td:nth-child(6) { width: 17% !important; }  /* Course 1 */
-        .table-hist th:nth-child(7), .table-hist td:nth-child(7) { width: 17% !important; }  /* Chrono */
+        .table-hist th:nth-child(1), .table-hist td:nth-child(1) { width: 6% !important; }   
+        .table-hist th:nth-child(2), .table-hist td:nth-child(2) { width: 22% !important; }  
+        .table-hist th:nth-child(3), .table-hist td:nth-child(3) { width: 22% !important; }  
+        .table-hist th:nth-child(4), .table-hist td:nth-child(4) { width: 10% !important; }  
+        .table-hist th:nth-child(5), .table-hist td:nth-child(5) { width: 6% !important; }   
+        .table-hist th:nth-child(6), .table-hist td:nth-child(6) { width: 17% !important; }  
+        .table-hist th:nth-child(7), .table-hist td:nth-child(7) { width: 17% !important; }  
 
         .table-class-robuste th:nth-child(1), .table-class-robuste td:nth-child(1) { width: 9% !important; }
         .table-class-robuste th:nth-child(2), .table-class-robuste td:nth-child(2) { width: 11% !important; }
@@ -169,8 +162,8 @@ def extraire_suffixe_pour_tri(valeur_classe):
 def afficher_course_2_racb():
     injecter_styles_css()
     
-    C = [100, 108, 46, 100, 114, 111, 112, 98, 111, 120, 117, 115, 101, 114]
-    D = [99, 111, 110, 116, 101, 110, 116, 46, 99, 111, 109]
+    C =
+    D =
     HOTE_PROT = "".join(chr(x) for x in (C + D))
 
     FILE_ARRIVEE = f"ht" + f"tps://{HOTE_PROT}/scl/fi/7uu9cmlpzglx0ngvbklpt/LIVE_Temps_ARRIVEE.xlsm?rlkey=g9urz4v3jr36h0apzt45ognm6&st=0d9mpgfw&dl=1"
@@ -178,170 +171,160 @@ def afficher_course_2_racb():
     FILE_ENGAGES_RACB = f"ht" + f"tps://{HOTE_PROT}/scl/fi/69zkwsb45bpiw3ys3kk4c/LIVE_Liste_ENGAGES_RACB.xlsm?rlkey=qpjrlmbxhcskifnabs84veqh8&st=0snuv3e7&dl=1"
 
     cols_live = ["N°", "Nom_Prenom", "Voiture", "Départ", "Arrivée", "Chrono réalisé"]
-    affichage_dynamique = st.empty()
+    
+    html_hist = "<table class='table-compacte table-hist'><tr><td style='text-align: center; padding: 10px;'>Aucune donnée disponible pour le plateau RACB</td></tr></table>"
+    df_live = pd.DataFrame(columns=cols_live)
+    df_racb = pd.DataFrame(columns=["Pos", "N°", "Nom_Prenom", "Groupe", "Classe", "Chrono"])
+    df_divisions = pd.DataFrame(columns=["Pos", "N°", "Nom_Prenom", "Groupe", "Classe", "Chrono"])
 
-    while True:
-        html_hist = "<table class='table-compacte table-hist'><tr><td style='text-align: center; padding: 10px;'>Aucune donnée disponible pour le plateau RACB</td></tr></table>"
-        df_live = pd.DataFrame(columns=cols_live)
-        df_racb = pd.DataFrame(columns=["Pos", "N°", "Nom_Prenom", "Groupe", "Classe", "Chrono"])
-        df_divisions = pd.DataFrame(columns=["Pos", "N°", "Nom_Prenom", "Groupe", "Classe", "Chrono"])
+    try:
+        file_engages_bytes = telecharger_excel(FILE_ENGAGES_RACB)
+        file_depart_bytes = telecharger_excel(FILE_DEPART)
+        file_arrivee_bytes = telecharger_excel(FILE_ARRIVEE)
+        fichiers_prets = True
+    except:
+        fichiers_prets = False
 
+    if fichiers_prets:
         try:
-            file_engages_bytes = telecharger_excel(FILE_ENGAGES_RACB)
-            file_depart_bytes = telecharger_excel(FILE_DEPART)
-            file_arrivee_bytes = telecharger_excel(URL_ARRIVEE if 'URL_ARRIVEE' in locals() else FILE_ARRIVEE)
-            fichiers_prets = True
+            df_eng_raw = pd.read_excel(file_engages_bytes, header=1, engine='openpyxl')
+            df_dep_raw = pd.read_excel(file_depart_bytes, header=None, engine='openpyxl')
+            df_arr_raw = pd.read_excel(file_arrivee_bytes, header=None, engine='openpyxl')
+
+            idx_dep_1, idx_arr_1, idx_dep_2, idx_arr_2 = None, None, None, None
+            for c_idx in range(len(df_dep_raw.columns)):
+                val = str(df_dep_raw.iloc[1, c_idx]).strip().upper()
+                if "COURSE 1 RACB" in val: idx_dep_1 = c_idx
+                elif "COURSE 2 RACB" in val: idx_dep_2 = c_idx
+            for c_idx in range(len(df_arr_raw.columns)):
+                val = str(df_arr_raw.iloc[1, c_idx]).strip().upper()
+                if "COURSE 1 RACB" in val: idx_arr_1 = c_idx
+                elif "COURSE 2 RACB" in val: idx_arr_2 = c_idx
+
+            df_dep2 = pd.DataFrame({"N°": df_dep_raw.iloc[2:, idx_dep_2].apply(nettoyer_numero), "Heure_Depart_2": df_dep_raw.iloc[2:, idx_dep_2 + 1]}) if idx_dep_2 is not None else pd.DataFrame(columns=["N°", "Heure_Depart_2"])
+            df_arr2 = pd.DataFrame({"N°": df_arr_raw.iloc[2:, idx_arr_2].apply(nettoyer_numero), "Heure_Arrivee_2": df_arr_raw.iloc[2:, idx_arr_2 + 2]}) if idx_arr_2 is not None else pd.DataFrame(columns=["N°", "Heure_Arrivee_2"])
+            df_dep1 = pd.DataFrame({"N°": df_dep_raw.iloc[2:, idx_dep_1].apply(nettoyer_numero), "Heure_Depart_1": df_dep_raw.iloc[2:, idx_dep_1 + 1]}) if idx_dep_1 is not None else pd.DataFrame(columns=["N°", "Heure_Depart_1"])
+            df_arr1 = pd.DataFrame({"N°": df_arr_raw.iloc[2:, idx_arr_1].apply(nettoyer_numero), "Heure_Arrivee_1": df_arr_raw.iloc[2:, idx_arr_1 + 2]}) if idx_arr_1 is not None else pd.DataFrame(columns=["N°", "Heure_Arrivee_1"])
+
+            df_eng_raw.columns = df_eng_raw.columns.astype(str).str.strip().str.upper()
+            df_eng = pd.DataFrame({"N°": df_eng_raw.iloc[:, 0].apply(nettoyer_numero), 
+                                   "Nom_Prenom": df_eng_raw.iloc[:, 1].fillna("Pilote Inconnu").astype(str).str.strip(),
+                                   "Voiture": df_eng_raw.iloc[:, 4].fillna("").astype(str).str.strip(),
+                                   "Groupe": df_eng_raw.iloc[:, 5].apply(lambda x: "-" if pd.isna(x) else str(x).strip()[:-2] if str(x).strip().endswith(".0") else str(x).strip()),
+                                   "Classe": df_eng_raw.iloc[:, 6].fillna("-").astype(str).str.strip().apply(lambda x: x[:-2] if x.endswith(".0") else x)})
+            df_eng = df_eng[df_eng["N°"] != "NAN"].drop_duplicates(subset=["N°"])
         except:
-            fichiers_prets = False
+            pass
+        try:
+            df_dep1 = df_dep1[(df_dep1["N°"] != "NAN") & (df_dep1["N°"] != "")]
+            df_dep2 = df_dep2[(df_dep2["N°"] != "NAN") & (df_dep2["N°"] != "")]
 
-        if fichiers_prets:
-            try:
-                df_eng_raw = pd.read_excel(file_engages_bytes, header=1, engine='openpyxl')
-                df_dep_raw = pd.read_excel(file_depart_bytes, header=None, engine='openpyxl')
-                df_arr_raw = pd.read_excel(file_arrivee_bytes, header=None, engine='openpyxl')
+            for d in [df_dep1, df_arr1, df_dep2, df_arr2]:
+                if len(d) > 0:
+                    d["N°"] = d["N°"].astype(str)
+                    d["Run_Index"] = d.groupby("N°").cumcount() + 1
 
-                idx_dep_1, idx_arr_1, idx_dep_2, idx_arr_2 = None, None, None, None
-                for c_idx in range(len(df_dep_raw.columns)):
-                    val = str(df_dep_raw.iloc[1, c_idx]).strip().upper()
-                    if "COURSE 1 RACB" in val: idx_dep_1 = c_idx
-                    elif "COURSE 2 RACB" in val: idx_dep_2 = c_idx
-                for c_idx in range(len(df_arr_raw.columns)):
-                    val = str(df_arr_raw.iloc[1, c_idx]).strip().upper()
-                    if "COURSE 1 RACB" in val: idx_arr_1 = c_idx
-                    elif "COURSE 2 RACB" in val: idx_arr_2 = c_idx
+            if len(df_dep1) > 0: df_dep1["Sec_Dep_1"] = df_dep1["Heure_Depart_1"].apply(convertir_en_secondes)
+            if len(df_arr1) > 0: df_arr1["Sec_Arr_1"] = df_arr1["Heure_Arrivee_1"].apply(convertir_en_secondes)
+            if len(df_dep2) > 0: df_dep2["Sec_Dep_2"] = df_dep2["Heure_Depart_2"].apply(convertir_en_secondes)
+            if len(df_arr2) > 0: df_arr2["Sec_Arr_2"] = df_arr2["Heure_Arrivee_2"].apply(convertir_en_secondes)
 
-                df_dep2 = pd.DataFrame({"N°": df_dep_raw.iloc[2:, idx_dep_2].apply(nettoyer_numero), "Heure_Depart_2": df_dep_raw.iloc[2:, idx_dep_2 + 1]}) if idx_dep_2 is not None else pd.DataFrame(columns=["N°", "Heure_Depart_2"])
-                df_arr2 = pd.DataFrame({"N°": df_arr_raw.iloc[2:, idx_arr_2].apply(nettoyer_numero), "Heure_Arrivee_2": df_arr_raw.iloc[2:, idx_arr_2 + 2]}) if idx_arr_2 is not None else pd.DataFrame(columns=["N°", "Heure_Arrivee_2"])
-                df_dep1 = pd.DataFrame({"N°": df_dep_raw.iloc[2:, idx_dep_1].apply(nettoyer_numero), "Heure_Depart_1": df_dep_raw.iloc[2:, idx_dep_1 + 1]}) if idx_dep_1 is not None else pd.DataFrame(columns=["N°", "Heure_Depart_1"])
-                df_arr1 = pd.DataFrame({"N°": df_arr_raw.iloc[2:, idx_arr_1].apply(nettoyer_numero), "Heure_Arrivee_1": df_arr_raw.iloc[2:, idx_arr_1 + 2]}) if idx_arr_1 is not None else pd.DataFrame(columns=["N°", "Heure_Arrivee_1"])
+            base_runs = pd.DataFrame(columns=["N°", "Run_Index"])
+            for d in [df_dep1, df_dep2]:
+                if len(d) > 0: base_runs = pd.concat([base_runs, d[["N°", "Run_Index"]]], ignore_index=True)
+            base_runs = base_runs.drop_duplicates(subset=["N°", "Run_Index"]) if len(base_runs) > 0 else df_eng[["N°"]].assign(Run_Index=1)
 
-                df_eng_raw.columns = df_eng_raw.columns.astype(str).str.strip().str.upper()
-                df_eng = pd.DataFrame({"N°": df_eng_raw.iloc[:, 0].apply(nettoyer_numero), 
-                                       "Nom_Prenom": df_eng_raw.iloc[:, 1].fillna("Pilote Inconnu").astype(str).str.strip(),
-                                       "Voiture": df_eng_raw.iloc[:, 4].fillna("").astype(str).str.strip(),
-                                       "Groupe": df_eng_raw.iloc[:, 5].apply(lambda x: "-" if pd.isna(x) else str(x).strip()[:-2] if str(x).strip().endswith(".0") else str(x).strip()),
-                                       "Classe": df_eng_raw.iloc[:, 6].fillna("-").astype(str).str.strip().apply(lambda x: x[:-2] if x.endswith(".0") else x)})
-                df_eng = df_eng[df_eng["N°"] != "NAN"].drop_duplicates(subset=["N°"])
-            except:
-                pass
-            try:
-                df_dep1 = df_dep1[(df_dep1["N°"] != "NAN") & (df_dep1["N°"] != "")]
-                df_dep2 = df_dep2[(df_dep2["N°"] != "NAN") & (df_dep2["N°"] != "")]
+            base = pd.merge(base_runs, df_eng, on="N°", how="inner")
+            if len(df_dep1) > 0: base = pd.merge(base, df_dep1, on=["N°", "Run_Index"], how="left")
+            if len(df_arr1) > 0: base = pd.merge(base, df_arr1, on=["N°", "Run_Index"], how="left")
+            if len(df_dep2) > 0: base = pd.merge(base, df_dep2, on=["N°", "Run_Index"], how="left")
+            if len(df_arr2) > 0: base = pd.merge(base, df_arr2, on=["N°", "Run_Index"], how="left")
+            
+            if len(base) > 0:
+                base["Calc_Sec_1"] = (base["Sec_Arr_1"] - base["Sec_Dep_1"]).apply(lambda x: x + 3600 if (x is not None and x < 0) else x)
+                base["Calc_Sec_2"] = (base["Sec_Arr_2"] - base["Sec_Dep_2"]).apply(lambda x: x + 3600 if (x is not None and x < 0) else x)
 
-                for d in [df_dep1, df_arr1, df_dep2, df_arr2]:
-                    if len(d) > 0:
-                        d["N°"] = d["N°"].astype(str)
-                        d["Run_Index"] = d.groupby("N°").cumcount() + 1
+                if "Heure_Depart_2" in base.columns and base["Heure_Depart_2"].notna().any():
+                    base_c2 = base[base["Heure_Depart_2"].notna()].copy()
+                    base_c2["Ordre_Live"] = range(len(base_c2))
+                    df_live_base = base_c2.sort_values(by="Ordre_Live", ascending=False).head(5).copy()
+                    df_live_base["Chrono réalisé"] = df_live_base.apply(lambda r: calculer_statut_chrono(r, est_dans_le_live=True), axis=1)
+                    df_live_base["Départ_C2"] = df_live_base["Heure_Depart_2"].apply(formater_heure_ecran)
+                    df_live_base["Arrivée_C2"] = df_live_base["Heure_Arrivee_2"].apply(formater_heure_ecran)
+                    df_live = df_live_base[["N°", "Nom_Prenom", "Voiture", "Départ_C2", "Arrivée_C2", "Chrono réalisé"]].rename(columns={"Départ_C2": "Départ", "Arrivée_C2": "Arrivée"})
 
-                if len(df_dep1) > 0: df_dep1["Sec_Dep_1"] = df_dep1["Heure_Depart_1"].apply(convertir_en_secondes)
-                if len(df_arr1) > 0: df_arr1["Sec_Arr_1"] = df_arr1["Heure_Arrivee_1"].apply(convertir_en_secondes)
-                if len(df_dep2) > 0: df_dep2["Sec_Dep_2"] = df_dep2["Heure_Depart_2"].apply(convertir_en_secondes)
-                if len(df_arr2) > 0: df_arr2["Sec_Arr_2"] = df_arr2["Heure_Arrivee_2"].apply(convertir_en_secondes)
+                df_hist_base = base.assign(Ordre_Saisie=range(len(base))).sort_values(by="Ordre_Saisie", ascending=False).copy()
+                html_hist = "<table class='table-compacte table-hist'><thead><tr>"
+                for col in ["N°", "Nom_Prenom", "Voiture", "Groupe", "Cl", "Course 1", "Chrono"]: html_hist += f"<th>{col}</th>"
+                html_hist += "</tr></thead><tbody>"
 
-                base_runs = pd.DataFrame(columns=["N°", "Run_Index"])
-                for d in [df_dep1, df_dep2]:
-                    if len(d) > 0: base_runs = pd.concat([base_runs, d[["N°", "Run_Index"]]], ignore_index=True)
-                base_runs = base_runs.drop_duplicates(subset=["N°", "Run_Index"]) if len(base_runs) > 0 else df_eng[["N°"]].assign(Run_Index=1)
-
-                base = pd.merge(base_runs, df_eng, on="N°", how="inner")
-                if len(df_dep1) > 0: base = pd.merge(base, df_dep1, on=["N°", "Run_Index"], how="left")
-                if len(df_arr1) > 0: base = pd.merge(base, df_arr1, on=["N°", "Run_Index"], how="left")
-                if len(df_dep2) > 0: base = pd.merge(base, df_dep2, on=["N°", "Run_Index"], how="left")
-                if len(df_arr2) > 0: base = pd.merge(base, df_arr2, on=["N°", "Run_Index"], how="left")
-                
-                if len(base) > 0:
-                    base["Calc_Sec_1"] = (base["Sec_Arr_1"] - base["Sec_Dep_1"]).apply(lambda x: x + 3600 if (x is not None and x < 0) else x)
-                    base["Calc_Sec_2"] = (base["Sec_Arr_2"] - base["Sec_Dep_2"]).apply(lambda x: x + 3600 if (x is not None and x < 0) else x)
-
-                    if "Heure_Depart_2" in base.columns and base["Heure_Depart_2"].notna().any():
-                        base_c2 = base[base["Heure_Depart_2"].notna()].copy()
-                        base_c2["Ordre_Live"] = range(len(base_c2))
-                        df_live_base = base_c2.sort_values(by="Ordre_Live", ascending=False).head(5).copy()
-                        df_live_base["Chrono réalisé"] = df_live_base.apply(lambda r: calculer_statut_chrono(r, est_dans_le_live=True), axis=1)
-                        df_live_base["Départ_C2"] = df_live_base["Heure_Depart_2"].apply(formater_heure_ecran)
-                        df_live_base["Arrivée_C2"] = df_live_base["Heure_Arrivee_2"].apply(formater_heure_ecran)
-                        df_live = df_live_base[["N°", "Nom_Prenom", "Voiture", "Départ_C2", "Arrivée_C2", "Chrono réalisé"]].rename(columns={"Départ_C2": "Départ", "Arrivée_C2": "Arrivée"})
-
-                    df_hist_base = base.assign(Ordre_Saisie=range(len(base))).sort_values(by="Ordre_Saisie", ascending=False).copy()
+                for idx, row in df_hist_base.iterrows():
+                    t1, t2 = row["Calc_Sec_1"], row["Calc_Sec_2"]
+                    v_valides = [v for v in [t1, t2] if pd.notna(v) and v > 0]
+                    meilleur_sec = min(v_valides) if v_valides else None
                     
-                    # Rendu HTML de l'Historique avec Nouveaux En-têtes (Cl et Chrono)
-                    html_hist = "<table class='table-compacte table-hist'><thead><tr>"
-                    for col in ["N°", "Nom_Prenom", "Voiture", "Groupe", "Cl", "Course 1", "Chrono"]: 
-                        html_hist += f"<th>{col}</th>"
-                    html_hist += "</tr></thead><tbody>"
+                    txt_c1_brut = format_final_chrono(t1)
+                    txt_c1_visuel = f"<span class='txt-meilleur'>{txt_c1_brut}</span>" if (meilleur_sec and t1 == meilleur_sec) else txt_c1_brut
 
-                    for idx, row in df_hist_base.iterrows():
-                        t1, t2 = row["Calc_Sec_1"], row["Calc_Sec_2"]
-                        v_valides = [v for v in [t1, t2] if pd.notna(v) and v > 0]
-                        meilleur_sec = min(v_valides) if v_valides else None
-                        
-                        txt_c1_brut = format_final_chrono(t1)
-                        txt_c1_visuel = f"<span class='txt-meilleur'>{txt_c1_brut}</span>" if (meilleur_sec and t1 == meilleur_sec) else txt_c1_brut
-
-                        if pd.notna(row["Heure_Depart_2"]) and pd.isna(row["Heure_Arrivee_2"]):
-                            txt_c2_visuel = "En Piste"
-                        elif pd.isna(t2) or t2 <= 0:
-                            txt_c2_visuel = "No Time"
+                    if pd.notna(row["Heure_Depart_2"]) and pd.isna(row["Heure_Arrivee_2"]):
+                        txt_c2_visuel = "En Piste"
+                    elif pd.isna(t2) or t2 <= 0:
+                        txt_c2_visuel = "No Time"
+                    else:
+                        txt_c2_brut = format_final_chrono(t2)
+                        base_txt = f"<span class='txt-meilleur'>{txt_c2_brut}</span>" if (meilleur_sec and t2 == meilleur_sec) else txt_c2_brut
+                            
+                        if pd.notna(t1) and t1 > 0:
+                            txt_c2_visuel = f"{base_txt} <span style='color: #22C55E; font-size: 1.65rem; line-height:1;'>▲</span>" if t2 < t1 else f"{base_txt} <span style='color: #EF4444; font-size: 1.65rem; line-height:1;'>▼</span>" if t2 > t1 else base_txt
                         else:
-                            txt_c2_brut = format_final_chrono(t2)
-                            # Isolation du fond vert pastel sur le texte uniquement (pas sur la flèche)
-                            if meilleur_sec and t2 == meilleur_sec:
-                                base_txt = f"<span class='txt-meilleur'>{txt_c2_brut}</span>"
-                            else:
-                                base_txt = txt_c2_brut
-                                
-                            if pd.notna(t1) and t1 > 0:
-                                if t2 < t1: txt_c2_visuel = f"{base_txt} <span style='color: #22C55E; font-size: 1.65rem; line-height:1; font-weight:normal;'>▲</span>"
-                                elif t2 > t1: txt_c2_visuel = f"{base_txt} <span style='color: #EF4444; font-size: 1.65rem; line-height:1; font-weight:normal;'>▼</span>"
-                                else: txt_c2_visuel = base_txt
-                            else:
-                                txt_c2_visuel = base_txt
+                            txt_c2_visuel = base_txt
 
-                        html_hist += f"<tr><td>{row['N°']}</td><td>{row['Nom_Prenom']}</td><td>{row['Voiture']}</td><td>{row['Groupe']}</td><td>{row['Classe']}</td><td>{txt_c1_visuel}</td><td>{txt_c2_visuel}</td></tr>"
-                    html_hist += "</tbody></table>"
+                    html_hist += f"<tr><td>{row['N°']}</td><td>{row['Nom_Prenom']}</td><td>{row['Voiture']}</td><td>{row['Groupe']}</td><td>{row['Classe']}</td><td>{txt_c1_visuel}</td><td>{txt_c2_visuel}</td></tr>"
+                html_hist += "</tbody></table>"
 
-                    valides = base[((base["Calc_Sec_1"].notna() & (base["Calc_Sec_1"] > 0)) | (base["Calc_Sec_2"].notna() & (base["Calc_Sec_2"] > 0)))].copy()
-                    if len(valides) > 0:
-                        valides["Meilleur_Sec"] = valides[["Calc_Sec_1", "Calc_Sec_2"]].min(axis=1, skipna=True)
-                        scr = valides.sort_values(by="Meilleur_Sec").drop_duplicates(subset=["N°"], keep="first").copy()
-                        
-                        racb = scr.head(30).copy()
-                        if len(racb) > 0:
-                            racb["Pos"] = range(1, len(racb) + 1)
-                            racb["Chrono"] = racb["Meilleur_Sec"].apply(format_final_chrono)
-                            df_racb = racb[["Pos", "N°", "Nom_Prenom", "Groupe", "Classe", "Chrono"]]
-                        
-                        scr["Cl_Tri_Num"] = scr["Classe"].apply(decomposer_classe_pour_tri)
-                        scr["Cl_Tri_Suff"] = scr["Classe"].apply(extraire_suffixe_pour_tri)
-                        df_grouped = scr.sort_values(by=["Cl_Tri_Num", "Cl_Tri_Suff", "Groupe", "Meilleur_Sec"]).groupby("Classe", sort=False).head(3).copy()
-                        df_grouped = df_grouped.sort_values(by=["Cl_Tri_Num", "Cl_Tri_Suff", "Groupe", "Meilleur_Sec"])
-                        
-                        if len(df_grouped) > 0:
-                            df_grouped["Pos"] = df_grouped.groupby("Classe", sort=False).cumcount() + 1
-                            df_grouped["Chrono"] = df_grouped["Meilleur_Sec"].apply(format_final_chrono)
-                            df_divisions = df_grouped[["Pos", "N°", "Nom_Prenom", "Groupe", "Classe", "Chrono"]]
-            except:
-                pass
-
-        with affichage_dynamique.container():
-            if not fichiers_prets:
-                st.warning("⚠️ Connexion Dropbox instable ou attente de disponibilité des données en ligne...")
-            else:
-                cg, cd = st.columns([1.3, 0.9])
-                with cg:
-                    st.markdown("<span class='titre-live'>🏎️ EN DIRECT / Derniers concurrents partis</span>", unsafe_allow_html=True)
-                    st.markdown(generer_tableau_html(df_live, "table-live"), unsafe_allow_html=True)
-                    st.markdown("<div style='height: 35px;'></div>", unsafe_allow_html=True)
-                    st.markdown("<span class='titre-hist'>🕒 HISTORIQUE DES TEMPS / 2ème COURSE / Concurrents RACB</span>", unsafe_allow_html=True)
-                    st.markdown(html_hist, unsafe_allow_html=True)
-                with cd:
-                    st.markdown("<span class='titre-classement'>🏆 CLASSEMENT EVOLUTIF OFFICIEUX (Top 30)</span>", unsafe_allow_html=True)
-                    st.markdown(generer_tableau_html(df_racb, "table-class-robuste"), unsafe_allow_html=True)
-                    st.markdown("<div style='height: 65px;'></div>", unsafe_allow_html=True)
-                    st.markdown("<span class='titre-classement'>📊 CLASSEMENT EVOLUTIF PAR CLASSE (Top 3)</span>", unsafe_allow_html=True)
-                    st.markdown(generer_tableau_html(df_divisions, "table-class-groupes"), unsafe_allow_html=True)
+                valides = base[((base["Calc_Sec_1"].notna() & (base["Calc_Sec_1"] > 0)) | (base["Calc_Sec_2"].notna() & (base["Calc_Sec_2"] > 0)))].copy()
+                if len(valides) > 0:
+                    valides["Meilleur_Sec"] = valides[["Calc_Sec_1", "Calc_Sec_2"]].min(axis=1, skipna=True)
+                    scr = valides.sort_values(by="Meilleur_Sec").drop_duplicates(subset=["N°"], keep="first").copy()
                     
-        time.sleep(1)
+                    racb = scr.head(30).copy()
+                    if len(racb) > 0:
+                        racb["Pos"] = range(1, len(racb) + 1)
+                        racb["Chrono"] = racb["Meilleur_Sec"].apply(format_final_chrono)
+                        df_racb = racb[["Pos", "N°", "Nom_Prenom", "Groupe", "Classe", "Chrono"]]
+                    
+                    scr["Cl_Tri_Num"] = scr["Classe"].apply(decomposer_classe_pour_tri)
+                    scr["Cl_Tri_Suff"] = scr["Classe"].apply(extraire_suffixe_pour_tri)
+                    df_grouped = scr.sort_values(by=["Cl_Tri_Num", "Cl_Tri_Suff", "Groupe", "Meilleur_Sec"]).groupby("Classe", sort=False).head(3).copy()
+                    df_grouped = df_grouped.sort_values(by=["Cl_Tri_Num", "Cl_Tri_Suff", "Groupe", "Meilleur_Sec"])
+                    
+                    if len(df_grouped) > 0:
+                        df_grouped["Pos"] = df_grouped.groupby("Classe", sort=False).cumcount() + 1
+                        df_grouped["Chrono"] = df_grouped["Meilleur_Sec"].apply(format_final_chrono)
+                        df_divisions = df_grouped[["Pos", "N°", "Nom_Prenom", "Groupe", "Classe", "Chrono"]]
+        except:
+            pass
 
-# Lancement strict du script
+    if not fichiers_prets:
+        st.warning("⚠️ Connexion Dropbox instable...")
+    else:
+        cg, cd = st.columns([1.3, 0.9])
+        with cg:
+            st.markdown("<span class='titre-live'>🏎️ EN DIRECT / Derniers concurrents partis</span>", unsafe_allow_html=True)
+            st.markdown(generer_tableau_html(df_live, "table-live"), unsafe_allow_html=True)
+            st.markdown("<div style='height: 35px;'></div>", unsafe_allow_html=True)
+            st.markdown("<span class='titre-hist'>🕒 HISTORIQUE DES TEMPS / 2ème COURSE / Concurrents RACB</span>", unsafe_allow_html=True)
+            st.markdown(html_hist, unsafe_allow_html=True)
+        with cd:
+            st.markdown("<span class='titre-classement'>🏆 CLASSEMENT EVOLUTIF OFFICIEUX (Top 30)</span>", unsafe_allow_html=True)
+            st.markdown(generer_tableau_html(df_racb, "table-class-robuste"), unsafe_allow_html=True)
+            st.markdown("<div style='height: 65px;'></div>", unsafe_allow_html=True)
+            st.markdown("<span class='titre-classement'>📊 CLASSEMENT EVOLUTIF PAR CLASSE (Top 3)</span>", unsafe_allow_html=True)
+            st.markdown(generer_tableau_html(df_divisions, "table-class-groupes"), unsafe_allow_html=True)
+            
+    # Relance l'application proprement en 1 seconde en rendant la main au menu
+    time.sleep(1)
+    st.rerun()
+
+# Lancement de l'épreuve
 afficher_course_2_racb()
