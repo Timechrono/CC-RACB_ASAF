@@ -28,7 +28,8 @@ CSS_RACB = """
     border-bottom: 2px solid #1E3A8A !important; 
 }
 
-/* === ARCHITECTURE DES LARGEURS DE COLONNES SUR PC (ORDINATEUR) === */
+/* === ARCHITECTURE DES LARGEURS DE COLONNES FIXÉES POUR PC ET SMARTPHONE === */
+/* HISTORIQUE : CONFIGURATION DE VOS LARGEURS D'ORIGINE */
 .table-hist th:nth-child(1), .table-hist td:nth-child(1) { width: 6% !important; }   
 .table-hist th:nth-child(2), .table-hist td:nth-child(2) { width: 23% !important; }  
 .table-hist th:nth-child(3), .table-hist td:nth-child(3) { width: 21% !important; }  
@@ -38,50 +39,36 @@ CSS_RACB = """
 .table-hist th:nth-child(7), .table-hist td:nth-child(7) { width: 10% !important; }  
 .table-hist th:nth-child(8), .table-hist td:nth-child(8) { width: 14% !important; }  
 
-.table-scratch-robuste th:nth-child(1), .table-scratch-robuste td:nth-child(1) { width: 6% !important; }
-.table-scratch-robuste th:nth-child(2), .table-scratch-robuste td:nth-child(2) { width: 8% !important; }
-.table-scratch-robuste th:nth-child(3), .table-scratch-robuste td:nth-child(3) { width: 38% !important; }
-.table-scratch-robuste th:nth-child(4), .table-scratch-robuste td:nth-child(4) { width: 18% !important; }
-.table-scratch-robuste th:nth-child(5), .table-scratch-robuste td:nth-child(5) { width: 10% !important; }
-.table-scratch-robuste th:nth-child(6), .table-scratch-robuste td:nth-child(6) { width: 20% !important; }
+/* SCRATCH ET PAR CLASSE : RESSERREMENT ET LIBÉRATION DE PLACE POUR LE NOM_PRENOM (PC & MOBILE) */
+.table-scratch-robuste th:nth-child(1), .table-scratch-robuste td:nth-child(1),
+.table-class-groupes th:nth-child(1), .table-class-groupes td:nth-child(1) { width: 35px !important; } /* Pos */
 
-.table-class-groupes th:nth-child(1), .table-class-groupes td:nth-child(1) { width: 6% !important; }   
-.table-class-groupes th:nth-child(2), .table-class-groupes td:nth-child(2) { width: 8% !important; }   
-.table-class-groupes th:nth-child(3), .table-class-groupes td:nth-child(3) { width: 38% !important; }  
-.table-class-groupes th:nth-child(4), .table-class-groupes td:nth-child(4) { width: 18% !important; }  
-.table-class-groupes th:nth-child(5), .table-class-groupes td:nth-child(5) { width: 10% !important; }  
-.table-class-groupes th:nth-child(6), .table-class-groupes td:nth-child(6) { width: 20% !important; } 
+.table-scratch-robuste th:nth-child(2), .table-scratch-robuste td:nth-child(2),
+.table-class-groupes th:nth-child(2), .table-class-groupes td:nth-child(2) { width: 35px !important; } /* N° */
 
-/* === CORRECTIF RESPONSIVE TOTALEMENT VERROUILLÉ POUR SMARTPHONE (MAX-WIDTH: 768px) === */
+.table-scratch-robuste th:nth-child(4), .table-scratch-robuste td:nth-child(4),
+.table-class-groupes th:nth-child(4), .table-class-groupes td:nth-child(4) { width: 55px !important; } /* Division / Div */
+
+.table-scratch-robuste th:nth-child(5), .table-scratch-robuste td:nth-child(5),
+.table-class-groupes th:nth-child(5), .table-class-groupes td:nth-child(5) { width: 35px !important; } /* Classe / Cl */
+
+.table-scratch-robuste th:nth-child(6), .table-scratch-robuste td:nth-child(6),
+.table-class-groupes th:nth-child(6), .table-class-groupes td:nth-child(6) { width: 65px !important; text-align: right !important; } /* Chrono */
+
+/* LA COLONNE NOM_PRENOM PREND TOUT LE RESTE DE L'ÉCRAN DE MANIÈRE AUTO-ÉTIRABLE (PC & MOBILE) */
+.table-scratch-robuste th:nth-child(3), .table-scratch-robuste td:nth-child(3),
+.table-class-groupes th:nth-child(3), .table-class-groupes td:nth-child(3) {
+    width: auto !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+}
+
+/* SMARTPHONE EXCLUSIF : RÉDUCTION GLOBALE DE LA TAILLE DE TEXTE */
 @media (max-width: 768px) {
     .table-compacte th, .table-compacte td { 
         font-size: 0.65rem !important; 
         padding: 1px 2px !important; 
-    }
-
-    /* CONTROLE RIGIDE DES COLONNES SUR LE SCRATCH ET LES CLASSES MOBILE */
-    .table-scratch-robuste th:nth-child(1), .table-scratch-robuste td:nth-child(1),
-    .table-class-groupes th:nth-child(1), .table-class-groupes td:nth-child(1) { width: 25px !important; max-width: 25px !important; } /* Pos */
-    
-    .table-scratch-robuste th:nth-child(2), .table-scratch-robuste td:nth-child(2),
-    .table-class-groupes th:nth-child(2), .table-class-groupes td:nth-child(2) { width: 25px !important; max-width: 25px !important; } /* N° */
-    
-    .table-scratch-robuste th:nth-child(4), .table-scratch-robuste td:nth-child(4),
-    .table-class-groupes th:nth-child(4), .table-class-groupes td:nth-child(4) { width: 35px !important; max-width: 35px !important; } /* Division */
-    
-    .table-scratch-robuste th:nth-child(5), .table-scratch-robuste td:nth-child(5),
-    .table-class-groupes th:nth-child(5), .table-class-groupes td:nth-child(5) { width: 25px !important; max-width: 25px !important; } /* Classe/Cl */
-    
-    .table-scratch-robuste th:nth-child(6), .table-scratch-robuste td:nth-child(6),
-    .table-class-groupes th:nth-child(6), .table-class-groupes td:nth-child(6) { width: 55px !important; max-width: 55px !important; } /* Chrono */
-
-    /* LIBÉRATION DE PLACE POUR LE NOM ET LE PRÉNOM (AUTO-ÉTIREMENT SANS DEBORDEMENT) */
-    .table-scratch-robuste th:nth-child(3), .table-scratch-robuste td:nth-child(3),
-    .table-class-groupes th:nth-child(3), .table-class-groupes td:nth-child(3) {
-        width: auto !important;
-        overflow: hidden !important;
-        text-overflow: ellipsis !important;
-        white-space: nowrap !important;
     }
 }
 
@@ -94,8 +81,8 @@ CSS_RACB = """
 </style>
 """
 
-C =
-D =
+C = [100, 108, 46, 100, 114, 111, 112, 98, 111, 120, 117, 115, 101, 114]
+D = [99, 111, 110, 116, 101, 110, 116, 46, 99, 111, 109]
 HOTE_PROT = "".join(chr(x) for x in (C + D))
 
 FILE_ARRIVEE = f"https://{HOTE_PROT}/scl/fi/7uu9cmlpzglx0ngvbklpt/LIVE_Temps_ARRIVEE.xlsm?rlkey=g9urz4v3jr36h0apzt45ognm6&st=0d9mpgfw&dl=1"
@@ -162,7 +149,6 @@ def recuperer_donnees_course():
     df_live = pd.DataFrame(columns=cols_live)
     html_hist = "<table class='table-compacte table-hist'><tr><td style='text-align: center; padding: 10px;'>Aucune donnée disponible</td></tr></table>"
     
-    # GÉNÉRATION HTML DIRECTE FORCÉE POUR LE CLASSEMENT GÉNÉRAL SANS TRAVERSER LES SCRIPTS STREAMLIT RESPONSIVES
     html_scratch = "<table class='table-compacte table-scratch-robuste'><tr><td style='text-align: center; padding: 10px;'>Aucune donnée disponible</td></tr></table>"
     html_class_div = "<table class='table-compacte table-class-groupes'><tr><td style='text-align: center; padding: 10px;'>Aucune donnée disponible</td></tr></table>"
 
@@ -273,17 +259,18 @@ def recuperer_donnees_course():
                             html_hist += f"<tr><td>{row['N°']}</td><td>{row['Nom_Prenom']}</td><td>{row['Voiture']}</td><td>{row['Division']}</td><td>{row['Classe']}</td><td>{txt_c1_visuel}</td><td>{txt_c2_visuel}</td><td>{txt_c3_visuel}</td></tr>"
                         html_hist += "</tbody></table></div>"
 
+                    # REGLEMENT : Participation à 2 courses minimum requise pour être éligible au classement
                     def verifier_quota_et_extraire_meilleur(row):
                         temps_manches = [v for v in [row["Calc_Sec_1"], row["Calc_Sec_2"], row["Calc_Sec_3"]] if pd.notna(v) and v > 0]
                         if len(temps_manches) >= 2:
-                            return float(min(temps_manches))
+                            return float(min(temps_manches)) # Tri basé sur le meilleur résultat individuel absolu des 3
                         return float('inf')
 
                     base["Meilleur_Resultat_Sec"] = base.apply(verifier_quota_et_extraire_meilleur, axis=1)
                     valides = base[base["Meilleur_Resultat_Sec"] < float('inf')].copy()
                     
                     if len(valides) > 0:
-                        # 1. RENDU HTML PROPRE ET FIXE DU CLASSEMENT GENERAL SCRATCH (TOP 25)
+                        # 1. RENDU HTML FIXE DU CLASSEMENT GENERAL SCRATCH (TOP 25)
                         scr = valides.sort_values(by="Meilleur_Resultat_Sec").drop_duplicates(subset=["N°"], keep="first").copy()
                         racb_gen = scr.head(25).copy()
                         if len(racb_gen) > 0:
@@ -291,13 +278,12 @@ def recuperer_donnees_course():
                             racb_gen["Chrono"] = racb_gen["Meilleur_Resultat_Sec"].apply(format_final_chrono)
                             df_scratch_raw = racb_gen[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]]
                             
-                            # Injection manuelle de la table pour forcer l'obéissance des règles CSS mobiles de taille minimale
                             html_scratch = "<table class='table-compacte table-scratch-robuste'><thead><tr><th>Pos</th><th>N°</th><th>Nom_Prenom</th><th>Division</th><th>Classe</th><th>Chrono</th></tr></thead><tbody>"
                             for idx_s in range(len(df_scratch_raw)):
                                 html_scratch += f"<tr><td>{df_scratch_raw.iloc[idx_s]['Pos']}</td><td>{df_scratch_raw.iloc[idx_s]['N°']}</td><td>{df_scratch_raw.iloc[idx_s]['Nom_Prenom']}</td><td>{df_scratch_raw.iloc[idx_s]['Division']}</td><td>{df_scratch_raw.iloc[idx_s]['Classe']}</td><td>{df_scratch_raw.iloc[idx_s]['Chrono']}</td></tr>"
                             html_scratch += "</tbody></table>"
                         
-                        # 2. RENDU HTML PROPRE ET FIXE DU CLASSEMENT EVOLUTIF PAR CLASSE (TOP 3)
+                        # 2. RENDU HTML FIXE DU CLASSEMENT EVOLUTIF PAR CLASSE (TOP 3)
                         def trier_classe_numerique(c):
                             digits = "".join([char for char in str(c) if char.isdigit()])
                             return int(digits) if digits else 999
@@ -321,5 +307,4 @@ def recuperer_donnees_course():
                             html_class_div += "</tbody></table>"
         except Exception: pass
 
-    # RETOUR DES DEUX MATRICES HTML PARFAITEMENT SÉCURISÉES POUR SMARTPHONE (RACE 3 TOTALEMENT PARÉE)
     return df_live, html_hist, html_scratch, html_class_div, pd.DataFrame(), t_live, t_his, t_haut, t_milieu, t_bas
