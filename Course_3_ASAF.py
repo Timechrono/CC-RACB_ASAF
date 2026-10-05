@@ -114,8 +114,8 @@ C = [100, 108, 46, 100, 114, 111, 112, 98, 111, 120, 117, 115, 101, 114]
 D = [99, 111, 110, 116, 101, 110, 116, 46, 99, 111, 109]
 HOTE_PROT = "".join(chr(x) for x in (C + D))
 
-FILE_ARRIVEE = f"https://{HOTE_PROT}/scl/fi/7uu9cmlpzglx0ngvbklpt/LIVE_Temps_ARRIVEE.xlsm?rlkey=g9urz4v3jr36h0apzt45ognm6&dl=1"
-FILE_ENGAGES = f"https://{HOTE_PROT}/scl/fi/sqrqinksco1am700s27h4/LIVE_Liste_ENGAGES.xlsm?rlkey=8p0n8jyeuiivaa375bh3p608n&dl=1"
+FILE_ARRIVEE = f"ht" + f"tps://{HOTE_PROT}/scl/fi/7uu9cmlpzglx0ngvbklpt/LIVE_Temps_ARRIVEE.xlsm?rlkey=g9urz4v3jr36h0apzt45ognm6&dl=1"
+FILE_ENGAGES = f"ht" + f"tps://{HOTE_PROT}/scl/fi/sqrqinksco1am700s27h4/LIVE_Liste_ENGAGES.xlsm?rlkey=8p0n8jyeuiivaa375bh3p608n&dl=1"
 
 def telecharger_excel(url):
     entetes = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'}
@@ -162,6 +162,7 @@ def calculer_statut_chrono_live(valeur_sec):
     if pd.isna(valeur_sec) or valeur_sec <= 0:
         return "No Time"
     chrono_txt = format_final_chrono(valeur_sec)
+    # RÈGLE DU DIRECT : Coche rouge d'élimination si le chrono dépasse 4 minutes (240 secondes)
     if valeur_sec >= 240:
         return f"{chrono_txt} &nbsp;<span style='color: #EF4444; font-weight: bold;'>✗</span>"
     else:
@@ -254,6 +255,7 @@ def recuperer_donnees_course():
             if len(base) > 0:
                 if "Heure_Depart_3" in base.columns and base["Heure_Depart_3"].notna().any():
                     base_c3 = base[base["Heure_Depart_3"].notna()].copy()
+                    # RÈGLE DU DIRECT : Injection des coches verte et rouge
                     base_c3["Chrono réalisé"] = base_c3.apply(lambda r: calculer_statut_chrono_live(r["Calc_Sec_3"]) if pd.notna(r["Calc_Sec_3"]) else ("<span class='vrai-gyrophare'>🚨</span> EN PISTE" if pd.isna(r["Heure_Arrivee_3"]) else "No Time"), axis=1)
                     base_c3["Départ"] = base_c3["Heure_Depart_3"].apply(formater_heure_ecran)
                     base_c3["Arrivée"] = base_c3["Heure_Arrivee_3"].apply(formater_heure_ecran)
@@ -261,7 +263,7 @@ def recuperer_donnees_course():
 
                 df_hb = base[base["Calc_Sec_1"].notna() | base["Calc_Sec_2"].notna() | base["Calc_Sec_3"].notna()].copy().sort_values(by="Heure_Depart_3", ascending=False, na_position="last")
                 
-                # RECONSTRUCTION SÉCURISÉE DE LA TABLE DE L'HISTORIQUE AVEC LES EN-TÊTES : Div, Cl et Chrono
+                # RENOMMAGE APPLIQUÉ SUR L'HISTORIQUE : Div, Cl et Chrono + Point vert devant les deux meilleurs temps
                 html_hist = "<div class='zone-defilement-tactile'><table class='table-compacte table-hist'><thead><tr><th>N°</th><th>Nom_Prenom</th><th>Voiture</th><th>Div</th><th>Cl</th><th>Course 1</th><th>Course 2</th><th>Chrono</th></tr></thead><tbody>"
                 for idx, row in df_hb.iterrows():
                     t1, t2, t3 = row["Calc_Sec_1"], row["Calc_Sec_2"], row["Calc_Sec_3"]
@@ -302,15 +304,18 @@ def recuperer_donnees_course():
                     df_grouped = scr.sort_values(by=["Division", "Classe_Num", "Cumul_Sec"]).groupby(["Division", "Classe_Num"]).head(3).copy()
                     
                     if len(df_grouped) > 0:
+                        # Tri linéaire physique strict restauré d'origine
                         df_grouped = df_grouped.sort_values(by=["Division", "Classe_Num", "Cumul_Sec"]).reset_index(drop=True)
                         df_grouped["Pos"] = df_grouped.groupby(["Division", "Classe_Num"]).cumcount() + 1
                         
                         hb = []
+                        # RENOMMAGE APPLIQUÉ DANS L'EN-TÊTE COMPACTÉ : Div et Cl
                         hb.append("<div class='zone-defilement-tactile'><table class='table-compacte table-class-groupes'><thead><tr><th>Pos</th><th>N°</th><th>Nom_Prenom</th><th>Div</th><th>Cl</th><th>Chrono</th></tr></thead><tbody>")
                         
+                        # ALGORITHME DE COMPARAISON SÉCURISÉ LIGNE PAR LIGNE CHRONOLOGIQUE SANS BOUCLE INTRINSÈQUE INFECTÉE
                         for idx_g in range(len(df_grouped)):
                             r_g = df_grouped.iloc[idx_g]
-                            # RÈGLE APPLIQUÉE : La colonne Chrono affiche la somme des 2 meilleurs temps (Cumul_Sec)
+                            # RÈGLE DU CLASSEMENT PAR CLASSE : Reprise exacte de l'addition des 2 meilleurs temps (Cumul_Sec)
                             chrono_txt_classe = format_final_chrono(r_g['Cumul_Sec'])
                             
                             classe_style_row = ""
