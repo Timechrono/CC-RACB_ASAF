@@ -89,7 +89,7 @@ def calculer_statut_chrono_live(valeur_sec):
     if pd.isna(valeur_sec) or valeur_sec <= 0:
         return "No Time"
     chrono_txt = format_final_chrono(valeur_sec)
-    # Règle de validation automatique : coche rouge au-delà de 4 minutes (240 secondes)
+    # Règle de validation automatique : coche rouge si le chrono dépasse 4 minutes (240 sec)
     if valeur_sec >= 240:
         return f"{chrono_txt} &nbsp;<span style='color: #EF4444; font-weight: bold;'>✗</span>"
     else:
@@ -109,6 +109,15 @@ def recuperer_donnees_course():
     df_live = pd.DataFrame(columns=cols_live)
     html_hist = "<table class='table-compacte table-hist'><tr><td style='text-align: center; padding: 10px;'>Aucune donnée disponible</td></tr></table>"
     df_racb_gen = pd.DataFrame(columns=["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"])
+    
+    # Initialisation pour le Classement évolutif par Classe (Top 3)
+    html_class_div = "<table class='table-compacte table-class-groupes'><tr><td style='text-align: center; padding: 10px;'>Aucune donnée disponible</td></tr></table>"
+
+    t_live = "🏎️ EN DIRECT / Derniers Concurrents partis"
+    t_his = "🕒 HISTORIQUE DES TEMPS / 3ème COURSE / Concurrents RACB"
+    t_haut = "🏆 CLASSEMENT GENERAL OFFICIEUX (Top 25)"
+    t_milieu = "📊 CLASSEMENT EVOLUTIF OFFICIEUX PAR Classe (Top 3)"
+    t_bas = ""
 
     data_engages = telecharger_excel(FILE_ENGAGES_RACB)
     data_arrivee = telecharger_excel(FILE_ARRIVEE)
@@ -172,7 +181,7 @@ def recuperer_donnees_course():
                 if len(base) > 0:
                     if "Heure_Depart_3" in base.columns and base["Heure_Depart_3"].notna().any():
                         base_c3 = base[base["Heure_Depart_3"].notna()].copy()
-                        # AJOUT CORRECT : Application de la fonction de validation avec puces graphiques sur la table Live
+                        # Injection des coches verte (✓) et rouge (✗) dans l'affichage du direct
                         base_c3["Chrono réalisé"] = base_c3.apply(lambda r: calculer_statut_chrono_live(r["Calc_Sec_3"]) if pd.notna(r["Calc_Sec_3"]) else ("<span class='vrai-gyrophare'>🚨</span> EN PISTE" if pd.isna(r["Heure_Arrivee_3"]) else "No Time"), axis=1)
                         base_c3["Départ"] = base_c3["Heure_Depart_3"].apply(formater_heure_ecran)
                         base_c3["Arrivée"] = base_c3["Heure_Arrivee_3"].apply(formater_heure_ecran)
@@ -182,6 +191,7 @@ def recuperer_donnees_course():
                     if not df_hist_base.empty:
                         df_hist_base = df_hist_base.sort_values(by="Heure_Depart_3", ascending=False, na_position="last")
                         
+                        # EMEDDED SCROLL TACTILE MOBILES AUTOUR DE LA TABLE HISTORIQUE SOUHAITÉE
                         html_hist = CSS_RACB + "<div class='zone-defilement-tactile'>"
                         html_hist += "<table class='table-compacte table-hist'><thead><tr><th>N°</th><th>Nom_Prenom</th><th>Voiture</th><th>Division</th><th>Classe</th><th>Course 1</th><th>Course 2</th><th>Chrono réalisé</th></tr></thead><tbody>"
 
@@ -190,6 +200,7 @@ def recuperer_donnees_course():
                             valeurs_valides = [v for v in [t1, t2, t3] if pd.notna(v) and v > 0]
                             meilleur_sec = min(valeurs_valides) if valeurs_valides else None
 
+                            # ÉPURÉ : Plus aucune mise en gras (balise strong retirée pour l'historique)
                             txt_c1_visuel = f"<span style='color: #22C55E;'>•</span>&nbsp;{format_final_chrono(t1)}" if (meilleur_sec and t1 == meilleur_sec) else format_final_chrono(t1)
                             txt_c2_visuel = f"<span style='color: #22C55E;'>•</span>&nbsp;{format_final_chrono(t2)}" if (meilleur_sec and t2 == meilleur_sec) else format_final_chrono(t2)
 
@@ -202,6 +213,7 @@ def recuperer_donnees_course():
                                 txt_c3_base = f"<span style='color: #22C55E;'>•</span>&nbsp;{txt_c3}" if (meilleur_sec and t3 == meilleur_sec) else txt_c3
                                 temps_precedents = [t for t in [t1, t2] if pd.notna(t) and t > 0]
                                 
+                                # ARCS DE TRIANGLES ALIGNÉS VERTICALEMENT AU MILIEU DU CHRONO
                                 if temps_precedents and t3 < min(temps_precedents): 
                                     txt_c3_visuel = f"{txt_c3_base} &nbsp;<span style='color: #22C55E; font-size: 1.25rem; vertical-align: middle; display: inline-block; line-height: 1;'>▲</span>"
                                 elif temps_precedents and t3 > min(temps_precedents): 
@@ -212,19 +224,49 @@ def recuperer_donnees_course():
                             html_hist += f"<tr><td>{row['N°']}</td><td>{row['Nom_Prenom']}</td><td>{row['Voiture']}</td><td>{row['Division']}</td><td>{row['Classe']}</td><td>{txt_c1_visuel}</td><td>{txt_c2_visuel}</td><td>{txt_c3_visuel}</td></tr>"
                         html_hist += "</tbody></table></div>"
 
-                    def calc_cumul_strict(row):
-                        t = [v for v in [row["Calc_Sec_1"], row["Calc_Sec_2"], row["Calc_Sec_3"]] if pd.notna(v) and v > 0]
-                        return float(min(t)) if len(t) >= 2 else float('inf')
+                    # RÈGLE DU MEILLEUR RÉSULTAT INDIVIDUEL (Quota minimal de 2 courses courues requis)
+                    def verifier_quota_et_extraire_meilleur(row):
+                        temps_manches = [v for v in [row["Calc_Sec_1"], row["Calc_Sec_2"], row["Calc_Sec_3"]] if pd.notna(v) and v > 0]
+                        # Un concurrent doit avoir au moins 2 temps valides sur les 3 courses pour entrer dans les classements
+                        if len(temps_manches) >= 2:
+                            return float(min(temps_manches)) # On extrait le meilleur temps de manche de la journée
+                        return float('inf')
 
-                    base["Cumul_Sec"] = base.apply(calc_cumul_strict, axis=1)
-                    valides = base[base["Cumul_Sec"] < float('inf')].copy()
+                    base["Meilleur_Resultat_Sec"] = base.apply(verifier_quota_et_extraire_meilleur, axis=1)
+                    valides = base[base["Meilleur_Resultat_Sec"] < float('inf')].copy()
+                    
                     if len(valides) > 0:
-                        scr = valides.sort_values(by="Cumul_Sec").drop_duplicates(subset=["N°"], keep="first").copy()
+                        # 1. CLASSEMENT GENERAL SCRATCH (TOP 25)
+                        scr = valides.sort_values(by="Meilleur_Resultat_Sec").drop_duplicates(subset=["N°"], keep="first").copy()
                         racb_gen = scr.head(25).copy()
                         if len(racb_gen) > 0:
                             racb_gen["Pos"] = range(1, len(racb_gen) + 1)
-                            racb_gen["Chrono"] = racb_gen["Cumul_Sec"].apply(format_final_chrono)
+                            racb_gen["Chrono"] = racb_gen["Meilleur_Resultat_Sec"].apply(format_final_chrono)
                             df_racb_gen = racb_gen[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]]
+                        
+                        # 2. CLASSEMENT EVOLUTIF PAR CLASSE (TOP 3)
+                        def trier_classe_numerique(c):
+                            digits = "".join([char for char in str(c) if char.isdigit()])
+                            return int(digits) if digits else 999
+
+                        scr["Classe_Tri"] = scr["Classe"].apply(trier_classe_numerique)
+                        df_grouped = scr.sort_values(by=["Classe_Tri", "Classe", "Meilleur_Resultat_Sec"]).groupby("Classe", sort=False).head(3).copy()
+                        df_grouped = df_grouped.sort_values(by=["Classe_Tri", "Classe", "Meilleur_Resultat_Sec"])
+                        
+                        if len(df_grouped) > 0:
+                            df_grouped["Pos"] = df_grouped.groupby("Classe", sort=False).cumcount() + 1
+                            df_grouped["Chrono"] = df_grouped["Meilleur_Resultat_Sec"].apply(format_final_chrono)
+                            df_divisions_raw = df_grouped[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]].rename(columns={"Classe": "Cl"})
+                            
+                            # Rendu HTML du tableau par classe avec la séparation de ligne bleue
+                            html_class_div = "<table class='table-compacte table-class-groupes'><thead><tr><th>Pos</th><th>N°</th><th>Nom_Prenom</th><th>Division</th><th>Cl</th><th>Chrono</th></tr></thead><tbody>"
+                            for idx in range(len(df_divisions_raw)):
+                                classe_row = ""
+                                if idx < len(df_divisions_raw) - 1:
+                                    if str(df_divisions_raw.iloc[idx]["Cl"]) != str(df_divisions_raw.iloc[idx + 1]["Cl"]):
+                                        classe_row = "class='ligne-separation-classe'"
+                                html_class_div += f"<tr {classe_row}><td>{df_divisions_raw.iloc[idx]['Pos']}</td><td>{df_divisions_raw.iloc[idx]['N°']}</td><td>{df_divisions_raw.iloc[idx]['Nom_Prenom']}</td><td>{df_divisions_raw.iloc[idx]['Division']}</td><td>{df_divisions_raw.iloc[idx]['Cl']}</td><td>{df_divisions_raw.iloc[idx]['Chrono']}</td></tr>"
+                            html_class_div += "</tbody></table>"
         except Exception: pass
 
-    return df_live, html_hist, df_racb_gen, pd.DataFrame(), pd.DataFrame(), "🏎️ EN DIRECT / Derniers Concurrents partis", "🕒 HISTORIQUE DES TEMPS / 3ème COURSE / Concurrents RACB", "🏆 CLASSEMENT GENERAL OFFICIEUX (Top 25)", "", ""
+    return df_live, html_hist, df_racb_gen, html_class_div, pd.DataFrame(), t_live, t_his, t_haut, t_milieu, t_bas
