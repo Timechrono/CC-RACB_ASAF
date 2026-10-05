@@ -313,7 +313,7 @@ def recuperer_donnees_course():
                             classe_style_row = ""
                             if cg < tg:
                                 prochaine_cle = liste_groupes_cles[cg]
-                                # CORRECTION SÉCURISÉE DE LA SYNTAXE PYTHON DE RUPTURE DE CLASSE
+                                # SÉCURISÉ : Décomposition précise du tuple pour bloquer le chargement infini
                                 if str(div) != str(prochaine_cle[0]) or str(cl) != str(prochaine_cle[1]):
                                     classe_style_row = "class='ligne-separation-classe'"
                             
