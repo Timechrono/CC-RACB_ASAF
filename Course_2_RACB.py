@@ -3,7 +3,6 @@ import datetime
 import requests  
 import io        
 
-# Rétablissement de TOUS vos styles CSS rigides et précis d'origine
 CSS_RIGIDE_ORIGINE = """
 <style>
 .vrai-gyrophare {
@@ -12,8 +11,6 @@ CSS_RIGIDE_ORIGINE = """
     font-size: 1.05rem !important;
     vertical-align: middle !important;
 }
-
-/* FOND VERT PASTEL DE CHRONO SUR TEXTE UNIQUEMENT (Pas sur le triangle) */
 .txt-meilleur { 
     background-color: #d9fcec !important; 
     font-weight: bold !important; 
@@ -21,7 +18,6 @@ CSS_RIGIDE_ORIGINE = """
     border-radius: 2px !important; 
     color: #000000 !important;
 }
-
 .table-compacte { width: 100% !important; margin-bottom: 0px !important; border-collapse: collapse !important; table-layout: fixed !important; }
 .table-compacte tr { height: 18px !important; }
 .table-compacte th, .table-compacte td { 
@@ -30,30 +26,18 @@ CSS_RIGIDE_ORIGINE = """
 }
 .table-compacte td { font-weight: normal !important; border-bottom: 1px solid #E0E0E0 !important; background-color: #FFFFFF !important; }
 .table-compacte th { font-weight: bold !important; background-color: #F5F5F5 !important; border-bottom: 2px solid #CCCCCC !important; text-align: left !important; }
-
-.table-class-robuste tr:nth-child(odd) td {
-    background-color: #E0F2FE !important;
-}
-
-.ligne-separation-classe td {
-    border-bottom: 2px solid #1E3A8A !important;
-}
-
+.table-class-robuste tr:nth-child(odd) td { background-color: #E0F2FE !important; }
+.ligne-separation-classe td { border-bottom: 2px solid #1E3A8A !important; }
 .table-hist td:nth-last-child(2), .table-hist td:last-child,
 .table-live td:last-child, .table-class-robuste td:last-child {
-    font-weight: bold !important;
-    font-size: 0.94rem !important;
-    color: #0F172A !important;
+    font-weight: bold !important; font-size: 0.94rem !important; color: #0F172A !important;
 }
-
-/* RETOUR STRICT DE VOS LARGEURS DE COLONNES D'ORIGINE */
 .table-live th:nth-child(1), .table-live td:nth-child(1) { width: 8% !important; }
 .table-live th:nth-child(2), .table-live td:nth-child(2) { width: 26% !important; }
 .table-live th:nth-child(3), .table-live td:nth-child(3) { width: 18% !important; }
 .table-live th:nth-child(4), .table-live td:nth-child(4) { width: 13% !important; }
 .table-live th:nth-child(5), .table-live td:nth-child(5) { width: 13% !important; }
 .table-live th:nth-child(6), .table-live td:nth-child(6) { width: 22% !important; }
-
 .table-hist th:nth-child(1), .table-hist td:nth-child(1) { width: 6% !important; }   
 .table-hist th:nth-child(2), .table-hist td:nth-child(2) { width: 22% !important; }  
 .table-hist th:nth-child(3), .table-hist td:nth-child(3) { width: 22% !important; }  
@@ -61,21 +45,18 @@ CSS_RIGIDE_ORIGINE = """
 .table-hist th:nth-child(5), .table-hist td:nth-child(5) { width: 6% !important; }   
 .table-hist th:nth-child(6), .table-hist td:nth-child(6) { width: 17% !important; }  
 .table-hist th:nth-child(7), .table-hist td:nth-child(7) { width: 17% !important; }  
-
 .table-class-robuste th:nth-child(1), .table-class-robuste td:nth-child(1) { width: 9% !important; }
 .table-class-robuste th:nth-child(2), .table-class-robuste td:nth-child(2) { width: 11% !important; }
 .table-class-robuste th:nth-child(3), .table-class-robuste td:nth-child(3) { width: 33% !important; }
 .table-class-robuste th:nth-child(4), .table-class-robuste td:nth-child(4) { width: 23% !important; }
 .table-class-robuste th:nth-child(5), .table-class-robuste td:nth-child(5) { width: 6% !important; }
 .table-class-robuste th:nth-child(6), .table-class-robuste td:nth-child(6) { width: 18% !important; text-align: right !important; }
-
 .table-class-groupes th:nth-child(1), .table-class-groupes td:nth-child(1) { width: 5% !important; }   
 .table-class-groupes th:nth-child(2), .table-class-groupes td:nth-child(2) { width: 8% !important; }   
 .table-class-groupes th:nth-child(3), .table-class-groupes td:nth-child(3) { width: 35% !important; }  
 .table-class-groupes th:nth-child(4), .table-class-groupes td:nth-child(4) { width: 21% !important; }  
 .table-class-groupes th:nth-child(5), .table-class-groupes td:nth-child(5) { width: 11% !important; }  
 .table-class-groupes th:nth-child(6), .table-class-groupes td:nth-child(6) { width: 14% !important; text-align: right !important; } 
-
 .table-class-groupes tr td { background-color: #FFFFFF !important; }
 </style>
 """
@@ -88,9 +69,18 @@ def telecharger_excel(url):
 
 def convertir_en_secondes(valeur):
     if pd.isna(valeur) or valeur is None: return None
+    if isinstance(valeur, pd.Timedelta): return valeur.total_seconds()
     if isinstance(valeur, (datetime.time, datetime.datetime)):
         return (valeur.minute * 60) + valeur.second + (valeur.microsecond / 1000000)
     s = str(valeur).strip()
+    if not s or s.lower() == "nan": return None
+    if ":" in s:
+        try:
+            parts = s.split(":")
+            m = int(parts[0])
+            sec = float(parts[1].replace(",", "."))
+            return (m * 60) + sec
+        except Exception: pass
     if s.endswith(".0"): s = s[:-2]
     s_clean = "".join([c for c in s if c.isdigit()])
     if not s_clean: return None
@@ -125,7 +115,6 @@ def calculer_statut_chrono(row, est_dans_le_live=True):
     if "Calc_Sec_2" in row and pd.notna(row["Calc_Sec_2"]) and row["Calc_Sec_2"] > 0:
         chrono_txt = format_final_chrono(row["Calc_Sec_2"])
         if est_dans_le_live:
-            # COCHE SANS FOND POSITIONNÉE STRICTEMENT À DROITE
             if row["Calc_Sec_2"] >= 240:
                 return f"{chrono_txt} &nbsp;<span style='color: #EF4444; font-weight: bold;'>✗</span>"
             else:
@@ -138,47 +127,31 @@ def calculer_statut_chrono(row, est_dans_le_live=True):
 def generer_tableau_html(df, classe_specifique):
     if df.empty: 
         return f"<table class='table-compacte {classe_specifique}'><tr><td style='text-align: center; padding: 10px;'>Aucune donnée disponible</td></tr></table>"
-    
     if classe_specifique == "table-class-groupes" and "Classe" in df.columns:
         cols_a_retirer = ["Cl_Tri_Num", "Cl_Tri_Suff"]
         colonnes_visibles = [c for c in df.columns if c not in cols_a_retirer]
-        
         html = f"<table class='table-compacte table-class-groupes'><thead><tr>"
-        for col in colonnes_visibles:
-            html += f"<th>{col}</th>"
+        for col in colonnes_visibles: html += f"<th>{col}</th>"
         html += "</tr></thead><tbody>"
         for idx in range(len(df)):
-            classe_row = ""
-            if idx < len(df) - 1:
-                if str(df.iloc[idx]["Classe"]) != str(df.iloc[idx + 1]["Classe"]):
-                    classe_row = "class='ligne-separation-classe'"
+            classe_row = "class='ligne-separation-classe'" if idx < len(df) - 1 and str(df.iloc[idx]["Classe"]) != str(df.iloc[idx + 1]["Classe"]) else ""
             html += f"<tr {classe_row}>"
-            for col in colonnes_visibles:
-                html += f"<td>{df.iloc[idx][col]}</td>"
+            for col in colonnes_visibles: html += f"<td>{df.iloc[idx][col]}</td>"
             html += "</tr>"
         html += "</tbody></table>"
         return html
-
     return df.to_html(index=False, classes=f"table-compacte {classe_specifique}", escape=False, border=0)
 
 def decomposer_classe_pour_tri(valeur_classe):
     s = str(valeur_classe).strip().upper()
     if s.endswith(".0"): s = s[:-2]
-    chiffres = ""
-    for char in s:
-        if char.isdigit(): chiffres += char
-        else: break
-    if chiffres:
-        return int(chiffres)
-    return 999
+    chiffres = "".join([c for c in s if c.isdigit()])
+    return int(chiffres) if chiffres else 999
 
 def extraire_suffixe_pour_tri(valeur_classe):
     s = str(valeur_classe).strip().upper()
     if s.endswith(".0"): s = s[:-2]
-    chiffres = ""
-    for char in s:
-        if char.isdigit(): chiffres += char
-        else: break
+    chiffres = "".join([c for c in s if c.isdigit()])
     return s[len(chiffres):].strip()
 def recuperer_donnees_course():
     C =
@@ -189,14 +162,12 @@ def recuperer_donnees_course():
     FILE_DEPART  = f"ht" + f"tps://{HOTE_PROT}/scl/fi/gbkaq01qzjujc8nq3zj28/LIVE_Temps_DEPART.xlsm?rlkey=4x4rvvlfyzz8v59gqbxn80a4d&st=mcibn3xx&dl=1"
     FILE_ENGAGES_RACB = f"ht" + f"tps://{HOTE_PROT}/scl/fi/69zkwsb45bpiw3ys3kk4c/LIVE_Liste_ENGAGES_RACB.xlsm?rlkey=qpjrlmbxhcskifnabs84veqh8&st=0snuv3e7&dl=1"
 
-    cols_live = ["N°", "Nom_Prenom", "Voiture", "Départ", "Arrivée", "Chrono réalisé"]
-    cols_hist = ["N°", "Nom_Prenom", "Voiture", "Groupe", "Classe", "Course 1", "Chrono réalisé"]
-    
-    df_live = pd.DataFrame(columns=cols_live)
-    df_racb = pd.DataFrame(columns=["Pos", "N°", "Nom_Prenom", "Groupe", "Classe", "Chrono"])
-    df_divisions = pd.DataFrame(columns=["Pos", "N°", "Nom_Prenom", "Groupe", "Classe", "Chrono"])
+    cols_live = ["N°", "Nom_Prenom", "Voiture", "Départ", "Arrivée", "Chrono"]
+    cols_hist = ["N°", "Nom_Prenom", "Voiture", "Groupe", "Cl", "Chrono"]
+    df_live, df_hist = pd.DataFrame(columns=cols_live), pd.DataFrame(columns=cols_hist)
+    df_racb = pd.DataFrame(columns=["Pos", "N°", "Nom_Prenom", "Groupe", "Cl", "Chrono"])
+    df_divisions = pd.DataFrame(columns=["Pos", "N°", "Nom_Prenom", "Groupe", "Cl", "Chrono"])
 
-    # Rétablissement STRICT de vos titres d'origine demandés
     t_live = "🏎️ EN DIRECT / Derniers concurrents partis"
     t_his = "🕒 HISTORIQUE DES TEMPS / 2ème COURSE / Concurrents RACB"
     t_haut = "🏆 CLASSEMENT EVOLUTIF OFFICIEUX RACB (Top 30)"
@@ -217,7 +188,6 @@ def recuperer_donnees_course():
             df_eng_raw = pd.read_excel(file_engages_bytes, header=1, engine='openpyxl')
             df_dep_raw = pd.read_excel(file_depart_bytes, header=None, engine='openpyxl')
             df_arr_raw = pd.read_excel(file_arrivee_bytes, header=None, engine='openpyxl')
-
             idx_dep_1, idx_arr_1, idx_dep_2, idx_arr_2 = None, None, None, None
             for c_idx in range(len(df_dep_raw.columns)):
                 val = str(df_dep_raw.iloc[1, c_idx]).strip().upper()
@@ -227,12 +197,10 @@ def recuperer_donnees_course():
                 val = str(df_arr_raw.iloc[1, c_idx]).strip().upper()
                 if "COURSE 1 RACB" in val: idx_arr_1 = c_idx
                 elif "COURSE 2 RACB" in val: idx_arr_2 = c_idx
-
             df_dep2 = pd.DataFrame({"N°": df_dep_raw.iloc[2:, idx_dep_2].apply(nettoyer_numero), "Heure_Depart_2": df_dep_raw.iloc[2:, idx_dep_2 + 1]}) if idx_dep_2 is not None else pd.DataFrame(columns=["N°", "Heure_Depart_2"])
             df_arr2 = pd.DataFrame({"N°": df_arr_raw.iloc[2:, idx_arr_2].apply(nettoyer_numero), "Heure_Arrivee_2": df_arr_raw.iloc[2:, idx_arr_2 + 2]}) if idx_arr_2 is not None else pd.DataFrame(columns=["N°", "Heure_Arrivee_2"])
             df_dep1 = pd.DataFrame({"N°": df_dep_raw.iloc[2:, idx_dep_1].apply(nettoyer_numero), "Heure_Depart_1": df_dep_raw.iloc[2:, idx_dep_1 + 1]}) if idx_dep_1 is not None else pd.DataFrame(columns=["N°", "Heure_Depart_1"])
             df_arr1 = pd.DataFrame({"N°": df_arr_raw.iloc[2:, idx_arr_1].apply(nettoyer_numero), "Heure_Arrivee_1": df_arr_raw.iloc[2:, idx_arr_1 + 2]}) if idx_arr_1 is not None else pd.DataFrame(columns=["N°", "Heure_Arrivee_1"])
-
             df_eng_raw.columns = df_eng_raw.columns.astype(str).str.strip().str.upper()
             df_eng = pd.DataFrame({"N°": df_eng_raw.iloc[:, 0].apply(nettoyer_numero), 
                                    "Nom_Prenom": df_eng_raw.iloc[:, 1].fillna("Pilote Inconnu").astype(str).str.strip(),
@@ -249,7 +217,6 @@ def recuperer_donnees_course():
                 if len(d) > 0:
                     d["N°"] = d["N°"].astype(str)
                     d["Run_Index"] = d.groupby("N°").cumcount() + 1
-
             if len(df_dep1) > 0: df_dep1["Sec_Dep_1"] = df_dep1["Heure_Depart_1"].apply(convertir_en_secondes)
             if len(df_arr1) > 0: df_arr1["Sec_Arr_1"] = df_arr1["Heure_Arrivee_1"].apply(convertir_en_secondes)
             if len(df_dep2) > 0: df_dep2["Sec_Dep_2"] = df_dep2["Heure_Depart_2"].apply(convertir_en_secondes)
@@ -274,14 +241,12 @@ def recuperer_donnees_course():
                     base_c2 = base[base["Heure_Depart_2"].notna()].copy()
                     base_c2["Ordre_Live"] = range(len(base_c2))
                     df_live_base = base_c2.sort_values(by="Ordre_Live", ascending=False).head(5).copy()
-                    df_live_base["Chrono réalisé"] = df_live_base.apply(lambda r: calculer_statut_chrono(r, est_dans_le_live=True), axis=1)
+                    df_live_base["Chrono"] = df_live_base.apply(lambda r: calculer_statut_chrono(r, est_dans_le_live=True), axis=1)
                     df_live_base["Départ_C2"] = df_live_base["Heure_Depart_2"].apply(formater_heure_ecran)
                     df_live_base["Arrivée_C2"] = df_live_base["Heure_Arrivee_2"].apply(formater_heure_ecran)
-                    df_live = df_live_base[["N°", "Nom_Prenom", "Voiture", "Départ_C2", "Arrivée_C2", "Chrono réalisé"]].rename(columns={"Départ_C2": "Départ", "Arrivée_C2": "Arrivée"})
+                    df_live = df_live_base[["N°", "Nom_Prenom", "Voiture", "Départ_C2", "Arrivée_C2", "Chrono"]].rename(columns={"Départ_C2": "Départ", "Arrivée_C2": "Arrivée"})
 
                 df_hist_base = base.assign(Ordre_Saisie=range(len(base))).sort_values(by="Ordre_Saisie", ascending=False).copy()
-                
-                # RECONSTRUCTION DE L'HISTORIQUE HTML EXCLUSIF AVEC EN-TÊTES DEMANDÉS (Cl et Chrono) ET LES FLÈCHES ISOLÉES DU FOND VERT
                 html_hist = CSS_RIGIDE_ORIGINE
                 html_hist += "<table class='table-compacte table-hist'><thead><tr><th>N°</th><th>Nom_Prenom</th><th>Voiture</th><th>Groupe</th><th>Cl</th><th>Course 1</th><th>Chrono</th></tr></thead><tbody>"
 
@@ -313,7 +278,6 @@ def recuperer_donnees_course():
                 if len(valides) > 0:
                     valides["Meilleur_Sec"] = valides[["Calc_Sec_1", "Calc_Sec_2"]].min(axis=1, skipna=True)
                     scr = valides.sort_values(by="Meilleur_Sec").drop_duplicates(subset=["N°"], keep="first").copy()
-                    
                     racb = scr.head(30).copy()
                     if len(racb) > 0:
                         racb["Pos"] = range(1, len(racb) + 1)
@@ -324,7 +288,6 @@ def recuperer_donnees_course():
                     scr["Cl_Tri_Suff"] = scr["Classe"].apply(extraire_suffixe_pour_tri)
                     df_grouped = scr.sort_values(by=["Cl_Tri_Num", "Cl_Tri_Suff", "Groupe", "Meilleur_Sec"]).groupby("Classe", sort=False).head(3).copy()
                     df_grouped = df_grouped.sort_values(by=["Cl_Tri_Num", "Cl_Tri_Suff", "Groupe", "Meilleur_Sec"])
-                    
                     if len(df_grouped) > 0:
                         df_grouped["Pos"] = df_grouped.groupby("Classe", sort=False).cumcount() + 1
                         df_grouped["Chrono"] = df_grouped["Meilleur_Sec"].apply(format_final_chrono)
@@ -333,10 +296,7 @@ def recuperer_donnees_course():
             pass
 
     if not fichiers_prets:
-        # Envoi d'un tableau HTML vide d'origine en cas de coupure
         html_hist = f"{CSS_RIGIDE_ORIGINE}<table class='table-compacte table-hist'><tr><td style='text-align: center; padding: 10px;'>Aucune donnée disponible pour le plateau RACB</td></tr></table>"
 
     html_class_div = generer_tableau_html(df_divisions, "table-class-groupes")
-    
-    # RETOUR EN 10 VARIABLES PARFAITEMENT ADAPTÉ AU SYSTÈME CENTRAL DE APP.PY
     return df_live, html_hist, df_racb, html_class_div, pd.DataFrame(), t_live, t_his, t_haut, t_milieu, t_bas
