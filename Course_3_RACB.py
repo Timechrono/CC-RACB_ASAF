@@ -37,53 +37,72 @@ CSS_RACB = """
 }
 
 /* ========================================================================= */
-/* 🖥️ CONFIGURATION DES LARGEURS RIGIDES AVEC AUTO-AJUSTEMENT DU NOM        */
+/* 🖥️ REGLAGE RIGIDE DES LARGEURS SUR ORDINATEUR (MIN-WIDTH: 769px)          */
 /* ========================================================================= */
-/* HISTORIQUE : CONFIGURATION DE VOS LARGEURS D'ORIGINE */
-.table-hist th:nth-child(1), .table-hist td:nth-child(1) { width: 6% !important; }   
-.table-hist th:nth-child(2), .table-hist td:nth-child(2) { width: 23% !important; }  
-.table-hist th:nth-child(3), .table-hist td:nth-child(3) { width: 21% !important; }  
-.table-hist th:nth-child(4), .table-hist td:nth-child(4) { width: 10% !important; }   
-.table-hist th:nth-child(5), .table-hist td:nth-child(5) { width: 6% !important; }   
-.table-hist th:nth-child(6), .table-hist td:nth-child(6) { width: 10% !important; }  
-.table-hist th:nth-child(7), .table-hist td:nth-child(7) { width: 10% !important; }  
-.table-hist th:nth-child(8), .table-hist td:nth-child(8) { width: 14% !important; }  
+@media (min-width: 769px) {
+    /* HISTORIQUE : CONFIGURATION DE VOS LARGEURS D'ORIGINE SUR PC */
+    .table-hist th:nth-child(1), .table-hist td:nth-child(1) { width: 6% !important; }   
+    .table-hist th:nth-child(2), .table-hist td:nth-child(2) { width: 23% !important; }  
+    .table-hist th:nth-child(3), .table-hist td:nth-child(3) { width: 21% !important; }  
+    .table-hist th:nth-child(4), .table-hist td:nth-child(4) { width: 10% !important; }   
+    .table-hist th:nth-child(5), .table-hist td:nth-child(5) { width: 6% !important; }   
+    .table-hist th:nth-child(6), .table-hist td:nth-child(6) { width: 10% !important; }  
+    .table-hist th:nth-child(7), .table-hist td:nth-child(7) { width: 10% !important; }  
+    .table-hist th:nth-child(8), .table-hist td:nth-child(8) { width: 14% !important; }  
 
-/* DESACTIVATION DU LAYOUT FIXE POUR LE SCRATCH ET LES CLASSES POUR PERMETTRE L'AJUSTEMENT AU NOM LE PLUS LARGE */
-.table-scratch-robuste, .table-class-groupes {
-    table-layout: auto !important;
+    /* SCRATCH ET CLASSE SUR PC : LE NOM PREND TOUT LE RESTE SANS VIDE INCORRECT */
+    .table-scratch-robuste th:nth-child(1), .table-scratch-robuste td:nth-child(1),
+    .table-class-groupes th:nth-child(1), .table-class-groupes td:nth-child(1) { width: 40px !important; } /* Pos */
+    
+    .table-scratch-robuste th:nth-child(2), .table-scratch-robuste td:nth-child(2),
+    .table-class-groupes th:nth-child(2), .table-class-groupes td:nth-child(2) { width: 40px !important; } /* N° */
+    
+    .table-scratch-robuste th:nth-child(4), .table-scratch-robuste td:nth-child(4),
+    .table-class-groupes th:nth-child(4), .table-class-groupes td:nth-child(4) { width: 70px !important; } /* Division */
+    
+    .table-scratch-robuste th:nth-child(5), .table-scratch-robuste td:nth-child(5),
+    .table-class-groupes th:nth-child(5), .table-class-groupes td:nth-child(5) { width: 50px !important; } /* Classe */
+    
+    .table-scratch-robuste th:nth-child(6), .table-scratch-robuste td:nth-child(6),
+    .table-class-groupes th:nth-child(6), .table-class-groupes td:nth-child(6) { width: 90px !important; text-align: right !important; } /* Chrono */
+    
+    .table-scratch-robuste th:nth-child(3), .table-scratch-robuste td:nth-child(3),
+    .table-class-groupes th:nth-child(3), .table-class-groupes td:nth-child(3) { width: auto !important; } /* Nom_Prenom */
 }
 
-/* SCRATCH ET PAR CLASSE : VERROUILLAGE DES COLONNES SECONDAIRES AU MINIMUM VISUEL */
-.table-scratch-robuste th:nth-child(1), .table-scratch-robuste td:nth-child(1),
-.table-class-groupes th:nth-child(1), .table-class-groupes td:nth-child(1) { width: 35px !important; min-width: 35px !important; } /* Pos */
-
-.table-scratch-robuste th:nth-child(2), .table-scratch-robuste td:nth-child(2),
-.table-class-groupes th:nth-child(2), .table-class-groupes td:nth-child(2) { width: 35px !important; min-width: 35px !important; } /* N° */
-
-.table-scratch-robuste th:nth-child(4), .table-scratch-robuste td:nth-child(4),
-.table-class-groupes th:nth-child(4), .table-class-groupes td:nth-child(4) { width: 60px !important; min-width: 60px !important; } /* Division / Div */
-
-.table-scratch-robuste th:nth-child(5), .table-scratch-robuste td:nth-child(5),
-.table-class-groupes th:nth-child(5), .table-class-groupes td:nth-child(5) { width: 35px !important; min-width: 35px !important; } /* Classe / Cl */
-
-.table-scratch-robuste th:nth-child(6), .table-scratch-robuste td:nth-child(6),
-.table-class-groupes th:nth-child(6), .table-class-groupes td:nth-child(6) { width: 70px !important; min-width: 70px !important; text-align: right !important; } /* Chrono */
-
-/* LA COLONNE S'AJUSTE SUR LE NOM LE PLUS LONG ET COUPE JUSTE APRÈS SANS ESPACE VIDE INUTILE */
-.table-scratch-robuste th:nth-child(3), .table-scratch-robuste td:nth-child(3),
-.table-class-groupes th:nth-child(3), .table-class-groupes td:nth-child(3) {
-    width: 1% !important;
-    white-space: nowrap !important;
-    overflow: hidden !important;
-    text-overflow: ellipsis !important;
-}
-
-/* SMARTPHONE EXCLUSIF : RÉDUCTION GLOBALE DE LA TAILLE DE POLICE */
+/* ========================================================================= */
+/* 📱 REGLAGE RIGIDE ASSURÉ SUR SMARTPHONE (MAX-WIDTH: 768px)                */
+/* ========================================================================= */
 @media (max-width: 768px) {
     .table-compacte th, .table-compacte td { 
         font-size: 0.65rem !important; 
         padding: 1px 2px !important; 
+    }
+
+    /* SCRATCH ET PAR CLASSE MOBILE : VERROUILLAGE PHYSIQUE SUR ÉCRAN TACTILE */
+    .table-scratch-robuste th:nth-child(1), .table-scratch-robuste td:nth-child(1),
+    .table-class-groupes th:nth-child(1), .table-class-groupes td:nth-child(1) { width: 25px !important; max-width: 25px !important; } /* Pos */
+    
+    .table-scratch-robuste th:nth-child(2), .table-scratch-robuste td:nth-child(2),
+    .table-class-groupes th:nth-child(2), .table-class-groupes td:nth-child(2) { width: 25px !important; max-width: 25px !important; } /* N° */
+    
+    .table-scratch-robuste th:nth-child(4), .table-scratch-robuste td:nth-child(4),
+    .table-class-groupes th:nth-child(4), .table-class-groupes td:nth-child(4) { width: 35px !important; max-width: 35px !important; } /* Division */
+    
+    .table-scratch-robuste th:nth-child(5), .table-scratch-robuste td:nth-child(5),
+    .table-class-groupes th:nth-child(5), .table-class-groupes td:nth-child(5) { width: 25px !important; max-width: 25px !important; } /* Classe/Cl */
+    
+    .table-scratch-robuste th:nth-child(6), .table-scratch-robuste td:nth-child(6),
+    .table-class-groupes th:nth-child(6), .table-class-groupes td:nth-child(6) { width: 55px !important; max-width: 55px !important; text-align: right !important; } /* Chrono */
+
+    /* AJUSTEMENT AU MILLIMÈTRE : Coupe nette immédiatement après le pilote le plus long */
+    .table-scratch-robuste th:nth-child(3), .table-scratch-robuste td:nth-child(3),
+    .table-class-groupes th:nth-child(3), .table-class-groupes td:nth-child(3) {
+        width: 110px !important;
+        max-width: 110px !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        white-space: nowrap !important;
     }
 }
 
@@ -274,18 +293,18 @@ def recuperer_donnees_course():
                             html_hist += f"<tr><td>{row['N°']}</td><td>{row['Nom_Prenom']}</td><td>{row['Voiture']}</td><td>{row['Division']}</td><td>{row['Classe']}</td><td>{txt_c1_visuel}</td><td>{txt_c2_visuel}</td><td>{txt_c3_visuel}</td></tr>"
                         html_hist += "</tbody></table></div>"
 
-                    # REGLEMENT : Participation à 2 courses minimum requise pour être éligible au classement
+                    # QUOTA : Participation à 2 courses minimum validée
                     def verifier_quota_et_extraire_meilleur(row):
                         temps_manches = [v for v in [row["Calc_Sec_1"], row["Calc_Sec_2"], row["Calc_Sec_3"]] if pd.notna(v) and v > 0]
                         if len(temps_manches) >= 2:
-                            return float(min(temps_manches)) # Tri basé sur le meilleur résultat individuel absolu des 3
+                            return float(min(temps_manches)) # Classement basé sur la meilleure manche de la journée
                         return float('inf')
 
                     base["Meilleur_Resultat_Sec"] = base.apply(verifier_quota_et_extraire_meilleur, axis=1)
                     valides = base[base["Meilleur_Resultat_Sec"] < float('inf')].copy()
                     
                     if len(valides) > 0:
-                        # 1. RENDU HTML FIXE DU CLASSEMENT GENERAL SCRATCH (TOP 25)
+                        # 1. RETOUR DU SCRATCH GENERAL AVEC LES BULLES DE LIGNE REPARÉES
                         scr = valides.sort_values(by="Meilleur_Resultat_Sec").drop_duplicates(subset=["N°"], keep="first").copy()
                         racb_gen = scr.head(25).copy()
                         if len(racb_gen) > 0:
@@ -298,7 +317,7 @@ def recuperer_donnees_course():
                                 html_scratch += f"<tr><td>{df_scratch_raw.iloc[idx_s]['Pos']}</td><td>{df_scratch_raw.iloc[idx_s]['N°']}</td><td>{df_scratch_raw.iloc[idx_s]['Nom_Prenom']}</td><td>{df_scratch_raw.iloc[idx_s]['Division']}</td><td>{df_scratch_raw.iloc[idx_s]['Classe']}</td><td>{df_scratch_raw.iloc[idx_s]['Chrono']}</td></tr>"
                             html_scratch += "</tbody></table>"
                         
-                        # 2. RENDU HTML FIXE DU CLASSEMENT EVOLUTIF PAR CLASSE (TOP 3)
+                        # 2. RETOUR PAR CLASSE SÉCURISÉ
                         def trier_classe_numerique(c):
                             digits = "".join([char for char in str(c) if char.isdigit()])
                             return int(digits) if digits else 999
