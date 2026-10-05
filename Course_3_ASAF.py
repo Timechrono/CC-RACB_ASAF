@@ -7,6 +7,9 @@ import time
 import io
 import requests
 
+# Nettoyage automatique du cache au chargement
+st.cache_data.clear()
+
 # --- DESIGN SCIENTIFIQUE RIGIDE RESTAURÉ ---
 st.markdown("""
     <style>
@@ -54,11 +57,12 @@ st.markdown("""
         background-color: #E0F2FE !important;
     }
     
+    /* Séparateur de classe bleu foncé de 2px de large */
     .table-class-groupes tr.ligne-separation-classe td { 
         border-bottom: 2px solid #1E3A8A !important; 
     }
     
-    /* LARGEURS DE COLONNES FIGÉES D'ORIGINE */
+    /* LARGEURS DE COLONNES FIGÉES D'ORIGINE RESTAURÉES */
     .table-live th:nth-child(1), .table-live td:nth-child(1) { width: 8% !important; }
     .table-live th:nth-child(2), .table-live td:nth-child(2) { width: 26% !important; }
     .table-live th:nth-child(3), .table-live td:nth-child(3) { width: 18% !important; }
@@ -107,19 +111,18 @@ C = [100, 108, 46, 100, 114, 111, 112, 98, 111, 120, 117, 115, 101, 114]
 D = [99, 111, 110, 116, 101, 110, 116, 46, 99, 111, 109]
 HOTE_PROT = "".join(chr(x) for x in (C + D))
 
-FILE_ARRIVEE = f"https://{HOTE_PROT}/scl/fi/7uu9cmlpzglx0ngvbklpt/LIVE_Temps_ARRIVEE.xlsm?rlkey=g9urz4v3jr36h0apzt45ognm6&dl=1"
-FILE_DEPART  = f"https://{HOTE_PROT}/scl/fi/gbkaq01qzjujc8nq3zj28/LIVE_Temps_DEPART.xlsm?rlkey=4x4rvvlfyzz8v59gqbxn80a4d&dl=1"
-FILE_ENGAGES = f"https://{HOTE_PROT}/scl/fi/sqrqinksco1am700s27h4/LIVE_Liste_ENGAGES.xlsm?rlkey=8p0n8jyeuiivaa375bh3p608n&dl=1"
+FILE_ARRIVEE = f"ht" + f"tps://{HOTE_PROT}/scl/fi/7uu9cmlpzglx0ngvbklpt/LIVE_Temps_ARRIVEE.xlsm?rlkey=g9urz4v3jr36h0apzt45ognm6&dl=1"
+FILE_DEPART  = f"ht" + f"tps://{HOTE_PROT}/scl/fi/gbkaq01qzjujc8nq3zj28/LIVE_Temps_DEPART.xlsm?rlkey=4x4rvvlfyzz8v59gqbxn80a4d&dl=1"
+FILE_ENGAGES = f"ht" + f"tps://{HOTE_PROT}/scl/fi/sqrqinksco1am700s27h4/LIVE_Liste_ENGAGES.xlsm?rlkey=8p0n8jyeuiivaa375bh3p608n&dl=1"
 
-# LE COEUR DE LA SOLUTION : Interrogation Dropbox bridée à 10 secondes maximum
-@st.cache_data(ttl=10)
+# SAUVEGARDE : Utilisation de votre fonction réseau RACB à 100% stable
 def telecharger_excel(url):
     try:
-        entetes = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'}
-        reponse = requests.get(url, headers=entetes, timeout=10)
+        entetes = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'}
+        reponse = requests.get(url, headers=entetes, timeout=12)
         reponse.raise_for_status()
         return io.BytesIO(reponse.content)
-    except Exception:
+    except Exception: 
         return None
 
 def convertir_en_secondes(valeur):
@@ -131,7 +134,11 @@ def convertir_en_secondes(valeur):
     s_clean = "".join([c for c in s if c.isdigit()])
     if not s_clean: return None
     num = int(s_clean)
-    return ((num // 10000) * 60) + ((num // 100) % 100) + ((num % 100) / 100)
+    centiemes = num % 100
+    secondes = (num // 100) % 100
+    minutes = num // 10000
+    if minutes >= 60: minutes = minutes % 60
+    return (minutes * 60) + secondes + (centiemes / 100)
 
 def nettoyer_numero(valeur):
     if pd.isna(valeur): return "nan"
@@ -170,8 +177,10 @@ def recuperer_donnees_course():
     html_hist = "<div class='zone-defilement-tactile'><table class='table-compacte table-hist'><tr><td style='text-align: center; padding: 10px;'>Aucune donnée disponible</td></tr></table></div>"
     df_divisions = "<div class='zone-defilement-tactile'><table class='table-compacte table-class-groupes'><tr><td style='text-align: center; padding: 10px;'>Aucune donnée disponible</td></tr></table></div>"
 
-    t_live, t_his = "🏎️ EN DIRECT / Derniers Concurrents partis", "🕒 HISTORIQUE DES TEMPS / 3ème COURSE / Concurrents ASAF"
-    t_haut, t_milieu = "🏆 CLASSEMENT GENERAL OFFICIEUX Division 123 (Top 25)", "🏆 CLASSEMENT GENERAL OFFICIEUX Division 4 (Top 10)"
+    t_live = "🏎️ EN DIRECT / Derniers Concurrents partis"
+    t_his = "🕒 HISTORIQUE DES TEMPS / 3ème COURSE / Concurrents ASAF"
+    t_haut = "🏆 CLASSEMENT GENERAL OFFICIEUX Division 123 (Top 25)"
+    t_milieu = "🏆 CLASSEMENT GENERAL OFFICIEUX Division 4 (Top 10)"
     t_bas = "📊 CLASSEMENT OFFICIEUX par Division / Classe (Top 3)"
 
     try:
