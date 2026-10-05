@@ -39,21 +39,74 @@ CSS_RIGIDE_ORIGINE = """
     font-size: 0.94rem !important; color: #0F172A !important;
 }
 
-/* LARGEURS STRICTES PC REPARÉES */
-.table-live th:nth-child(1), .table-live td:nth-child(1) { width: 8% !important; }
-.table-live th:nth-child(2), .table-live td:nth-child(2) { width: 26% !important; }
-.table-live th:nth-child(3), .table-live td:nth-child(3) { width: 18% !important; }
-.table-live th:nth-child(4), .table-live td:nth-child(4) { width: 13% !important; }
-.table-live th:nth-child(5), .table-live td:nth-child(5) { width: 13% !important; }
-.table-live th:nth-child(6), .table-live td:nth-child(6) { width: 22% !important; }
+/* LARGEURS DE COLONNES STRICTES SUR ORDINATEUR (MIN-WIDTH: 769px) */
+@media (min-width: 769px) {
+    .table-live th:nth-child(1), .table-live td:nth-child(1) { width: 8% !important; }
+    .table-live th:nth-child(2), .table-live td:nth-child(2) { width: 26% !important; }
+    .table-live th:nth-child(3), .table-live td:nth-child(3) { width: 18% !important; }
+    .table-live th:nth-child(4), .table-live td:nth-child(4) { width: 13% !important; }
+    .table-live th:nth-child(5), .table-live td:nth-child(5) { width: 13% !important; }
+    .table-live th:nth-child(6), .table-live td:nth-child(6) { width: 22% !important; }
 
-.table-hist th:nth-child(1), .table-hist td:nth-child(1) { width: 6% !important; }   
-.table-hist th:nth-child(2), .table-hist td:nth-child(2) { width: 22% !important; }  
-.table-hist th:nth-child(3), .table-hist td:nth-child(3) { width: 22% !important; }  
-.table-hist th:nth-child(4), .table-hist td:nth-child(4) { width: 13% !important; }   
-.table-hist th:nth-child(5), .table-hist td:nth-child(5) { width: 6% !important; }   
-.table-hist th:nth-child(6), .table-hist td:nth-child(6) { width: 14% !important; }  
-.table-hist th:nth-child(7), .table-hist td:nth-child(7) { width: 17% !important; }  
+    .table-hist th:nth-child(1), .table-hist td:nth-child(1) { width: 6% !important; }   
+    .table-hist th:nth-child(2), .table-hist td:nth-child(2) { width: 22% !important; }  
+    .table-hist th:nth-child(3), .table-hist td:nth-child(3) { width: 22% !important; }  
+    .table-hist th:nth-child(4), .table-hist td:nth-child(4) { width: 13% !important; }   
+    .table-hist th:nth-child(5), .table-hist td:nth-child(5) { width: 6% !important; }   
+    .table-hist th:nth-child(6), .table-hist td:nth-child(6) { width: 14% !important; }  
+    .table-hist th:nth-child(7), .table-hist td:nth-child(7) { width: 17% !important; }  
+}
+
+/* CONFIGURATION EXCLUSIVE SMARTPHONE SMARTPHONE (MAX-WIDTH: 768px) */
+@media (max-width: 768px) {
+    .table-compacte th, .table-compacte td { 
+        font-size: 0.65rem !important; 
+        padding: 1px 2px !important; 
+    }
+    
+    /* EN DIRECT : RÉDUCTION POLICE CHRONO RÉALISÉ */
+    .table-live th:nth-child(6), .table-live td:nth-child(6) {
+        font-size: 0.58rem !important;
+        font-weight: bold !important;
+    }
+    
+    /* HISTORIQUE : RÉDUCTION MAXIMUM DE N° ET CL */
+    .table-hist th:nth-child(1), .table-hist td:nth-child(1) { width: 25px !important; max-width: 25px !important; }
+    .table-hist th:nth-child(5), .table-hist td:nth-child(5) { width: 20px !important; max-width: 20px !important; }
+    
+    /* HISTORIQUE : RE-CALIBRAGE DE VOITURE ET GROUPE POUR ÉVITER LE RABOTAGE DU NOM */
+    .table-hist th:nth-child(3), .table-hist td:nth-child(3),
+    .table-hist th:nth-child(4), .table-hist td:nth-child(4) {
+        width: 30px !important;
+        max-width: 30px !important;
+        overflow: hidden !important;
+        text-overflow: clip !important;
+        white-space: nowrap !important;
+    }
+    
+    /* HISTORIQUE : AJUSTEMENT NOM_PRENOM SUR LE PILOTE LE PLUS LARGE (110px FIXE SANS ESPACE VIDE) */
+    .table-hist th:nth-child(2), .table-hist td:nth-child(2) {
+        width: 110px !important;
+        max-width: 110px !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        white-space: nowrap !important;
+    }
+    
+    /* HISTORIQUE : POLICE ÉCHELLE COMPACTE POUR COURSE 1 ET CHRONO AVEC LECTURE ASSURÉE */
+    .table-hist th:nth-child(6), .table-hist td:nth-child(6),
+    .table-hist th:nth-child(7), .table-hist td:nth-child(7) {
+        width: 58px !important;
+        min-width: 58px !important;
+        font-size: 0.70rem !important;
+    }
+    
+    /* CLASSEMENT SCRATCH TOP 20 : RÉDUCTION POLICE CHRONO SUR SMARTPHONE */
+    .table-class-robuste th:nth-child(6), .table-class-robuste td:nth-child(6) {
+        font-size: 0.70rem !important;
+        font-weight: bold !important;
+    }
+}
 
 .table-class-robuste th:nth-child(1), .table-class-robuste td:nth-child(1) { width: 9% !important; }
 .table-class-robuste th:nth-child(2), .table-class-robuste td:nth-child(2) { width: 11% !important; }
@@ -163,13 +216,12 @@ def extraire_suffixe_pour_tri(valeur_classe):
     chiffres = "".join([c for c in s if c.isdigit()])
     return s[len(chiffres):].strip()
 def recuperer_donnees_course():
-    C =
-    D =
-    HOTE_PROT = "".join(chr(x) for x in (C + D))
+    # Déclaration directe au format standard Python pour neutraliser définitivement la SyntaxError
+    HOTE_PROT = "://dropbox.com"
 
-    FILE_ARRIVEE = f"https://{HOTE_PROT}/scl/fi/7uu9cmlpzglx0ngvbklpt/LIVE_Temps_ARRIVEE.xlsm?rlkey=g9urz4v3jr36h0apzt45ognm6&dl=1"
-    FILE_DEPART  = f"https://{HOTE_PROT}/scl/fi/gbkaq01qzjujc8nq3zj28/LIVE_Temps_DEPART.xlsm?rlkey=4x4rvvlfyzz8v59gqbxn80a4d&dl=1"
-    FILE_ENGAGES_RACB = f"https://{HOTE_PROT}/scl/fi/69zkwsb45bpiw3ys3kk4c/LIVE_Liste_ENGAGES_RACB.xlsm?rlkey=qpjrlmbxhcskifnabs84veqh8&dl=1"
+    FILE_ARRIVEE = f"https://{HOTE_PROT}/scl/fi/7uu9cmlpzglx0ngvbklpt/LIVE_Temps_ARRIVEE.xlsm?rlkey=g9urz4v3jr36h0apzt45ognm6&st=0d9mpgfw&dl=1"
+    FILE_DEPART  = f"https://{HOTE_PROT}/scl/fi/gbkaq01qzjujc8nq3zj28/LIVE_Temps_DEPART.xlsm?rlkey=4x4rvvlfyzz8v59gqbxn80a4d&st=mcibn3xx&dl=1"
+    FILE_ENGAGES_RACB = f"https://{HOTE_PROT}/scl/fi/69zkwsb45bpiw3ys3kk4c/LIVE_Liste_ENGAGES_RACB.xlsm?rlkey=qpjrlmbxhcskifnabs84veqh8&st=0snuv3e7&dl=1"
 
     cols_live = ["N°", "Nom_Prenom", "Voiture", "Départ", "Arrivée", "Chrono réalisé"]
     cols_hist = ["N°", "Nom_Prenom", "Voiture", "Groupe", "Classe", "Course 1", "Chrono réalisé"]
@@ -255,7 +307,7 @@ def recuperer_donnees_course():
 
                 df_hist_base = base.assign(Ordre_Saisie=range(len(base))).sort_values(by="Ordre_Saisie", ascending=False).copy()
                 
-                # TABLE HISTORIQUE SÉCURISÉE SANS AUCUNE BALISE DE TEXTE EN GRAS SUR SMARTPHONE
+                # LE SCROLL TACTILE EST APPLIQUÉ UNIQUEMENT SUR LA TABLE HISTORIQUE SANS GRAS SUR SMARTPHONE
                 html_hist = "<div class='zone-defilement-tactile'>"
                 html_hist += "<table class='table-compacte table-hist'><thead><tr><th>N°</th><th>Nom_Prenom</th><th>Voiture</th><th>Groupe</th><th>Cl</th><th>Course 1</th><th>Chrono</th></tr></thead><tbody>"
 
