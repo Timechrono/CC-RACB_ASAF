@@ -28,7 +28,7 @@ CSS_RACB = """
     border-bottom: 2px solid #1E3A8A !important; 
 }
 
-/* LARGEURS STRICTES PC (ORDINATEUR) */
+/* === ARCHITECTURE DES LARGEURS DE COLONNES SUR PC (ORDINATEUR) === */
 .table-hist th:nth-child(1), .table-hist td:nth-child(1) { width: 6% !important; }   
 .table-hist th:nth-child(2), .table-hist td:nth-child(2) { width: 23% !important; }  
 .table-hist th:nth-child(3), .table-hist td:nth-child(3) { width: 21% !important; }  
@@ -38,40 +38,45 @@ CSS_RACB = """
 .table-hist th:nth-child(7), .table-hist td:nth-child(7) { width: 10% !important; }  
 .table-hist th:nth-child(8), .table-hist td:nth-child(8) { width: 14% !important; }  
 
-/* CORRECTIF RESPONSIVE STRICT UNIQUEMENT POUR SMARTPHONE (MAX-WIDTH: 768px) */
+.table-scratch-robuste th:nth-child(1), .table-scratch-robuste td:nth-child(1) { width: 6% !important; }
+.table-scratch-robuste th:nth-child(2), .table-scratch-robuste td:nth-child(2) { width: 8% !important; }
+.table-scratch-robuste th:nth-child(3), .table-scratch-robuste td:nth-child(3) { width: 38% !important; }
+.table-scratch-robuste th:nth-child(4), .table-scratch-robuste td:nth-child(4) { width: 18% !important; }
+.table-scratch-robuste th:nth-child(5), .table-scratch-robuste td:nth-child(5) { width: 10% !important; }
+.table-scratch-robuste th:nth-child(6), .table-scratch-robuste td:nth-child(6) { width: 20% !important; }
+
+.table-class-groupes th:nth-child(1), .table-class-groupes td:nth-child(1) { width: 6% !important; }   
+.table-class-groupes th:nth-child(2), .table-class-groupes td:nth-child(2) { width: 8% !important; }   
+.table-class-groupes th:nth-child(3), .table-class-groupes td:nth-child(3) { width: 38% !important; }  
+.table-class-groupes th:nth-child(4), .table-class-groupes td:nth-child(4) { width: 18% !important; }  
+.table-class-groupes th:nth-child(5), .table-class-groupes td:nth-child(5) { width: 10% !important; }  
+.table-class-groupes th:nth-child(6), .table-class-groupes td:nth-child(6) { width: 20% !important; } 
+
+/* === CORRECTIF RESPONSIVE TOTALEMENT VERROUILLÉ POUR SMARTPHONE (MAX-WIDTH: 768px) === */
 @media (max-width: 768px) {
     .table-compacte th, .table-compacte td { 
         font-size: 0.65rem !important; 
         padding: 1px 2px !important; 
     }
 
-    /* === CONFIGURATION LARGEURS POUR CLASSEMENT GENERAL SCRATCH (TOP 25) === */
-    /* Colonne Pos (Position) réduite au minimum */
-    .table-live + div + table th:nth-child(1), .table-live + div + table td:nth-child(1),
-    [data-testid="stDataFrame"] table th:nth-child(1), [data-testid="stDataFrame"] table td:nth-child(1) { width: 25px !important; max-width: 25px !important; }
-    
-    /* Colonne N° (Dossard) réduite au minimum */
-    .table-live + div + table th:nth-child(2), .table-live + div + table td:nth-child(2),
-    [data-testid="stDataFrame"] table th:nth-child(2), [data-testid="stDataFrame"] table td:nth-child(2) { width: 25px !important; max-width: 25px !important; }
-    
-    /* Colonne Division réduite au minimum */
-    .table-live + div + table th:nth-child(4), .table-live + div + table td:nth-child(4) { width: 45px !important; max-width: 45px !important; }
-    
-    /* Colonne Classe réduite au minimum */
-    .table-live + div + table th:nth-child(5), .table-live + div + table td:nth-child(5) { width: 25px !important; max-width: 25px !important; }
-    
-    /* Colonne Chrono final fixe à droite */
-    .table-live + div + table th:nth-child(6), .table-live + div + table td:nth-child(6) { width: 55px !important; max-width: 55px !important; }
-
-    /* === CONFIGURATION LARGEURS POUR CLASSEMENT PAR CLASSE (TOP 3) === */
+    /* CONTROLE RIGIDE DES COLONNES SUR LE SCRATCH ET LES CLASSES MOBILE */
+    .table-scratch-robuste th:nth-child(1), .table-scratch-robuste td:nth-child(1),
     .table-class-groupes th:nth-child(1), .table-class-groupes td:nth-child(1) { width: 25px !important; max-width: 25px !important; } /* Pos */
+    
+    .table-scratch-robuste th:nth-child(2), .table-scratch-robuste td:nth-child(2),
     .table-class-groupes th:nth-child(2), .table-class-groupes td:nth-child(2) { width: 25px !important; max-width: 25px !important; } /* N° */
-    .table-class-groupes th:nth-child(4), .table-class-groupes td:nth-child(4) { width: 45px !important; max-width: 45px !important; } /* Division */
-    .table-class-groupes th:nth-child(5), .table-class-groupes td:nth-child(5) { width: 25px !important; max-width: 25px !important; } /* Cl */
+    
+    .table-scratch-robuste th:nth-child(4), .table-scratch-robuste td:nth-child(4),
+    .table-class-groupes th:nth-child(4), .table-class-groupes td:nth-child(4) { width: 35px !important; max-width: 35px !important; } /* Division */
+    
+    .table-scratch-robuste th:nth-child(5), .table-scratch-robuste td:nth-child(5),
+    .table-class-groupes th:nth-child(5), .table-class-groupes td:nth-child(5) { width: 25px !important; max-width: 25px !important; } /* Classe/Cl */
+    
+    .table-scratch-robuste th:nth-child(6), .table-scratch-robuste td:nth-child(6),
     .table-class-groupes th:nth-child(6), .table-class-groupes td:nth-child(6) { width: 55px !important; max-width: 55px !important; } /* Chrono */
 
-    /* === FORÇAGE D'ÉTIREMENT DE LA COLONNE NOM_PRENOM SUR LES DEUX CLASSEMENTS === */
-    .table-live + div + table th:nth-child(3), .table-live + div + table td:nth-child(3),
+    /* LIBÉRATION DE PLACE POUR LE NOM ET LE PRÉNOM (AUTO-ÉTIREMENT SANS DEBORDEMENT) */
+    .table-scratch-robuste th:nth-child(3), .table-scratch-robuste td:nth-child(3),
     .table-class-groupes th:nth-child(3), .table-class-groupes td:nth-child(3) {
         width: auto !important;
         overflow: hidden !important;
@@ -89,8 +94,8 @@ CSS_RACB = """
 </style>
 """
 
-C = [100, 108, 46, 100, 114, 111, 112, 98, 111, 120, 117, 115, 101, 114]
-D = [99, 111, 110, 116, 101, 110, 116, 46, 99, 111, 109]
+C =
+D =
 HOTE_PROT = "".join(chr(x) for x in (C + D))
 
 FILE_ARRIVEE = f"https://{HOTE_PROT}/scl/fi/7uu9cmlpzglx0ngvbklpt/LIVE_Temps_ARRIVEE.xlsm?rlkey=g9urz4v3jr36h0apzt45ognm6&st=0d9mpgfw&dl=1"
@@ -139,7 +144,6 @@ def calculer_statut_chrono_live(valeur_sec):
     if pd.isna(valeur_sec) or valeur_sec <= 0:
         return "No Time"
     chrono_txt = format_final_chrono(valeur_sec)
-    # Règle de validation automatique : coche rouge si le chrono dépasse 4 minutes (240 sec)
     if valeur_sec >= 240:
         return f"{chrono_txt} &nbsp;<span style='color: #EF4444; font-weight: bold;'>✗</span>"
     else:
@@ -150,7 +154,6 @@ def generer_tableau_html(df, classe_specifique):
         return f"<table class='table-compacte {classe_specifique}'><tr><td style='text-align: center; padding: 10px;'>Aucune donnée disponible</td></tr></table>"
     
     html_brut = df.to_html(index=False, classes=f"table-compacte {classe_specifique}", escape=False, border=0)
-    # AJOUT DU GLISSEMENT FORCE UNIQUEMENT SUR LA TABLE EN DIRECT SUR SMARTPHONE
     if "table-live" in classe_specifique:
         return f"<div class='zone-defilement-tactile'>{html_brut}</div>"
     return html_brut
@@ -158,9 +161,9 @@ def recuperer_donnees_course():
     cols_live = ["N°", "Nom_Prenom", "Voiture", "Départ", "Arrivée", "Chrono réalisé"]
     df_live = pd.DataFrame(columns=cols_live)
     html_hist = "<table class='table-compacte table-hist'><tr><td style='text-align: center; padding: 10px;'>Aucune donnée disponible</td></tr></table>"
-    df_racb_gen = pd.DataFrame(columns=["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"])
     
-    # Initialisation pour le Classement évolutif par Classe (Top 3)
+    # GÉNÉRATION HTML DIRECTE FORCÉE POUR LE CLASSEMENT GÉNÉRAL SANS TRAVERSER LES SCRIPTS STREAMLIT RESPONSIVES
+    html_scratch = "<table class='table-compacte table-scratch-robuste'><tr><td style='text-align: center; padding: 10px;'>Aucune donnée disponible</td></tr></table>"
     html_class_div = "<table class='table-compacte table-class-groupes'><tr><td style='text-align: center; padding: 10px;'>Aucune donnée disponible</td></tr></table>"
 
     t_live = "🏎️ EN DIRECT / Derniers Concurrents partis"
@@ -231,7 +234,6 @@ def recuperer_donnees_course():
                 if len(base) > 0:
                     if "Heure_Depart_3" in base.columns and base["Heure_Depart_3"].notna().any():
                         base_c3 = base[base["Heure_Depart_3"].notna()].copy()
-                        # Injection des coches verte (✓) et rouge (✗) dans l'affichage du direct
                         base_c3["Chrono réalisé"] = base_c3.apply(lambda r: calculer_statut_chrono_live(r["Calc_Sec_3"]) if pd.notna(r["Calc_Sec_3"]) else ("<span class='vrai-gyrophare'>🚨</span> EN PISTE" if pd.isna(r["Heure_Arrivee_3"]) else "No Time"), axis=1)
                         base_c3["Départ"] = base_c3["Heure_Depart_3"].apply(formater_heure_ecran)
                         base_c3["Arrivée"] = base_c3["Heure_Arrivee_3"].apply(formater_heure_ecran)
@@ -241,7 +243,6 @@ def recuperer_donnees_course():
                     if not df_hist_base.empty:
                         df_hist_base = df_hist_base.sort_values(by="Heure_Depart_3", ascending=False, na_position="last")
                         
-                        # EMEDDED SCROLL TACTILE MOBILES AUTOUR DE LA TABLE HISTORIQUE SOUHAITÉE
                         html_hist = CSS_RACB + "<div class='zone-defilement-tactile'>"
                         html_hist += "<table class='table-compacte table-hist'><thead><tr><th>N°</th><th>Nom_Prenom</th><th>Voiture</th><th>Division</th><th>Classe</th><th>Course 1</th><th>Course 2</th><th>Chrono réalisé</th></tr></thead><tbody>"
 
@@ -250,7 +251,6 @@ def recuperer_donnees_course():
                             valeurs_valides = [v for v in [t1, t2, t3] if pd.notna(v) and v > 0]
                             meilleur_sec = min(valeurs_valides) if valeurs_valides else None
 
-                            # ÉPURÉ : Plus aucune mise en gras (balise strong retirée pour l'historique)
                             txt_c1_visuel = f"<span style='color: #22C55E;'>•</span>&nbsp;{format_final_chrono(t1)}" if (meilleur_sec and t1 == meilleur_sec) else format_final_chrono(t1)
                             txt_c2_visuel = f"<span style='color: #22C55E;'>•</span>&nbsp;{format_final_chrono(t2)}" if (meilleur_sec and t2 == meilleur_sec) else format_final_chrono(t2)
 
@@ -263,7 +263,6 @@ def recuperer_donnees_course():
                                 txt_c3_base = f"<span style='color: #22C55E;'>•</span>&nbsp;{txt_c3}" if (meilleur_sec and t3 == meilleur_sec) else txt_c3
                                 temps_precedents = [t for t in [t1, t2] if pd.notna(t) and t > 0]
                                 
-                                # ARCS DE TRIANGLES ALIGNÉS VERTICALEMENT AU MILIEU DU CHRONO
                                 if temps_precedents and t3 < min(temps_precedents): 
                                     txt_c3_visuel = f"{txt_c3_base} &nbsp;<span style='color: #22C55E; font-size: 1.25rem; vertical-align: middle; display: inline-block; line-height: 1;'>▲</span>"
                                 elif temps_precedents and t3 > min(temps_precedents): 
@@ -274,27 +273,31 @@ def recuperer_donnees_course():
                             html_hist += f"<tr><td>{row['N°']}</td><td>{row['Nom_Prenom']}</td><td>{row['Voiture']}</td><td>{row['Division']}</td><td>{row['Classe']}</td><td>{txt_c1_visuel}</td><td>{txt_c2_visuel}</td><td>{txt_c3_visuel}</td></tr>"
                         html_hist += "</tbody></table></div>"
 
-                    # RÈGLE DU MEILLEUR RÉSULTAT INDIVIDUEL (Quota minimal de 2 courses courues requis)
                     def verifier_quota_et_extraire_meilleur(row):
                         temps_manches = [v for v in [row["Calc_Sec_1"], row["Calc_Sec_2"], row["Calc_Sec_3"]] if pd.notna(v) and v > 0]
-                        # Un concurrent doit avoir au moins 2 temps valides sur les 3 courses pour entrer dans les classements
                         if len(temps_manches) >= 2:
-                            return float(min(temps_manches)) # On extrait le meilleur temps de manche de la journée
+                            return float(min(temps_manches))
                         return float('inf')
 
                     base["Meilleur_Resultat_Sec"] = base.apply(verifier_quota_et_extraire_meilleur, axis=1)
                     valides = base[base["Meilleur_Resultat_Sec"] < float('inf')].copy()
                     
                     if len(valides) > 0:
-                        # 1. CLASSEMENT GENERAL SCRATCH (TOP 25)
+                        # 1. RENDU HTML PROPRE ET FIXE DU CLASSEMENT GENERAL SCRATCH (TOP 25)
                         scr = valides.sort_values(by="Meilleur_Resultat_Sec").drop_duplicates(subset=["N°"], keep="first").copy()
                         racb_gen = scr.head(25).copy()
                         if len(racb_gen) > 0:
                             racb_gen["Pos"] = range(1, len(racb_gen) + 1)
                             racb_gen["Chrono"] = racb_gen["Meilleur_Resultat_Sec"].apply(format_final_chrono)
-                            df_racb_gen = racb_gen[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]]
+                            df_scratch_raw = racb_gen[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]]
+                            
+                            # Injection manuelle de la table pour forcer l'obéissance des règles CSS mobiles de taille minimale
+                            html_scratch = "<table class='table-compacte table-scratch-robuste'><thead><tr><th>Pos</th><th>N°</th><th>Nom_Prenom</th><th>Division</th><th>Classe</th><th>Chrono</th></tr></thead><tbody>"
+                            for idx_s in range(len(df_scratch_raw)):
+                                html_scratch += f"<tr><td>{df_scratch_raw.iloc[idx_s]['Pos']}</td><td>{df_scratch_raw.iloc[idx_s]['N°']}</td><td>{df_scratch_raw.iloc[idx_s]['Nom_Prenom']}</td><td>{df_scratch_raw.iloc[idx_s]['Division']}</td><td>{df_scratch_raw.iloc[idx_s]['Classe']}</td><td>{df_scratch_raw.iloc[idx_s]['Chrono']}</td></tr>"
+                            html_scratch += "</tbody></table>"
                         
-                        # 2. CLASSEMENT EVOLUTIF PAR CLASSE (TOP 3)
+                        # 2. RENDU HTML PROPRE ET FIXE DU CLASSEMENT EVOLUTIF PAR CLASSE (TOP 3)
                         def trier_classe_numerique(c):
                             digits = "".join([char for char in str(c) if char.isdigit()])
                             return int(digits) if digits else 999
@@ -308,7 +311,6 @@ def recuperer_donnees_course():
                             df_grouped["Chrono"] = df_grouped["Meilleur_Resultat_Sec"].apply(format_final_chrono)
                             df_divisions_raw = df_grouped[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]].rename(columns={"Classe": "Cl"})
                             
-                            # Rendu HTML du tableau par classe avec la séparation de ligne bleue
                             html_class_div = "<table class='table-compacte table-class-groupes'><thead><tr><th>Pos</th><th>N°</th><th>Nom_Prenom</th><th>Division</th><th>Cl</th><th>Chrono</th></tr></thead><tbody>"
                             for idx in range(len(df_divisions_raw)):
                                 classe_row = ""
@@ -319,4 +321,5 @@ def recuperer_donnees_course():
                             html_class_div += "</tbody></table>"
         except Exception: pass
 
-    return df_live, html_hist, df_racb_gen, html_class_div, pd.DataFrame(), t_live, t_his, t_haut, t_milieu, t_bas
+    # RETOUR DES DEUX MATRICES HTML PARFAITEMENT SÉCURISÉES POUR SMARTPHONE (RACE 3 TOTALEMENT PARÉE)
+    return df_live, html_hist, html_scratch, html_class_div, pd.DataFrame(), t_live, t_his, t_haut, t_milieu, t_bas
