@@ -28,50 +28,49 @@ CSS_RACB = """
     border-bottom: 2px solid #1E3A8A !important; 
 }
 
-/* COLORIAGE ALTERNÉ 1 LIGNE SUR 2 DANS L'HISTORIQUE */
-.table-hist tr:nth-child(odd) td { 
-    background-color: #E0F2FE !important; 
-}
-.table-hist tr:nth-child(even) td { 
-    background-color: #FFFFFF !important; 
-}
+/* COLORIAGE ALTERNÉ HISTORIQUE */
+.table-hist tr:nth-child(odd) td { background-color: #E0F2FE !important; }
+.table-hist tr:nth-child(even) td { background-color: #FFFFFF !important; }
 
 /* ========================================================================= */
-/* 🖥️ REGLAGE RIGIDE DES LARGEURS SUR ORDINATEUR (MIN-WIDTH: 769px)          */
+/* 🖥️ CONFIGURATION PC (ORDINATEUR) : LARGEURS ÉQUILIBRÉES                  */
 /* ========================================================================= */
 @media (min-width: 769px) {
-    /* HISTORIQUE : CONFIGURATION DE VOS LARGEURS D'ORIGINE SUR PC */
-    .table-hist th:nth-child(1), .table-hist td:nth-child(1) { width: 6% !important; }   
-    .table-hist th:nth-child(2), .table-hist td:nth-child(2) { width: 23% !important; }  
-    .table-hist th:nth-child(3), .table-hist td:nth-child(3) { width: 21% !important; }  
-    .table-hist th:nth-child(4), .table-hist td:nth-child(4) { width: 10% !important; }   
-    .table-hist th:nth-child(5), .table-hist td:nth-child(5) { width: 6% !important; }   
-    .table-hist th:nth-child(6), .table-hist td:nth-child(6) { width: 10% !important; }  
-    .table-hist th:nth-child(7), .table-hist td:nth-child(7) { width: 10% !important; }  
-    .table-hist th:nth-child(8), .table-hist td:nth-child(8) { width: 14% !important; }  
+    /* DIRECT PC */
+    .table-live th:nth-child(1), .table-live td:nth-child(1) { width: 40px !important; }
+    .table-live th:nth-child(2), .table-live td:nth-child(2) { width: auto !important; }
+    .table-live th:nth-child(3), .table-live td:nth-child(3) { width: 150px !important; }
+    .table-live th:nth-child(4), .table-live td:nth-child(4) { width: 80px !important; }
+    .table-live th:nth-child(5), .table-live td:nth-child(5) { width: 80px !important; }
+    .table-live th:nth-child(6), .table-live td:nth-child(6) { width: 110px !important; }
 
-    /* SCRATCH ET CLASSE SUR PC : LE NOM PREND TOUT LE RESTE SANS VIDE INCORRECT */
+    /* HISTORIQUE PC */
+    .table-hist th:nth-child(1), .table-hist td:nth-child(1) { width: 40px !important; }   
+    .table-hist th:nth-child(2), .table-hist td:nth-child(2) { width: auto !important; }  
+    .table-hist th:nth-child(3), .table-hist td:nth-child(3) { width: 140px !important; }  
+    .table-hist th:nth-child(4), .table-hist td:nth-child(4) { width: 70px !important; }   
+    .table-hist th:nth-child(5), .table-hist td:nth-child(5) { width: 40px !important; }   
+    .table-hist th:nth-child(6), .table-hist td:nth-child(6) { width: 75px !important; }  
+    .table-hist th:nth-child(7), .table-hist td:nth-child(7) { width: 75px !important; }  
+    .table-hist th:nth-child(8), .table-hist td:nth-child(8) { width: 100px !important; }  
+
+    /* SCRATCH & CLASSES PC */
     .table-scratch-robuste th:nth-child(1), .table-scratch-robuste td:nth-child(1),
-    .table-class-groupes th:nth-child(1), .table-class-groupes td:nth-child(1) { width: 40px !important; } /* Pos */
-    
+    .table-class-groupes th:nth-child(1), .table-class-groupes td:nth-child(1) { width: 40px !important; }
     .table-scratch-robuste th:nth-child(2), .table-scratch-robuste td:nth-child(2),
-    .table-class-groupes th:nth-child(2), .table-class-groupes td:nth-child(2) { width: 40px !important; } /* N° */
-    
+    .table-class-groupes th:nth-child(2), .table-class-groupes td:nth-child(2) { width: 40px !important; }
     .table-scratch-robuste th:nth-child(4), .table-scratch-robuste td:nth-child(4),
-    .table-class-groupes th:nth-child(4), .table-class-groupes td:nth-child(4) { width: 70px !important; } /* Division */
-    
+    .table-class-groupes th:nth-child(4), .table-class-groupes td:nth-child(4) { width: 70px !important; }
     .table-scratch-robuste th:nth-child(5), .table-scratch-robuste td:nth-child(5),
-    .table-class-groupes th:nth-child(5), .table-class-groupes td:nth-child(5) { width: 50px !important; } /* Classe */
-    
+    .table-class-groupes th:nth-child(5), .table-class-groupes td:nth-child(5) { width: 50px !important; }
     .table-scratch-robuste th:nth-child(6), .table-scratch-robuste td:nth-child(6),
-    .table-class-groupes th:nth-child(6), .table-class-groupes td:nth-child(6) { width: 90px !important; text-align: right !important; } /* Chrono */
-    
+    .table-class-groupes th:nth-child(6), .table-class-groupes td:nth-child(6) { width: 90px !important; text-align: right !important; }
     .table-scratch-robuste th:nth-child(3), .table-scratch-robuste td:nth-child(3),
-    .table-class-groupes th:nth-child(3), .table-class-groupes td:nth-child(3) { width: auto !important; } /* Nom_Prenom */
+    .table-class-groupes th:nth-child(3), .table-class-groupes td:nth-child(3) { width: auto !important; }
 }
 
 /* ========================================================================= */
-/* 📱 REGLAGE RIGIDE ASSURÉ SUR SMARTPHONE (MAX-WIDTH: 768px)                */
+/* 📱 REGLAGE RIGIDE AVEC SCROLL TECHNIQUE INTÉGRAL SUR SMARTPHONE           */
 /* ========================================================================= */
 @media (max-width: 768px) {
     .table-compacte th, .table-compacte td { 
@@ -79,38 +78,50 @@ CSS_RACB = """
         padding: 1px 2px !important; 
     }
 
-    /* SCRATCH ET PAR CLASSE MOBILE : VERROUILLAGE PHYSIQUE SUR ÉCRAN TACTILE */
-    .table-scratch-robuste th:nth-child(1), .table-scratch-robuste td:nth-child(1),
-    .table-class-groupes th:nth-child(1), .table-class-groupes td:nth-child(1) { width: 25px !important; max-width: 25px !important; } /* Pos */
-    
-    .table-scratch-robuste th:nth-child(2), .table-scratch-robuste td:nth-child(2),
-    .table-class-groupes th:nth-child(2), .table-class-groupes td:nth-child(2) { width: 25px !important; max-width: 25px !important; } /* N° */
-    
-    .table-scratch-robuste th:nth-child(4), .table-scratch-robuste td:nth-child(4),
-    .table-class-groupes th:nth-child(4), .table-class-groupes td:nth-child(4) { width: 35px !important; max-width: 35px !important; } /* Division */
-    
-    .table-scratch-robuste th:nth-child(5), .table-scratch-robuste td:nth-child(5),
-    .table-class-groupes th:nth-child(5), .table-class-groupes td:nth-child(5) { width: 25px !important; max-width: 25px !important; } /* Classe/Cl */
-    
-    .table-scratch-robuste th:nth-child(6), .table-scratch-robuste td:nth-child(6),
-    .table-class-groupes th:nth-child(6), .table-class-groupes td:nth-child(6) { width: 55px !important; max-width: 55px !important; text-align: right !important; } /* Chrono */
+    /* EN DIRECT SMARTPHONE */
+    .table-live th:nth-child(1), .table-live td:nth-child(1) { width: 25px !important; } /* N° resserré */
+    .table-live th:nth-child(2), .table-live td:nth-child(2) { width: 110px !important; } /* Nom calé au plus large */
+    .table-live th:nth-child(3), .table-live td:nth-child(3) { width: 60px !important; }  /* Voiture réduit */
+    .table-live th:nth-child(4), .table-live td:nth-child(4) { width: 40px !important; }  /* Départ */
+    .table-live th:nth-child(5), .table-live td:nth-child(5) { width: 40px !important; }  /* Arrivée */
+    .table-live th:nth-child(6), .table-live td:nth-child(6) { width: 55px !important; font-size: 0.58rem !important; font-weight: bold !important; }
 
-    /* AJUSTEMENT AU MILLIMÈTRE : Coupe nette immédiatement après le pilote le plus long */
+    /* HISTORIQUE SMARTPHONE */
+    .table-hist th:nth-child(1), .table-hist td:nth-child(1) { width: 25px !important; } /* N° resserré */
+    .table-hist th:nth-child(2), .table-hist td:nth-child(2) { width: 110px !important; } /* Nom coupé net après le plus large */
+    .table-hist th:nth-child(3), .table-hist td:nth-child(3) { width: 40px !important; }  /* Voiture réduit */
+    .table-hist th:nth-child(4), .table-hist td:nth-child(4) { width: 35px !important; }  /* Groupe réduit */
+    .table-hist th:nth-child(5), .table-hist td:nth-child(5) { width: 20px !important; }  /* Cl réduit */
+    .table-hist th:nth-child(6), .table-hist td:nth-child(6) { width: 48px !important; }  /* C1 */
+    .table-hist th:nth-child(7), .table-hist td:nth-child(7) { width: 48px !important; }  /* C2 */
+    .table-hist th:nth-child(8), .table-hist td:nth-child(8) { width: 58px !important; }  /* Chrono */
+
+    /* SCRATCH & CLASSE SMARTPHONE */
+    .table-scratch-robuste th:nth-child(1), .table-scratch-robuste td:nth-child(1),
+    .table-class-groupes th:nth-child(1), .table-class-groupes td:nth-child(1) { width: 22px !important; } /* Pos */
+    .table-scratch-robuste th:nth-child(2), .table-scratch-robuste td:nth-child(2),
+    .table-class-groupes th:nth-child(2), .table-class-groupes td:nth-child(2) { width: 25px !important; } /* N° resserré */
+    .table-scratch-robuste th:nth-child(4), .table-scratch-robuste td:nth-child(4),
+    .table-class-groupes th:nth-child(4), .table-class-groupes td:nth-child(4) { width: 35px !important; } /* Groupe réduit */
+    .table-scratch-robuste th:nth-child(5), .table-scratch-robuste td:nth-child(5),
+    .table-class-groupes th:nth-child(5), .table-class-groupes td:nth-child(5) { width: 20px !important; } /* Cl réduit */
+    .table-scratch-robuste th:nth-child(6), .table-scratch-robuste td:nth-child(6),
+    .table-class-groupes th:nth-child(6), .table-class-groupes td:nth-child(6) { width: 55px !important; text-align: right !important; }
+
+    /* NOM_PRENOM AJUSTÉ AU PIXEL : Visualisation intégrale garantie sans espace résiduel */
     .table-scratch-robuste th:nth-child(3), .table-scratch-robuste td:nth-child(3),
     .table-class-groupes th:nth-child(3), .table-class-groupes td:nth-child(3) {
         width: 110px !important;
         max-width: 110px !important;
-        overflow: hidden !important;
-        text-overflow: ellipsis !important;
-        white-space: nowrap !important;
     }
 }
 
-/* STYLE EXCLUSIF DE DEFILEMENT POUR SENS TACTILE SMARTPHONE */
+/* CONTENEUR DE SENS TACTILE ACTIF SUR TOUS LES TABLEAUX POUR SMARTPHONE */
 .zone-defilement-tactile {
     width: 100% !important;
     overflow-x: auto !important;
     -webkit-overflow-scrolling: touch !important;
+    display: block !important;
 }
 </style>
 """
@@ -172,21 +183,20 @@ def calculer_statut_chrono_live(valeur_sec):
 
 def generer_tableau_html(df, classe_specifique):
     if df.empty: 
-        return f"<table class='table-compacte {classe_specifique}'><tr><td style='text-align: center; padding: 10px;'>Aucune donnée disponible</td></tr></table>"
+        return f"<div class='zone-defilement-tactile'><table class='table-compacte {classe_specifique}'><tr><td style='text-align: center; padding: 10px;'>Aucune donnée disponible</td></tr></table></div>"
     
     html_brut = df.to_html(index=False, classes=f"table-compacte {classe_specifique}", escape=False, border=0)
-    if "table-live" in classe_specifique:
-        return f"<div class='zone-defilement-tactile'>{html_brut}</div>"
-    return html_brut
+    # LE SCROLL EST DÉSORMAIS FORCÉ SUR TOUS VOS TABLEAUX POUR LE FORMAT MOBILE
+    return f"<div class='zone-defilement-tactile'>{html_brut}</div>"
 def recuperer_donnees_course():
     cols_live = ["N°", "Nom_Prenom", "Voiture", "Départ", "Arrivée", "Chrono réalisé"]
     df_live = pd.DataFrame(columns=cols_live)
-    html_hist = "<table class='table-compacte table-hist'><tr><td style='text-align: center; padding: 10px;'>Aucune donnée disponible</td></tr></table>"
+    html_hist = "<div class='zone-defilement-tactile'><table class='table-compacte table-hist'><tr><td style='text-align: center; padding: 10px;'>Aucune donnée disponible</td></tr></table></div>"
     
-    html_scratch = "<table class='table-compacte table-scratch-robuste'><tr><td style='text-align: center; padding: 10px;'>Aucune donnée disponible</td></tr></table>"
-    html_class_div = "<table class='table-compacte table-class-groupes'><tr><td style='text-align: center; padding: 10px;'>Aucune donnée disponible</td></tr></table>"
+    html_scratch = "<div class='zone-defilement-tactile'><table class='table-compacte table-scratch-robuste'><tr><td style='text-align: center; padding: 10px;'>Aucune donnée disponible</td></tr></table></div>"
+    html_class_div = "<div class='zone-defilement-tactile'><table class='table-compacte table-class-groupes'><tr><td style='text-align: center; padding: 10px;'>Aucune donnée disponible</td></tr></table></div>"
 
-    t_live = "🏎️ EN DIRECT / Derniers Concurrents partis"
+    t_live = "🏎️ EN DIRECT / Derniers concurrents partis"
     t_his = "🕒 HISTORIQUE DES TEMPS / 3ème COURSE / Concurrents RACB"
     t_haut = "🏆 CLASSEMENT GENERAL OFFICIEUX (Top 25)"
     t_milieu = "📊 CLASSEMENT EVOLUTIF OFFICIEUX PAR Classe (Top 3)"
@@ -200,12 +210,13 @@ def recuperer_donnees_course():
             df_eng_raw = pd.read_excel(data_engages, header=None, engine='openpyxl')
             df_arr_raw = pd.read_excel(data_arrivee, header=None, engine='openpyxl')
 
+            # RE-PARAMÉTRAGE STRICT DES EN-TÊTES EXIGÉES : Groupe à la place de Division, Cl à la place de Classe
             df_eng = pd.DataFrame({
                 "N°": df_eng_raw.iloc[:, 0].apply(nettoyer_numero), 
                 "Nom_Prenom": df_eng_raw.iloc[:, 1].fillna("Pilote Inconnu").astype(str).str.strip(),
                 "Voiture": df_eng_raw.iloc[:, 4].fillna("").astype(str).str.strip(),
-                "Division": df_eng_raw.iloc[:, 5].fillna("-").astype(str).str.strip(),
-                "Classe": df_eng_raw.iloc[:, 6].fillna("-").astype(str).str.strip().apply(lambda x: x[:-2] if x.endswith(".0") else x)
+                "Groupe": df_eng_raw.iloc[:, 5].fillna("-").astype(str).str.strip(),
+                "Cl": df_eng_raw.iloc[:, 6].fillna("-").astype(str).str.strip().apply(lambda x: x[:-2] if x.endswith(".0") else x)
             })
             df_eng = df_eng[df_eng["N°"] != "NAN"].drop_duplicates(subset=["N°"])
             tous_numeros_autorises_racb = set(df_eng["N°"].unique())
@@ -245,7 +256,7 @@ def recuperer_donnees_course():
                     c3 = dict_c3.get(num, {"h_dep": None, "h_arr": None, "sec": None})
                     rows_data.append({
                         "N°": num, "Nom_Prenom": pilot["Nom_Prenom"], "Voiture": pilot["Voiture"],
-                        "Division": pilot["Division"], "Classe": pilot["Classe"],
+                        "Groupe": pilot["Groupe"], "Cl": pilot["Cl"],
                         "Heure_Depart_3": c3["h_dep"], "Heure_Arrivee_3": c3["h_arr"],
                         "Calc_Sec_1": c1["sec"], "Calc_Sec_2": c2["sec"], "Calc_Sec_3": c3["sec"]
                     })
@@ -263,8 +274,9 @@ def recuperer_donnees_course():
                     if not df_hist_base.empty:
                         df_hist_base = df_hist_base.sort_values(by="Heure_Depart_3", ascending=False, na_position="last")
                         
-                        html_hist = CSS_RACB + "<div class='zone-defilement-tactile'>"
-                        html_hist += "<table class='table-compacte table-hist'><thead><tr><th>N°</th><th>Nom_Prenom</th><th>Voiture</th><th>Division</th><th>Classe</th><th>Course 1</th><th>Course 2</th><th>Chrono réalisé</th></tr></thead><tbody>"
+                        # EMBAREQUEMENT STRICT DANS LE CONTENEUR TACTILE POUR L'HISTORIQUE SANS GRAS
+                        html_hist = "<div class='zone-defilement-tactile'>"
+                        html_hist += "<table class='table-compacte table-hist'><thead><tr><th>N°</th><th>Nom_Prenom</th><th>Voiture</th><th>Groupe</th><th>Cl</th><th>Course 1</th><th>Course 2</th><th>Chrono réalisé</th></tr></thead><tbody>"
 
                         for idx, row in df_hist_base.iterrows():
                             t1, t2, t3 = row["Calc_Sec_1"], row["Calc_Sec_2"], row["Calc_Sec_3"]
@@ -290,55 +302,57 @@ def recuperer_donnees_course():
                                 else: 
                                     txt_c3_visuel = txt_c3_base
 
-                            html_hist += f"<tr><td>{row['N°']}</td><td>{row['Nom_Prenom']}</td><td>{row['Voiture']}</td><td>{row['Division']}</td><td>{row['Classe']}</td><td>{txt_c1_visuel}</td><td>{txt_c2_visuel}</td><td>{txt_c3_visuel}</td></tr>"
+                            html_hist += f"<tr><td>{row['N°']}</td><td>{row['Nom_Prenom']}</td><td>{row['Voiture']}</td><td>{row['Groupe']}</td><td>{row['Cl']}</td><td>{txt_c1_visuel}</td><td>{txt_c2_visuel}</td><td>{txt_c3_visuel}</td></tr>"
                         html_hist += "</tbody></table></div>"
 
-                    # QUOTA : Participation à 2 courses minimum validée
+                    # REGLEMENT MEILLEUR DES 3 MANCHES : Participation à 2 courses achevées minimum
                     def verifier_quota_et_extraire_meilleur(row):
                         temps_manches = [v for v in [row["Calc_Sec_1"], row["Calc_Sec_2"], row["Calc_Sec_3"]] if pd.notna(v) and v > 0]
                         if len(temps_manches) >= 2:
-                            return float(min(temps_manches)) # Classement basé sur la meilleure manche de la journée
+                            return float(min(temps_manches)) # Retient uniquement la meilleure performance individuelle
                         return float('inf')
 
                     base["Meilleur_Resultat_Sec"] = base.apply(verifier_quota_et_extraire_meilleur, axis=1)
                     valides = base[base["Meilleur_Resultat_Sec"] < float('inf')].copy()
                     
                     if len(valides) > 0:
-                        # 1. RETOUR DU SCRATCH GENERAL AVEC LES BULLES DE LIGNE REPARÉES
+                        # 1. RENDU HTML DU CLASSEMENT GENERAL SCRATCH (TOP 25) - INTÉGRATION DU SCROLL FORCE
                         scr = valides.sort_values(by="Meilleur_Resultat_Sec").drop_duplicates(subset=["N°"], keep="first").copy()
                         racb_gen = scr.head(25).copy()
                         if len(racb_gen) > 0:
                             racb_gen["Pos"] = range(1, len(racb_gen) + 1)
                             racb_gen["Chrono"] = racb_gen["Meilleur_Resultat_Sec"].apply(format_final_chrono)
-                            df_scratch_raw = racb_gen[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]]
+                            df_scratch_raw = racb_gen[["Pos", "N°", "Nom_Prenom", "Groupe", "Cl", "Chrono"]]
                             
-                            html_scratch = "<table class='table-compacte table-scratch-robuste'><thead><tr><th>Pos</th><th>N°</th><th>Nom_Prenom</th><th>Division</th><th>Classe</th><th>Chrono</th></tr></thead><tbody>"
+                            html_scratch = "<div class='zone-defilement-tactile'>"
+                            html_scratch += "<table class='table-compacte table-scratch-robuste'><thead><tr><th>Pos</th><th>N°</th><th>Nom_Prenom</th><th>Groupe</th><th>Cl</th><th>Chrono</th></tr></thead><tbody>"
                             for idx_s in range(len(df_scratch_raw)):
-                                html_scratch += f"<tr><td>{df_scratch_raw.iloc[idx_s]['Pos']}</td><td>{df_scratch_raw.iloc[idx_s]['N°']}</td><td>{df_scratch_raw.iloc[idx_s]['Nom_Prenom']}</td><td>{df_scratch_raw.iloc[idx_s]['Division']}</td><td>{df_scratch_raw.iloc[idx_s]['Classe']}</td><td>{df_scratch_raw.iloc[idx_s]['Chrono']}</td></tr>"
-                            html_scratch += "</tbody></table>"
+                                html_scratch += f"<tr><td>{df_scratch_raw.iloc[idx_s]['Pos']}</td><td>{df_scratch_raw.iloc[idx_s]['N°']}</td><td>{df_scratch_raw.iloc[idx_s]['Nom_Prenom']}</td><td>{df_scratch_raw.iloc[idx_s]['Groupe']}</td><td>{df_scratch_raw.iloc[idx_s]['Cl']}</td><td>{df_scratch_raw.iloc[idx_s]['Chrono']}</td></tr>"
+                            html_scratch += "</tbody></table></div>"
                         
-                        # 2. RETOUR PAR CLASSE SÉCURISÉ
+                        # 2. RENDU HTML DU CLASSEMENT EVOLUTIF PAR CLASSE (TOP 3) - INTÉGRATION DU SCROLL FORCE
                         def trier_classe_numerique(c):
                             digits = "".join([char for char in str(c) if char.isdigit()])
                             return int(digits) if digits else 999
 
-                        scr["Classe_Tri"] = scr["Classe"].apply(trier_classe_numerique)
-                        df_grouped = scr.sort_values(by=["Classe_Tri", "Classe", "Meilleur_Resultat_Sec"]).groupby("Classe", sort=False).head(3).copy()
-                        df_grouped = df_grouped.sort_values(by=["Classe_Tri", "Classe", "Meilleur_Resultat_Sec"])
+                        scr["Classe_Tri"] = scr["Cl"].apply(trier_classe_numerique)
+                        df_grouped = scr.sort_values(by=["Classe_Tri", "Cl", "Meilleur_Resultat_Sec"]).groupby("Cl", sort=False).head(3).copy()
+                        df_grouped = df_grouped.sort_values(by=["Classe_Tri", "Cl", "Meilleur_Resultat_Sec"])
                         
                         if len(df_grouped) > 0:
-                            df_grouped["Pos"] = df_grouped.groupby("Classe", sort=False).cumcount() + 1
+                            df_grouped["Pos"] = df_grouped.groupby("Cl", sort=False).cumcount() + 1
                             df_grouped["Chrono"] = df_grouped["Meilleur_Resultat_Sec"].apply(format_final_chrono)
-                            df_divisions_raw = df_grouped[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]].rename(columns={"Classe": "Cl"})
+                            df_divisions_raw = df_grouped[["Pos", "N°", "Nom_Prenom", "Groupe", "Cl", "Chrono"]]
                             
-                            html_class_div = "<table class='table-compacte table-class-groupes'><thead><tr><th>Pos</th><th>N°</th><th>Nom_Prenom</th><th>Division</th><th>Cl</th><th>Chrono</th></tr></thead><tbody>"
+                            html_class_div = "<div class='zone-defilement-tactile'>"
+                            html_class_div += "<table class='table-compacte table-class-groupes'><thead><tr><th>Pos</th><th>N°</th><th>Nom_Prenom</th><th>Groupe</th><th>Cl</th><th>Chrono</th></tr></thead><tbody>"
                             for idx in range(len(df_divisions_raw)):
                                 classe_row = ""
                                 if idx < len(df_divisions_raw) - 1:
                                     if str(df_divisions_raw.iloc[idx]["Cl"]) != str(df_divisions_raw.iloc[idx + 1]["Cl"]):
                                         classe_row = "class='ligne-separation-classe'"
-                                html_class_div += f"<tr {classe_row}><td>{df_divisions_raw.iloc[idx]['Pos']}</td><td>{df_divisions_raw.iloc[idx]['N°']}</td><td>{df_divisions_raw.iloc[idx]['Nom_Prenom']}</td><td>{df_divisions_raw.iloc[idx]['Division']}</td><td>{df_divisions_raw.iloc[idx]['Cl']}</td><td>{df_divisions_raw.iloc[idx]['Chrono']}</td></tr>"
-                            html_class_div += "</tbody></table>"
+                                html_class_div += f"<tr {classe_row}><td>{df_divisions_raw.iloc[idx]['Pos']}</td><td>{df_divisions_raw.iloc[idx]['N°']}</td><td>{df_divisions_raw.iloc[idx]['Nom_Prenom']}</td><td>{df_divisions_raw.iloc[idx]['Groupe']}</td><td>{df_divisions_raw.iloc[idx]['Cl']}</td><td>{df_divisions_raw.iloc[idx]['Chrono']}</td></tr>"
+                            html_class_div += "</tbody></table></div>"
         except Exception: pass
 
     return df_live, html_hist, html_scratch, html_class_div, pd.DataFrame(), t_live, t_his, t_haut, t_milieu, t_bas
