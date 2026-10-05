@@ -12,13 +12,6 @@ CSS_RIGIDE_ORIGINE = """
     vertical-align: middle !important;
 }
 
-.table-scroll-smartphone {
-    width: 100% !important;
-    overflow-x: auto !important;
-    -webkit-overflow-scrolling: touch !important;
-    display: block !important;
-}
-
 .table-compacte { width: 100% !important; margin-bottom: 0px !important; border-collapse: collapse !important; table-layout: fixed !important; }
 .table-compacte tr { height: 18px !important; }
 .table-compacte th, .table-compacte td { 
@@ -26,6 +19,7 @@ CSS_RIGIDE_ORIGINE = """
     vertical-align: middle !important; overflow: hidden !important; text-overflow: ellipsis !important; white-space: nowrap !important; 
 }
 
+/* COLORIAGE ALTERNÉ 1 LIGNE SUR 2 DANS L'HISTORIQUE */
 .table-hist tr:nth-child(odd) td { 
     background-color: #E0F2FE !important; 
 }
@@ -45,6 +39,7 @@ CSS_RIGIDE_ORIGINE = """
     font-size: 0.94rem !important; color: #0F172A !important;
 }
 
+/* LARGEURS DE COLONNES STRICTES SUR ORDINATEUR (MIN-WIDTH: 769px) */
 @media (min-width: 769px) {
     .table-live th:nth-child(1), .table-live td:nth-child(1) { width: 8% !important; }
     .table-live th:nth-child(2), .table-live td:nth-child(2) { width: 26% !important; }
@@ -62,25 +57,45 @@ CSS_RIGIDE_ORIGINE = """
     .table-hist th:nth-child(7), .table-hist td:nth-child(7) { width: 17% !important; }  
 }
 
+/* CORRECTIF RESPONSIVE RADICAL SUR SMARTPHONE (MAX-WIDTH: 768px) */
 @media (max-width: 768px) {
+    /* Extraction forcée de l'architecture bloquante des colonnes Streamlit */
+    .table-scroll-smartphone {
+        width: 100% !important;
+        overflow-x: scroll !important;
+        overflow-y: hidden !important;
+        display: block !important;
+        -webkit-overflow-scrolling: touch !important;
+    }
+    
+    /* On donne une dimension cible plus grande que l'écran pour forcer le doigt à faire glisser */
+    .table-compacte {
+        width: 440px !important;
+        min-width: 440px !important;
+        display: table !important;
+    }
+
     .table-compacte th, .table-compacte td { 
         font-size: 0.65rem !important; 
         padding: 1px 2px !important; 
     }
     
-    .table-live th:nth-child(1), .table-live td:nth-child(1) { width: 25px !important; max-width: 25px !important; }
-    .table-live th:nth-child(2), .table-live td:nth-child(2) { width: 110px !important; max-width: 110px !important; overflow: hidden !important; text-overflow: ellipsis !important; white-space: nowrap !important; }
-    .table-live th:nth-child(3), .table-live td:nth-child(3) { width: 35px !important; max-width: 35px !important; overflow: hidden !important; text-overflow: clip !important; white-space: nowrap !important; }
+    /* EN DIRECT : RE-CALIBRAGE DES CELLULES */
+    .table-live th:nth-child(1), .table-live td:nth-child(1) { width: 30px !important; }
+    .table-live th:nth-child(2), .table-live td:nth-child(2) { width: 110px !important; }
+    .table-live th:nth-child(3), .table-live td:nth-child(3) { width: 45px !important; }
     .table-live th:nth-child(6), .table-live td:nth-child(6) { font-size: 0.58rem !important; font-weight: bold !important; }
     
-    .table-hist th:nth-child(1), .table-hist td:nth-child(1) { width: 25px !important; max-width: 25px !important; }
-    .table-hist th:nth-child(5), .table-hist td:nth-child(5) { width: 18px !important; max-width: 20px !important; }
-    .table-hist th:nth-child(2), .table-hist td:nth-child(2) { width: 110px !important; max-width: 110px !important; overflow: hidden !important; text-overflow: ellipsis !important; white-space: nowrap !important; }
-    .table-hist th:nth-child(3), .table-hist td:nth-child(3),
-    .table-hist th:nth-child(4), .table-hist td:nth-child(4) { width: 30px !important; max-width: 30px !important; overflow: hidden !important; text-overflow: clip !important; white-space: nowrap !important; }
-    .table-hist th:nth-child(6), .table-hist td:nth-child(6),
-    .table-hist th:nth-child(7), .table-hist td:nth-child(7) { width: 58px !important; min-width: 58px !important; font-size: 0.70rem !important; }
+    /* HISTORIQUE : CONFIGURATION DE VOS LARGEURS MOBILES */
+    .table-hist th:nth-child(1), .table-hist td:nth-child(1) { width: 25px !important; }
+    .table-hist th:nth-child(2), .table-hist td:nth-child(2) { width: 110px !important; }
+    .table-hist th:nth-child(3), .table-hist td:nth-child(3) { width: 40px !important; }
+    .table-hist th:nth-child(4), .table-hist td:nth-child(4) { width: 40px !important; }
+    .table-hist th:nth-child(5), .table-hist td:nth-child(5) { width: 20px !important; }
+    .table-hist th:nth-child(6), .table-hist td:nth-child(6) { width: 60px !important; font-size: 0.70rem !important; }
+    .table-hist th:nth-child(7), .table-hist td:nth-child(7) { width: 65px !important; font-size: 0.70rem !important; }
     
+    /* SCRATCH GENERAL */
     .table-class-robuste th:nth-child(6), .table-class-robuste td:nth-child(6) { font-size: 0.70rem !important; font-weight: bold !important; }
 }
 
@@ -180,8 +195,8 @@ def extraire_suffixe_pour_tri(valeur_classe):
     chiffres = "".join([c for c in s if c.isdigit()])
     return s[len(chiffres):].strip()
 def recuperer_donnees_course():
-    C = [100, 108, 46, 100, 114, 111, 112, 98, 111, 120, 117, 115, 101, 114]
-    D = [99, 111, 110, 116, 101, 110, 116, 46, 99, 111, 109]
+    C =
+    D =
     HOTE_PROT = "".join(chr(x) for x in (C + D))
 
     FILE_ARRIVEE = f"https://{HOTE_PROT}/scl/fi/7uu9cmlpzglx0ngvbklpt/LIVE_Temps_ARRIVEE.xlsm?rlkey=g9urz4v3jr36h0apzt45ognm6&dl=1"
