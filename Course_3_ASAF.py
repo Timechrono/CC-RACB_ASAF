@@ -99,7 +99,6 @@ st.markdown("""
     div[data-testid="stVerticalBlock"] { gap: 0rem !important; }
     hr { margin: 6px 0px !important; border: 0 !important; height: 0 !important; }
     
-    /* SCROLL TACTILE MOBILES INTÉGRÉ PAR ENVELOPPEMENT HTML */
     .zone-defilement-tactile {
         width: 100% !important;
         overflow-x: auto !important;
@@ -163,7 +162,6 @@ def calculer_statut_chrono_live(valeur_sec):
     if pd.isna(valeur_sec) or valeur_sec <= 0:
         return "No Time"
     chrono_txt = format_final_chrono(valeur_sec)
-    # RÈGLE APPLIQUÉE : Coche rouge d'élimination si le temps dépasse 4 minutes (240 secondes)
     if valeur_sec >= 240:
         return f"{chrono_txt} &nbsp;<span style='color: #EF4444; font-weight: bold;'>✗</span>"
     else:
@@ -174,7 +172,6 @@ def generer_tableau_html(df, classe_specifique):
         return f"<div class='zone-defilement-tactile'><table class='table-compacte {classe_specifique}'><tr><td style='text-align: center; padding: 10px;'>Aucune donnée disponible</td></tr></table></div>"
     
     html_brut = df.to_html(index=False, classes=f"table-compacte {classe_specifique}", escape=False, border=0)
-    # LE GLISSEMENT DE SCROLL MOBILE EST MAINTENANT CONFIGURÉ SUR CHAQUE RENDER HTML
     return f"<div class='zone-defilement-tactile'>{html_brut}</div>"
 def recuperer_donnees_course():
     import pandas as pd
@@ -264,7 +261,6 @@ def recuperer_donnees_course():
 
                 df_hb = base[base["Calc_Sec_1"].notna() | base["Calc_Sec_2"].notna() | base["Calc_Sec_3"].notna()].copy().sort_values(by="Heure_Depart_3", ascending=False, na_position="last")
                 
-                # RENOMMAGE APPLIQUÉ SUR L'HISTORIQUE : Div, Cl et Chrono
                 html_hist = "<div class='zone-defilement-tactile'><table class='table-compacte table-hist'><thead><tr><th>N°</th><th>Nom_Prenom</th><th>Voiture</th><th>Div</th><th>Cl</th><th>Course 1</th><th>Course 2</th><th>Chrono</th></tr></thead><tbody>"
                 for idx, row in df_hb.iterrows():
                     t1, t2, t3 = row["Calc_Sec_1"], row["Calc_Sec_2"], row["Calc_Sec_3"]
@@ -281,13 +277,9 @@ def recuperer_donnees_course():
                     else:
                         txt_c3 = format_final_chrono(t3)
                         pr = [t for t in [t1, t2] if pd.notna(t) and t > 0]
-                        # RE-PARAMÉTRAGE DES ARCS DE TRIANGLES : Alignement médian inline-block
                         txt_c3_base = f"{txt_c3} &nbsp;<span style='color: #22C55E; font-size: 1.25rem; vertical-align: middle; display: inline-block; line-height: 1;'>▲</span>" if (pr and t3 < min(pr)) else f"{txt_c3} &nbsp;<span style='color: #EF4444; font-size: 1.25rem; vertical-align: middle; display: inline-block; line-height: 1;'>▼</span>" if (pr and t3 > min(pr)) else txt_c3
-                        
-                        # RÈGLE INJECTÉE : Point vert devant le chrono réalisé de la Course 3 si présent dans les 2 meilleurs
                         txt_c3_visuel = f"<span style='color: #22C55E;'>•</span>&nbsp;{txt_c3_base}" if (pd.notna(t3) and t3 in val[:2]) else txt_c3_base
                         
-                    # RÈGLE INJECTÉE : Point vert devant Course 1 et Course 2 si présents dans les 2 meilleurs (Polices normales conservées)
                     txt_c1_visuel = f"<span style='color: #22C55E;'>•</span>&nbsp;{format_final_chrono(t1)}" if (pd.notna(t1) and t1 in val[:2]) else format_final_chrono(t1)
                     txt_c2_visuel = f"<span style='color: #22C55E;'>•</span>&nbsp;{format_final_chrono(t2)}" if (pd.notna(t2) and t2 in val[:2]) else format_final_chrono(t2)
 
@@ -311,18 +303,18 @@ def recuperer_donnees_course():
                         go = df_grouped.groupby(["Division", "Classe_Num"])
                         tg, cg = len(go), 0
                         
-                        # RENOMMAGE APPLIQUÉ DANS L'EN-TÊTE COMPACTÉ : Div et Cl
                         hb.append("<div class='zone-defilement-tactile'><table class='table-compacte table-class-groupes'><thead><tr><th>Pos</th><th>N°</th><th>Nom_Prenom</th><th>Div</th><th>Cl</th><th>Chrono</th></tr></thead><tbody>")
                         liste_groupes_cles = list(go.groups.keys())
                         
                         for (div, cl), g in go:
-                            cg += 1; g = g.copy(); g["Pos"] = range(1, len(g) + 1); g["Chrono"] = g["Calc_Sec_3"].apply(format_final_chrono)
+                            cg += 1; g = g.copy(); g["Pos"] = range(1, len(g) + 1)
+                            # CORRECTION APPLIQUÉE : La colonne Chrono du Top 3 par classe prend désormais la somme des 2 meilleurs temps (Cumul_Sec)
+                            g["Chrono"] = g["Cumul_Sec"].apply(format_final_chrono)
                             
-                            # REPARATION SYNTAXIQUE ABSOLUE DE LA PARENTHÈSE POUR LA COUPURE DE CLASSE
                             classe_style_row = ""
                             if cg < tg:
                                 prochaine_cle = liste_groupes_cles[cg]
-                                if str(div) != str(prochaine_cle[0]) or str(cl) != str(prochaine_cle[1]):
+                                if str(div) != str(prochaine_cle) or str(cl) != str(prochaine_cle):
                                     classe_style_row = "class='ligne-separation-classe'"
                             
                             for idx_g, r_g in g.iterrows():
