@@ -21,6 +21,14 @@ CSS_RACB = """
     vertical-align: middle !important; overflow: hidden !important; text-overflow: ellipsis !important; white-space: nowrap !important; 
 }
 
+.table-compacte td { font-weight: normal !important; border-bottom: 1px solid #E0E0E0 !important; }
+.table-compacte th { font-weight: bold !important; background-color: #F5F5F5 !important; border-bottom: 2px solid #CCCCCC !important; text-align: left !important; }
+
+.table-class-groupes tr.ligne-separation-classe td { 
+    border-bottom: 2px solid #1E3A8A !important; 
+}
+
+/* LARGEURS STRICTES PC (ORDINATEUR) */
 .table-hist th:nth-child(1), .table-hist td:nth-child(1) { width: 6% !important; }   
 .table-hist th:nth-child(2), .table-hist td:nth-child(2) { width: 23% !important; }  
 .table-hist th:nth-child(3), .table-hist td:nth-child(3) { width: 21% !important; }  
@@ -29,6 +37,48 @@ CSS_RACB = """
 .table-hist th:nth-child(6), .table-hist td:nth-child(6) { width: 10% !important; }  
 .table-hist th:nth-child(7), .table-hist td:nth-child(7) { width: 10% !important; }  
 .table-hist th:nth-child(8), .table-hist td:nth-child(8) { width: 14% !important; }  
+
+/* CORRECTIF RESPONSIVE STRICT UNIQUEMENT POUR SMARTPHONE (MAX-WIDTH: 768px) */
+@media (max-width: 768px) {
+    .table-compacte th, .table-compacte td { 
+        font-size: 0.65rem !important; 
+        padding: 1px 2px !important; 
+    }
+
+    /* === CONFIGURATION LARGEURS POUR CLASSEMENT GENERAL SCRATCH (TOP 25) === */
+    /* Colonne Pos (Position) réduite au minimum */
+    .table-live + div + table th:nth-child(1), .table-live + div + table td:nth-child(1),
+    [data-testid="stDataFrame"] table th:nth-child(1), [data-testid="stDataFrame"] table td:nth-child(1) { width: 25px !important; max-width: 25px !important; }
+    
+    /* Colonne N° (Dossard) réduite au minimum */
+    .table-live + div + table th:nth-child(2), .table-live + div + table td:nth-child(2),
+    [data-testid="stDataFrame"] table th:nth-child(2), [data-testid="stDataFrame"] table td:nth-child(2) { width: 25px !important; max-width: 25px !important; }
+    
+    /* Colonne Division réduite au minimum */
+    .table-live + div + table th:nth-child(4), .table-live + div + table td:nth-child(4) { width: 45px !important; max-width: 45px !important; }
+    
+    /* Colonne Classe réduite au minimum */
+    .table-live + div + table th:nth-child(5), .table-live + div + table td:nth-child(5) { width: 25px !important; max-width: 25px !important; }
+    
+    /* Colonne Chrono final fixe à droite */
+    .table-live + div + table th:nth-child(6), .table-live + div + table td:nth-child(6) { width: 55px !important; max-width: 55px !important; }
+
+    /* === CONFIGURATION LARGEURS POUR CLASSEMENT PAR CLASSE (TOP 3) === */
+    .table-class-groupes th:nth-child(1), .table-class-groupes td:nth-child(1) { width: 25px !important; max-width: 25px !important; } /* Pos */
+    .table-class-groupes th:nth-child(2), .table-class-groupes td:nth-child(2) { width: 25px !important; max-width: 25px !important; } /* N° */
+    .table-class-groupes th:nth-child(4), .table-class-groupes td:nth-child(4) { width: 45px !important; max-width: 45px !important; } /* Division */
+    .table-class-groupes th:nth-child(5), .table-class-groupes td:nth-child(5) { width: 25px !important; max-width: 25px !important; } /* Cl */
+    .table-class-groupes th:nth-child(6), .table-class-groupes td:nth-child(6) { width: 55px !important; max-width: 55px !important; } /* Chrono */
+
+    /* === FORÇAGE D'ÉTIREMENT DE LA COLONNE NOM_PRENOM SUR LES DEUX CLASSEMENTS === */
+    .table-live + div + table th:nth-child(3), .table-live + div + table td:nth-child(3),
+    .table-class-groupes th:nth-child(3), .table-class-groupes td:nth-child(3) {
+        width: auto !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        white-space: nowrap !important;
+    }
+}
 
 /* STYLE EXCLUSIF DE DEFILEMENT POUR SENS TACTILE SMARTPHONE */
 .zone-defilement-tactile {
