@@ -8,15 +8,16 @@ import io
 
 st.set_page_config(layout="wide")
 
-if "cache_cleared" not in st.session_state:
-    st.cache_data.clear()
-    st.session_state["cache_cleared"] = True
-
 # --- DESIGN SCIENTIFIQUE RIGIDE ---
 st.markdown("""
     <style>
     [data-testid="stHeader"] { display: none !important; }
+    
+    /* COCHES SANS FOND SCRIPTÉES EN COULEUR PURE */
+    .coche-verte { color: #22C55E !important; font-weight: bold !important; font-size: 1.1rem !important; margin-right: 6px; }
+    .coche-rouge { color: #EF4444 !important; font-weight: bold !important; font-size: 1.1rem !important; margin-right: 6px; }
     .vrai-gyrophare { display: inline-block; margin-right: 6px; font-size: 1.05rem !important; vertical-align: middle !important; }
+    
     .titre-live, .titre-hist, .titre-classement {
         color: #FFFFFF !important; font-size: 1.05rem !important; font-weight: bold !important;
         padding: 4px 8px !important; border-radius: 3px !important; margin-bottom: 6px !important;
@@ -78,14 +79,13 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-C = [100, 108, 46, 100, 114, 111, 112, 98, 111, 120, 117, 115, 101, 114]
-D = [99, 111, 110, 116, 101, 110, 116, 46, 99, 111, 109]
+C =
+D =
 HOTE_PROT = "".join(chr(x) for x in (C + D))
 
 URL_ARRIVEE = f"https://{HOTE_PROT}/scl/fi/7uu9cmlpzglx0ngvbklpt/LIVE_Temps_ARRIVEE.xlsm?rlkey=g9urz4v3jr36h0apzt45ognm6&st=0d9mpgfw&dl=1"
 URL_DEPART  = f"https://{HOTE_PROT}/scl/fi/gbkaq01qzjujc8nq3zj28/LIVE_Temps_DEPART.xlsm?rlkey=4x4rvvlfyzz8v59gqbxn80a4d&st=mcibn3xx&dl=1"
 URL_ENGAGES = f"https://{HOTE_PROT}/scl/fi/69zkwsb45bpiw3ys3kk4c/LIVE_Liste_ENGAGES_RACB.xlsm?rlkey=qpjrlmbxhcskifnabs84veqh8&st=0snuv3e7&dl=1"
-# fin bloc 1
 def telecharger_excel(url):
     entetes = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'}
     reponse = requests.get(url, headers=entetes, timeout=12)
@@ -132,10 +132,10 @@ def calculer_statut_chrono(row, est_dans_le_live=True):
     if "Calc_Sec_2" in row and pd.notna(row["Calc_Sec_2"]) and row["Calc_Sec_2"] > 0:
         chrono_txt = format_final_chrono(row["Calc_Sec_2"])
         if est_dans_le_live:
-            if row["Calc_Sec_2"] >= 240: # Coche rouge si >= 4 min
-                return f"<span class='vrai-gyrophare'>❌</span> {chrono_txt}"
-            else: # Coche verte si < 4 min
-                return f"<span class='vrai-gyrophare'>✅</span> {chrono_txt}"
+            if row["Calc_Sec_2"] >= 240:
+                return f"<span class='coche-rouge'>✗</span> {chrono_txt}"
+            else:
+                return f"<span class='coche-verte'>✓</span> {chrono_txt}"
         return chrono_txt
     if "Heure_Depart_2" in row and pd.notna(row["Heure_Depart_2"]) and ("Heure_Arrivee_2" in row and pd.isna(row["Heure_Arrivee_2"])):
         return "<span class='vrai-gyrophare'>🚨</span> EN PISTE" if est_dans_le_live else "En Piste"
@@ -170,13 +170,12 @@ def extraire_suffixe_pour_tri(valeur_classe):
     if s.endswith(".0"): s = s[:-2]
     chiffres = "".join([c for c in s if c.isdigit()])
     return s[len(chiffres):].strip()
-# fin bloc 2
 cols_live = ["N°", "Nom_Prenom", "Voiture", "Départ", "Arrivée", "Chrono réalisé"]
 cols_hist = ["N°", "Nom_Prenom", "Voiture", "Groupe", "Classe", "Course 1", "Chrono réalisé"]
 affichage_dynamique = st.empty()
 
 while True:
-    html_hist = "<table class='table-compacte table-hist'><tr><td style='text-align: center; padding: 10px;'>Aucune donnée disponible pour le plateau RACB</td></tr></table>"
+    html_hist = "<table class='table-compacte table-hist'><tr><td style='text-align: center; padding: 10px;'>Aucune donnée disponible</td></tr></table>"
     df_live = pd.DataFrame(columns=cols_live)
     df_hist = pd.DataFrame(columns=cols_hist)
     df_racb = pd.DataFrame(columns=["Pos", "N°", "Nom_Prenom", "Groupe", "Classe", "Chrono"])
@@ -220,7 +219,6 @@ while True:
             df_eng = df_eng[df_eng["N°"] != "NAN"].drop_duplicates(subset=["N°"])
         except:
             pass
-# fin bloc 3A
         try:
             df_dep1 = df_dep1[(df_dep1["N°"] != "NAN") & (df_dep1["N°"] != "")]
             df_dep2 = df_dep2[(df_dep2["N°"] != "NAN") & (df_dep2["N°"] != "")]
