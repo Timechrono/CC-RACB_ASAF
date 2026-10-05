@@ -39,7 +39,7 @@ CSS_RIGIDE_ORIGINE = """
     font-size: 0.94rem !important; color: #0F172A !important;
 }
 
-/* LARGEURS DE COLONNES SUR ORDINATEUR (MIN-WIDTH: 769px) */
+/* LARGEURS DE COLONNES STRICTES SUR ORDINATEUR (MIN-WIDTH: 769px) */
 @media (min-width: 769px) {
     .table-live th:nth-child(1), .table-live td:nth-child(1) { width: 8% !important; }
     .table-live th:nth-child(2), .table-live td:nth-child(2) { width: 26% !important; }
@@ -48,20 +48,20 @@ CSS_RIGIDE_ORIGINE = """
     .table-live th:nth-child(5), .table-live td:nth-child(5) { width: 13% !important; }
     .table-live th:nth-child(6), .table-live td:nth-child(6) { width: 22% !important; }
 
-    .table-hist th:nth-child(1), .table-hist td:nth-child(1) { width: 6% !important; }   
-    .table-hist th:nth-child(2), .table-hist td:nth-child(2) { width: 22% !important; }  
-    .table-hist th:nth-child(3), .table-hist td:nth-child(3) { width: 22% !important; }  
-    .table-hist th:nth-child(4), .table-hist td:nth-child(4) { width: 13% !important; }   
-    .table-hist th:nth-child(5), .table-hist td:nth-child(5) { width: 6% !important; }   
-    .table-hist th:nth-child(6), .table-hist td:nth-child(6) { width: 14% !important; }  
-    .table-hist th:nth-child(7), .table-hist td:nth-child(7) { width: 17% !important; }  
+    .table-hist th:nth-child(1), .table-hist td:nth-child(1) { width: 6% !important; }   /* N° */
+    .table-hist th:nth-child(2), .table-hist td:nth-child(2) { width: 22% !important; }  /* Nom_Prenom */
+    .table-hist th:nth-child(3), .table-hist td:nth-child(3) { width: 22% !important; }  /* Voiture */
+    .table-hist th:nth-child(4), .table-hist td:nth-child(4) { width: 13% !important; }  /* Groupe */
+    .table-hist th:nth-child(5), .table-hist td:nth-child(5) { width: 6% !important; }   /* Cl */
+    .table-hist th:nth-child(6), .table-hist td:nth-child(6) { width: 14% !important; }  /* Course 1 */
+    .table-hist th:nth-child(7), .table-hist td:nth-child(7) { width: 17% !important; }  /* Chrono */
 }
 
-/* ADAPTATION SMARTPHONE REPRISE DE VOTRE CONCEPTION (MAX-WIDTH: 768px) */
+/* REGLAGE SMARTPHONE (MAX-WIDTH: 768px) : ROBUSTE, SANS TOUCHER AU N° NI AU NOM */
 @media (max-width: 768px) {
-    /* Limite la colonne Groupe (4e colonne de l'historique) pour éviter les débordements */
-    .table-hist td:nth-child(4) {
-        max-width: 45px !important;
+    /* La colonne Voiture (3e) et la colonne Groupe (4e) se rognent proprement en cas de besoin */
+    .table-hist td:nth-child(3), .table-hist td:nth-child(4) {
+        max-width: 50px !important;
         overflow: hidden !important;
         text-overflow: clip !important;
         white-space: nowrap !important;
@@ -168,9 +168,9 @@ def recuperer_donnees_course():
     D = [99, 111, 110, 116, 101, 110, 116, 46, 99, 111, 109]
     HOTE_PROT = "".join(chr(x) for x in (C + D))
 
-    FILE_ARRIVEE = f"https://{HOTE_PROT}/scl/fi/7uu9cmlpzglx0ngvbklpt/LIVE_Temps_ARRIVEE.xlsm?rlkey=g9urz4v3jr36h0apzt45ognm6&dl=1"
-    FILE_DEPART  = f"https://{HOTE_PROT}/scl/fi/gbkaq01qzjujc8nq3zj28/LIVE_Temps_DEPART.xlsm?rlkey=4x4rvvlfyzz8v59gqbxn80a4d&dl=1"
-    FILE_ENGAGES_RACB = f"https://{HOTE_PROT}/scl/fi/69zkwsb45bpiw3ys3kk4c/LIVE_Liste_ENGAGES_RACB.xlsm?rlkey=qpjrlmbxhcskifnabs84veqh8&dl=1"
+    FILE_ARRIVEE = f"https://{HOTE_PROT}/scl/fi/7uu9cmlpzglx0ngvbklpt/LIVE_Temps_ARRIVEE.xlsm?rlkey=g9urz4v3jr36h0apzt45ognm6&st=0d9mpgfw&dl=1"
+    FILE_DEPART  = f"https://{HOTE_PROT}/scl/fi/gbkaq01qzjujc8nq3zj28/LIVE_Temps_DEPART.xlsm?rlkey=4x4rvvlfyzz8v59gqbxn80a4d&st=mcibn3xx&dl=1"
+    FILE_ENGAGES_RACB = f"https://{HOTE_PROT}/scl/fi/69zkwsb45bpiw3ys3kk4c/LIVE_Liste_ENGAGES_RACB.xlsm?rlkey=qpjrlmbxhcskifnabs84veqh8&st=0snuv3e7&dl=1"
 
     cols_live = ["N°", "Nom_Prenom", "Voiture", "Départ", "Arrivée", "Chrono réalisé"]
     cols_hist = ["N°", "Nom_Prenom", "Voiture", "Groupe", "Classe", "Course 1", "Chrono réalisé"]
