@@ -85,6 +85,16 @@ def formater_heure_ecran(val):
     if s.endswith(".0"): s = s[:-2]
     s = s.zfill(6)
     return f"{s[0:2]}:{s[2:4]}.{s[4:6]}" if len(s) == 6 else str(val)
+def calculer_statut_chrono_live(valeur_sec):
+    if pd.isna(valeur_sec) or valeur_sec <= 0:
+        return "No Time"
+    chrono_txt = format_final_chrono(valeur_sec)
+    # Règle de validation automatique : coche rouge au-delà de 4 minutes (240 secondes)
+    if valeur_sec >= 240:
+        return f"{chrono_txt} &nbsp;<span style='color: #EF4444; font-weight: bold;'>✗</span>"
+    else:
+        return f"{chrono_txt} &nbsp;<span style='color: #22C55E; font-weight: bold;'>✓</span>"
+
 def generer_tableau_html(df, classe_specifique):
     if df.empty: 
         return f"<table class='table-compacte {classe_specifique}'><tr><td style='text-align: center; padding: 10px;'>Aucune donnée disponible</td></tr></table>"
@@ -162,7 +172,8 @@ def recuperer_donnees_course():
                 if len(base) > 0:
                     if "Heure_Depart_3" in base.columns and base["Heure_Depart_3"].notna().any():
                         base_c3 = base[base["Heure_Depart_3"].notna()].copy()
-                        base_c3["Chrono réalisé"] = base_c3.apply(lambda r: format_final_chrono(r["Calc_Sec_3"]) if pd.notna(r["Calc_Sec_3"]) and r["Calc_Sec_3"] > 0 else ("<span class='vrai-gyrophare'>🚨</span> EN PISTE" if pd.isna(r["Heure_Arrivee_3"]) else "No Time"), axis=1)
+                        # AJOUT CORRECT : Application de la fonction de validation avec puces graphiques sur la table Live
+                        base_c3["Chrono réalisé"] = base_c3.apply(lambda r: calculer_statut_chrono_live(r["Calc_Sec_3"]) if pd.notna(r["Calc_Sec_3"]) else ("<span class='vrai-gyrophare'>🚨</span> EN PISTE" if pd.isna(r["Heure_Arrivee_3"]) else "No Time"), axis=1)
                         base_c3["Départ"] = base_c3["Heure_Depart_3"].apply(formater_heure_ecran)
                         base_c3["Arrivée"] = base_c3["Heure_Arrivee_3"].apply(formater_heure_ecran)
                         df_live = base_c3.sort_values(by="Heure_Depart_3", ascending=False).head(5)[["N°", "Nom_Prenom", "Voiture", "Départ", "Arrivée", "Chrono réalisé"]]
@@ -171,7 +182,6 @@ def recuperer_donnees_course():
                     if not df_hist_base.empty:
                         df_hist_base = df_hist_base.sort_values(by="Heure_Depart_3", ascending=False, na_position="last")
                         
-                        # ENCAPSULATION DU SCROLL TACTILE MOBILES AUTOUR DE LA TABLE HISTORIQUE SOUHAITÉE
                         html_hist = CSS_RACB + "<div class='zone-defilement-tactile'>"
                         html_hist += "<table class='table-compacte table-hist'><thead><tr><th>N°</th><th>Nom_Prenom</th><th>Voiture</th><th>Division</th><th>Classe</th><th>Course 1</th><th>Course 2</th><th>Chrono réalisé</th></tr></thead><tbody>"
 
@@ -180,7 +190,6 @@ def recuperer_donnees_course():
                             valeurs_valides = [v for v in [t1, t2, t3] if pd.notna(v) and v > 0]
                             meilleur_sec = min(valeurs_valides) if valeurs_valides else None
 
-                            # REPARÉ ET SÉCURISÉ : Plus aucune mise en gras (balise strong ou classe meilleur-temps retirées)
                             txt_c1_visuel = f"<span style='color: #22C55E;'>•</span>&nbsp;{format_final_chrono(t1)}" if (meilleur_sec and t1 == meilleur_sec) else format_final_chrono(t1)
                             txt_c2_visuel = f"<span style='color: #22C55E;'>•</span>&nbsp;{format_final_chrono(t2)}" if (meilleur_sec and t2 == meilleur_sec) else format_final_chrono(t2)
 
@@ -193,7 +202,6 @@ def recuperer_donnees_course():
                                 txt_c3_base = f"<span style='color: #22C55E;'>•</span>&nbsp;{txt_c3}" if (meilleur_sec and t3 == meilleur_sec) else txt_c3
                                 temps_precedents = [t for t in [t1, t2] if pd.notna(t) and t > 0]
                                 
-                                # RE-PARAMÉTRAGE DES ARCS DE TRIANGLES : Intégration du vertical-align et display inline-block
                                 if temps_precedents and t3 < min(temps_precedents): 
                                     txt_c3_visuel = f"{txt_c3_base} &nbsp;<span style='color: #22C55E; font-size: 1.25rem; vertical-align: middle; display: inline-block; line-height: 1;'>▲</span>"
                                 elif temps_precedents and t3 > min(temps_precedents): 
