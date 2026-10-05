@@ -59,7 +59,7 @@ st.markdown("""
         background-color: #E0F2FE !important;
     }
     
-    /* Séparateur de classe bleu foncé de 2px de large sous chaque ligne */
+    /* Séparateur de classe bleu foncé de 2px de large */
     .table-class-groupes tr.ligne-separation-classe td { 
         border-bottom: 2px solid #1E3A8A !important; 
     }
@@ -158,22 +158,6 @@ def formater_heure_ecran(val):
     if s.endswith(".0"): s = s[:-2]
     s = s.zfill(6)
     return f"{s[0:2]}:{s[2:4]}.{s[4:6]}" if len(s) == 6 else str(val)
-def calculer_statut_chrono_live(valeur_sec):
-    if pd.isna(valeur_sec) or valeur_sec <= 0:
-        return "No Time"
-    chrono_txt = format_final_chrono(valeur_sec)
-    # REGLE DIRECT INJECTÉE : Application des coches verte (✓) et rouge (✗) selon la limite des 4 minutes (240s)
-    if valeur_sec >= 240:
-        return f"{chrono_txt} &nbsp;<span style='color: #EF4444; font-weight: bold;'>✗</span>"
-    else:
-        return f"{chrono_txt} &nbsp;<span style='color: #22C55E; font-weight: bold;'>✓</span>"
-
-def generer_tableau_html(df, classe_specifique):
-    if df.empty: 
-        return f"<div class='zone-defilement-tactile'><table class='table-compacte {classe_specifique}'><tr><td style='text-align: center; padding: 10px;'>Aucune donnée disponible</td></tr></table></div>"
-    
-    html_brut = df.to_html(index=False, classes=f"table-compacte {classe_specifique}", escape=False, border=0)
-    return f"<div class='zone-defilement-tactile'>{html_brut}</div>"
 def recuperer_donnees_course():
     import pandas as pd
     import datetime
@@ -262,7 +246,6 @@ def recuperer_donnees_course():
 
                 df_hb = base[base["Calc_Sec_1"].notna() | base["Calc_Sec_2"].notna() | base["Calc_Sec_3"].notna()].copy().sort_values(by="Heure_Depart_3", ascending=False, na_position="last")
                 
-                # RENOMMAGE APPLIQUÉ SUR L'HISTORIQUE : Div, Cl, Chrono + Triangles centrés verticalement et puces vertes
                 html_hist = "<div class='zone-defilement-tactile'><table class='table-compacte table-hist'><thead><tr><th>N°</th><th>Nom_Prenom</th><th>Voiture</th><th>Div</th><th>Cl</th><th>Course 1</th><th>Course 2</th><th>Chrono</th></tr></thead><tbody>"
                 for idx, row in df_hb.iterrows():
                     t1, t2, t3 = row["Calc_Sec_1"], row["Calc_Sec_2"], row["Calc_Sec_3"]
@@ -307,23 +290,21 @@ def recuperer_donnees_course():
                         go = df_grouped.groupby(["Division", "Classe_Num"])
                         tg, cg = len(go), 0
                         
-                        # RENOMMAGE APPLIQUÉ DANS LE CLASSEMENT PAR CLASSE : Div et Cl
                         hb.append("<div class='zone-defilement-tactile'><table class='table-compacte table-class-groupes'><thead><tr><th>Pos</th><th>N°</th><th>Nom_Prenom</th><th>Div</th><th>Cl</th><th>Chrono</th></tr></thead><tbody>")
+                        liste_groupes_cles = list(go.groups.keys())
                         
-                        # LOGIQUE SOUHAITÉE DE SÉPARATION : On traite chaque sous-tableau individuellement pour insérer la coupure bleue de 2px
                         for (div, cl), g in go:
                             cg += 1
                             g = g.copy()
                             g["Pos"] = range(1, len(g) + 1)
-                            
-                            # REGLE APPLIQUÉE : La colonne Chrono affiche l'addition des 2 meilleurs temps (Cumul_Sec)
                             g["Chrono"] = g["Cumul_Sec"].apply(format_final_chrono)
                             
                             for idx_g, r_g in g.iterrows():
-                                is_last_row_of_subgroup = (idx_g == g.index[-1])
-                                # Si c'est le dernier pilote d'une classe et qu'il reste d'autres classes après, on applique la ligne bleue
-                                current_row_style = "class='ligne-separation-classe'" if (is_last_row_of_subgroup and cg < tg) else ""
-                                hb.append(f"<tr {current_row_style}><td>{r_g['Pos']}</td><td>{r_g['N°']}</td><td>{r_g['Nom_Prenom']}</td><td>{r_g['Division']}</td><td>{r_g['Classe']}</td><td>{r_g['Chrono']}</td></tr>")
+                                hb.append(f"<tr><td>{r_g['Pos']}</td><td>{r_g['N°']}</td><td>{r_g['Nom_Prenom']}</td><td>{r_g['Division']}</td><td>{r_g['Classe']}</td><td>{r_g['Chrono']}</td></tr>")
+                            
+                            # LA FAUTE DE FRAPPE SUR LA PARENTHÈSE EST SUPPRIMÉE ET SÉCURISÉE ICI
+                            if cg < tg:
+                                hb.append("<tr class='ligne-separation-classe'><td colspan='6' style='padding:0 !important;'></td></tr>")
                                 
                         hb.append("</tbody></table></div>")
                         df_divisions = "".join(hb)
