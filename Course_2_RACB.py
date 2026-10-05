@@ -3,7 +3,6 @@ import datetime
 import requests  
 import io        
 
-# Encapsulation corrigée et hermétique pour éliminer la SyntaxError de Streamlit Cloud
 CSS_RIGIDE_ORIGINE = """
 <style>
 .vrai-gyrophare {
@@ -11,6 +10,14 @@ CSS_RIGIDE_ORIGINE = """
     margin-right: 6px;
     font-size: 1.05rem !important;
     vertical-align: middle !important;
+}
+
+/* BLOCAGE DES DEBORDEMENTS SUR TOUT L'ECRAN SMARTPHONE */
+.table-scroll-smartphone {
+    width: 100% !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    display: block !important;
 }
 
 .table-compacte { width: 100% !important; margin-bottom: 0px !important; border-collapse: collapse !important; table-layout: fixed !important; }
@@ -58,55 +65,38 @@ CSS_RIGIDE_ORIGINE = """
     .table-hist th:nth-child(7), .table-hist td:nth-child(7) { width: 17% !important; }  
 }
 
-/* CONFIGURATION EXCLUSIVE SMARTPHONE SMARTPHONE (MAX-WIDTH: 768px) */
+/* CONFIGURATION HARMONISÉE SMARTPHONE (MAX-WIDTH: 768px) */
 @media (max-width: 768px) {
     .table-compacte th, .table-compacte td { 
         font-size: 0.65rem !important; 
         padding: 1px 2px !important; 
     }
     
-    /* EN DIRECT : RÉDUCTION POLICE CHRONO RÉALISÉ */
-    .table-live th:nth-child(6), .table-live td:nth-child(6) {
-        font-size: 0.58rem !important;
-        font-weight: bold !important;
-    }
+    /* === 1. CONFIGURATION EN DIRECT SUR SMARTPHONE === */
+    /* Réduction maximale du N° (1ère) */
+    .table-live th:nth-child(1), .table-live td:nth-child(1) { width: 25px !important; max-width: 25px !important; }
+    /* Adaptation stricte sans espace vide du Nom_Prenom (2e) */
+    .table-live th:nth-child(2), .table-live td:nth-child(2) { width: 110px !important; max-width: 110px !important; overflow: hidden !important; text-overflow: ellipsis !important; white-space: nowrap !important; }
+    /* Réduction forte de la Voiture (3e) */
+    .table-live th:nth-child(3), .table-live td:nth-child(3) { width: 35px !important; max-width: 35px !important; overflow: hidden !important; text-overflow: clip !important; white-space: nowrap !important; }
+    /* Réduction police de la colonne Chrono réalisé (6e) */
+    .table-live th:nth-child(6), .table-live td:nth-child(6) { font-size: 0.58rem !important; font-weight: bold !important; }
     
-    /* HISTORIQUE : RÉDUCTION MAXIMUM DE N° ET CL */
+    /* === 2. CONFIGURATION HISTORIQUE SUR SMARTPHONE === */
+    /* Réduction maximale du N° (1ère) et du Cl (5e) */
     .table-hist th:nth-child(1), .table-hist td:nth-child(1) { width: 25px !important; max-width: 25px !important; }
-    .table-hist th:nth-child(5), .table-hist td:nth-child(5) { width: 20px !important; max-width: 20px !important; }
-    
-    /* HISTORIQUE : RE-CALIBRAGE DE VOITURE ET GROUPE POUR ÉVITER LE RABOTAGE DU NOM */
+    .table-hist th:nth-child(5), .table-hist td:nth-child(5) { width: 18px !important; max-width: 20px !important; }
+    /* Adaptation stricte sans espace vide du Nom_Prenom (2e) */
+    .table-hist th:nth-child(2), .table-hist td:nth-child(2) { width: 110px !important; max-width: 110px !important; overflow: hidden !important; text-overflow: ellipsis !important; white-space: nowrap !important; }
+    /* Compression Voiture (3e) et Groupe (4e) */
     .table-hist th:nth-child(3), .table-hist td:nth-child(3),
-    .table-hist th:nth-child(4), .table-hist td:nth-child(4) {
-        width: 30px !important;
-        max-width: 30px !important;
-        overflow: hidden !important;
-        text-overflow: clip !important;
-        white-space: nowrap !important;
-    }
-    
-    /* HISTORIQUE : AJUSTEMENT NOM_PRENOM SUR LE PILOTE LE PLUS LARGE (110px FIXE SANS ESPACE VIDE) */
-    .table-hist th:nth-child(2), .table-hist td:nth-child(2) {
-        width: 110px !important;
-        max-width: 110px !important;
-        overflow: hidden !important;
-        text-overflow: ellipsis !important;
-        white-space: nowrap !important;
-    }
-    
-    /* HISTORIQUE : POLICE ÉCHELLE COMPACTE POUR COURSE 1 ET CHRONO AVEC LECTURE ASSURÉE */
+    .table-hist th:nth-child(4), .table-hist td:nth-child(4) { width: 30px !important; max-width: 30px !important; overflow: hidden !important; text-overflow: clip !important; white-space: nowrap !important; }
+    /* Format lisible pour Course 1 (6e) et Chrono (7e) */
     .table-hist th:nth-child(6), .table-hist td:nth-child(6),
-    .table-hist th:nth-child(7), .table-hist td:nth-child(7) {
-        width: 58px !important;
-        min-width: 58px !important;
-        font-size: 0.70rem !important;
-    }
+    .table-hist th:nth-child(7), .table-hist td:nth-child(7) { width: 58px !important; min-width: 58px !important; font-size: 0.70rem !important; }
     
-    /* CLASSEMENT SCRATCH TOP 20 : RÉDUCTION POLICE CHRONO SUR SMARTPHONE */
-    .table-class-robuste th:nth-child(6), .table-class-robuste td:nth-child(6) {
-        font-size: 0.70rem !important;
-        font-weight: bold !important;
-    }
+    /* === 3. CLASSEMENT SCRATCH SCRATCH === */
+    .table-class-robuste th:nth-child(6), .table-class-robuste td:nth-child(6) { font-size: 0.70rem !important; font-weight: bold !important; }
 }
 
 .table-class-robuste th:nth-child(1), .table-class-robuste td:nth-child(1) { width: 9% !important; }
@@ -190,8 +180,9 @@ def calculer_statut_chrono(row, est_dans_le_live=True):
 
 def generer_tableau_html(df, classe_specifique):
     if df.empty: 
-        return f"<table class='table-compacte {classe_specifique}'><tr><td style='text-align: center; padding: 10px;'>Aucune donnée disponible</td></tr></table>"
-    return df.to_html(index=False, classes=f"table-compacte {classe_specifique}", escape=False, border=0)
+        return f"<div class='table-scroll-smartphone'><table class='table-compacte {classe_specifique}'><tr><td style='text-align: center; padding: 10px;'>Aucune donnée disponible</td></tr></table></div>"
+    # INTEGRATION DIRECTE DE LA COUCHE DE GLISSEMENT MOBILE SUR LES EN-TÊTES DU DIRECT ET DES DEPARTEMENTAUX
+    return f"<div class='table-scroll-smartphone'>" + df.to_html(index=False, classes=f"table-compacte {classe_specifique}", escape=False, border=0) + "</div>"
 
 def decomposer_classe_pour_tri(valeur_classe):
     s = str(valeur_classe).strip().upper()
@@ -297,9 +288,9 @@ def recuperer_donnees_course():
 
                 df_hist_base = base.assign(Ordre_Saisie=range(len(base))).sort_values(by="Ordre_Saisie", ascending=False).copy()
                 
-                # REPARÉ ET SÉCURISÉ : LE MARQUAGE CSS NE TRAVERSE PLUS LA MATRICE WEB
-                html_hist = CSS_RIGIDE_ORIGINE
-                html_hist += "<div style='width: 100% !important; overflow-x: auto !important; -webkit-overflow-scrolling: touch !important;'>""<table class='table-compacte table-hist'><thead><tr><th>N°</th><th>Nom_Prenom</th><th>Voiture</th><th>Groupe</th><th>Cl</th><th>Course 1</th><th>Chrono</th></tr></thead><tbody>"
+                # RE-ACTIVATION ET PROTECTION DU DEFILEMENT SUR TOUTE LA STRUCTURE
+                html_hist = f"<div class='table-scroll-smartphone'>"
+                html_hist += "<table class='table-compacte table-hist'><thead><tr><th>N°</th><th>Nom_Prenom</th><th>Voiture</th><th>Groupe</th><th>Cl</th><th>Course 1</th><th>Chrono</th></tr></thead><tbody>"
 
                 for idx, row in df_hist_base.iterrows():
                     t1, t2 = row["Calc_Sec_1"], row["Calc_Sec_2"]
@@ -346,18 +337,18 @@ def recuperer_donnees_course():
             pass
 
     if not fichiers_prets:
-        html_hist = f"{CSS_RIGIDE_ORIGINE}<table class='table-compacte table-hist'><tr><td style='text-align: center; padding: 10px;'>Aucune donnée disponible pour le plateau RACB</td></tr></table>"
+        html_hist = f"{CSS_RIGIDE_ORIGINE}<div class='table-scroll-smartphone'><table class='table-compacte table-hist'><tr><td style='text-align: center; padding: 10px;'>Aucune donnée disponible pour le plateau RACB</td></tr></table></div>"
 
     if not df_divisions.empty:
-        html_class_div = f"<table class='table-compacte table-class-groupes'><thead><tr><th>Pos</th><th>N°</th><th>Nom_Prenom</th><th>Groupe</th><th>Cl</th><th>Chrono</th></tr></thead><tbody>"
+        html_class_div = f"<div class='table-scroll-smartphone'><table class='table-compacte table-class-groupes'><thead><tr><th>Pos</th><th>N°</th><th>Nom_Prenom</th><th>Groupe</th><th>Cl</th><th>Chrono</th></tr></thead><tbody>"
         for idx in range(len(df_divisions)):
             classe_row = ""
             if idx < len(df_divisions) - 1:
                 if str(df_divisions.iloc[idx]["Cl"]) != str(df_divisions.iloc[idx + 1]["Cl"]):
                     classe_row = "class='ligne-separation-classe'"
             html_class_div += f"<tr {classe_row}><td>{df_divisions.iloc[idx]['Pos']}</td><td>{df_divisions.iloc[idx]['N°']}</td><td>{df_divisions.iloc[idx]['Nom_Prenom']}</td><td>{df_divisions.iloc[idx]['Groupe']}</td><td>{df_divisions.iloc[idx]['Cl']}</td><td>{df_divisions.iloc[idx]['Chrono']}</td></tr>"
-        html_class_div += "</tbody></table>"
+        html_class_div += "</tbody></table></div>"
     else:
-        html_class_div = f"<table class='table-compacte table-class-groupes'><tr><td style='text-align: center; padding: 10px;'>Aucune donnée disponible</td></tr></table>"
+        html_class_div = f"<div class='table-scroll-smartphone'><table class='table-compacte table-class-groupes'><tr><td style='text-align: center; padding: 10px;'>Aucune donnée disponible</td></tr></table></div>"
 
     return df_live, html_hist, df_racb, html_class_div, pd.DataFrame(), t_live, t_his, t_haut, t_milieu, t_bas
