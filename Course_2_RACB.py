@@ -57,27 +57,47 @@ CSS_RIGIDE_ORIGINE = """
     .table-hist th:nth-child(7), .table-hist td:nth-child(7) { width: 17% !important; }  /* Chrono */
 }
 
-/* ADAPTATION SMARTPHONE MOBILE COMPLÈTE (MAX-WIDTH: 768px) */
+/* CONFIGURATION EXCLUSIVE SMARTPHONE SMARTPHONE (MAX-WIDTH: 768px) */
 @media (max-width: 768px) {
     .table-compacte th, .table-compacte td { 
         font-size: 0.65rem !important; 
         padding: 1px 2px !important; 
     }
-    /* Resserrement Voiture (3e) et Groupe (4e) pour sauver la colonne Nom_Prenom */
+    
+    /* 1. EN DIRECT : RÉDUCTION STRICTE DES CARACTÈRES DE LA COLONNE CHRONO RÉALISÉ (6e colonne) */
+    .table-live th:nth-child(6), .table-live td:nth-child(6) {
+        font-size: 0.58rem !important;
+        font-weight: bold !important;
+    }
+    
+    /* 2. HISTORIQUE : RÉDUCTION MAXIMUM DE N° (1er) ET Cl (5e) POUR SMARTPHONE */
+    .table-hist th:nth-child(1), .table-hist td:nth-child(1) { width: 25px !important; max-width: 25px !important; }
+    .table-hist th:nth-child(5), .table-hist td:nth-child(5) { width: 20px !important; max-width: 20px !important; }
+    
+    /* 3. HISTORIQUE : RE-CALIBRAGE RADICAL DE VOITURE (3e) ET GROUPE (4e) POUR ÉVITER LE RABOTAGE DU NOM */
     .table-hist th:nth-child(3), .table-hist td:nth-child(3),
     .table-hist th:nth-child(4), .table-hist td:nth-child(4) {
-        width: 35px !important;
-        max-width: 35px !important;
+        width: 30px !important;
+        max-width: 30px !important;
         overflow: hidden !important;
         text-overflow: clip !important;
         white-space: nowrap !important;
     }
-    /* RÉDUCTION CIBLÉE DES CARACTÈRES POUR COURSE 1 (6e) ET CHRONO (7e) */
+    
+    /* 4. HISTORIQUE : DÉBLOCAGE ET AFFICHAGE EN ENTIER DE LA COLONNE NOM_PRENOM */
+    .table-hist th:nth-child(2), .table-hist td:nth-child(2) {
+        width: auto !important;
+        overflow: visible !important;
+        text-overflow: unset !important;
+        white-space: nowrap !important;
+    }
+    
+    /* 5. HISTORIQUE : AFFICHAGE ASSURÉ ET LISIBLE DE COURSE 1 (6e) ET CHRONO (7e) */
     .table-hist th:nth-child(6), .table-hist td:nth-child(6),
     .table-hist th:nth-child(7), .table-hist td:nth-child(7) {
-        width: 65px !important;
-        min-width: 65px !important;
-        font-size: 0.72rem !important;
+        width: 58px !important;
+        min-width: 58px !important;
+        font-size: 0.70rem !important;
     }
 }
 
@@ -181,9 +201,9 @@ def recuperer_donnees_course():
     D = [99, 111, 110, 116, 101, 110, 116, 46, 99, 111, 109]
     HOTE_PROT = "".join(chr(x) for x in (C + D))
 
-    FILE_ARRIVEE = f"https://{HOTE_PROT}/scl/fi/7uu9cmlpzglx0ngvbklpt/LIVE_Temps_ARRIVEE.xlsm?rlkey=g9urz4v3jr36h0apzt45ognm6&st=0d9mpgfw&dl=1"
-    FILE_DEPART  = f"https://{HOTE_PROT}/scl/fi/gbkaq01qzjujc8nq3zj28/LIVE_Temps_DEPART.xlsm?rlkey=4x4rvvlfyzz8v59gqbxn80a4d&st=mcibn3xx&dl=1"
-    FILE_ENGAGES_RACB = f"https://{HOTE_PROT}/scl/fi/69zkwsb45bpiw3ys3kk4c/LIVE_Liste_ENGAGES_RACB.xlsm?rlkey=qpjrlmbxhcskifnabs84veqh8&st=0snuv3e7&dl=1"
+    FILE_ARRIVEE = f"https://{HOTE_PROT}/scl/fi/7uu9cmlpzglx0ngvbklpt/LIVE_Temps_ARRIVEE.xlsm?rlkey=g9urz4v3jr36h0apzt45ognm6&dl=1"
+    FILE_DEPART  = f"https://{HOTE_PROT}/scl/fi/gbkaq01qzjujc8nq3zj28/LIVE_Temps_DEPART.xlsm?rlkey=4x4rvvlfyzz8v59gqbxn80a4d&dl=1"
+    FILE_ENGAGES_RACB = f"https://{HOTE_PROT}/scl/fi/69zkwsb45bpiw3ys3kk4c/LIVE_Liste_ENGAGES_RACB.xlsm?rlkey=qpjrlmbxhcskifnabs84veqh8&dl=1"
 
     cols_live = ["N°", "Nom_Prenom", "Voiture", "Départ", "Arrivée", "Chrono réalisé"]
     cols_hist = ["N°", "Nom_Prenom", "Voiture", "Groupe", "Classe", "Course 1", "Chrono réalisé"]
