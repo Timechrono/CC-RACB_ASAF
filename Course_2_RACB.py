@@ -26,8 +26,12 @@ CSS_RIGIDE_ORIGINE = """
 }
 .table-compacte td { font-weight: normal !important; border-bottom: 1px solid #E0E0E0 !important; background-color: #FFFFFF !important; }
 .table-compacte th { font-weight: bold !important; background-color: #F5F5F5 !important; border-bottom: 2px solid #CCCCCC !important; text-align: left !important; }
-.table-class-robuste tr:nth-child(odd) td { background-color: #E0F2FE !important; }
-.ligne-separation-classe td { border-bottom: 2px solid #1E3A8A !important; }
+
+/* LA LIGNE BLEUE DE SEPARATION PAR CLASSE SUR LE BAS DES CELLULES */
+.table-class-groupes tr.ligne-separation-classe td { 
+    border-bottom: 2px solid #1E3A8A !important; 
+}
+
 .table-hist td:nth-last-child(2), .table-hist td:last-child,
 .table-live td:last-child, .table-class-robuste td:last-child {
     font-weight: bold !important; font-size: 0.94rem !important; color: #0F172A !important;
@@ -77,8 +81,8 @@ def convertir_en_secondes(valeur):
     if ":" in s:
         try:
             parts = s.split(":")
-            m = int(parts[0])  # CORRECTION : Ajout de l'index d'extraction [0]
-            sec = float(parts[1].replace(",", "."))  # CORRECTION : Remplacement ciblé sur l'élément textuel [1]
+            m = int(parts[0])
+            sec = float(parts[1].replace(",", "."))
             return (m * 60) + sec
         except Exception: pass
     if s.endswith(".0"): s = s[:-2]
@@ -127,19 +131,6 @@ def calculer_statut_chrono(row, est_dans_le_live=True):
 def generer_tableau_html(df, classe_specifique):
     if df.empty: 
         return f"<table class='table-compacte {classe_specifique}'><tr><td style='text-align: center; padding: 10px;'>Aucune donnée disponible</td></tr></table>"
-    if classe_specifique == "table-class-groupes" and "Classe" in df.columns:
-        cols_a_retirer = ["Cl_Tri_Num", "Cl_Tri_Suff"]
-        colonnes_visibles = [c for c in df.columns if c not in cols_a_retirer]
-        html = f"<table class='table-compacte table-class-groupes'><thead><tr>"
-        for col in colonnes_visibles: html += f"<th>{col}</th>"
-        html += "</tr></thead><tbody>"
-        for idx in range(len(df)):
-            classe_row = "class='ligne-separation-classe'" if idx < len(df) - 1 and str(df.iloc[idx]["Classe"]) != str(df.iloc[idx + 1]["Classe"]) else ""
-            html += f"<tr {classe_row}>"
-            for col in colonnes_visibles: html += f"<td>{df.iloc[idx][col]}</td>"
-            html += "</tr>"
-        html += "</tbody></table>"
-        return html
     return df.to_html(index=False, classes=f"table-compacte {classe_specifique}", escape=False, border=0)
 
 def decomposer_classe_pour_tri(valeur_classe):
@@ -165,12 +156,14 @@ def recuperer_donnees_course():
     cols_live = ["N°", "Nom_Prenom", "Voiture", "Départ", "Arrivée", "Chrono réalisé"]
     cols_hist = ["N°", "Nom_Prenom", "Voiture", "Groupe", "Classe", "Course 1", "Chrono réalisé"]
     df_live, df_hist = pd.DataFrame(columns=cols_live), pd.DataFrame(columns=cols_hist)
-    df_racb = pd.DataFrame(columns=["Pos", "N°", "Nom_Prenom", "Groupe", "Classe", "Chrono"])
-    df_divisions = pd.DataFrame(columns=["Pos", "N°", "Nom_Prenom", "Groupe", "Classe", "Chrono"])
+    df_racb = pd.DataFrame(columns=["Pos", "N°", "Nom_Prenom", "Groupe", "Cl", "Chrono"])
+    df_divisions = pd.DataFrame(columns=["Pos", "N°", "Nom_Prenom", "Groupe", "Cl", "Chrono"])
 
     t_live = "🏎️ EN DIRECT / Derniers concurrents partis"
     t_his = "🕒 HISTORIQUE DES TEMPS / 2ème COURSE / Concurrents RACB"
-    t_haut = "🏆 CLASSEMENT EVOLUTIF OFFICIEUX RACB (Top 30)"
+    
+    # RE-PARAMETRAGE DU SCRATCH DU TOP 30 AU TOP 20
+    t_haut = "🏆 CLASSEMENT EVOLUTIF OFFICIEUX RACB (Top 20)"
     t_milieu = "📊 CLASSEMENT EVOLUTIF OFFICIEUX PAR Classe (Top 3)"
     t_bas = ""
 
@@ -274,10 +267,13 @@ def recuperer_donnees_course():
                 if len(valides) > 0:
                     valides["Meilleur_Sec"] = valides[["Calc_Sec_1", "Calc_Sec_2"]].min(axis=1, skipna=True)
                     scr = valides.sort_values(by="Meilleur_Sec").drop_duplicates(subset=["N°"], keep="first").copy()
-                    racb = scr.head(30).copy()
+                    
+                    # CORRECTION DU SCRATCH : FORCE LE TOP 20 EXCLUSIF AU LIEU DU TOP 30
+                    racb = scr.head(20).copy()
                     if len(racb) > 0:
                         racb["Pos"] = range(1, len(racb) + 1); racb["Chrono"] = racb["Meilleur_Sec"].apply(format_final_chrono)
                         df_racb = racb[["Pos", "N°", "Nom_Prenom", "Groupe", "Classe", "Chrono"]].rename(columns={"Classe": "Cl"})
+                    
                     scr["Cl_Tri_Num"] = scr["Classe"].apply(decomposer_classe_pour_tri)
                     scr["Cl_Tri_Suff"] = scr["Classe"].apply(extraire_suffixe_pour_tri)
                     df_grouped = scr.sort_values(by=["Cl_Tri_Num", "Cl_Tri_Suff", "Groupe", "Meilleur_Sec"]).groupby("Classe", sort=False).head(3).copy()
@@ -291,5 +287,18 @@ def recuperer_donnees_course():
     if not fichiers_prets:
         html_hist = f"{CSS_RIGIDE_ORIGINE}<table class='table-compacte table-hist'><tr><td style='text-align: center; padding: 10px;'>Aucune donnée disponible pour le plateau RACB</td></tr></table>"
 
-    html_class_div = generer_tableau_html(df_divisions, "table-class-groupes")
+    # RECONSTRUCTION EMBARQUÉE DU TABLEAU PAR CLASSE AVEC LA LIGNE BLEUE DE SÉPARATION NATIVE
+    if not df_divisions.empty:
+        html_class_div = f"<table class='table-compacte table-class-groupes'><thead><tr><th>Pos</th><th>N°</th><th>Nom_Prenom</th><th>Groupe</th><th>Cl</th><th>Chrono</th></tr></thead><tbody>"
+        for idx in range(len(df_divisions)):
+            classe_row = ""
+            if idx < len(df_divisions) - 1:
+                # Injection de la classe si la valeur de la colonne "Cl" change à la ligne d'après
+                if str(df_divisions.iloc[idx]["Cl"]) != str(df_divisions.iloc[idx + 1]["Cl"]):
+                    classe_row = "class='ligne-separation-classe'"
+            html_class_div += f"<tr {classe_row}><td>{df_divisions.iloc[idx]['Pos']}</td><td>{df_divisions.iloc[idx]['N°']}</td><td>{df_divisions.iloc[idx]['Nom_Prenom']}</td><td>{df_divisions.iloc[idx]['Groupe']}</td><td>{df_divisions.iloc[idx]['Cl']}</td><td>{df_divisions.iloc[idx]['Chrono']}</td></tr>"
+        html_class_div += "</tbody></table>"
+    else:
+        html_class_div = f"<table class='table-compacte table-class-groupes'><tr><td style='text-align: center; padding: 10px;'>Aucune donnée disponible</td></tr></table>"
+
     return df_live, html_hist, df_racb, html_class_div, pd.DataFrame(), t_live, t_his, t_haut, t_milieu, t_bas
