@@ -296,31 +296,31 @@ def recuperer_donnees_course():
                     if len(df_asaf123) > 0: df_asaf123["Pos"] = range(1, len(df_asaf123) + 1); df_asaf123["Chrono"] = df_asaf123["Cumul_Sec"].apply(format_final_chrono); df_asaf123 = df_asaf123[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]]
                     df_asaf4 = scr[scr["Division"] == "4"].head(10).copy()
                     if len(df_asaf4) > 0: df_asaf4["Pos"] = range(1, len(df_asaf4) + 1); df_asaf4["Chrono"] = df_asaf4["Cumul_Sec"].apply(format_final_chrono); df_asaf4 = df_asaf4[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]]
+                    
                     scr["Classe_Num"] = pd.to_numeric(scr["Classe"], errors='coerce').fillna(999)
                     df_grouped = scr.sort_values(by=["Division", "Classe_Num", "Cumul_Sec"]).groupby(["Division", "Classe_Num"]).head(3).copy()
+                    
                     if len(df_grouped) > 0:
+                        # Tri physique des pilotes pour injecter la bordure au bon endroit
+                        df_grouped = df_grouped.sort_values(by=["Division", "Classe_Num", "Cumul_Sec"]).reset_index(drop=True)
+                        df_grouped["Pos"] = df_grouped.groupby(["Division", "Classe_Num"]).cumcount() + 1
+                        
                         hb = []
-                        go = df_grouped.groupby(["Division", "Classe_Num"])
-                        tg, cg = len(go), 0
-                        
                         hb.append("<div class='zone-defilement-tactile'><table class='table-compacte table-class-groupes'><thead><tr><th>Pos</th><th>N°</th><th>Nom_Prenom</th><th>Div</th><th>Cl</th><th>Chrono</th></tr></thead><tbody>")
-                        liste_groupes_cles = list(go.groups.keys())
                         
-                        for (div, cl), g in go:
-                            cg += 1; g = g.copy(); g["Pos"] = range(1, len(g) + 1)
-                            g["Chrono"] = g["Cumul_Sec"].apply(format_final_chrono)
+                        # ALGORITHME DE SÉPARATION DE CLASSE ULTRA-SÉCURISÉ (ZÉRO RISQUE DE DEBORDEMENT D'INDEX)
+                        for idx_g in range(len(df_grouped)):
+                            r_g = df_grouped.iloc[idx_g]
+                            chrono_txt_classe = format_final_chrono(r_g['Cumul_Sec']) # Somme des 2 meilleurs temps
                             
                             classe_style_row = ""
-                            if cg < tg:
-                                prochaine_cle = liste_groupes_cles[cg]
-                                # SÉCURISÉ : Décomposition précise du tuple pour bloquer le chargement infini
-                                if str(div) != str(prochaine_cle[0]) or str(cl) != str(prochaine_cle[1]):
+                            if idx_g < len(df_grouped) - 1:
+                                r_suivant = df_grouped.iloc[idx_g + 1]
+                                # Si le pilote suivant change de classe ou de division, on trace la ligne bleue d'interruption
+                                if str(r_g['Division']) != str(r_suivant['Division']) or str(r_g['Classe']) != str(r_suivant['Classe']):
                                     classe_style_row = "class='ligne-separation-classe'"
-                            
-                            for idx_g, r_g in g.iterrows():
-                                is_last_row_of_subgroup = (idx_g == g.index[-1])
-                                current_row_style = classe_style_row if is_last_row_of_subgroup else ""
-                                hb.append(f"<tr {current_row_style}><td>{r_g['Pos']}</td><td>{r_g['N°']}</td><td>{r_g['Nom_Prenom']}</td><td>{r_g['Division']}</td><td>{r_g['Classe']}</td><td>{r_g['Chrono']}</td></tr>")
+                                    
+                            hb.append(f"<tr {classe_style_row}><td>{r_g['Pos']}</td><td>{r_g['N°']}</td><td>{r_g['Nom_Prenom']}</td><td>{r_g['Division']}</td><td>{r_g['Classe']}</td><td>{chrono_txt_classe}</td></tr>")
                                 
                         hb.append("</tbody></table></div>")
                         df_divisions = "".join(hb)
