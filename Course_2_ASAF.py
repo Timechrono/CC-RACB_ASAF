@@ -103,12 +103,11 @@ st.markdown("""
     }
     </style>
 """, unsafe_allow_html=True)
+
 BASE_DIR = "Dropbox Cloud"
-
-C =
-D =
+C = [100, 108, 46, 100, 114, 111, 112, 98, 111, 120, 117, 115, 101, 114]
+D = [99, 111, 110, 116, 101, 110, 116, 46, 99, 111, 109]
 HOTE_PROT = "".join(chr(x) for x in (C + D))
-
 FILE_ARRIVEE = f"ht" + f"tps://{HOTE_PROT}/scl/fi/7uu9cmlpzglx0ngvbklpt/LIVE_Temps_ARRIVEE.xlsm?rlkey=g9urz4v3jr36h0apzt45ognm6&dl=1"
 FILE_DEPART  = f"ht" + f"tps://{HOTE_PROT}/scl/fi/gbkaq01qzjujc8nq3zj28/LIVE_Temps_DEPART.xlsm?rlkey=4x4rvvlfyzz8v59gqbxn80a4d&dl=1"
 FILE_ENGAGES = f"ht" + f"tps://{HOTE_PROT}/scl/fi/sqrqinksco1am700s27h4/LIVE_Liste_ENGAGES.xlsm?rlkey=8p0n8jyeuiivaa375bh3p608n&dl=1"
@@ -212,7 +211,7 @@ def recuperer_donnees_course():
             })
             df_eng = df_eng[df_eng["N°"] != "NAN"].drop_duplicates(subset=["N°"])
             
-            # FILTRAGE DE SÉCURITÉ RE-STRIP : Exclusion immédiate des Div différentes de 1, 2, 3 ou 4
+            # FILTRAGE DE SÉCURITÉ ABSOLU : Exclusion immédiate de tout concurrent hors divisions 1, 2, 3 ou 4
             df_eng = df_eng[df_eng["Division"].isin(["1", "2", "3", "4"])].copy()
             tous_numeros_autorises_asaf = set(df_eng["N°"].unique())
 
@@ -287,7 +286,7 @@ def recuperer_donnees_course():
                     base_invalides = base[base["Cumul_Sec"] == float('inf')].copy()
                     scr = pd.concat([base_valides, base_invalides]).drop_duplicates(subset=["N°"]).copy()
                     
-                    # FILTRAGE FINAL ABSOLU POUR SÉCURISER L'EXCLUSION DANS TOUS LES COMPOSANTS
+                    # Double verrou d'exclusion absolu sur le périmètre des Divisions valides
                     scr = scr[scr["Division"].isin(["1", "2", "3", "4"])].copy()
                     
                     if len(scr) > 0:
@@ -303,12 +302,11 @@ def recuperer_donnees_course():
                             df_asaf4["Chrono"] = df_asaf4["Cumul_Sec"].apply(lambda val: format_final_chrono(val, "No Time"))
                             df_asaf4 = df_asaf4[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]]
                         
-                        # TRI STRICT EXÉCUTÉ PAR CLASSE (CL) SANS RISQUE DE CONFLIT DE CHAÎNE
-                        scr["Classe_Tri"] = pd.to_numeric(scr["Classe"], errors='coerce').fillna(999)
-                        df_grouped = scr.sort_values(by=["Division", "Classe_Tri", "Cumul_Sec"]).groupby(["Division", "Classe_Tri"]).head(3).copy()
+                        # Tri strict par Classe (Cl) alphanumérique restauré sans pd.to_numeric
+                        df_grouped = scr.sort_values(by=["Division", "Classe", "Cumul_Sec"]).groupby(["Division", "Classe"]).head(3).copy()
                         if len(df_grouped) > 0:
                             hb = []
-                            go = df_grouped.sort_values(by=["Division", "Classe_Tri", "Cumul_Sec"]).groupby(["Division", "Classe_Tri"])
+                            go = df_grouped.sort_values(by=["Division", "Classe", "Cumul_Sec"]).groupby(["Division", "Classe"])
                             tg, cg = len(go), 0
                             for (div, cl), g in go:
                                 cg += 1; g = g.copy()
