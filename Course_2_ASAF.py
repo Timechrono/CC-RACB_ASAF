@@ -105,8 +105,8 @@ st.markdown("""
 """, unsafe_allow_html=True)
 BASE_DIR = "Dropbox Cloud"
 
-C = [100, 108, 46, 100, 114, 111, 112, 98, 111, 120, 117, 115, 101, 114]
-D = [99, 111, 110, 116, 101, 110, 116, 46, 99, 111, 109]
+C =
+D =
 HOTE_PROT = "".join(chr(x) for x in (C + D))
 
 FILE_ARRIVEE = f"ht" + f"tps://{HOTE_PROT}/scl/fi/7uu9cmlpzglx0ngvbklpt/LIVE_Temps_ARRIVEE.xlsm?rlkey=g9urz4v3jr36h0apzt45ognm6&dl=1"
@@ -211,6 +211,8 @@ def recuperer_donnees_course():
                 "Classe": df_eng_raw.iloc[:, 6].fillna("-").astype(str).str.strip().apply(lambda x: x[:-2] if x.endswith(".0") else x)
             })
             df_eng = df_eng[df_eng["N°"] != "NAN"].drop_duplicates(subset=["N°"])
+            
+            # FILTRAGE DE SÉCURITÉ RE-STRIP : Exclusion immédiate des Div différentes de 1, 2, 3 ou 4
             df_eng = df_eng[df_eng["Division"].isin(["1", "2", "3", "4"])].copy()
             tous_numeros_autorises_asaf = set(df_eng["N°"].unique())
 
@@ -266,14 +268,12 @@ def recuperer_donnees_course():
                         val = sorted([t for t in [t1, t2, t3] if pd.notna(t) and t > 0])
                         s1 = "class='meilleur-temps'" if (pd.notna(t1) and t1 in val[:2]) else ""
                         s3 = "class='meilleur-temps'" if (pd.notna(t3) and t3 in val[:2]) else ""
-                        
                         if pd.notna(row["Heure_Depart_3"]) and pd.isna(row["Heure_Arrivee_3"]): txt_c3_visuel = "En Piste"; s3 = ""
                         elif pd.isna(t2) or t2 <= 0: txt_c3_visuel = "No Time"
                         else:
                             txt_c2 = format_final_chrono(t2); pr = [t for t in [t1] if pd.notna(t) and t > 0]
                             txt_c3_base = f"{txt_c2} &nbsp;<span style='color: #22C55E; font-size: 1.25rem; vertical-align: middle; display: inline-block; line-height: 1;'>▲</span>" if (pr and t2 < min(pr)) else f"{txt_c2} &nbsp;<span style='color: #EF4444; font-size: 1.25rem; vertical-align: middle; display: inline-block; line-height: 1;'>▼</span>" if (pr and t2 > min(pr)) else txt_c2
                             txt_c3_visuel = f"<span style='color: #22C55E;'>•</span>&nbsp;{txt_c3_base}" if (pd.notna(t2) and t2 in val[:2]) else txt_c3_base
-                            
                         txt_c1_visuel = f"<span style='color: #22C55E;'>•</span>&nbsp;{format_final_chrono(t1)}" if (pd.notna(t1) and t1 in val[:2]) else format_final_chrono(t1)
                         html_hist += f"<tr><td>{row['N°']}</td><td>{row['Nom_Prenom']}</td><td>{row['Voiture']}</td><td>{row['Division']}</td><td>{row['Classe']}</td><td {s1}>{txt_c1_visuel}</td><td {s3}>{txt_c3_visuel}</td></tr>"
                     html_hist += "</tbody></table></div>"
@@ -281,12 +281,14 @@ def recuperer_donnees_course():
                     def tri_val(r1, r2):
                         if pd.isna(r1) or pd.isna(r2) or r1 <= 0 or r2 <= 0: return float('inf')
                         return float(round(r1, 2) + round(r2, 2))
-                    
                     base["Cumul_Sec"] = base.apply(lambda r: tri_val(r["Calc_Sec_1"], r["Calc_Sec_2"]), axis=1)
                     
                     base_valides = base[base["Cumul_Sec"] < float('inf')].sort_values(by="Cumul_Sec").copy()
                     base_invalides = base[base["Cumul_Sec"] == float('inf')].copy()
                     scr = pd.concat([base_valides, base_invalides]).drop_duplicates(subset=["N°"]).copy()
+                    
+                    # FILTRAGE FINAL ABSOLU POUR SÉCURISER L'EXCLUSION DANS TOUS LES COMPOSANTS
+                    scr = scr[scr["Division"].isin(["1", "2", "3", "4"])].copy()
                     
                     if len(scr) > 0:
                         df_asaf123 = scr[scr["Division"].isin(["1", "2", "3"])].head(25).copy()
@@ -301,11 +303,12 @@ def recuperer_donnees_course():
                             df_asaf4["Chrono"] = df_asaf4["Cumul_Sec"].apply(lambda val: format_final_chrono(val, "No Time"))
                             df_asaf4 = df_asaf4[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]]
                         
-                        # RESTAURATION ABSOLUE ET STRICTE DU TRI TEXTUEL D'ORIGINE SANS PD.TO_NUMERIC
-                        df_grouped = scr.sort_values(by=["Division", "Classe", "Cumul_Sec"]).groupby(["Division", "Classe"]).head(3).copy()
+                        # TRI STRICT EXÉCUTÉ PAR CLASSE (CL) SANS RISQUE DE CONFLIT DE CHAÎNE
+                        scr["Classe_Tri"] = pd.to_numeric(scr["Classe"], errors='coerce').fillna(999)
+                        df_grouped = scr.sort_values(by=["Division", "Classe_Tri", "Cumul_Sec"]).groupby(["Division", "Classe_Tri"]).head(3).copy()
                         if len(df_grouped) > 0:
                             hb = []
-                            go = df_grouped.sort_values(by=["Division", "Classe", "Cumul_Sec"]).groupby(["Division", "Classe"])
+                            go = df_grouped.sort_values(by=["Division", "Classe_Tri", "Cumul_Sec"]).groupby(["Division", "Classe_Tri"])
                             tg, cg = len(go), 0
                             for (div, cl), g in go:
                                 cg += 1; g = g.copy()
