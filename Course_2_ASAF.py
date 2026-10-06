@@ -116,8 +116,8 @@ def recuperer_donnees_course():
 
     t_live = "🏎️ EN DIRECT / Derniers Concurrents partis"
     t_his = "🕒 HISTORIQUE DES TEMPS / ASAF"
-    t_haut = "🏆 CLASSEMENT GENERAL Division 123 (Top 25)"
-    t_milieu = "🏆 CLASSEMENT GENERAL Division 4 (Top 10)"
+    t_haut = "🏆 CLASSEMENT GENERAL OFFICIEUX Division 123 (Top 25)"
+    t_milieu = "🏆 CLASSEMENT GENERAL OFFICIEUX Division 4 (Top 10)"
     t_bas = "📊 CLASSEMENT OFFICIEUX par Division / Classe (Top 3)"
 
     try:
@@ -136,8 +136,14 @@ def recuperer_donnees_course():
                 "Classe": df_eng_raw.iloc[:, 6].fillna("-").astype(str).str.strip().apply(lambda x: x[:-2] if x.endswith(".0") else x)
             })
             
-            # FILTRAGE RADICAL : On dégage immédiatement de la liste si le numéro commence par "N"
+            # 1. EXCLUSION DE LA LETTRE "N"
             df_eng = df_eng[~df_eng["N°"].str.startswith("N", na=False)].copy()
+            
+            # 2. EXCLUSION STRICTE DES NUMÉROS ENTRE 900 ET 999
+            df_eng["Num_Tri_Sec"] = pd.to_numeric(df_eng["N°"], errors='coerce').fillna(-1)
+            df_eng = df_eng[~((df_eng["Num_Tri_Sec"] >= 900) & (df_eng["Num_Tri_Sec"] <= 999))].copy()
+            df_eng = df_eng.drop(columns=["Num_Tri_Sec"])
+            
             df_eng = df_eng[df_eng["N°"] != "NAN"].drop_duplicates(subset=["N°"])
             tous_numeros_autorises_asaf = set(df_eng["N°"].unique())
 
@@ -192,7 +198,6 @@ def recuperer_donnees_course():
                         txt_c2 = f"<span style='color: #22C55E;'>•</span>&nbsp;{format_final_chrono(t2)}" if t2 else "No Time"
                         html_hist += f"<tr><td>{row['N°']}</td><td>{row['Nom_Prenom']}</td><td>{row['Voiture']}</td><td>{row['Division']}</td><td>{row['Classe']}</td><td>{txt_c1}</td><td>{txt_c2}</td></tr>"
                     html_hist += "</tbody></table></div>"
-                    # ALGORITHME DE CALCUL PAR SOMME DIRECTE C1 + C2 SANS PARASITE
                     def tri_val(r1, r2):
                         if pd.isna(r1) or pd.isna(r2) or r1 <= 0 or r2 <= 0: return float('inf')
                         return float(round(r1, 2) + round(r2, 2))
@@ -203,8 +208,11 @@ def recuperer_donnees_course():
                     base_invalides = base[base["Cumul_Sec"] == float('inf')].copy()
                     scr = pd.concat([base_valides, base_invalides]).drop_duplicates(subset=["N°"]).copy()
                     
-                    # Verrou final anti-N
+                    # Verrouillage final de sécurité (Exclusion N et 900-999)
                     scr = scr[~scr["N°"].str.startswith("N", na=False)].copy()
+                    scr["Num_Filter_Check"] = pd.to_numeric(scr["N°"], errors='coerce').fillna(-1)
+                    scr = scr[~((scr["Num_Filter_Check"] >= 900) & (scr["Num_Filter_Check"] <= 999))].copy()
+                    scr = scr.drop(columns=["Num_Filter_Check"])
                     
                     if len(scr) > 0:
                         df_asaf123 = scr[scr["Division"].isin(["1", "2", "3"])].head(25).copy()
@@ -219,7 +227,6 @@ def recuperer_donnees_course():
                             df_asaf4["Chrono"] = df_asaf4["Cumul_Sec"].apply(lambda val: format_final_chrono(val, "No Time"))
                             df_asaf4 = df_asaf4[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]]
                         
-                        # Tri strict par Classe alphanumérique croissante (Colonne 7 d'origine)
                         scr["Classe_Tri"] = pd.to_numeric(scr["Classe"], errors='coerce').fillna(999)
                         df_grouped = scr.sort_values(by=["Division", "Classe_Tri", "Cumul_Sec"]).groupby(["Division", "Classe_Tri"]).head(3).copy()
                         if len(df_grouped) > 0:
