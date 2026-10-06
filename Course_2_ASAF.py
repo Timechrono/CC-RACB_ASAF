@@ -120,37 +120,43 @@ def telecharger_excel(url):
         reponse = requests.get(url, headers=entetes, timeout=12)
         reponse.raise_for_status()
         return io.BytesIO(reponse.content)
-    except Exception: 
+    except Exception:
         return None
 
-def convertir_en_secondes(valeur):
+# NOUVEAU PARSER UNIVERSEL : Extrait directement depuis le format texte "mm:ss,cc" ou "mm:ss.cc"
+def extraire_texte_chrono(valeur):
     if pd.isna(valeur) or valeur is None: return None
-    if isinstance(valeur, (datetime.time, datetime.datetime)):
-        return (valeur.minute * 60) + valeur.second + (valeur.microsecond / 1000000)
     s = str(valeur).strip()
-    if s.endswith(".0"): s = s[:-2]
-    s_clean = "".join([c for c in s if c.isdigit()])
-    if not s_clean: return None
-    num = int(s_clean)
-    centiemes = num % 100
-    secondes = (num // 100) % 100
-    minutes = num // 10000
-    if minutes >= 60: minutes = minutes % 60
-    return (minutes * 60) + secondes + (centiemes / 100)
+    if not s or s.lower() in ["nan", "none", "0", "0.0"]: return None
+    return s.replace(",", ".")
+
+# Convertit une chaîne propre "mm:ss.cc" en centièmes d'origine pour addition arithmétique rigide
+def texte_en_centiemes(s_chrono):
+    if not s_chrono: return None
+    try:
+        if ":" in s_chrono:
+            parties = s_chrono.split(":")
+            minutes = int(parties[0])
+            secondes_total = float(parties[1])
+            return int(round((minutes * 60 + secondes_total) * 100))
+        else:
+            return int(round(float(s_chrono) * 100))
+    except Exception:
+        return None
+
+# Reconstruit la chaîne "mm:ss.cc" finale à partir des centièmes cumulés
+def centiemes_en_texte(total_centi):
+    if total_centi is None or total_centi == float('inf'): return "No Time"
+    minutes = total_centi // 6000
+    reste = total_centi % 6000
+    secondes = reste // 100
+    centi = reste % 100
+    return f"{minutes:02d}:{secondes:02d}.{centi:02d}"
 
 def nettoyer_numero(valeur):
     if pd.isna(valeur): return "nan"
     s = str(valeur).strip().upper()
     return s[:-2] if s.endswith(".0") else s
-
-def format_final_chrono(total_sec, fallback_statut="No Time"):
-    if total_sec is None or pd.isna(total_sec) or total_sec < 0 or total_sec == float('inf'): return fallback_statut
-    m, reste_sec = divmod(round(total_sec, 2), 60)
-    s = int(reste_sec // 1)
-    c = int(round((reste_sec % 1) * 100))
-    if c == 100: s += 1; c = 0
-    if s == 60: m += 1; s = 0
-    return f"{int(m):02d}:{s:02d}.{c:02d}"
 
 def formater_heure_ecran(val):
     if pd.isna(val) or val == "" or str(val).lower() == "nan": return "-"
@@ -158,11 +164,6 @@ def formater_heure_ecran(val):
     if s.endswith(".0"): s = s[:-2]
     s = s.zfill(6)
     return f"{s[0:2]}:{s[2:4]}.{s[4:6]}" if len(s) == 6 else str(val)
-
-def calculer_statut_chrono_live(valeur_sec):
-    if pd.isna(valeur_sec) or valeur_sec <= 0: return "No Time"
-    chrono_txt = format_final_chrono(valeur_sec)
-    return f"{chrono_txt} &nbsp;<span style='color: #EF4444; font-weight: bold;'>✗</span>" if valeur_sec >= 240 else f"{chrono_txt} &nbsp;<span style='color: #22C55E; font-weight: bold;'>✓</span>"
 
 def generer_tableau_html(df, classe_specifique):
     if df.empty: return f"<div class='zone-defilement-tactile'><table class='table-compacte {classe_specifique}'><tr><td style='text-align: center; padding: 10px;'>Aucune donnée disponible</td></tr></table></div>"
@@ -176,10 +177,10 @@ def recuperer_donnees_course():
     df_divisions = "<div class='zone-defilement-tactile'><table class='table-compacte table-class-groupes'><tr><td style='text-align: center; padding: 10px;'>Aucune donnée disponible</td></tr></table></div>"
 
     t_live = "🏎️ EN DIRECT / Derniers Concurrents partis"
-    t_his = "🕒 HISTORIQUE DES TEMPS / 2ème COURSE / Concurrents ASAF"
-    t_haut = "🏆 CLASSEMENT GENERAL OFFICIEUX Division 123 (Top 25)"
-    t_milieu = "🏆 CLASSEMENT GENERAL OFFICIEUX Division 4 (Top 10)"
-    t_bas = "📊 CLASSEMENT OFFICIEUX par Division / Classe (Top 3)"
+    t_his = "🕒 HISTORIQUE DES TEMPS / ASAF"
+    t_haut = "🏆 CLASSEMENT GENERAL Division 123 (Top 25)"
+    t_milieu = "🏆 CLASSEMENT GENERAL Division 4 (Top 10)"
+    t_bas = "📊 CLASSEMENT par Division / Classe (Top 3)"
 
     try:
         flux_eng = telecharger_excel(FILE_ENGAGES)
@@ -212,6 +213,7 @@ def recuperer_donnees_course():
                     if chaine_recherche.upper() in str(df.iloc[1, c_idx]).strip().upper(): return c_idx
                 return None
 
+            # LECTURE DIRECTE DU TEXTE : On récupère la cellule brute mm:ss,cc à N° + 3 colonnes
             def extraire_manche_selon_regles_asaf(df_arr_raw, nom_manche, label_categorie):
                 d_manche = {}
                 col_dossard = trouver_index_colonne_titre(df_arr_raw, f"{nom_manche} {label_categorie}")
@@ -222,16 +224,14 @@ def recuperer_donnees_course():
                     d_manche[nv] = {
                         "h_dep": df_arr_raw.iloc[r_idx, col_dossard + 1] if pd.notna(df_arr_raw.iloc[r_idx, col_dossard + 1]) else None, 
                         "h_arr": df_arr_raw.iloc[r_idx, col_dossard + 2] if pd.notna(df_arr_raw.iloc[r_idx, col_dossard + 2]) else None, 
-                        "sec": convertir_en_secondes(df_arr_raw.iloc[r_idx, col_dossard + 3])
+                        "txt_chrono": extraire_texte_chrono(df_arr_raw.iloc[r_idx, col_dossard + 3])
                     }
                 return d_manche
 
             dict_c1 = extraire_manche_selon_regles_asaf(df_arr_raw, "COURSE 1", "ASAF")
-            dict_c1.update({k: v for k, v in extraire_manche_selon_regles_asaf(df_arr_raw, "COURSE 1", "RACB").items() if k not in dict_c1 or dict_c1[k]["sec"] is None})
+            dict_c1.update({k: v for k, v in extraire_manche_selon_regles_asaf(df_arr_raw, "COURSE 1", "RACB").items() if k not in dict_c1 or dict_c1[k]["txt_chrono"] is None})
             dict_c2 = extraire_manche_selon_regles_asaf(df_arr_raw, "COURSE 2", "ASAF")
-            dict_c2.update({k: v for k, v in extraire_manche_selon_regles_asaf(df_arr_raw, "COURSE 2", "RACB").items() if k not in dict_c2 or dict_c2[k]["sec"] is None})
-            dict_c3 = extraire_manche_selon_regles_asaf(df_arr_raw, "COURSE 3", "ASAF")
-            dict_c3.update({k: v for k, v in extraire_manche_selon_regles_asaf(df_arr_raw, "COURSE 3", "RACB").items() if k not in dict_c3 or dict_c3[k]["sec"] is None})
+            dict_c2.update({k: v for k, v in extraire_manche_selon_regles_asaf(df_arr_raw, "COURSE 2", "RACB").items() if k not in dict_c2 or dict_c2[k]["txt_chrono"] is None})
             
             if not df_eng.empty:
                 rows_data = []
@@ -240,73 +240,65 @@ def recuperer_donnees_course():
                     rows_data.append({
                         "N°": num, "Nom_Prenom": pilot["Nom_Prenom"], "Voiture": pilot["Voiture"], "Division": pilot["Division"], "Classe": pilot["Classe"],
                         "Heure_Depart_3": dict_c2.get(num, {}).get("h_dep"), "Heure_Arrivee_3": dict_c2.get(num, {}).get("h_arr"),
-                        "Calc_Sec_1": dict_c1.get(num, {}).get("sec"), "Calc_Sec_2": dict_c2.get(num, {}).get("sec"), "Calc_Sec_3": dict_c3.get(num, {}).get("sec")
+                        "Txt_C1": dict_c1.get(num, {}).get("txt_chrono"), "Txt_C2": dict_c2.get(num, {}).get("txt_chrono")
                     })
                 base = pd.DataFrame(rows_data)
                 if len(base) > 0:
                     if "Heure_Depart_3" in base.columns and base["Heure_Depart_3"].notna().any():
                         base_c3 = base[base["Heure_Depart_3"].notna()].copy()
-                        base_c3["Chrono réalisé"] = base_c3.apply(lambda r: calculer_statut_chrono_live(r["Calc_Sec_2"]) if pd.notna(r["Calc_Sec_2"]) else ("<span class='vrai-gyrophare'>🚨</span> EN PISTE" if pd.isna(r["Heure_Arrivee_3"]) else "No Time"), axis=1)
+                        base_c3["Chrono réalisé"] = base_c3.apply(lambda r: f"{r['Txt_C2']} &nbsp;<span style='color: #22C55E; font-weight: bold;'>✓</span>" if r['Txt_C2'] else ("<span class='vrai-gyrophare'>🚨</span> EN PISTE" if pd.isna(r["Heure_Arrivee_3"]) else "No Time"), axis=1)
                         base_c3["Départ"] = base_c3["Heure_Depart_3"].apply(formater_heure_ecran)
                         base_c3["Arrivée"] = base_c3["Heure_Arrivee_3"].apply(formater_heure_ecran)
                         df_live = base_c3.sort_values(by="Heure_Depart_3", ascending=False).head(5)[["N°", "Nom_Prenom", "Voiture", "Départ", "Arrivée", "Chrono réalisé"]]
 
-                    df_hb = base[base["Calc_Sec_1"].notna() | base["Calc_Sec_2"].notna() | base["Calc_Sec_3"].notna()].copy().sort_values(by="Heure_Depart_3", ascending=False, na_position="last")
+                    df_hb = base[base["Txt_C1"].notna() | base["Txt_C2"].notna()].copy().sort_values(by="Heure_Depart_3", ascending=False, na_position="last")
                     
                     html_hist = "<div class='zone-defilement-tactile'><table class='table-compacte table-hist'><thead><tr><th>N°</th><th>Nom_Prenom</th><th>Voiture</th><th>Div</th><th>Cl</th><th>Course 1</th><th>Chrono</th></tr></thead><tbody>"
                     for idx, row in df_hb.iterrows():
-                        t1, t2, t3 = row["Calc_Sec_1"], row["Calc_Sec_2"], row["Calc_Sec_3"]
-                        val = sorted([t for t in [t1, t2, t3] if pd.notna(t) and t > 0])
-                        s1 = "class='meilleur-temps'" if (pd.notna(t1) and t1 in val[:2]) else ""
-                        s3 = "class='meilleur-temps'" if (pd.notna(t3) and t3 in val[:2]) else ""
-                        
-                        if pd.notna(row["Heure_Depart_3"]) and pd.isna(row["Heure_Arrivee_3"]): txt_c3_visuel = "En Piste"; s3 = ""
-                        elif pd.isna(t2) or t2 <= 0: txt_c3_visuel = "No Time"
-                        else:
-                            txt_c2 = format_final_chrono(t2); pr = [t for t in [t1] if pd.notna(t) and t > 0]
-                            txt_c3_base = f"{txt_c2} &nbsp;<span style='color: #22C55E; font-size: 1.25rem; vertical-align: middle; display: inline-block; line-height: 1;'>▲</span>" if (pr and t2 < min(pr)) else f"{txt_c2} &nbsp;<span style='color: #EF4444; font-size: 1.25rem; vertical-align: middle; display: inline-block; line-height: 1;'>▼</span>" if (pr and t2 > min(pr)) else txt_c2
-                            txt_c3_visuel = f"<span style='color: #22C55E;'>•</span>&nbsp;{txt_c3_base}" if (pd.notna(t2) and t2 in val[:2]) else txt_c3_base
-                            
-                        txt_c1_visuel = f"<span style='color: #22C55E;'>•</span>&nbsp;{format_final_chrono(t1)}" if (pd.notna(t1) and t1 in val[:2]) else format_final_chrono(t1)
-                        html_hist += f"<tr><td>{row['N°']}</td><td>{row['Nom_Prenom']}</td><td>{row['Voiture']}</td><td>{row['Division']}</td><td>{row['Classe']}</td><td {s1}>{txt_c1_visuel}</td><td {s3}>{txt_c3_visuel}</td></tr>"
+                        c1, c2 = row["Txt_C1"], row["Txt_C2"]
+                        vis_c1 = c1 if c1 else "No Time"
+                        vis_c2 = f"<span style='color: #22C55E;'>•</span>&nbsp;{c2}" if c2 else "No Time"
+                        html_hist += f"<tr><td>{row['N°']}</td><td>{row['Nom_Prenom']}</td><td>{row['Voiture']}</td><td>{row['Division']}</td><td>{row['Classe']}</td><td>{vis_c1}</td><td>{vis_c2}</td></tr>"
                     html_hist += "</tbody></table></div>"
 
-                    # ALGORITHME DE CALCUL DU CUMUL ADAPTATIF INSPIRÉ DE VOTRE PROPRE LOGIQUE COURSE 3 (SOMME DES DEUX MANCHES VALIDES OU INF)
-                    def tri_val(t):
-                        x = sorted([v for v in t if pd.notna(v) and v > 0])
-                        if len(x) < 2: return float('inf') # Rejet immédiat si le pilote n'a pas bouclé 2 manches complètes
-                        return float(sum(x[:2]))
+                    # TECHNIQUE DEMANDÉE : Addition directe et arithmétique des 2 textes
+                    def calculer_addition_textes(t1, t2):
+                        if not t1 or not t2: return float('inf') # Rejet strict si moins de 2 manches
+                        centi1 = texte_en_centiemes(t1)
+                        centi2 = texte_en_centiemes(t2)
+                        if centi1 is None or centi2 is None: return float('inf')
+                        return float(centi1 + centi2) # Addition pure des centièmes
+
+                    base["Cumul_Centi"] = base.apply(lambda r: calculer_addition_textes(r["Txt_C1"], r["Txt_C2"]), axis=1)
                     
-                    base["Cumul_Sec"] = base.apply(lambda r: tri_val([r["Calc_Sec_1"], r["Calc_Sec_2"], r["Calc_Sec_3"]]), axis=1)
-                    
-                    base_valides = base[base["Cumul_Sec"] < float('inf')].sort_values(by="Cumul_Sec").copy()
-                    base_invalides = base[base["Cumul_Sec"] == float('inf')].copy()
+                    base_valides = base[base["Cumul_Centi"] < float('inf')].sort_values(by="Cumul_Centi").copy()
+                    base_invalides = base[base["Cumul_Centi"] == float('inf')].copy()
                     scr = pd.concat([base_valides, base_invalides]).drop_duplicates(subset=["N°"]).copy()
                     
                     if len(scr) > 0:
                         df_asaf123 = scr[scr["Division"].isin(["1", "2", "3"])].head(25).copy()
                         if not df_asaf123.empty:
-                            df_asaf123["Pos"] = [str(i+1) if v < float('inf') else "-" for i, v in enumerate(df_asaf123["Cumul_Sec"])]
-                            # INJECTION FIX DÉFINITIVE : Envoi de chaînes textuelles déjà formatées via format_final_chrono pour bloquer le bug 101.26
-                            df_asaf123["Chrono"] = df_asaf123["Cumul_Sec"].apply(lambda val: format_final_chrono(val, "No Time"))
+                            df_asaf123["Pos"] = [str(i+1) if v < float('inf') else "-" for i, v in enumerate(df_asaf123["Cumul_Centi"])]
+                            # Envoi direct de la chaîne cumulée reconstruite de manière textuelle (Bloque le bug 101.26)
+                            df_asaf123["Chrono"] = df_asaf123["Cumul_Centi"].apply(lambda v: centiemes_en_texte(int(v) if v < float('inf') else None))
                             df_asaf123 = df_asaf123[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]]
                         
                         df_asaf4 = scr[scr["Division"] == "4"].head(10).copy()
                         if not df_asaf4.empty:
-                            df_asaf4["Pos"] = [str(i+1) if v < float('inf') else "-" for i, v in enumerate(df_asaf4["Cumul_Sec"])]
-                            df_asaf4["Chrono"] = df_asaf4["Cumul_Sec"].apply(lambda val: format_final_chrono(val, "No Time"))
+                            df_asaf4["Pos"] = [str(i+1) if v < float('inf') else "-" for i, v in enumerate(df_asaf4["Cumul_Centi"])]
+                            df_asaf4["Chrono"] = df_asaf4["Cumul_Centi"].apply(lambda v: centiemes_en_texte(int(v) if v < float('inf') else None))
                             df_asaf4 = df_asaf4[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]]
                         
                         scr["Classe_Num"] = pd.to_numeric(scr["Classe"], errors='coerce').fillna(999)
-                        df_grouped = scr.sort_values(by=["Division", "Classe_Num", "Cumul_Sec"]).groupby(["Division", "Classe_Num"]).head(3).copy()
+                        df_grouped = scr.sort_values(by=["Division", "Classe_Num", "Cumul_Centi"]).groupby(["Division", "Classe_Num"]).head(3).copy()
                         if len(df_grouped) > 0:
                             hb = []
-                            go = df_grouped.sort_values(by=["Division", "Classe_Num", "Cumul_Sec"]).groupby(["Division", "Classe_Num"])
+                            go = df_grouped.sort_values(by=["Division", "Classe_Num", "Cumul_Centi"]).groupby(["Division", "Classe_Num"])
                             tg, cg = len(go), 0
                             for (div, cl), g in go:
                                 cg += 1; g = g.copy()
-                                g["Pos"] = [str(i+1) if v < float('inf') else "-" for i, v in enumerate(g["Cumul_Sec"])]
-                                g["Chrono"] = g["Cumul_Sec"].apply(lambda val: format_final_chrono(val, "No Time"))
+                                g["Pos"] = [str(i+1) if v < float('inf') else "-" for i, v in enumerate(g["Cumul_Centi"])]
+                                g["Chrono"] = g["Cumul_Centi"].apply(lambda v: centiemes_en_texte(int(v) if v < float('inf') else None))
                                 sh = g[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]].rename(columns={"Division": "Div", "Classe": "Cl"}).to_html(index=False, header=(cg==1), classes='table-compacte table-class-groupes', escape=False, border=0)
                                 if cg == 1: hb.append(sh.replace("</tbody>\n</table>", ""))
                                 else: hb.append(sh.split("<tbody>")[-1].replace("</tbody>\n</table>", ""))
