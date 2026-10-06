@@ -253,34 +253,32 @@ def recuperer_donnees_course():
 
                     df_hb = base[base["Calc_Sec_1"].notna() | base["Calc_Sec_2"].notna() | base["Calc_Sec_3"].notna()].copy().sort_values(by="Heure_Depart_3", ascending=False, na_position="last")
                     
-                    # RENDU DE L'HISTORIQUE ÉPURÉ CONFORME À VOTRE DEMANDE (SANS LA COLONNE COURSE 2)
                     html_hist = "<div class='zone-defilement-tactile'><table class='table-compacte table-hist'><thead><tr><th>N°</th><th>Nom_Prenom</th><th>Voiture</th><th>Div</th><th>Cl</th><th>Course 1</th><th>Chrono</th></tr></thead><tbody>"
                     for idx, row in df_hb.iterrows():
                         t1, t2, t3 = row["Calc_Sec_1"], row["Calc_Sec_2"], row["Calc_Sec_3"]
                         val = sorted([t for t in [t1, t2, t3] if pd.notna(t) and t > 0])
-                        s1 = "class='meilleur-temps'" if (pd.notna(t1) and t1 in val[:2]) else ""
-                        s3 = "class='meilleur-temps'" if (pd.notna(t3) and t3 in val[:2]) else ""
+                        s1 = "class='meilleur-temps'" if (pd.notna(t1) and t1 in val[:1]) else ""
+                        s3 = "class='meilleur-temps'" if (pd.notna(t3) and t3 in val[:1]) else ""
                         
                         if pd.notna(row["Heure_Depart_3"]) and pd.isna(row["Heure_Arrivee_3"]): txt_c3_visuel = "En Piste"; s3 = ""
                         elif pd.isna(t2) or t2 <= 0: txt_c3_visuel = "No Time"
                         else:
                             txt_c2 = format_final_chrono(t2); pr = [t for t in [t1] if pd.notna(t) and t > 0]
                             txt_c3_base = f"{txt_c2} &nbsp;<span style='color: #22C55E; font-size: 1.25rem; vertical-align: middle; display: inline-block; line-height: 1;'>▲</span>" if (pr and t2 < min(pr)) else f"{txt_c2} &nbsp;<span style='color: #EF4444; font-size: 1.25rem; vertical-align: middle; display: inline-block; line-height: 1;'>▼</span>" if (pr and t2 > min(pr)) else txt_c2
-                            txt_c3_visuel = f"<span style='color: #22C55E;'>•</span>&nbsp;{txt_c3_base}" if (pd.notna(t2) and t2 in val[:2]) else txt_c3_base
+                            txt_c3_visuel = f"<span style='color: #22C55E;'>•</span>&nbsp;{txt_c3_base}" if (pd.notna(t2) and t2 in val[:1]) else txt_c3_base
                             
-                        txt_c1_visuel = f"<span style='color: #22C55E;'>•</span>&nbsp;{format_final_chrono(t1)}" if (pd.notna(t1) and t1 in val[:2]) else format_final_chrono(t1)
+                        txt_c1_visuel = f"<span style='color: #22C55E;'>•</span>&nbsp;{format_final_chrono(t1)}" if (pd.notna(t1) and t1 in val[:1]) else format_final_chrono(t1)
                         html_hist += f"<tr><td>{row['N°']}</td><td>{row['Nom_Prenom']}</td><td>{row['Voiture']}</td><td>{row['Division']}</td><td>{row['Classe']}</td><td {s1}>{txt_c1_visuel}</td><td {s3}>{txt_c3_visuel}</td></tr>"
                     html_hist += "</tbody></table></div>"
 
-                    # REJECT AUTOMATIQUE : Si le pilote n'a qu'un temps (ou moins), renvoie infini (sera No Time à la fin)
+                    # CORRECTIONS ALIGNÉES : Extraction stricte du meilleur résultat unique (Minimum) au lieu du cumul
                     def tri_val(t):
                         x = sorted([v for v in t if pd.notna(v) and v > 0])
                         if len(x) < 2: return float('inf')
-                        return float(sum(x[:2]))
+                        return float(min(x))
                     
                     base["Cumul_Sec"] = base.apply(lambda r: tri_val([r["Calc_Sec_1"], r["Calc_Sec_2"], r["Calc_Sec_3"]]), axis=1)
                     
-                    # Séparation des pilotes valides à 2 manches et des pilotes incomplets (No Time)
                     base_valides = base[base["Cumul_Sec"] < float('inf')].sort_values(by="Cumul_Sec").copy()
                     base_invalides = base[base["Cumul_Sec"] == float('inf')].copy()
                     scr = pd.concat([base_valides, base_invalides]).drop_duplicates(subset=["N°"]).copy()
