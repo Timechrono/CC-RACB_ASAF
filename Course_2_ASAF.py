@@ -120,7 +120,7 @@ def telecharger_excel(url):
         reponse = requests.get(url, headers=entetes, timeout=12)
         reponse.raise_for_status()
         return io.BytesIO(reponse.content)
-    except Exception:
+    except Exception: 
         return None
 
 def convertir_en_secondes(valeur):
@@ -133,7 +133,6 @@ def convertir_en_secondes(valeur):
     if not s_clean or len(s_clean) < 3: return None
     num = int(s_clean)
     
-    # Élimination des heures parasites système (Ex: Heure réseau type 114126)
     if num > 595999: return None
     
     centiemes = num % 100
@@ -148,13 +147,17 @@ def nettoyer_numero(valeur):
     return s[:-2] if s.endswith(".0") else s
 
 def format_final_chrono(total_sec, fallback_statut="No Time"):
-    if total_sec is None or pd.isna(total_sec) or total_sec < 0 or total_sec == float('inf'): return fallback_statut
-    m, reste_sec = divmod(round(total_sec, 2), 60)
-    s = int(reste_sec // 1)
-    c = int(round((reste_sec % 1) * 100))
-    if c == 100: s += 1; c = 0
-    if s == 60: m += 1; s = 0
-    return f"{int(m):02d}:{s:02d}.{c:02d}"
+    if total_sec is None or pd.isna(total_sec) or total_sec < 0 or total_sec == float('inf') or str(total_sec).lower() == "no time": return fallback_statut
+    try:
+        total_sec = float(total_sec)
+        m, reste_sec = divmod(round(total_sec, 2), 60)
+        s = int(reste_sec // 1)
+        c = int(round((reste_sec % 1) * 100))
+        if c == 100: s += 1; c = 0
+        if s == 60: m += 1; s = 0
+        return f"{int(m):02d}:{s:02d}.{c:02d}"
+    except Exception:
+        return str(total_sec)
 
 def formater_heure_ecran(val):
     if pd.isna(val) or val == "" or str(val).lower() == "nan": return "-"
@@ -181,9 +184,9 @@ def recuperer_donnees_course():
 
     t_live = "🏎️ EN DIRECT / Derniers Concurrents partis"
     t_his = "🕒 HISTORIQUE DES TEMPS / ASAF"
-    t_haut = "🏆 CLASSEMENT GENERAL Division 123 (Top 25)"
-    t_milieu = "🏆 CLASSEMENT GENERAL Division 4 (Top 10)"
-    t_bas = "📊 CLASSEMENT par Division / Classe (Top 3)"
+    t_haut = "🏆 CLASSEMENT GENERAL OFFICIEUX Division 123 (Top 25)"
+    t_milieu = "🏆 CLASSEMENT GENERAL OFFICIEUX Division 4 (Top 10)"
+    t_bas = "📊 CLASSEMENT OFFICIEUX par Division / Classe (Top 3)"
 
     try:
         flux_eng = telecharger_excel(FILE_ENGAGES)
@@ -275,9 +278,8 @@ def recuperer_donnees_course():
                         html_hist += f"<tr><td>{row['N°']}</td><td>{row['Nom_Prenom']}</td><td>{row['Voiture']}</td><td>{row['Division']}</td><td>{row['Classe']}</td><td {s1}>{txt_c1_visuel}</td><td {s3}>{txt_c3_visuel}</td></tr>"
                     html_hist += "</tbody></table></div>"
 
-                    # ALIGNEMENT ULTRA-CIBLÉ : Somme exclusive de la Course 1 et de la Course 2 pour la Course 2 ASAF
                     def tri_val(r1, r2):
-                        if pd.isna(r1) or pd.isna(r2) or r1 <= 0 or r2 <= 0: return float('inf') # Rejet si l'une des deux manches manque
+                        if pd.isna(r1) or pd.isna(r2) or r1 <= 0 or r2 <= 0: return float('inf')
                         return float(round(r1, 2) + round(r2, 2))
                     
                     base["Cumul_Sec"] = base.apply(lambda r: tri_val(r["Calc_Sec_1"], r["Calc_Sec_2"]), axis=1)
@@ -290,7 +292,6 @@ def recuperer_donnees_course():
                         df_asaf123 = scr[scr["Division"].isin(["1", "2", "3"])].head(25).copy()
                         if not df_asaf123.empty:
                             df_asaf123["Pos"] = [str(i+1) if v < float('inf') else "-" for i, v in enumerate(df_asaf123["Cumul_Sec"])]
-                            # Sécurisation du formatage textuel envoyé à app.py pour bloquer le bug d'affichage décimal
                             df_asaf123["Chrono"] = df_asaf123["Cumul_Sec"].apply(lambda val: format_final_chrono(val, "No Time"))
                             df_asaf123 = df_asaf123[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]]
                         
@@ -300,11 +301,11 @@ def recuperer_donnees_course():
                             df_asaf4["Chrono"] = df_asaf4["Cumul_Sec"].apply(lambda val: format_final_chrono(val, "No Time"))
                             df_asaf4 = df_asaf4[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]]
                         
-                        scr["Classe_Num"] = pd.to_numeric(scr["Classe"], errors='coerce').fillna(999)
-                        df_grouped = scr.sort_values(by=["Division", "Classe_Num", "Cumul_Sec"]).groupby(["Division", "Classe_Num"]).head(3).copy()
+                        # RESTAURATION ABSOLUE ET STRICTE DU TRI TEXTUEL D'ORIGINE SANS PD.TO_NUMERIC
+                        df_grouped = scr.sort_values(by=["Division", "Classe", "Cumul_Sec"]).groupby(["Division", "Classe"]).head(3).copy()
                         if len(df_grouped) > 0:
                             hb = []
-                            go = df_grouped.sort_values(by=["Division", "Classe_Num", "Cumul_Sec"]).groupby(["Division", "Classe_Num"])
+                            go = df_grouped.sort_values(by=["Division", "Classe", "Cumul_Sec"]).groupby(["Division", "Classe"])
                             tg, cg = len(go), 0
                             for (div, cl), g in go:
                                 cg += 1; g = g.copy()
