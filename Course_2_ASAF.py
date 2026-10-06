@@ -74,9 +74,8 @@ st.markdown("""
     .table-hist th:nth-child(3), .table-hist td:nth-child(3) { width: 21% !important; }  
     .table-hist th:nth-child(4), .table-hist td:nth-child(4) { width: 10% !important; }   
     .table-hist th:nth-child(5), .table-hist td:nth-child(5) { width: 6% !important; }   
-    .table-hist th:nth-child(6), .table-hist td:nth-child(6) { width: 10% !important; }  
-    .table-hist th:nth-child(7), .table-hist td:nth-child(7) { width: 10% !important; }  
-    .table-hist th:nth-child(8), .table-hist td:nth-child(8) { width: 14% !important; }  
+    .table-hist th:nth-child(6), .table-hist td:nth-child(15) { width: 15% !important; }  
+    .table-hist th:nth-child(7), .table-hist td:nth-child(19) { width: 19% !important; }  
 
     .table-class-robuste th:nth-child(1), .table-class-robuste td:nth-child(1) { width: 9% !important; }
     .table-class-robuste th:nth-child(2), .table-class-robuste td:nth-child(2) { width: 11% !important; }
@@ -145,7 +144,7 @@ def nettoyer_numero(valeur):
     return s[:-2] if s.endswith(".0") else s
 
 def format_final_chrono(total_sec, fallback_statut="No Time"):
-    if total_sec is None or pd.isna(total_sec) or total_sec < 0: return fallback_statut
+    if total_sec is None or pd.isna(total_sec) or total_sec < 0 or total_sec == float('inf'): return fallback_statut
     m, reste_sec = divmod(round(total_sec, 2), 60)
     s = int(reste_sec // 1)
     c = int(round((reste_sec % 1) * 100))
@@ -254,7 +253,7 @@ def recuperer_donnees_course():
 
                     df_hb = base[base["Calc_Sec_1"].notna() | base["Calc_Sec_2"].notna() | base["Calc_Sec_3"].notna()].copy().sort_values(by="Heure_Depart_3", ascending=False, na_position="last")
                     
-                    # RENDU DE L'HISTORIQUE SANS LA COLONNE COURSE 2 INTERMÉDIAIRE
+                    # RENDU DE L'HISTORIQUE ÉPURÉ CONFORME À VOTRE DEMANDE (SANS LA COLONNE COURSE 2)
                     html_hist = "<div class='zone-defilement-tactile'><table class='table-compacte table-hist'><thead><tr><th>N°</th><th>Nom_Prenom</th><th>Voiture</th><th>Div</th><th>Cl</th><th>Course 1</th><th>Chrono</th></tr></thead><tbody>"
                     for idx, row in df_hb.iterrows():
                         t1, t2, t3 = row["Calc_Sec_1"], row["Calc_Sec_2"], row["Calc_Sec_3"]
@@ -273,24 +272,30 @@ def recuperer_donnees_course():
                         html_hist += f"<tr><td>{row['N°']}</td><td>{row['Nom_Prenom']}</td><td>{row['Voiture']}</td><td>{row['Division']}</td><td>{row['Classe']}</td><td {s1}>{txt_c1_visuel}</td><td {s3}>{txt_c3_visuel}</td></tr>"
                     html_hist += "</tbody></table></div>"
 
+                    # REJECT AUTOMATIQUE : Si le pilote n'a qu'un temps (ou moins), renvoie infini (sera No Time à la fin)
                     def tri_val(t):
                         x = sorted([v for v in t if pd.notna(v) and v > 0])
-                        return float(sum(x[:2])) if len(x) >= 2 else float('inf')
+                        if len(x) < 2: return float('inf')
+                        return float(sum(x[:2]))
                     
                     base["Cumul_Sec"] = base.apply(lambda r: tri_val([r["Calc_Sec_1"], r["Calc_Sec_2"], r["Calc_Sec_3"]]), axis=1)
-                    scr = base[base["Cumul_Sec"] < float('inf')].sort_values(by="Cumul_Sec").drop_duplicates(subset=["N°"]).copy()
+                    
+                    # Séparation des pilotes valides à 2 manches et des pilotes incomplets (No Time)
+                    base_valides = base[base["Cumul_Sec"] < float('inf')].sort_values(by="Cumul_Sec").copy()
+                    base_invalides = base[base["Cumul_Sec"] == float('inf')].copy()
+                    scr = pd.concat([base_valides, base_invalides]).drop_duplicates(subset=["N°"]).copy()
                     
                     if len(scr) > 0:
                         df_asaf123 = scr[scr["Division"].isin(["1", "2", "3"])].head(25).copy()
                         if not df_asaf123.empty:
-                            df_asaf123["Pos"] = range(1, len(df_asaf123) + 1)
-                            df_asaf123["Chrono"] = df_asaf123["Cumul_Sec"].apply(format_final_chrono)
+                            df_asaf123["Pos"] = [str(i+1) if v < float('inf') else "-" for i, v in enumerate(df_asaf123["Cumul_Sec"])]
+                            df_asaf123["Chrono"] = df_asaf123["Cumul_Sec"].apply(lambda val: format_final_chrono(val, "No Time"))
                             df_asaf123 = df_asaf123[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]]
                         
                         df_asaf4 = scr[scr["Division"] == "4"].head(10).copy()
                         if not df_asaf4.empty:
-                            df_asaf4["Pos"] = range(1, len(df_asaf4) + 1)
-                            df_asaf4["Chrono"] = df_asaf4["Cumul_Sec"].apply(format_final_chrono)
+                            df_asaf4["Pos"] = [str(i+1) if v < float('inf') else "-" for i, v in enumerate(df_asaf4["Cumul_Sec"])]
+                            df_asaf4["Chrono"] = df_asaf4["Cumul_Sec"].apply(lambda val: format_final_chrono(val, "No Time"))
                             df_asaf4 = df_asaf4[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]]
                         
                         scr["Classe_Num"] = pd.to_numeric(scr["Classe"], errors='coerce').fillna(999)
@@ -300,8 +305,9 @@ def recuperer_donnees_course():
                             go = df_grouped.sort_values(by=["Division", "Classe_Num", "Cumul_Sec"]).groupby(["Division", "Classe_Num"])
                             tg, cg = len(go), 0
                             for (div, cl), g in go:
-                                cg += 1; g = g.copy(); g["Pos"] = range(1, len(g) + 1)
-                                g["Chrono"] = g["Cumul_Sec"].apply(format_final_chrono)
+                                cg += 1; g = g.copy()
+                                g["Pos"] = [str(i+1) if v < float('inf') else "-" for i, v in enumerate(g["Cumul_Sec"])]
+                                g["Chrono"] = g["Cumul_Sec"].apply(lambda val: format_final_chrono(val, "No Time"))
                                 sh = g[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]].rename(columns={"Division": "Div", "Classe": "Cl"}).to_html(index=False, header=(cg==1), classes='table-compacte table-class-groupes', escape=False, border=0)
                                 if cg == 1: hb.append(sh.replace("</tbody>\n</table>", ""))
                                 else: hb.append(sh.split("<tbody>")[-1].replace("</tbody>\n</table>", ""))
