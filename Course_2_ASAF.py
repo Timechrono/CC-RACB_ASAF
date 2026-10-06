@@ -1,4 +1,4 @@
-import streamlit st
+import streamlit as st
 import pandas as pd
 import numpy as np
 import datetime
@@ -74,8 +74,9 @@ st.markdown("""
     .table-hist th:nth-child(3), .table-hist td:nth-child(3) { width: 21% !important; }  
     .table-hist th:nth-child(4), .table-hist td:nth-child(4) { width: 10% !important; }   
     .table-hist th:nth-child(5), .table-hist td:nth-child(5) { width: 6% !important; }   
-    .table-hist th:nth-child(6), .table-hist td:nth-child(6) { width: 15% !important; }  
-    .table-hist th:nth-child(7), .table-hist td:nth-child(7) { width: 19% !important; }  
+    .table-hist th:nth-child(6), .table-hist td:nth-child(6) { width: 10% !important; }  
+    .table-hist th:nth-child(7), .table-hist td:nth-child(7) { width: 10% !important; }  
+    .table-hist th:nth-child(8), .table-hist td:nth-child(8) { width: 14% !important; }  
 
     .table-class-robuste th:nth-child(1), .table-class-robuste td:nth-child(1) { width: 9% !important; }
     .table-class-robuste th:nth-child(2), .table-class-robuste td:nth-child(2) { width: 11% !important; }
@@ -253,7 +254,7 @@ def recuperer_donnees_course():
 
                     df_hb = base[base["Calc_Sec_1"].notna() | base["Calc_Sec_2"].notna() | base["Calc_Sec_3"].notna()].copy().sort_values(by="Heure_Depart_3", ascending=False, na_position="last")
                     
-                    # RENDU DE L'HISTORIQUE SANS LA COLONNE COURSE 2
+                    # RENDU DE L'HISTORIQUE SANS LA COLONNE COURSE 2 INTERMÉDIAIRE
                     html_hist = "<div class='zone-defilement-tactile'><table class='table-compacte table-hist'><thead><tr><th>N°</th><th>Nom_Prenom</th><th>Voiture</th><th>Div</th><th>Cl</th><th>Course 1</th><th>Chrono</th></tr></thead><tbody>"
                     for idx, row in df_hb.iterrows():
                         t1, t2, t3 = row["Calc_Sec_1"], row["Calc_Sec_2"], row["Calc_Sec_3"]
@@ -271,6 +272,7 @@ def recuperer_donnees_course():
                         txt_c1_visuel = f"<span style='color: #22C55E;'>•</span>&nbsp;{format_final_chrono(t1)}" if (pd.notna(t1) and t1 in val[:2]) else format_final_chrono(t1)
                         html_hist += f"<tr><td>{row['N°']}</td><td>{row['Nom_Prenom']}</td><td>{row['Voiture']}</td><td>{row['Division']}</td><td>{row['Classe']}</td><td {s1}>{txt_c1_visuel}</td><td {s3}>{txt_c3_visuel}</td></tr>"
                     html_hist += "</tbody></table></div>"
+
                     def tri_val(t):
                         x = sorted([v for v in t if pd.notna(v) and v > 0])
                         return float(sum(x[:2])) if len(x) >= 2 else float('inf')
