@@ -145,9 +145,7 @@ def nettoyer_numero(valeur):
 
 def format_final_chrono(total_sec, fallback_statut="No Time"):
     if total_sec is None or pd.isna(total_sec) or total_sec < 0 or total_sec == float('inf'): return fallback_statut
-    # Neutralisation stricte des dérives d'arrondis flottants de Python
-    total_sec = round(float(total_sec), 2)
-    m, reste_sec = divmod(total_sec, 60)
+    m, reste_sec = divmod(round(total_sec, 2), 60)
     s = int(reste_sec // 1)
     c = int(round((reste_sec % 1) * 100))
     if c == 100: s += 1; c = 0
@@ -258,28 +256,28 @@ def recuperer_donnees_course():
                     html_hist = "<div class='zone-defilement-tactile'><table class='table-compacte table-hist'><thead><tr><th>N°</th><th>Nom_Prenom</th><th>Voiture</th><th>Div</th><th>Cl</th><th>Course 1</th><th>Chrono</th></tr></thead><tbody>"
                     for idx, row in df_hb.iterrows():
                         t1, t2, t3 = row["Calc_Sec_1"], row["Calc_Sec_2"], row["Calc_Sec_3"]
-                        val = sorted([round(float(t), 2) for t in [t1, t2, t3] if pd.notna(t) and t > 0])
-                        s1 = "class='meilleur-temps'" if (pd.notna(t1) and round(float(t1), 2) in val[:1]) else ""
-                        s3 = "class='meilleur-temps'" if (pd.notna(t3) and round(float(t3), 2) in val[:1]) else ""
+                        val = sorted([t for t in [t1, t2, t3] if pd.notna(t) and t > 0])
+                        s1 = "class='meilleur-temps'" if (pd.notna(t1) and t1 in val[:1]) else ""
+                        s3 = "class='meilleur-temps'" if (pd.notna(t3) and t3 in val[:1]) else ""
                         
                         if pd.notna(row["Heure_Depart_3"]) and pd.isna(row["Heure_Arrivee_3"]): txt_c3_visuel = "En Piste"; s3 = ""
                         elif pd.isna(t2) or t2 <= 0: txt_c3_visuel = "No Time"
                         else:
                             txt_c2 = format_final_chrono(t2); pr = [t for t in [t1] if pd.notna(t) and t > 0]
                             txt_c3_base = f"{txt_c2} &nbsp;<span style='color: #22C55E; font-size: 1.25rem; vertical-align: middle; display: inline-block; line-height: 1;'>▲</span>" if (pr and t2 < min(pr)) else f"{txt_c2} &nbsp;<span style='color: #EF4444; font-size: 1.25rem; vertical-align: middle; display: inline-block; line-height: 1;'>▼</span>" if (pr and t2 > min(pr)) else txt_c2
-                            txt_c3_visuel = f"<span style='color: #22C55E;'>•</span>&nbsp;{txt_c3_base}" if (pd.notna(t2) and round(float(t2), 2) in val[:1]) else txt_c3_base
+                            txt_c3_visuel = f"<span style='color: #22C55E;'>•</span>&nbsp;{txt_c3_base}" if (pd.notna(t2) and t2 in val[:1]) else txt_c3_base
                             
-                        txt_c1_visuel = f"<span style='color: #22C55E;'>•</span>&nbsp;{format_final_chrono(t1)}" if (pd.notna(t1) and round(float(t1), 2) in val[:1]) else format_final_chrono(t1)
+                        txt_c1_visuel = f"<span style='color: #22C55E;'>•</span>&nbsp;{format_final_chrono(t1)}" if (pd.notna(t1) and t1 in val[:1]) else format_final_chrono(t1)
                         html_hist += f"<tr><td>{row['N°']}</td><td>{row['Nom_Prenom']}</td><td>{row['Voiture']}</td><td>{row['Division']}</td><td>{row['Classe']}</td><td {s1}>{txt_c1_visuel}</td><td {s3}>{txt_c3_visuel}</td></tr>"
                     html_hist += "</tbody></table></div>"
 
-                    # SÉLECTION DU MEILLEUR TEMPS (MINIMUM ARRONDI) SENS REJET STRICT À MOINS DE 2 MANCHES
-                    def tri_val(t):
-                        x = sorted([round(float(v), 2) for v in t if pd.notna(v) and v > 0])
-                        if len(x) < 2: return float('inf')
+                    # LOGIQUE CLASSEMENT : Recherche de la meilleure manche unique (Minimum)
+                    def obtenir_meilleure_manche(t):
+                        x = sorted([v for v in t if pd.notna(v) and v > 0])
+                        if len(x) < 2: return float('inf') # Rejet strict si moins de 2 manches complétées
                         return float(min(x))
                     
-                    base["Cumul_Sec"] = base.apply(lambda r: tri_val([r["Calc_Sec_1"], r["Calc_Sec_2"], r["Calc_Sec_3"]]), axis=1)
+                    base["Cumul_Sec"] = base.apply(lambda r: obtenir_meilleure_manche([r["Calc_Sec_1"], r["Calc_Sec_2"], r["Calc_Sec_3"]]), axis=1)
                     
                     base_valides = base[base["Cumul_Sec"] < float('inf')].sort_values(by="Cumul_Sec").copy()
                     base_invalides = base[base["Cumul_Sec"] == float('inf')].copy()
@@ -289,13 +287,14 @@ def recuperer_donnees_course():
                         df_asaf123 = scr[scr["Division"].isin(["1", "2", "3"])].head(25).copy()
                         if not df_asaf123.empty:
                             df_asaf123["Pos"] = [str(i+1) if v < float('inf') else "-" for i, v in enumerate(df_asaf123["Cumul_Sec"])]
-                            df_asaf123["Chrono"] = df_asaf123["Cumul_Sec"].apply(lambda val: format_final_chrono(val, "No Time"))
+                            # RESTAURATION DE LA SORTIE EN SECONDES BRUTES POUR SE CONFORMER AUX INTERPRÉTEURS DE APP.PY
+                            df_asaf123["Chrono"] = df_asaf123["Cumul_Sec"]
                             df_asaf123 = df_asaf123[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]]
                         
                         df_asaf4 = scr[scr["Division"] == "4"].head(10).copy()
                         if not df_asaf4.empty:
                             df_asaf4["Pos"] = [str(i+1) if v < float('inf') else "-" for i, v in enumerate(df_asaf4["Cumul_Sec"])]
-                            df_asaf4["Chrono"] = df_asaf4["Cumul_Sec"].apply(lambda val: format_final_chrono(val, "No Time"))
+                            df_asaf4["Chrono"] = df_asaf4["Cumul_Sec"]
                             df_asaf4 = df_asaf4[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]]
                         
                         scr["Classe_Num"] = pd.to_numeric(scr["Classe"], errors='coerce').fillna(999)
