@@ -144,13 +144,17 @@ def nettoyer_numero(valeur):
     return s[:-2] if s.endswith(".0") else s
 
 def format_final_chrono(total_sec, fallback_statut="No Time"):
-    if total_sec is None or pd.isna(total_sec) or total_sec < 0 or total_sec == float('inf'): return fallback_statut
-    m, reste_sec = divmod(round(total_sec, 2), 60)
-    s = int(reste_sec // 1)
-    c = int(round((reste_sec % 1) * 100))
-    if c == 100: s += 1; c = 0
-    if s == 60: m += 1; s = 0
-    return f"{int(m):02d}:{s:02d}.{c:02d}"
+    if total_sec is None or pd.isna(total_sec) or total_sec < 0 or total_sec == float('inf') or str(total_sec).lower() == "no time": return fallback_statut
+    try:
+        total_sec = float(total_sec)
+        m, reste_sec = divmod(round(total_sec, 2), 60)
+        s = int(reste_sec // 1)
+        c = int(round((reste_sec % 1) * 100))
+        if c == 100: s += 1; c = 0
+        if s == 60: m += 1; s = 0
+        return f"{int(m):02d}:{s:02d}.{c:02d}"
+    except Exception:
+        return str(total_sec)
 
 def formater_heure_ecran(val):
     if pd.isna(val) or val == "" or str(val).lower() == "nan": return "-"
@@ -271,10 +275,10 @@ def recuperer_donnees_course():
                         html_hist += f"<tr><td>{row['N°']}</td><td>{row['Nom_Prenom']}</td><td>{row['Voiture']}</td><td>{row['Division']}</td><td>{row['Classe']}</td><td {s1}>{txt_c1_visuel}</td><td {s3}>{txt_c3_visuel}</td></tr>"
                     html_hist += "</tbody></table></div>"
 
-                    # MÉCANIQUE BRUTE DU CUMUL ALIGNÉE SUR LE SCRIPT INSPIRATION COURSE 3
+                    # MÉCANIQUE BRUTE DU CUMUL D'ORIGINE DU FICHIER REPRISE À 100%
                     def tri_val(t):
                         x = sorted([v for v in t if pd.notna(v) and v > 0])
-                        if len(x) < 2: return float('inf') # Rejet immédiat si moins de 2 manches complétées
+                        if len(x) < 2: return float('inf') # Rejet strict si moins de 2 manches complétées
                         return float(sum(x[:2]))
                     
                     base["Cumul_Sec"] = base.apply(lambda r: tri_val([r["Calc_Sec_1"], r["Calc_Sec_2"], r["Calc_Sec_3"]]), axis=1)
@@ -287,14 +291,14 @@ def recuperer_donnees_course():
                         df_asaf123 = scr[scr["Division"].isin(["1", "2", "3"])].head(25).copy()
                         if not df_asaf123.empty:
                             df_asaf123["Pos"] = [str(i+1) if v < float('inf') else "-" for i, v in enumerate(df_asaf123["Cumul_Sec"])]
-                            # RESTAURATION DE L'ENVOI DE LA VARIABLE BRUTE (SECONDES) EXIGÉE PAR VOTRE INTERPRÉTEUR CENTRAL SANS DÉGRADE
-                            df_asaf123["Chrono"] = df_asaf123["Cumul_Sec"]
+                            # PROTECTION DIRECTE ANTIDÉCIMALES : On force le formatage en texte ici pour écraser le bug d'app.py
+                            df_asaf123["Chrono"] = df_asaf123["Cumul_Sec"].apply(lambda val: format_final_chrono(val, "No Time"))
                             df_asaf123 = df_asaf123[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]]
                         
                         df_asaf4 = scr[scr["Division"] == "4"].head(10).copy()
                         if not df_asaf4.empty:
                             df_asaf4["Pos"] = [str(i+1) if v < float('inf') else "-" for i, v in enumerate(df_asaf4["Cumul_Sec"])]
-                            df_asaf4["Chrono"] = df_asaf4["Cumul_Sec"]
+                            df_asaf4["Chrono"] = df_asaf4["Cumul_Sec"].apply(lambda val: format_final_chrono(val, "No Time"))
                             df_asaf4 = df_asaf4[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]]
                         
                         scr["Classe_Num"] = pd.to_numeric(scr["Classe"], errors='coerce').fillna(999)
