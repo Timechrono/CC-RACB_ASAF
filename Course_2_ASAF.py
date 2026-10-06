@@ -120,7 +120,7 @@ def telecharger_excel(url):
         reponse = requests.get(url, headers=entetes, timeout=12)
         reponse.raise_for_status()
         return io.BytesIO(reponse.content)
-    except Exception:
+    except Exception: 
         return None
 
 def convertir_en_secondes(valeur):
@@ -143,17 +143,14 @@ def nettoyer_numero(valeur):
     s = str(valeur).strip().upper()
     return s[:-2] if s.endswith(".0") else s
 
-# RECONSTRUCTION ARITHMÉTIQUE RENFORCÉE CONTRE LES ÉCARTS FLOTTANTS DE PYTHON
 def format_final_chrono(total_sec, fallback_statut="No Time"):
     if total_sec is None or pd.isna(total_sec) or total_sec < 0 or total_sec == float('inf'): return fallback_statut
-    total_sec = round(float(total_sec), 2)
-    m = int(total_sec // 60)
-    reste = total_sec % 60
-    s = int(reste // 1)
-    c = int(round((reste % 1) * 100))
+    m, reste_sec = divmod(round(total_sec, 2), 60)
+    s = int(reste_sec // 1)
+    c = int(round((reste_sec % 1) * 100))
     if c == 100: s += 1; c = 0
     if s == 60: m += 1; s = 0
-    return f"{m:02d}:{s:02d}.{c:02d}"
+    return f"{int(m):02d}:{s:02d}.{c:02d}"
 
 def formater_heure_ecran(val):
     if pd.isna(val) or val == "" or str(val).lower() == "nan": return "-"
@@ -260,25 +257,25 @@ def recuperer_donnees_course():
                     for idx, row in df_hb.iterrows():
                         t1, t2, t3 = row["Calc_Sec_1"], row["Calc_Sec_2"], row["Calc_Sec_3"]
                         val = sorted([t for t in [t1, t2, t3] if pd.notna(t) and t > 0])
-                        s1 = "class='meilleur-temps'" if (pd.notna(t1) and t1 in val[:1]) else ""
-                        s3 = "class='meilleur-temps'" if (pd.notna(t3) and t3 in val[:1]) else ""
+                        s1 = "class='meilleur-temps'" if (pd.notna(t1) and t1 in val[:2]) else ""
+                        s3 = "class='meilleur-temps'" if (pd.notna(t3) and t3 in val[:2]) else ""
                         
                         if pd.notna(row["Heure_Depart_3"]) and pd.isna(row["Heure_Arrivee_3"]): txt_c3_visuel = "En Piste"; s3 = ""
                         elif pd.isna(t2) or t2 <= 0: txt_c3_visuel = "No Time"
                         else:
                             txt_c2 = format_final_chrono(t2); pr = [t for t in [t1] if pd.notna(t) and t > 0]
                             txt_c3_base = f"{txt_c2} &nbsp;<span style='color: #22C55E; font-size: 1.25rem; vertical-align: middle; display: inline-block; line-height: 1;'>▲</span>" if (pr and t2 < min(pr)) else f"{txt_c2} &nbsp;<span style='color: #EF4444; font-size: 1.25rem; vertical-align: middle; display: inline-block; line-height: 1;'>▼</span>" if (pr and t2 > min(pr)) else txt_c2
-                            txt_c3_visuel = f"<span style='color: #22C55E;'>•</span>&nbsp;{txt_c3_base}" if (pd.notna(t2) and t2 in val[:1]) else txt_c3_base
+                            txt_c3_visuel = f"<span style='color: #22C55E;'>•</span>&nbsp;{txt_c3_base}" if (pd.notna(t2) and t2 in val[:2]) else txt_c3_base
                             
-                        txt_c1_visuel = f"<span style='color: #22C55E;'>•</span>&nbsp;{format_final_chrono(t1)}" if (pd.notna(t1) and t1 in val[:1]) else format_final_chrono(t1)
+                        txt_c1_visuel = f"<span style='color: #22C55E;'>•</span>&nbsp;{format_final_chrono(t1)}" if (pd.notna(t1) and t1 in val[:2]) else format_final_chrono(t1)
                         html_hist += f"<tr><td>{row['N°']}</td><td>{row['Nom_Prenom']}</td><td>{row['Voiture']}</td><td>{row['Division']}</td><td>{row['Classe']}</td><td {s1}>{txt_c1_visuel}</td><td {s3}>{txt_c3_visuel}</td></tr>"
                     html_hist += "</tbody></table></div>"
 
-                    # ALGORITHME DE SÉLECTION DU MEILLEUR RÉSULTAT UNIQUE ET NETTOYAGE DES SECONDES REÇUES PAR APP.PY
+                    # ALGORITHME DE CALCUL DU CUMUL ADAPTATIF INSPIRÉ DE VOTRE PROPRE LOGIQUE COURSE 3 (SOMME DES DEUX MANCHES VALIDES OU INF)
                     def tri_val(t):
                         x = sorted([v for v in t if pd.notna(v) and v > 0])
-                        if len(x) < 2: return float('inf') # Rejet strict si moins de 2 manches complétées
-                        return float(min(x))
+                        if len(x) < 2: return float('inf') # Rejet immédiat si le pilote n'a pas bouclé 2 manches complètes
+                        return float(sum(x[:2]))
                     
                     base["Cumul_Sec"] = base.apply(lambda r: tri_val([r["Calc_Sec_1"], r["Calc_Sec_2"], r["Calc_Sec_3"]]), axis=1)
                     
@@ -290,14 +287,14 @@ def recuperer_donnees_course():
                         df_asaf123 = scr[scr["Division"].isin(["1", "2", "3"])].head(25).copy()
                         if not df_asaf123.empty:
                             df_asaf123["Pos"] = [str(i+1) if v < float('inf') else "-" for i, v in enumerate(df_asaf123["Cumul_Sec"])]
-                            # ALIGNEMENT POUR L'INTERPRÉTEUR CENTRAL D'APP.PY (ENVOI EN SECONDES NUMÉRIQUES)
-                            df_asaf123["Chrono"] = df_asaf123["Cumul_Sec"]
+                            # INJECTION FIX DÉFINITIVE : Envoi de chaînes textuelles déjà formatées via format_final_chrono pour bloquer le bug 101.26
+                            df_asaf123["Chrono"] = df_asaf123["Cumul_Sec"].apply(lambda val: format_final_chrono(val, "No Time"))
                             df_asaf123 = df_asaf123[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]]
                         
                         df_asaf4 = scr[scr["Division"] == "4"].head(10).copy()
                         if not df_asaf4.empty:
                             df_asaf4["Pos"] = [str(i+1) if v < float('inf') else "-" for i, v in enumerate(df_asaf4["Cumul_Sec"])]
-                            df_asaf4["Chrono"] = df_asaf4["Cumul_Sec"]
+                            df_asaf4["Chrono"] = df_asaf4["Cumul_Sec"].apply(lambda val: format_final_chrono(val, "No Time"))
                             df_asaf4 = df_asaf4[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]]
                         
                         scr["Classe_Num"] = pd.to_numeric(scr["Classe"], errors='coerce').fillna(999)
