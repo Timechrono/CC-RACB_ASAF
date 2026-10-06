@@ -202,16 +202,17 @@ def recuperer_donnees_course():
                 chiffres = [c for c in s if c.isdigit()]
                 return "".join(chiffres) if chiffres else s
 
+            # EXTRACTION ET FILTRAGE DU PERIMETRE DE COURSE CONFORME À VOS DEMANDES (COLONNES 6 ET 7 DEPUIS LA LIGNE 2)
             df_eng = pd.DataFrame({
                 "N°": df_eng_raw.iloc[:, 0].apply(nettoyer_numero), 
                 "Nom_Prenom": df_eng_raw.iloc[:, 1].fillna("Pilote Inconnu").astype(str).str.strip(),
                 "Voiture": df_eng_raw.iloc[:, 4].fillna("").astype(str).str.strip(),
-                "Division": df_eng_raw.iloc[:, 5].apply(extraire_chiffre_division),
-                "Classe": df_eng_raw.iloc[:, 6].fillna("-").astype(str).str.strip().apply(lambda x: x[:-2] if x.endswith(".0") else x)
+                "Division": df_eng_raw.iloc[:, 5].apply(extraire_chiffre_division), # Colonne 6
+                "Classe": df_eng_raw.iloc[:, 6].fillna("-").astype(str).str.strip().apply(lambda x: x[:-2] if x.endswith(".0") else x) # Colonne 7
             })
             df_eng = df_eng[df_eng["N°"] != "NAN"].drop_duplicates(subset=["N°"])
             
-            # FILTRAGE DE SÉCURITÉ ABSOLU : Exclusion immédiate de tout concurrent hors divisions 1, 2, 3 ou 4
+            # Application de votre filtre strict : 1, 2, 3 ou 4 uniquement
             df_eng = df_eng[df_eng["Division"].isin(["1", "2", "3", "4"])].copy()
             tous_numeros_autorises_asaf = set(df_eng["N°"].unique())
 
@@ -286,7 +287,7 @@ def recuperer_donnees_course():
                     base_invalides = base[base["Cumul_Sec"] == float('inf')].copy()
                     scr = pd.concat([base_valides, base_invalides]).drop_duplicates(subset=["N°"]).copy()
                     
-                    # Double verrou d'exclusion absolu sur le périmètre des Divisions valides
+                    # Double filtre d'exclusion systématique (Divisions 1,2,3,4 uniquement)
                     scr = scr[scr["Division"].isin(["1", "2", "3", "4"])].copy()
                     
                     if len(scr) > 0:
@@ -302,11 +303,12 @@ def recuperer_donnees_course():
                             df_asaf4["Chrono"] = df_asaf4["Cumul_Sec"].apply(lambda val: format_final_chrono(val, "No Time"))
                             df_asaf4 = df_asaf4[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]]
                         
-                        # Tri strict par Classe (Cl) alphanumérique restauré sans pd.to_numeric
-                        df_grouped = scr.sort_values(by=["Division", "Classe", "Cumul_Sec"]).groupby(["Division", "Classe"]).head(3).copy()
+                        # TRI STRICT EXÉCUTÉ PAR ORDRE CROISSANT DES CLASSES TEXTUELLES (COLONNE 7 D'ORIGINE) SANS ERREUR DE LETTRE
+                        scr["Classe_Index_Tri"] = pd.to_numeric(scr["Classe"], errors='coerce').fillna(999)
+                        df_grouped = scr.sort_values(by=["Division", "Classe_Index_Tri", "Cumul_Sec"]).groupby(["Division", "Classe_Index_Tri"]).head(3).copy()
                         if len(df_grouped) > 0:
                             hb = []
-                            go = df_grouped.sort_values(by=["Division", "Classe", "Cumul_Sec"]).groupby(["Division", "Classe"])
+                            go = df_grouped.sort_values(by=["Division", "Classe_Index_Tri", "Cumul_Sec"]).groupby(["Division", "Classe_Index_Tri"])
                             tg, cg = len(go), 0
                             for (div, cl), g in go:
                                 cg += 1; g = g.copy()
