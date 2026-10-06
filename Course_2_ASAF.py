@@ -120,7 +120,7 @@ def telecharger_excel(url):
         reponse = requests.get(url, headers=entetes, timeout=12)
         reponse.raise_for_status()
         return io.BytesIO(reponse.content)
-    except Exception: 
+    except Exception:
         return None
 
 def convertir_en_secondes(valeur):
@@ -132,6 +132,10 @@ def convertir_en_secondes(valeur):
     s_clean = "".join([c for c in s if c.isdigit()])
     if not s_clean or len(s_clean) < 3: return None
     num = int(s_clean)
+    
+    # Élimination des heures parasites système (Ex: Heure réseau type 114126)
+    if num > 595999: return None
+    
     centiemes = num % 100
     secondes = (num // 100) % 100
     minutes = num // 10000
@@ -144,17 +148,13 @@ def nettoyer_numero(valeur):
     return s[:-2] if s.endswith(".0") else s
 
 def format_final_chrono(total_sec, fallback_statut="No Time"):
-    if total_sec is None or pd.isna(total_sec) or total_sec < 0 or total_sec == float('inf') or str(total_sec).lower() == "no time": return fallback_statut
-    try:
-        total_sec = float(total_sec)
-        m, reste_sec = divmod(round(total_sec, 2), 60)
-        s = int(reste_sec // 1)
-        c = int(round((reste_sec % 1) * 100))
-        if c == 100: s += 1; c = 0
-        if s == 60: m += 1; s = 0
-        return f"{int(m):02d}:{s:02d}.{c:02d}"
-    except Exception:
-        return str(total_sec)
+    if total_sec is None or pd.isna(total_sec) or total_sec < 0 or total_sec == float('inf'): return fallback_statut
+    m, reste_sec = divmod(round(total_sec, 2), 60)
+    s = int(reste_sec // 1)
+    c = int(round((reste_sec % 1) * 100))
+    if c == 100: s += 1; c = 0
+    if s == 60: m += 1; s = 0
+    return f"{int(m):02d}:{s:02d}.{c:02d}"
 
 def formater_heure_ecran(val):
     if pd.isna(val) or val == "" or str(val).lower() == "nan": return "-"
@@ -180,10 +180,10 @@ def recuperer_donnees_course():
     df_divisions = "<div class='zone-defilement-tactile'><table class='table-compacte table-class-groupes'><tr><td style='text-align: center; padding: 10px;'>Aucune donnée disponible</td></tr></table></div>"
 
     t_live = "🏎️ EN DIRECT / Derniers Concurrents partis"
-    t_his = "🕒 HISTORIQUE DES TEMPS / 2ème COURSE / Concurrents ASAF"
-    t_haut = "🏆 CLASSEMENT GENERAL OFFICIEUX Division 123 (Top 25)"
-    t_milieu = "🏆 CLASSEMENT GENERAL OFFICIEUX Division 4 (Top 10)"
-    t_bas = "📊 CLASSEMENT OFFICIEUX par Division / Classe (Top 3)"
+    t_his = "🕒 HISTORIQUE DES TEMPS / ASAF"
+    t_haut = "🏆 CLASSEMENT GENERAL Division 123 (Top 25)"
+    t_milieu = "🏆 CLASSEMENT GENERAL Division 4 (Top 10)"
+    t_bas = "📊 CLASSEMENT par Division / Classe (Top 3)"
 
     try:
         flux_eng = telecharger_excel(FILE_ENGAGES)
@@ -275,13 +275,12 @@ def recuperer_donnees_course():
                         html_hist += f"<tr><td>{row['N°']}</td><td>{row['Nom_Prenom']}</td><td>{row['Voiture']}</td><td>{row['Division']}</td><td>{row['Classe']}</td><td {s1}>{txt_c1_visuel}</td><td {s3}>{txt_c3_visuel}</td></tr>"
                     html_hist += "</tbody></table></div>"
 
-                    # MÉCANIQUE BRUTE DU CUMUL D'ORIGINE DU FICHIER REPRISE À 100%
-                    def tri_val(t):
-                        x = sorted([v for v in t if pd.notna(v) and v > 0])
-                        if len(x) < 2: return float('inf') # Rejet strict si moins de 2 manches complétées
-                        return float(sum(x[:2]))
+                    # ALIGNEMENT ULTRA-CIBLÉ : Somme exclusive de la Course 1 et de la Course 2 pour la Course 2 ASAF
+                    def tri_val(r1, r2):
+                        if pd.isna(r1) or pd.isna(r2) or r1 <= 0 or r2 <= 0: return float('inf') # Rejet si l'une des deux manches manque
+                        return float(round(r1, 2) + round(r2, 2))
                     
-                    base["Cumul_Sec"] = base.apply(lambda r: tri_val([r["Calc_Sec_1"], r["Calc_Sec_2"], r["Calc_Sec_3"]]), axis=1)
+                    base["Cumul_Sec"] = base.apply(lambda r: tri_val(r["Calc_Sec_1"], r["Calc_Sec_2"]), axis=1)
                     
                     base_valides = base[base["Cumul_Sec"] < float('inf')].sort_values(by="Cumul_Sec").copy()
                     base_invalides = base[base["Cumul_Sec"] == float('inf')].copy()
@@ -291,7 +290,7 @@ def recuperer_donnees_course():
                         df_asaf123 = scr[scr["Division"].isin(["1", "2", "3"])].head(25).copy()
                         if not df_asaf123.empty:
                             df_asaf123["Pos"] = [str(i+1) if v < float('inf') else "-" for i, v in enumerate(df_asaf123["Cumul_Sec"])]
-                            # PROTECTION DIRECTE ANTIDÉCIMALES : On force le formatage en texte ici pour écraser le bug d'app.py
+                            # Sécurisation du formatage textuel envoyé à app.py pour bloquer le bug d'affichage décimal
                             df_asaf123["Chrono"] = df_asaf123["Cumul_Sec"].apply(lambda val: format_final_chrono(val, "No Time"))
                             df_asaf123 = df_asaf123[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]]
                         
