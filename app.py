@@ -191,8 +191,14 @@ tr.ligne-separation-classe td, .table-compacte tr.ligne-separation-classe td {{
 def gen_html(df, cl):
     if isinstance(df, str): return df 
     if df is None or (isinstance(df, pd.DataFrame) and df.empty): 
-        # INJECTION DYNAMIQUE DE LA PHRASE EN CAS DE CLASSEMENT VIDE SELON LE PLATEAU SELECTIONNÉ
-        phrase_attente = "En attente du premier classé RACB..." if "RACB" in choix_course.upper() else "En attente du premier classé ASAF..." if "ASAF" in choix_course.upper() else "En attente du départ..."
+        # DISTRIBUTION ET ROUTAGE DYNAMIQUE DES PHRASES D'ATTENTE SELON LA NATURE DU TABLEAU (CL)
+        if cl == "table-hist":
+            phrase_attente = "En attente d'arrivée..."
+        elif cl in ["table-class-robuste", "table-class-groupes"]:
+            phrase_attente = "En attente du premier classé RACB..." if "RACB" in choix_course.upper() else "En attente du premier classé ASAF..." if "ASAF" in choix_course.upper() else "En attente du premier classé..."
+        else:
+            phrase_attente = "En attente du départ..."
+            
         return f"<div class='table-responsive-container'><table class='table-compacte {cl}'><tr><td style='text-align: center; padding: 10px; font-style: italic; color: #64748B;'>{phrase_attente}</td></tr></table></div>"
     
     html_table = df.to_html(index=False, classes=f"table-compacte {cl}", escape=False, border=0)
