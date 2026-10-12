@@ -156,7 +156,7 @@ def recuperer_donnees_course():
         df_eng_racb = df_eng_racb[df_eng_racb["N°"] != "NAN"].drop_duplicates(subset=["N°"])
         liste_numeros_racb = set(df_eng_racb["N°"].tolist())
 
-        # 2. SECOURS OPTIONNEL SÉCURISÉ POUR LES CONCURRENTS ASAF ALIGNÉS SANS DECALAGE D'INDEX
+        # 2. SECOURS OPTIONNEL SÉCURISÉ POUR LES CONCURRENTS ASAF
         try:
             flux_eng_asaf = telecharger_excel(FILE_ENGAGES_ASAF)
             df_eng_asaf_raw = pd.read_excel(flux_eng_asaf, skiprows=1, engine='openpyxl')
@@ -206,7 +206,6 @@ def recuperer_donnees_course():
         base = pd.merge(base_runs, df_eng, on="N°", how="inner")
         if len(df_dep) > 0: base = pd.merge(base, df_dep, on=["N°", "Run_Index"], how="left")
         if len(df_arr) > 0: base = pd.merge(base, df_arr, on=["N°", "Run_Index"], how="left")
-        
         if len(base) > 0:
             base["Calc_Sec"] = base["Sec_Excel"].fillna((base["Sec_Arr"] - base["Sec_Dep"]).apply(lambda x: x + 3600 if (x is not None and not pd.isna(x) and x < 0) else x))
             base["Départ_C1"] = base["Heure_Depart"].apply(formater_heure_ecran)
@@ -222,9 +221,18 @@ def recuperer_donnees_course():
                 df_live_base["Arrivée_Brute"] = df_live_base["Heure_Arrivee"].apply(formater_heure_ecran)
                 df_live = df_live_base[["N°", "Nom_Prenom", "Voiture", "Départ_C1", "Arrivée_Brute", "Chrono"]].rename(columns={"Départ_C1": "Départ", "Arrivée_Brute": "Arrivée"})
 
-                # --- EXTRACTION HISTORIQUE TOTAL DES PILOTES SANS CONDITION DE SEUILS MINIMUMS ---
+                # --- EXTRACTION HISTORIQUE TOTAL CORRIGÉE ET STRUCTURÉE ---
                 df_hist_base = base_chronologique_totale.sort_values(by="Ordre_Live", ascending=False).copy()
-                df_hist_base["Chrono_C1_Visual_Hist"] = df_hist_base.apply(lambda r: "En Piste" if pd.notna(r["Heure_Depart"]) and pd.isna(r["Heure_Arrivee"]) and pd.isna(r["Sec_Excel"]) else format_final_chrono(r["Calc_Sec"]) if pd.notna(r["Calc_Sec"]) and r["Calc_Sec"] > 240 else f"{format_final_chrono(r['Calc_Sec'])}<span class='coche-verte'>✓</span>" if pd.notna(r["Calc_Sec"]) and r["Calc_Sec"] > 0 else "No Time", axis=1)
+                
+                def formater_ligne_historique(r):
+                    if pd.notna(r["Heure_Depart"]) and pd.isna(r["Heure_Arrivee"]) and pd.isna(r["Sec_Excel"]): 
+                        return "En Piste"
+                    if pd.notna(r["Calc_Sec"]) and r["Calc_Sec"] > 0:
+                        t_form = format_final_chrono(r["Calc_Sec"])
+                        return f"{t_form}<span class='coche-rouge'>✓</span>" if r["Calc_Sec"] > 240 else f"{t_form}<span class='coche-verte'>✓</span>"
+                    return "No Time"
+                
+                df_hist_base["Chrono_C1_Visual_Hist"] = df_hist_base.apply(formater_ligne_historique, axis=1)
                 df_hist = df_hist_base[["N°", "Nom_Prenom", "Voiture", "Groupe", "Classe", "Chrono_C1_Visual_Hist"]].rename(columns={"Chrono_C1_Visual_Hist": "Chrono", "Classe": "Cl"})
 
             # --- SECURISATION DES CLASSEMENTS (SEULS LES CONCURRENTS D'ORIGINE RACB SONT CONSERVÉS) ---
