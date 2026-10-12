@@ -133,6 +133,7 @@ def recuperer_donnees_course():
     t_haut = "🏆 CLASSEMENT GENERAL OFFICIEUX RACB (Top 20)"
     t_milieu = "📊 CLASSEMENT OFFICIEUX PAR Groupe / Classe (Top 3)"
     t_bas = ""
+# fin bloc 3
     try:
         flux_eng = telecharger_excel(FILE_ENGAGES)
         flux_dep = telecharger_excel(FILE_DEPART)
@@ -199,9 +200,15 @@ def recuperer_donnees_course():
         if len(df_dep) > 0: df_dep["Sec_Dep"] = df_dep["Heure_Depart"].apply(convertir_en_secondes)
         if len(df_arr) > 0: df_arr["Sec_Arr"] = df_arr["Heure_Arrivee"].apply(convertir_en_secondes); df_arr["Sec_Excel"] = df_arr["Chrono_Excel"].apply(convertir_en_secondes)
 
-        base_runs = df_dep[["N°", "Run_Index"]].copy() if len(df_dep) > 0 else df_eng[["N°"]].copy()
-        if "Run_Index" not in base_runs.columns: base_runs["Run_Index"] = 1
-        base_runs = base_runs.drop_duplicates(subset=["N°", "Run_Index"])
+        # DEVERROUILLAGE SÉCURISÉ : base_runs prend l'union absolue (Départs + Arrivées) pour accepter les encodages directs d'ASAF
+        runs_dep = df_dep[["N°", "Run_Index"]].copy() if len(df_dep) > 0 else pd.DataFrame(columns=["N°", "Run_Index"])
+        runs_arr = df_arr[["N°", "Run_Index"]].copy() if len(df_arr) > 0 else pd.DataFrame(columns=["N°", "Run_Index"])
+        
+        base_runs = pd.concat([runs_dep, runs_arr], ignore_index=True)
+        if len(base_runs) == 0:
+            base_runs = df_eng[["N°"]].copy(); base_runs["Run_Index"] = 1
+        else:
+            base_runs = base_runs.drop_duplicates(subset=["N°", "Run_Index"])
 
         base = pd.merge(base_runs, df_eng, on="N°", how="inner")
         if len(df_dep) > 0: base = pd.merge(base, df_dep, on=["N°", "Run_Index"], how="left")
@@ -210,8 +217,11 @@ def recuperer_donnees_course():
             base["Calc_Sec"] = base["Sec_Excel"].fillna((base["Sec_Arr"] - base["Sec_Dep"]).apply(lambda x: x + 3600 if (x is not None and not pd.isna(x) and x < 0) else x))
             base["Départ_C1"] = base["Heure_Depart"].apply(formater_heure_ecran)
 
-            if "Heure_Depart" in base.columns and base["Heure_Depart"].notna().any():
-                base_c1 = base[base["Heure_Depart"].notna()].copy(); base_c1["Ordre_Live"] = range(len(base_c1))
+            # L'ordre live se base sur l'activité (soit l'Heure de départ, soit l'Heure d'arrivée pour les ASAF saisis en direct)
+            base["Ordre_Tri_Global"] = base["Heure_Depart"].fillna(base["Heure_Arrivee"])
+            
+            if base["Ordre_Tri_Global"].notna().any():
+                base_c1 = base[base["Ordre_Tri_Global"].notna()].copy(); base_c1["Ordre_Live"] = range(len(base_c1))
                 base_chronologique_totale = base_c1.sort_values(by="Ordre_Live", ascending=True).copy()
                 
                 # --- EXTRACTION DIRECT ---
@@ -221,7 +231,7 @@ def recuperer_donnees_course():
                 df_live_base["Arrivée_Brute"] = df_live_base["Heure_Arrivee"].apply(formater_heure_ecran)
                 df_live = df_live_base[["N°", "Nom_Prenom", "Voiture", "Départ_C1", "Arrivée_Brute", "Chrono"]].rename(columns={"Départ_C1": "Départ", "Arrivée_Brute": "Arrivée"})
 
-                # --- EXTRACTION HISTORIQUE TOTAL CORRIGÉE ET STRUCTURÉE ---
+                # --- EXTRACTION HISTORIQUE TOTAL ---
                 df_hist_base = base_chronologique_totale.sort_values(by="Ordre_Live", ascending=False).copy()
                 
                 def formater_ligne_historique(r):
