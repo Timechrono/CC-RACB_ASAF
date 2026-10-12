@@ -35,8 +35,7 @@ FILE_DEPART      = f"https://{HOTE_PROT}/scl/fi/gbkaq01qzjujc8nq3zj28/LIVE_Temps
 FILE_ENGAGES     = f"https://{HOTE_PROT}/scl/fi/69zkwsb45bpiw3ys3kk4c/LIVE_Liste_ENGAGES_RACB.xlsm?rlkey=qpjrlmbxhcskifnabs84veqh8&dl=1"
 FILE_ENGAGES_ASAF = f"https://{HOTE_PROT}/scl/fi/wyof20d4bg4lbmnv0c7m5/LIVE_Liste_ENGAGES_ASAF.xlsm?rlkey=8q59lu88046nxu8mr8gs5ufvc&st=vny281ln&dl=1"
 
-
-@st.cache_data(ttl=10)
+# SUPPRESSION DU CACHE STATIQUE (TTL) POUR ASSURER UN TELECHARGEMENT EN DIRECT SANS ATTENTE
 def telecharger_excel(url):
     entetes = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'}
     reponse = requests.get(url, headers=entetes, timeout=10)
@@ -101,7 +100,6 @@ def calculer_statut_chrono(row, est_dans_le_live=True):
         return "<span class='vrai-gyrophare'>🚨</span> EN PISTE" if est_dans_le_live else "En Piste"
     return "No Time"
 def generer_tableau_html(df, classe_specifique):
-    # AJOUT DU MESSAGE PERSONNALISÉ QUAND LE TABLEAU EST VIDE
     if df.empty: 
         return f"<table class='table-compacte {classe_specifique}'><tr><td style='text-align: center; padding: 10px; font-style: italic; color: #64748B;'>En attente du départ...</td></tr></table>"
     
@@ -123,6 +121,9 @@ def generer_tableau_html(df, classe_specifique):
     return df.to_html(index=False, classes=f"table-compacte {classe_specifique}", escape=False, border=0)
 
 def recuperer_donnees_course():
+    # NETTOYAGE FORCE DE LA MEMOIRE INTERNE DE STREAMLIT A CHAQUE PASSAGE DES COMMISSAIRES
+    st.cache_data.clear()
+
     cols_live = ["N°", "Nom_Prenom", "Voiture", "Départ", "Arrivée", "Chrono"]
     cols_hist = ["N°", "Nom_Prenom", "Voiture", "Groupe", "Cl", "Chrono"]
     df_live, df_hist = pd.DataFrame(columns=cols_live), pd.DataFrame(columns=cols_hist)
