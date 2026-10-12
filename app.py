@@ -23,7 +23,7 @@ t_bas = ""
 # ==============================================================================
 # ⚠️ METTEZ VOTRE LIEN DROPBOX ICI (Assurez-vous qu'il se termine bien par dl=1)
 # ==============================================================================
-LIEN_DROPBOX_LOGO = "https://www.dropbox.com/scl/fi/hi24fjo0vbal4oiiwt9jl/logo-TimeC.png?rlkey=xlw0oqk9gdnq6v5dgahi0klg0&st=y86yrn6y&dl=1"
+LIEN_DROPBOX_LOGO = "https://dropbox.com"
 
 # --- DÉTECTION DES SCRIPTS DE COURSE DISPONIBLES ---
 try:
@@ -202,24 +202,22 @@ tr.ligne-separation-classe td, .table-compacte tr.ligne-separation-classe td {{
 </style>
 """, unsafe_allow_html=True)
 def gen_html(df, cl):
-    # Interception si le script de course a renvoyé une chaîne de caractères vide ou d'attente d'origine
+    # DÉFINITION UNIQUE DU TEXTE D'ATTENTE SELON LA MANCHE SELECTIONNÉE VIA L'URL
+    if cl == "table-hist":
+        phrase_attente = "En attente d'arrivée..."
+    elif cl in ["table-class-robuste", "table-class-groupes"]:
+        phrase_attente = "En attente du premier classé RACB..." if "RACB" in choix_course.upper() else "En attente du premier classé ASAF..." if "ASAF" in choix_course.upper() else "En attente du premier classé..."
+    else:
+        phrase_attente = "En attente du départ..."
+
+    # CAS A : Si le script de course renvoie directement le tableau HTML pré-calculé (comme html_hist ou html_class_div)
     if isinstance(df, str):
-        if cl == "table-hist":
-            phrase_attente = "En attente d'arrivée..."
-        elif cl in ["table-class-robuste", "table-class-groupes"]:
-            phrase_attente = "En attente du premier classé RACB..." if "RACB" in choix_course.upper() else "En attente du premier classé ASAF..." if "ASAF" in choix_course.upper() else "En attente du premier classé..."
-        else:
-            phrase_attente = "En attente du départ..."
+        if "TABLE-COMPACTE" in df.upper() and "TR" in df.upper():
+            return df  # Si c'est du HTML de tableau valide généré par la manche, on le laisse passer directement !
         return f"<div class='table-responsive-container'><table class='table-compacte {cl}'><tr><td style='text-align: center; padding: 10px; font-style: italic; color: #64748B;'>{phrase_attente}</td></tr></table></div>"
 
-    # Interception si le DataFrame est None ou vide
+    # CAS B : Si le DataFrame est None ou vide
     if df is None or (isinstance(df, pd.DataFrame) and df.empty): 
-        if cl == "table-hist":
-            phrase_attente = "En attente d'arrivée..."
-        elif cl in ["table-class-robuste", "table-class-groupes"]:
-            phrase_attente = "En attente du premier classé RACB..." if "RACB" in choix_course.upper() else "En attente du premier classé ASAF..." if "ASAF" in choix_course.upper() else "En attente du premier classé..."
-        else:
-            phrase_attente = "En attente du départ..."
         return f"<div class='table-responsive-container'><table class='table-compacte {cl}'><tr><td style='text-align: center; padding: 10px; font-style: italic; color: #64748B;'>{phrase_attente}</td></tr></table></div>"
     
     html_table = df.to_html(index=False, classes=f"table-compacte {cl}", escape=False, border=0)
