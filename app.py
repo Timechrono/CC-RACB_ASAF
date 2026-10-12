@@ -188,9 +188,17 @@ tr.ligne-separation-classe td, .table-compacte tr.ligne-separation-classe td {{
 </style>
 """, unsafe_allow_html=True)
 def gen_html(df, cl):
-    if isinstance(df, str): return df 
+    if isinstance(df, str): 
+        # Si le script de course renvoie du texte d'attente brut, on le nettoie et on le personnalise
+        if cl == "table-hist":
+            phrase_attente = "En attente d'arrivée..."
+        elif cl in ["table-class-robuste", "table-class-groupes"]:
+            phrase_attente = "En attente du premier classé RACB..." if "RACB" in choix_course.upper() else "En attente du premier classé ASAF..." if "ASAF" in choix_course.upper() else "En attente du premier classé..."
+        else:
+            phrase_attente = "En attente du départ..."
+        return f"<div class='table-responsive-container'><table class='table-compacte {cl}'><tr><td style='text-align: center; padding: 10px; font-style: italic; color: #64748B;'>{phrase_attente}</td></tr></table></div>"
+        
     if df is None or (isinstance(df, pd.DataFrame) and df.empty): 
-        # DISTRIBUTION ET ROUTAGE DYNAMIQUE DES PHRASES D'ATTENTE SELON LA NATURE DU TABLEAU (CL)
         if cl == "table-hist":
             phrase_attente = "En attente d'arrivée..."
         elif cl in ["table-class-robuste", "table-class-groupes"]:
@@ -202,28 +210,6 @@ def gen_html(df, cl):
     
     html_table = df.to_html(index=False, classes=f"table-compacte {cl}", escape=False, border=0)
     return f"<div class='table-responsive-container'>{html_table}</div>"
-
-# --- LECTURE DU PARAMÈTRE DE COURSE DEPUIS L'URL ---
-query_params = st.query_params
-choix_course_url = query_params.get("course", "essais").lower()
-
-if choix_course_url == "c1asaf" and course1_disponible:
-    choix_course = "Course 1 ASAF"
-elif choix_course_url == "c1racb" and course1_racb_disponible:
-    choix_course = "Course 1 RACB"
-elif choix_course_url == "c2asaf" and course2_disponible:
-    choix_course = "Course 2 ASAF"
-elif choix_course_url == "c2racb" and course2_racb_disponible:
-    choix_course = "Course 2 RACB"
-elif choix_course_url == "c3asaf" and course3_disponible:
-    choix_course = "Course 3 ASAF"
-elif choix_course_url == "c3racb" and course3_racb_disponible:
-    choix_course = "Course 3 RACB"
-else:
-    choix_course = "Essais"
-
-d_liv, d_his, d_haut, d_milieu, d_bas = pd.DataFrame(), pd.DataFrame(), pd.DataFrame(), pd.DataFrame(), pd.DataFrame()
-t_live, t_his, t_haut, t_milieu, t_bas = "Chronométrage", "Historique", "Classement Haut", "Classement Milieu", "Classement Bas"
 try:
     from concurrent.futures import ThreadPoolExecutor
 
