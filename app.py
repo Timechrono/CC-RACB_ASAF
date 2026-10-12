@@ -63,7 +63,7 @@ except ModuleNotFoundError:
     course3_racb_disponible = False
 
 st.set_page_config(page_title="Live", layout="wide")
-# --- CONCEPTION GRAPHIQUE GÉOMÉTRIQUE UNIFIÉE SANS CONFLIT ---
+# --- CONCEPTION GRAPHIQUE GÉOMÉTRIQUE UNIFIÉE AVEC RETOUR DU SCROLL DE PAGE ---
 st.markdown(f"""
 <style>
 [data-testid="stHeader"] {{ display: none !important; }}
@@ -71,12 +71,12 @@ button:focus, div:focus, input:focus, select:focus {{
     outline: none !important; border-color: transparent !important; box-shadow: none !important;
 }}
 
-/* RECTIFICATION : BLOCAGE DU SCROLL GLOBAL SUR L'ÉCRAN SANS MARGE PARASITE */
+/* RESTAURATION COMPLÈTE DU SCROLL SUR TOUTE LA PAGE WEB */
 html, body, [data-testid="stAppViewContainer"], [data-testid="stMainBlockContainer"] {{
-    overflow: hidden !important;
-    overflow-y: hidden !important;
-    height: 100vh !important;
-    max-height: 100vh !important;
+    overflow: auto !important;
+    overflow-y: auto !important;
+    height: auto !important;
+    max-height: none !important;
 }}
 
 .block-container {{ 
@@ -125,7 +125,7 @@ div.stElementContainer {{
     margin-top: 15px !important;
 }}
 
-/* CONFIGURATION PROPRE ET SÉCURISÉE DES BARRES DE DÉFILEMENT LOCALISÉES (SCROLL CIBLÉ) */
+/* BOÎTES DE SCROLL INTERNES CLOISONNÉES */
 .div-scroll-local-historique {{
     height: 480px !important;
     max-height: 480px !important;
@@ -189,7 +189,6 @@ div.stElementContainer {{
 }}
 
 @media (max-width: 768px) {{
-    html, body, [data-testid="stAppViewContainer"], .main, [data-testid="stMainBlockContainer"] {{ overflow: auto !important; height: auto !important; max-height: none !important; }}
     .div-scroll-local-historique, .div-scroll-local-general, .div-scroll-local-classes {{ max-height: none !important; height: auto !important; overflow-y: visible !important; border: none !important; }}
     .block-container {{ padding-left: 2px !important; padding-right: 2px !important; }}
     .titre-live, .titre-hist, .titre-classement {{ font-size: 0.85rem !important; padding: 3px 6px !important; }}
@@ -213,7 +212,10 @@ def gen_html(df, cl):
     else:
         phrase_attente = "En attente du départ..."
 
-    # NETTOYAGE ET INTEGRATION DU SCROLL SANS CONFLIT DE CHAINE HTML
+    # RECONNAISSANCE CHIRURGICALE POUR FORCER LE SCROLL SUR GROUPE / CLASSE
+    if cl == "table-class-groupes" or cl == "table-class-classes":
+        cl = "table-class-groupes"
+
     if isinstance(df, str):
         if "<TABLE" in df.upper() and "</TABLE>" in df.upper():
             debut = df.upper().find("<TABLE")
@@ -222,12 +224,14 @@ def gen_html(df, cl):
             
             if cl == "table-hist":
                 return f"<div class='div-scroll-local-historique'>{tableau_propre}</div>"
-            elif cl in ["table-class-robuste", "table-class-groupes"]:
-                # Identification précise du tableau des classes par ses en-têtes pour appliquer le bon scroll
-                if "POS" in tableau_propre.upper() and "GROUPE" in tableau_propre.upper() and "CL" in tableau_propre.upper():
+            elif cl == "table-class-groupes":
+                return f"<div class='div-scroll-local-classes'>{tableau_propre}</div>"
+            else:
+                # Si la chaîne contient les en-têtes du groupe/classe on force le routage vers sa boîte de scroll
+                if "GROUPE" in tableau_propre.upper() and "CL" in tableau_propre.upper():
                     return f"<div class='div-scroll-local-classes'>{tableau_propre}</div>"
                 return f"<div class='div-scroll-local-general'>{tableau_propre}</div>"
-            return tableau_propre  
+                
         return f"<div class='table-responsive-container'><table class='table-compacte {cl}'><tr><td style='text-align: center; padding: 10px; font-style: italic; color: #64748B;'>{phrase_attente}</td></tr></table></div>"
 
     if df is None or (isinstance(df, pd.DataFrame) and df.empty): 
@@ -287,7 +291,6 @@ st.markdown("<style>@media (min-width: 769px) { .table-hist th:nth-child(1), .ta
 if t_haut and "TOP 20" in t_haut.upper():
     t_haut = "🏆 CLASSEMENT GENERAL OFFICIEUX RACB"
 
-# RESTAURATION DU RENDU PAR COLONNES COMPATIBLE SANS DECALAGE VISUEL
 cg, cd = st.columns([1.3, 0.9])
 with cg:
     conteneur_titre_live = st.empty()
