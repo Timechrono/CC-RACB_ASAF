@@ -190,7 +190,7 @@ def recuperer_donnees_course():
         df_dep = pd.DataFrame({"N°": df_dep_raw.iloc[2:, idx_dep_1].apply(nettoyer_numero), "Heure_Depart": df_dep_raw.iloc[2:, idx_dep_1 + 1]}) if idx_dep_1 is not None else pd.DataFrame(columns=["N°", "Heure_Depart"])
         df_arr = pd.DataFrame({"N°": df_arr_raw.iloc[2:, idx_arr_1].apply(nettoyer_numero), "Heure_Arrivee": df_arr_raw.iloc[2:, idx_arr_1 + 2], "Chrono_Excel": df_arr_raw.iloc[2:, idx_arr_1 + 3]}) if idx_arr_1 is not None else pd.DataFrame(columns=["N°", "Heure_Arrivee", "Chrono_Excel"])
 
-        # CORRECTION VISUELLE : Application sur tous les numéros autorisés (RACB + ASAF de secours)
+        # DEVERROUILLAGE TOTAL : Remplacement de liste_numeros_racb par tous_numeros_autorises sur les deux flux
         df_dep = df_dep[df_dep["N°"].isin(tous_numeros_autorises) & (df_dep["N°"] != "NAN") & (df_dep["N°"] != "")]
         df_arr = df_arr[df_arr["N°"].isin(tous_numeros_autorises)]
 
@@ -230,7 +230,7 @@ def recuperer_donnees_course():
                     df_hist_base["Chrono_C1_Visual_Hist"] = df_hist_base.apply(lambda r: "En Piste" if pd.notna(r["Heure_Depart"]) and pd.isna(r["Heure_Arrivee"]) and pd.isna(r["Sec_Excel"]) else format_final_chrono(r["Calc_Sec"]) if pd.notna(r["Calc_Sec"]) and r["Calc_Sec"] > 0 else "No Time", axis=1)
                     df_hist = df_hist_base[["N°", "Nom_Prenom", "Voiture", "Groupe", "Classe", "Chrono_C1_Visual_Hist"]].rename(columns={"Chrono_C1_Visual_Hist": "Chrono", "Classe": "Cl"})
 
-            # --- SECURISATION DES CLASSEMENTS (SEULS LES CONCURRENTS D'ORIGINE RACB SONT CONSERVÉS) ---
+            # --- SECURISATION DES CLASSEMENTS ---
             valides = base[base["Calc_Sec"].notna() & (base["Calc_Sec"] > 0) & (base["Origine"] == "RACB")].copy()
             if len(valides) > 0:
                 scr = valides.sort_values(by="Calc_Sec").drop_duplicates(subset=["N°"], keep="first").copy()
