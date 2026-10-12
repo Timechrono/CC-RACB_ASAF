@@ -5,7 +5,7 @@ import os
 import requests
 import io
 
-# --- DESIGN UNIQUE ET VERROUILLAGE DES ARRIÈRES-PLANS ET DU SCROLL DE TABLEAU ---
+# --- DESIGN UNIQUE SÉCURISÉ POUR EMPÊCHER LES DOUBLONS ---
 CSS_RACB = """
 <style>
 [data-testid="stHeader"] { display: none !important; }
@@ -21,31 +21,6 @@ CSS_RACB = """
 .table-hist td:last-child {
     font-weight: bold !important;
     color: #0F172A !important;
-}
-
-/* ENROBAGE ET BLOCAGE PAR BARRES DE DEFILEMENT LOCALISÉES (SCROLL INNER CSS) */
-.div-scroll-local-historique {
-    height: 618px !important;
-    max-height: 618px !important;
-    overflow-y: auto !important;
-    margin-bottom: 0px !important;
-    width: 100% !important;
-    display: block !important;
-}
-.div-scroll-local-general {
-    max-height: 380px !important;
-    overflow-y: auto !important;
-    margin-bottom: 0px !important;
-    width: 100% !important;
-    display: block !important;
-}
-.div-scroll-local-classes {
-    max-height: 380px !important;
-    overflow-y: auto !important;
-    margin-top: 0px !important;
-    margin-bottom: 0px !important;
-    width: 100% !important;
-    display: block !important;
 }
 </style>
 """
@@ -120,6 +95,8 @@ def calculer_statut_chrono(row, est_dans_le_live=True):
         return temps_formate
     if "Heure_Depart" in row and pd.notna(row["Heure_Depart"]) and pd.isna(row.get("Heure_Arrivee")):
         return "<span class='vrai-gyrophare'>🚨</span> EN PISTE" if est_dans_le_live else "En Piste"
+    if ("Heure_Depart" in row and pd.isna(row["Heure_Depart"])) and ("Heure_Arrivee" in row and pd.isna(row["Heure_Arrivee"])):
+        return "Au départ"
     return "No Time"
 def generer_tableau_html(df, classe_specifique):
     if df.empty: 
@@ -138,12 +115,7 @@ def generer_tableau_html(df, classe_specifique):
             for col in df.columns: html += f"<td>{df.iloc[idx][col]}</td>"
             html += "</tr>"
         html += "</tbody></table>"
-        # Injection de la capsule scroll pour le classement par classe
-        return f"<div class='div-scroll-local-classes'>{html}</div>"
-
-    if classe_specifique == "table-class-robuste":
-        html_base = df.to_html(index=False, classes=f"table-compacte {classe_specifique}", escape=False, border=0)
-        return f"<div class='div-scroll-local-general'>{html_base}</div>"
+        return html
 
     return df.to_html(index=False, classes=f"table-compacte {classe_specifique}", escape=False, border=0)
 
@@ -158,7 +130,7 @@ def recuperer_donnees_course():
 
     t_live = "🏎️ EN DIRECT / Derniers concurrents partis"
     t_his = "🕒 HISTORIQUE DES TEMPS / 1er COURSE / Concurrents RACB"
-    t_haut = "🏆 CLASSEMENT GENERAL OFFICIEUX RACB"  # RECTIFICATION REPRISE DU TITRE SANS LE TOP 20
+    t_haut = "🏆 CLASSEMENT GENERAL OFFICIEUX RACB"
     t_milieu = "📊 CLASSEMENT OFFICIEUX PAR Groupe / Classe (Top 3)"
     t_bas = ""
     try:
@@ -247,7 +219,7 @@ def recuperer_donnees_course():
                 df_live_base["Arrivée_Brute"] = df_live_base["Heure_Arrivee"].apply(formater_heure_ecran)
                 df_live = df_live_base[["N°", "Nom_Prenom", "Voiture", "Départ_C1", "Arrivée_Brute", "Chrono"]].rename(columns={"Départ_C1": "Départ", "Arrivée_Brute": "Arrivée"})
 
-                # --- EXTRACTION HISTORIQUE ---
+                # --- EXTRACTION HISTORIQUE CLEAN ET STANDARD POUR DUPLICATION DE SCROLL ---
                 if len(base_chronologique_totale) > 5:
                     df_hist_brut = base_chronologique_totale.iloc[:-5].copy()
                     df_hist_base = df_hist_brut.sort_values(by="Ordre_Live", ascending=False).copy()
@@ -285,6 +257,7 @@ def recuperer_donnees_course():
                 df_divisions = df_final_grouped[["Pos", "N°", "Nom_Prenom", "Groupe", "Classe", "Chrono"]].rename(columns={"Classe": "Cl"}).copy()
     except Exception: pass
 
+    # NETTOYAGE ABSOLU DES EMBALLAGES : Sortie HTML épurée pure pour laisser app.py faire le routage de scroll local
     if not df_divisions.empty and "Cl" in df_divisions.columns and "Groupe" in df_divisions.columns:
         html_class_div = f"<table class='table-compacte table-class-robuste'><thead><tr>"
         for col in df_divisions.columns: html_class_div += f"<th>{col}</th>"
@@ -298,12 +271,9 @@ def recuperer_donnees_course():
             for col in df_divisions.columns: html_class_div += f"<td>{df_divisions.iloc[idx][col]}</td>"
             html_class_div += "</tr>"
         html_class_div += "</tbody></table>"
-        # Ajout du container de scroll local
-        html_class_div = f"<div class='div-scroll-local-classes'>{html_class_div}</div>"
     else:
         html_class_div = generer_tableau_html(df_divisions, "table-class-groupes")
 
-    # Injection du container de scroll local autour du tableau Historique
-    html_hist = CSS_RACB + f"<div class='div-scroll-local-historique'>{generer_tableau_html(df_hist, 'table-hist')}</div>"
+    html_hist = CSS_RACB + generer_tableau_html(df_hist, "table-hist")
 
     return df_live, html_hist, df_racb, html_class_div, pd.DataFrame(), t_live, t_his, t_haut, t_milieu, t_bas
