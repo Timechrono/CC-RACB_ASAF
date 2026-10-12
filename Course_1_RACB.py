@@ -33,8 +33,7 @@ HOTE_PROT = "".join(chr(x) for x in (C + D))
 FILE_ARRIVEE     = f"https://{HOTE_PROT}/scl/fi/7uu9cmlpzglx0ngvbklpt/LIVE_Temps_ARRIVEE.xlsm?rlkey=g9urz4v3jr36h0apzt45ognm6&dl=1"
 FILE_DEPART      = f"https://{HOTE_PROT}/scl/fi/gbkaq01qzjujc8nq3zj28/LIVE_Temps_DEPART.xlsm?rlkey=4x4rvvlfyzz8v59gqbxn80a4d&dl=1"
 FILE_ENGAGES     = f"https://{HOTE_PROT}/scl/fi/69zkwsb45bpiw3ys3kk4c/LIVE_Liste_ENGAGES_RACB.xlsm?rlkey=qpjrlmbxhcskifnabs84veqh8&dl=1"
-FILE_ENGAGES_ASAF = f"https://{HOTE_PROT}/scl/fi/wyof20d4bg4lbmnv0c7m5/LIVE_Liste_ENGAGES_ASAF.xlsm?rlkey=8q59lu88046nxu8mr8gs5ufvc&st=vny281ln&dl=1"
-
+FILE_ENGAGES_ASAF = f"https://{HOTE_PROT}/scl/fi/8g6u7asaf_placeholder.xlsm?rlkey=placeholder&dl=1"  # Mettez votre lien Dropbox ASAF ici
 
 @st.cache_data(ttl=10)
 def telecharger_excel(url):
@@ -101,12 +100,13 @@ def calculer_statut_chrono(row, est_dans_le_live=True):
         return "<span class='vrai-gyrophare'>🚨</span> EN PISTE" if est_dans_le_live else "En Piste"
     return "No Time"
 def generer_tableau_html(df, classe_specifique):
+    # AJOUT DU MESSAGE PERSONNALISÉ QUAND LE TABLEAU EST VIDE
     if df.empty: 
-        return f"<table class='table-compacte {classe_specifique}'><tr><td style='text-align: center; padding: 10px;'>En attente du départ...</td></tr></table>"
+        return f"<table class='table-compacte {classe_specifique}'><tr><td style='text-align: center; padding: 10px; font-style: italic; color: #64748B;'>En attente du départ...</td></tr></table>"
     
     if classe_specifique == "table-class-groupes" and "Classe" in df.columns and "Groupe" in df.columns:
         html = f"<table class='table-compacte table-class-robuste'><thead><tr>"
-        for col in df.columns: html += f"<th>{col}</th>"En attente du départ..."
+        for col in df.columns: html += f"<th>{col}</th>"
         html += "</tr></thead><tbody>"
         for idx in range(len(df)):
             classe_row = ""
@@ -144,7 +144,6 @@ def recuperer_donnees_course():
 
         df_eng_raw.columns = df_eng_raw.columns.astype(str).str.strip().str.upper()
         
-        # 1. RECUPERATION DES ENGAGÉS PRIORITAIRES RACB
         df_eng_racb = pd.DataFrame({
             "N°": df_eng_raw.iloc[:, 0].apply(nettoyer_numero), 
             "Nom_Prenom": df_eng_raw.iloc[:, 1].fillna("Pilote Inconnu").astype(str).str.strip(),
@@ -156,7 +155,6 @@ def recuperer_donnees_course():
         df_eng_racb = df_eng_racb[df_eng_racb["N°"] != "NAN"].drop_duplicates(subset=["N°"])
         liste_numeros_racb = set(df_eng_racb["N°"].tolist())
 
-        # 2. SECOURS OPTIONNEL SÉCURISÉ SANS BLOCAGE (TOLÉRANCE D'ABSENCE ASAF)
         try:
             flux_eng_asaf = telecharger_excel(FILE_ENGAGES_ASAF)
             df_eng_asaf_raw = pd.read_excel(flux_eng_asaf, skiprows=1, engine='openpyxl')
@@ -215,21 +213,18 @@ def recuperer_donnees_course():
                 base_c1 = base[base["Heure_Depart"].notna()].copy(); base_c1["Ordre_Live"] = range(len(base_c1))
                 base_chronologique_totale = base_c1.sort_values(by="Ordre_Live", ascending=True).copy()
                 
-                # --- EXTRACTION DIRECT ---
                 df_live_base = base_chronologique_totale.tail(5).copy()
                 df_live_base = df_live_base.sort_values(by="Ordre_Live", ascending=False)
                 df_live_base["Chrono"] = df_live_base.apply(lambda r: calculer_statut_chrono(r, est_dans_le_live=True), axis=1)
                 df_live_base["Arrivée_Brute"] = df_live_base["Heure_Arrivee"].apply(formater_heure_ecran)
                 df_live = df_live_base[["N°", "Nom_Prenom", "Voiture", "Départ_C1", "Arrivée_Brute", "Chrono"]].rename(columns={"Départ_C1": "Départ", "Arrivée_Brute": "Arrivée"})
 
-                # --- EXTRACTION HISTORIQUE (AVEC FILTRE DEVERREMENT EXCLUSIF TOP 5) ---
                 if len(base_chronologique_totale) > 5:
                     df_hist_brut = base_chronologique_totale.iloc[:-5].copy()
                     df_hist_base = df_hist_brut.sort_values(by="Ordre_Live", ascending=False).copy()
                     df_hist_base["Chrono_C1_Visual_Hist"] = df_hist_base.apply(lambda r: "En Piste" if pd.notna(r["Heure_Depart"]) and pd.isna(r["Heure_Arrivee"]) and pd.isna(r["Sec_Excel"]) else format_final_chrono(r["Calc_Sec"]) if pd.notna(r["Calc_Sec"]) and r["Calc_Sec"] > 0 else "No Time", axis=1)
                     df_hist = df_hist_base[["N°", "Nom_Prenom", "Voiture", "Groupe", "Classe", "Chrono_C1_Visual_Hist"]].rename(columns={"Chrono_C1_Visual_Hist": "Chrono", "Classe": "Cl"})
 
-            # --- CALCUL CLASSEMENTS : FILTRAGE ABSOLU DE SÉCURITÉ CONTRE LES PILOTES DU SECOURS ASAF ---
             valides = base[base["Calc_Sec"].notna() & (base["Calc_Sec"] > 0) & (base["Origine"] == "RACB")].copy()
             if len(valides) > 0:
                 scr = valides.sort_values(by="Calc_Sec").drop_duplicates(subset=["N°"], keep="first").copy()
