@@ -5,9 +5,10 @@ import os
 import requests
 import io
 
-# --- DESIGN MINIMALISTE ET ASSURANCE DU CHRONO EN GRAS DANS L'HISTORIQUE ---
+# --- DESIGN UNIQUE SÉCURISÉ POUR EMPÊCHER LES DOUBLONS ---
 CSS_RACB = """
 <style>
+[data-testid="stHeader"] { display: none !important; }
 .vrai-gyrophare {
     display: inline-block;
     margin-right: 6px;
@@ -24,20 +25,20 @@ CSS_RACB = """
 </style>
 """
 
-# --- CONFIGURATION DROPBOX ---
+# --- LIENS DROPBOX ---
 C = [100, 108, 46, 100, 114, 111, 112, 98, 111, 120, 117, 115, 101, 114]
 D = [99, 111, 110, 116, 101, 110, 116, 46, 99, 111, 109]
 HOTE_PROT = "".join(chr(x) for x in (C + D))
 
-FILE_ARRIVEE     = f"ht" + f"tps://{HOTE_PROT}/scl/fi/7uu9cmlpzglx0ngvbklpt/LIVE_Temps_ARRIVEE.xlsm?rlkey=g9urz4v3jr36h0apzt45ognm6&st=0d9mpgfw&dl=1"
-FILE_DEPART      = f"ht" + f"tps://{HOTE_PROT}/scl/fi/gbkaq01qzjujc8nq3zj28/LIVE_Temps_DEPART.xlsm?rlkey=4x4rvvlfyzz8v59gqbxn80a4d&st=mcibn3xx&dl=1"
-FILE_ENGAGES     = f"ht" + f"tps://{HOTE_PROT}/scl/fi/69zkwsb45bpiw3ys3kk4c/LIVE_Liste_ENGAGES_RACB.xlsm?rlkey=qpjrlmbxhcskifnabs84veqh8&st=0snuv3e7&dl=1"
-FILE_ENGAGES_ASAF = f"ht" + f"tps://{HOTE_PROT}/scl/fi/69zkwsb45bpiw3ys3kk4c/LIVE_Liste_ENGAGES_ASAF.xlsm?rlkey=qpjrlmbxhcskifnabs84veqh8&st=0snuv3e7&dl=1"  # Remplacer par votre vrai lien Dropbox ASAF
+FILE_ARRIVEE     = f"https://{HOTE_PROT}/scl/fi/7uu9cmlpzglx0ngvbklpt/LIVE_Temps_ARRIVEE.xlsm?rlkey=g9urz4v3jr36h0apzt45ognm6&dl=1"
+FILE_DEPART      = f"https://{HOTE_PROT}/scl/fi/gbkaq01qzjujc8nq3zj28/LIVE_Temps_DEPART.xlsm?rlkey=4x4rvvlfyzz8v59gqbxn80a4d&dl=1"
+FILE_ENGAGES     = f"https://{HOTE_PROT}/scl/fi/69zkwsb45bpiw3ys3kk4c/LIVE_Liste_ENGAGES_RACB.xlsm?rlkey=qpjrlmbxhcskifnabs84veqh8&dl=1"
+FILE_ENGAGES_ASAF = f"https://{HOTE_PROT}/scl/fi/8g6u7asaf_placeholder.xlsm?rlkey=placeholder&dl=1"  # Mettez votre lien Dropbox ASAF ici
 
-@st.cache_data(ttl=15)
+@st.cache_data(ttl=10)
 def telecharger_excel(url):
     entetes = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'}
-    reponse = requests.get(url, headers=entetes, timeout=12)
+    reponse = requests.get(url, headers=entetes, timeout=10)
     reponse.raise_for_status()
     return io.BytesIO(reponse.content)
 def convertir_en_secondes(valeur):
@@ -133,19 +134,16 @@ def recuperer_donnees_course():
     t_bas = ""
     try:
         flux_eng = telecharger_excel(FILE_ENGAGES)
-        flux_eng_asaf = telecharger_excel(FILE_ENGAGES_ASAF)
         flux_dep = telecharger_excel(FILE_DEPART)
         flux_arr = telecharger_excel(FILE_ARRIVEE)
         
         df_eng_raw = pd.read_excel(flux_eng, skiprows=1, engine='openpyxl')
-        df_eng_asaf_raw = pd.read_excel(flux_eng_asaf, skiprows=1, engine='openpyxl')
         df_dep_raw = pd.read_excel(flux_dep, header=None, engine='openpyxl')
         df_arr_raw = pd.read_excel(flux_arr, header=None, engine='openpyxl')
 
         df_eng_raw.columns = df_eng_raw.columns.astype(str).str.strip().str.upper()
-        df_eng_asaf_raw.columns = df_eng_asaf_raw.columns.astype(str).str.strip().str.upper()
         
-        # 1. BASE DE DONNÉES PRIORITAIRE RACB
+        # 1. RECUPERATION DES ENGAGÉS PRIORITAIRES RACB
         df_eng_racb = pd.DataFrame({
             "N°": df_eng_raw.iloc[:, 0].apply(nettoyer_numero), 
             "Nom_Prenom": df_eng_raw.iloc[:, 1].fillna("Pilote Inconnu").astype(str).str.strip(),
@@ -157,20 +155,25 @@ def recuperer_donnees_course():
         df_eng_racb = df_eng_racb[df_eng_racb["N°"] != "NAN"].drop_duplicates(subset=["N°"])
         liste_numeros_racb = set(df_eng_racb["N°"].tolist())
 
-        # 2. BASE DE DONNÉES DE SECOURS ASAF
-        df_eng_asaf = pd.DataFrame({
-            "N°": df_eng_asaf_raw.iloc[:, 0].apply(nettoyer_numero), 
-            "Nom_Prenom": df_eng_asaf_raw.iloc[:, 1].fillna("Pilote Inconnu").astype(str).str.strip(),
-            "Voiture": df_eng_asaf_raw.iloc[:, 4].fillna("").astype(str).str.strip(),
-            "Groupe": df_eng_asaf_raw.iloc[:, 5].apply(lambda x: "-" if pd.isna(x) else str(x).strip()[:-2] if str(x).strip().endswith(".0") else str(x).strip()),
-            "Classe": df_eng_asaf_raw.iloc[:, 6].fillna("-").astype(str).str.strip().apply(lambda x: x[:-2] if x.endswith(".0") else x),
-            "Origine": "ASAF"
-        })
-        df_eng_asaf = df_eng_asaf[df_eng_asaf["N°"] != "NAN"].drop_duplicates(subset=["N°"])
-        
-        # JONCTION INTELLIGENTE : On ne prend l'ASAF que si le numéro n'existe pas chez RACB
-        df_eng_asaf_filtre = df_eng_asaf[~df_eng_asaf["N°"].isin(liste_numeros_racb)].copy()
-        df_eng = pd.concat([df_eng_racb, df_eng_asaf_filtre], ignore_index=True)
+        # 2. SECOURS OPTIONNEL SÉCURISÉ SANS BLOCAGE (TOLÉRANCE D'ABSENCE ASAF)
+        try:
+            flux_eng_asaf = telecharger_excel(FILE_ENGAGES_ASAF)
+            df_eng_asaf_raw = pd.read_excel(flux_eng_asaf, skiprows=1, engine='openpyxl')
+            df_eng_asaf_raw.columns = df_eng_asaf_raw.columns.astype(str).str.strip().str.upper()
+            df_eng_asaf = pd.DataFrame({
+                "N°": df_eng_asaf_raw.iloc[:, 0].apply(nettoyer_numero), 
+                "Nom_Prenom": df_eng_asaf_raw.iloc[:, 1].fillna("Pilote Inconnu").astype(str).str.strip(),
+                "Voiture": df_eng_asaf_raw.iloc[:, 4].fillna("").astype(str).str.strip(),
+                "Groupe": df_eng_asaf_raw.iloc[:, 5].apply(lambda x: "-" if pd.isna(x) else str(x).strip()[:-2] if str(x).strip().endswith(".0") else str(x).strip()),
+                "Classe": df_eng_asaf_raw.iloc[:, 6].fillna("-").astype(str).str.strip().apply(lambda x: x[:-2] if x.endswith(".0") else x),
+                "Origine": "ASAF"
+            })
+            df_eng_asaf = df_eng_asaf[df_eng_asaf["N°"] != "NAN"].drop_duplicates(subset=["N°"])
+            df_eng_asaf_exclusif = df_eng_asaf[~df_eng_asaf["N°"].isin(liste_numeros_racb)].copy()
+            df_eng = pd.concat([df_eng_racb, df_eng_asaf_exclusif], ignore_index=True)
+        except Exception:
+            df_eng = df_eng_racb.copy()
+
         tous_numeros_autorises = set(df_eng["N°"].tolist())
 
         idx_dep_1, idx_arr_1 = None, None
@@ -211,19 +214,21 @@ def recuperer_donnees_course():
                 base_c1 = base[base["Heure_Depart"].notna()].copy(); base_c1["Ordre_Live"] = range(len(base_c1))
                 base_chronologique_totale = base_c1.sort_values(by="Ordre_Live", ascending=True).copy()
                 
+                # --- EXTRACTION DIRECT ---
                 df_live_base = base_chronologique_totale.tail(5).copy()
                 df_live_base = df_live_base.sort_values(by="Ordre_Live", ascending=False)
                 df_live_base["Chrono"] = df_live_base.apply(lambda r: calculer_statut_chrono(r, est_dans_le_live=True), axis=1)
                 df_live_base["Arrivée_Brute"] = df_live_base["Heure_Arrivee"].apply(formater_heure_ecran)
                 df_live = df_live_base[["N°", "Nom_Prenom", "Voiture", "Départ_C1", "Arrivée_Brute", "Chrono"]].rename(columns={"Départ_C1": "Départ", "Arrivée_Brute": "Arrivée"})
 
+                # --- EXTRACTION HISTORIQUE (AVEC FILTRE DEVERREMENT EXCLUSIF TOP 5) ---
                 if len(base_chronologique_totale) > 5:
                     df_hist_brut = base_chronologique_totale.iloc[:-5].copy()
                     df_hist_base = df_hist_brut.sort_values(by="Ordre_Live", ascending=False).copy()
                     df_hist_base["Chrono_C1_Visual_Hist"] = df_hist_base.apply(lambda r: "En Piste" if pd.notna(r["Heure_Depart"]) and pd.isna(r["Heure_Arrivee"]) and pd.isna(r["Sec_Excel"]) else format_final_chrono(r["Calc_Sec"]) if pd.notna(r["Calc_Sec"]) and r["Calc_Sec"] > 0 else "No Time", axis=1)
                     df_hist = df_hist_base[["N°", "Nom_Prenom", "Voiture", "Groupe", "Classe", "Chrono_C1_Visual_Hist"]].rename(columns={"Chrono_C1_Visual_Hist": "Chrono", "Classe": "Cl"})
 
-            # --- VERROU DE SÉCURITÉ DES CLASSEMENTS : EXCLUSION RADICALE DES CONCURRENTS COMPORTANT L'ORIGINE 'ASAF' ---
+            # --- CALCUL CLASSEMENTS : FILTRAGE ABSOLU DE SÉCURITÉ CONTRE LES PILOTES DU SECOURS ASAF ---
             valides = base[base["Calc_Sec"].notna() & (base["Calc_Sec"] > 0) & (base["Origine"] == "RACB")].copy()
             if len(valides) > 0:
                 scr = valides.sort_values(by="Calc_Sec").drop_duplicates(subset=["N°"], keep="first").copy()
@@ -242,7 +247,6 @@ def recuperer_donnees_course():
                 
                 df_final_grouped["Pos"] = df_final_grouped.groupby(["Groupe_Num", "Classe_Num"]).cumcount() + 1
                 df_final_grouped["Chrono"] = df_final_grouped["Calc_Sec"].apply(format_final_chrono)
-                
                 df_divisions = df_final_grouped[["Pos", "N°", "Nom_Prenom", "Groupe", "Classe", "Chrono"]].rename(columns={"Classe": "Cl"}).copy()
     except Exception: pass
 
