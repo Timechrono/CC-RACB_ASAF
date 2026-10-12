@@ -23,7 +23,7 @@ t_bas = ""
 # ==============================================================================
 # ⚠️ METTEZ VOTRE LIEN DROPBOX ICI (Assurez-vous qu'il se termine bien par dl=1)
 # ==============================================================================
-LIEN_DROPBOX_LOGO = "https://dropbox.com"
+LIEN_DROPBOX_LOGO = "https://www.dropbox.com/scl/fi/hi24fjo0vbal4oiiwt9jl/logo-TimeC.png?rlkey=xlw0oqk9gdnq6v5dgahi0klg0&st=y86yrn6y&dl=1"
 
 # --- DÉTECTION DES SCRIPTS DE COURSE DISPONIBLES ---
 try:
@@ -125,7 +125,7 @@ div.stElementContainer {{
     margin-top: 15px !important;
 }}
 
-/* BOÎTES DE SCROLL INTERNES CLOISONNÉES */
+/* BOÎTES DE SCROLL INTERNES CLOISONNÉES AUTONOMES */
 .div-scroll-local-historique {{
     height: 480px !important;
     max-height: 480px !important;
@@ -212,7 +212,7 @@ def gen_html(df, cl):
     else:
         phrase_attente = "En attente du départ..."
 
-    # RECONNAISSANCE CHIRURGICALE POUR FORCER LE SCROLL SUR GROUPE / CLASSE
+    # RECONNAISSANCE CHIRURGICALE POUR FORCER LE SCROLL SUR GROUPE / CLASSE SANS CONFLIT
     if cl == "table-class-groupes" or cl == "table-class-classes":
         cl = "table-class-groupes"
 
