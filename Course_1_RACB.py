@@ -17,7 +17,6 @@ CSS_RACB = """
 .table-hist tr:nth-child(odd) td {
     background-color: #E0F2FE !important;
 }
-/* RECTIFICATION : On applique uniquement le gras, la taille s'adaptera seule sur PC et Smartphone */
 .table-hist td:last-child {
     font-weight: bold !important;
     color: #0F172A !important;
@@ -34,14 +33,12 @@ FILE_ARRIVEE = f"ht" + f"tps://{HOTE_PROT}/scl/fi/7uu9cmlpzglx0ngvbklpt/LIVE_Tem
 FILE_DEPART  = f"ht" + f"tps://{HOTE_PROT}/scl/fi/gbkaq01qzjujc8nq3zj28/LIVE_Temps_DEPART.xlsm?rlkey=4x4rvvlfyzz8v59gqbxn80a4d&st=mcibn3xx&dl=1"
 FILE_ENGAGES = f"ht" + f"tps://{HOTE_PROT}/scl/fi/69zkwsb45bpiw3ys3kk4c/LIVE_Liste_ENGAGES_RACB.xlsm?rlkey=qpjrlmbxhcskifnabs84veqh8&st=0snuv3e7&dl=1"
 
-# SÉCURISATION BRIDAGE : 10 secondes maximum pour protéger Dropbox contre les blocages de 11h
 @st.cache_data(ttl=15)
 def telecharger_excel(url):
     entetes = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'}
     reponse = requests.get(url, headers=entetes, timeout=12)
     reponse.raise_for_status()
     return io.BytesIO(reponse.content)
-
 def convertir_en_secondes(valeur):
     if pd.isna(valeur) or valeur is None: return None
     if isinstance(valeur, pd.Timedelta): return valeur.total_seconds()
@@ -91,22 +88,19 @@ def calculer_statut_chrono(row, est_dans_le_live=True):
     if "Calc_Sec" in row and pd.notna(row["Calc_Sec"]) and row["Calc_Sec"] > 0:
         temps_formate = format_final_chrono(row["Calc_Sec"])
         if est_dans_le_live:
-            # STYLE EN PARFAITE CONFORMITÉ : Coche universelle verte, ou rouge si > 4 minutes (240 secondes)
             if row["Calc_Sec"] > 240:
-                coche = "<span style='color: #DC2626; font-weight: bold;'>✔</span>"
+                coche = "<span style='color: #DC2626; font-weight: bold;'>✓</span>"
             else:
-                coche = "<span style='color: #16A34A; font-weight: bold;'>✔</span>"
+                coche = "<span style='color: #16A34A; font-weight: bold;'>✓</span>"
             return f"{temps_formate}&nbsp;&nbsp;&nbsp;{coche}"
         return temps_formate
     if "Heure_Depart" in row and pd.notna(row["Heure_Depart"]) and pd.isna(row.get("Heure_Arrivee")):
         return "<span class='vrai-gyrophare'>🚨</span> EN PISTE" if est_dans_le_live else "En Piste"
     return "No Time"
-# fin bloc 1
 def generer_tableau_html(df, classe_specifique):
     if df.empty: 
         return f"<table class='table-compacte {classe_specifique}'><tr><td style='text-align: center; padding: 10px;'>Aucune donnée disponible</td></tr></table>"
     
-    # REPRISE DE VOTRE BOUCLE TECHNIQUE NATIVE ET ROBUSTE DE CONFIANCE
     if classe_specifique == "table-class-groupes" and "Classe" in df.columns and "Groupe" in df.columns:
         html = f"<table class='table-compacte table-class-robuste'><thead><tr>"
         for col in df.columns: html += f"<th>{col}</th>"
@@ -136,7 +130,6 @@ def recuperer_donnees_course():
     t_haut = "🏆 CLASSEMENT GENERAL OFFICIEUX RACB (Top 20)"
     t_milieu = "📊 CLASSEMENT OFFICIEUX PAR Groupe / Classe (Top 3)"
     t_bas = ""
-
     try:
         flux_eng = telecharger_excel(FILE_ENGAGES)
         flux_dep = telecharger_excel(FILE_DEPART)
@@ -194,15 +187,23 @@ def recuperer_donnees_course():
 
             if "Heure_Depart" in base.columns and base["Heure_Depart"].notna().any():
                 base_c1 = base[base["Heure_Depart"].notna()].copy(); base_c1["Ordre_Live"] = range(len(base_c1))
-                df_live_base = base_c1.sort_values(by="Ordre_Live", ascending=False).head(5).copy()
+                base_chronologique_totale = base_c1.sort_values(by="Ordre_Live", ascending=True).copy()
+                
+                # --- CALCUL EXTRACTEUR EN DIRECT (TOP 5 DES DERNIERS PARTIS) ---
+                df_live_base = base_chronologique_totale.tail(5).copy()
+                df_live_base = df_live_base.sort_values(by="Ordre_Live", ascending=False)
                 df_live_base["Chrono"] = df_live_base.apply(lambda r: calculer_statut_chrono(r, est_dans_le_live=True), axis=1)
                 df_live_base["Arrivée_Brute"] = df_live_base["Heure_Arrivee"].apply(formater_heure_ecran)
                 df_live = df_live_base[["N°", "Nom_Prenom", "Voiture", "Départ_C1", "Arrivée_Brute", "Chrono"]].rename(columns={"Départ_C1": "Départ", "Arrivée_Brute": "Arrivée"})
 
-            base["Chrono_C1_Visual_Hist"] = base.apply(lambda r: "En Piste" if pd.notna(r["Heure_Depart"]) and pd.isna(r["Heure_Arrivee"]) and pd.isna(r["Sec_Excel"]) else format_final_chrono(r["Calc_Sec"]) if pd.notna(r["Calc_Sec"]) and r["Calc_Sec"] > 0 else "No Time", axis=1)
-            base["Ordre_Saisie"] = range(len(base))
-            df_hist = base.sort_values(by="Ordre_Saisie", ascending=False)[["N°", "Nom_Prenom", "Voiture", "Groupe", "Classe", "Chrono_C1_Visual_Hist"]].rename(columns={"Chrono_C1_Visual_Hist": "Chrono", "Classe": "Cl"})
+                # --- UNIFICATION DU FLUX : EXCLUSION VISUELLE DU TOP 5 DIRECT DANS L'HISTORIQUE ---
+                if len(base_chronologique_totale) > 5:
+                    df_hist_brut = base_chronologique_totale.iloc[:-5].copy()
+                    df_hist_base = df_hist_brut.sort_values(by="Ordre_Live", ascending=False).copy()
+                    df_hist_base["Chrono_C1_Visual_Hist"] = df_hist_base.apply(lambda r: "En Piste" if pd.notna(r["Heure_Depart"]) and pd.isna(r["Heure_Arrivee"]) and pd.isna(r["Sec_Excel"]) else format_final_chrono(r["Calc_Sec"]) if pd.notna(r["Calc_Sec"]) and r["Calc_Sec"] > 0 else "No Time", axis=1)
+                    df_hist = df_hist_base[["N°", "Nom_Prenom", "Voiture", "Groupe", "Classe", "Chrono_C1_Visual_Hist"]].rename(columns={"Chrono_C1_Visual_Hist": "Chrono", "Classe": "Cl"})
 
+            # --- SÉCURITÉ INTÉGRALE : LE CLASSEMENT EXTRAIT DE LA VARIABLE BASE SANS SOUSTRACTION DU TOP 5 ---
             valides = base[base["Calc_Sec"].notna() & (base["Calc_Sec"] > 0)].copy()
             if len(valides) > 0:
                 scr = valides.sort_values(by="Calc_Sec").drop_duplicates(subset=["N°"], keep="first").copy()
@@ -225,7 +226,6 @@ def recuperer_donnees_course():
                 df_divisions = df_final_grouped[["Pos", "N°", "Nom_Prenom", "Groupe", "Classe", "Chrono"]].rename(columns={"Classe": "Cl"}).copy()
     except Exception: pass
 
-    # Rétablissement de la classe sur la ligne (tr)
     if not df_divisions.empty and "Cl" in df_divisions.columns and "Groupe" in df_divisions.columns:
         html_class_div = f"<table class='table-compacte table-class-robuste'><thead><tr>"
         for col in df_divisions.columns: html_class_div += f"<th>{col}</th>"
@@ -233,7 +233,6 @@ def recuperer_donnees_course():
         for idx in range(len(df_divisions)):
             classe_row = ""
             if idx < len(df_divisions) - 1:
-                # Si le groupe ou la classe change à la ligne suivante, on marque cette ligne
                 if df_divisions.iloc[idx]["Cl"] != df_divisions.iloc[idx + 1]["Cl"] or df_divisions.iloc[idx]["Groupe"] != df_divisions.iloc[idx + 1]["Groupe"]:
                     classe_row = "class='ligne-bleue-separation'"
             html_class_div += f"<tr {classe_row}>"
