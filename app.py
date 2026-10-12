@@ -125,7 +125,7 @@ div.stElementContainer {{
     margin-top: 15px !important;
 }}
 
-/* BOÎTES DE SCROLL INTERNES CLOISONNÉES AUTONOMES */
+/* BOÎTES DE SCROLL INTERNES CLOISONNÉES AUTONOMES COORDONNÉES */
 .div-scroll-local-historique {{
     height: 480px !important;
     max-height: 480px !important;
@@ -207,15 +207,12 @@ tr.ligne-separation-classe td, .table-compacte tr.ligne-separation-classe td {{ 
 def gen_html(df, cl):
     if cl == "table-hist":
         phrase_attente = "En attente d'arrivée..."
-    elif cl in ["table-class-robuste", "table-class-groupes"]:
+    elif cl in ["table-class-robuste", "table-class-groupes", "table-class-milieu"]:
         phrase_attente = "En attente du premier classé RACB..." if "RACB" in choix_course.upper() else "En attente du premier classé ASAF..." if "ASAF" in choix_course.upper() else "En attente du premier classé..."
     else:
         phrase_attente = "En attente du départ..."
 
-    # RECONNAISSANCE CHIRURGICALE POUR FORCER LE SCROLL SUR GROUPE / CLASSE SANS CONFLIT
-    if cl == "table-class-groupes" or cl == "table-class-classes":
-        cl = "table-class-groupes"
-
+    # REPRISE DE L'AIGUILLAGE PAR NATURE EXPLICITE DU TEXTE INTERCEPTÉ (ROUTAGE FORCE DE SCROLL)
     if isinstance(df, str):
         if "<TABLE" in df.upper() and "</TABLE>" in df.upper():
             debut = df.upper().find("<TABLE")
@@ -224,11 +221,12 @@ def gen_html(df, cl):
             
             if cl == "table-hist":
                 return f"<div class='div-scroll-local-historique'>{tableau_propre}</div>"
-            elif cl == "table-class-groupes":
+            elif cl == "table-class-milieu":
+                # Forçage absolu vers la boîte des groupes/classes
                 return f"<div class='div-scroll-local-classes'>{tableau_propre}</div>"
             else:
-                # Si la chaîne contient les en-têtes du groupe/classe on force le routage vers sa boîte de scroll
-                if "GROUPE" in tableau_propre.upper() and "CL" in tableau_propre.upper():
+                # Double vérification si le script d'origine envoie une classe générique pour le milieu
+                if "LIGNE-BLEUE-SEPARATION" in tableau_propre.upper() or ("GROUPE" in tableau_propre.upper() and "CL" in tableau_propre.upper() and "POS" in tableau_propre.upper()):
                     return f"<div class='div-scroll-local-classes'>{tableau_propre}</div>"
                 return f"<div class='div-scroll-local-general'>{tableau_propre}</div>"
                 
@@ -243,7 +241,7 @@ def gen_html(df, cl):
         return f"<div class='div-scroll-local-historique'>{html_table}</div>"
     elif cl == "table-class-robuste":
         return f"<div class='div-scroll-local-general'>{html_table}</div>"
-    elif cl == "table-class-groupes":
+    elif cl == "table-class-groupes" or cl == "table-class-milieu":
         return f"<div class='div-scroll-local-classes'>{html_table}</div>"
         
     return f"<div class='table-responsive-container'>{html_table}</div>"
@@ -306,7 +304,8 @@ with cd:
             st.markdown(gen_html(d_haut, "table-class-robuste"), unsafe_allow_html=True)
         if t_milieu:
             st.markdown(f"<span class='titre-classement espace-classement-suivant'>{t_milieu}</span>", unsafe_allow_html=True)
-            st.markdown(gen_html(d_milieu, "table-class-groupes"), unsafe_allow_html=True)
+            # ROUTAGE FORCE EN POSITION STATIQUE PAR ETAPE DU MILIEU
+            st.markdown(gen_html(d_milieu, "table-class-milieu"), unsafe_allow_html=True)
         if t_bas:
             st.markdown(f"<span class='titre-classement espace-classement-suivant'>{t_bas}</span>", unsafe_allow_html=True)
             st.markdown(gen_html(d_bas, "table-class-robuste"), unsafe_allow_html=True)
