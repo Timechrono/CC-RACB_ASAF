@@ -16,7 +16,7 @@ d_bas = pd.DataFrame()
 
 t_live = "🏎️ EN DIRECT / Derniers concurrents partis"
 t_his = "🕒 HISTORIQUE DES TEMPS / 1er COURSE / Concurrents RACB"
-t_haut = "🏆 CLASSEMENT GENERAL OFFICIEUX RACB (Top 20)"
+t_haut = "🏆 CLASSEMENT GENERAL OFFICIEUX RACB"  # RECTIFICATION DU TITRE GENERAL ICI
 t_milieu = "📊 CLASSEMENT OFFICIEUX PAR Groupe / Classe (Top 3)"
 t_bas = ""
 
@@ -121,10 +121,26 @@ div.stElementContainer {{
     margin-top: 25px !important;
 }}
 
+/* RECTIFICATION : DEFINITION DES SCROLLS LOCAUX SUR LES BOITES ASSOCIEES */
+.div-scroll-local-historique {{
+    height: 618px !important;
+    max-height: 618px !important;
+    overflow-y: auto !important;
+    width: 100% !important;
+}}
+.div-scroll-local-general {{
+    max-height: 380px !important;
+    overflow-y: auto !important;
+    width: 100% !important;
+}}
+.div-scroll-local-classes {{
+    max-height: 380px !important;
+    overflow-y: auto !important;
+    width: 100% !important;
+}}
+
 .table-responsive-container {{
     width: 100% !important;
-    overflow-x: auto !important;
-    -webkit-overflow-scrolling: touch !important;
     margin-bottom: 10px !important;
 }}
 
@@ -170,7 +186,6 @@ div.stElementContainer {{
     .titre-live, .titre-hist, .titre-classement {{ font-size: 0.85rem !important; padding: 3px 6px !important; }}
     .table-compacte th, .table-compacte td {{ font-size: 0.65rem !important; padding: 1px 2px !important; }}
     
-    /* Limite la colonne Groupe ou Gr/Div à 4 caractères max sur mobile */
     .table-hist td:nth-child(4) {{
         max-width: 32px !important;
         overflow: hidden !important;
@@ -178,7 +193,6 @@ div.stElementContainer {{
         white-space: nowrap !important;
     }}
     
-    /* MODIFICATION GLOBALE PRIORITAIRE SMARTPHONE : Limite la colonne Voiture (3e colonne) */
     .table-compacte td:nth-child(3), table td:nth-child(3) {{
         max-width: 60px !important;
         overflow: hidden !important;
@@ -191,18 +205,15 @@ div.stElementContainer {{
     .logo-signature {{ height: 32px !important; }}
 }}
 
-/* Force la ligne bleue sur le BAS des cellules */
 .table-class-robuste tr.ligne-bleue-separation td {{
     box-shadow: inset 0 -3px 0 0 #1E3A8A !important;
 }}
-/* Forçage de la ligne de séparation de classe ASAF */
 tr.ligne-separation-classe td, .table-compacte tr.ligne-separation-classe td {{ 
     box-shadow: inset 0 -3px 0 0 #1E3A8A !important; 
 }}
 </style>
 """, unsafe_allow_html=True)
 def gen_html(df, cl):
-    # DÉFINITION UNIQUE DU TEXTE D'ATTENTE SELON LA MANCHE SELECTIONNÉE VIA L'URL
     if cl == "table-hist":
         phrase_attente = "En attente d'arrivée..."
     elif cl in ["table-class-robuste", "table-class-groupes"]:
@@ -210,17 +221,33 @@ def gen_html(df, cl):
     else:
         phrase_attente = "En attente du départ..."
 
-    # CAS A : Si le script de course renvoie directement le tableau HTML pré-calculé (comme html_hist ou html_class_div)
+    # CAS A : Si le script de course renvoie directement la structure HTML du tableau
     if isinstance(df, str):
         if "TABLE-COMPACTE" in df.upper() and "TR" in df.upper():
-            return df  # Si c'est du HTML de tableau valide généré par la manche, on le laisse passer directement !
+            # Injection des fenêtres de défilement locales sur le code HTML intercepté
+            if cl == "table-hist":
+                return f"<div class='div-scroll-local-historique'>{df}</div>"
+            elif cl == "table-class-robuste":
+                return f"<div class='div-scroll-local-general'>{df}</div>"
+            elif cl == "table-class-groupes":
+                return f"<div class='div-scroll-local-classes'>{df}</div>"
+            return df  
         return f"<div class='table-responsive-container'><table class='table-compacte {cl}'><tr><td style='text-align: center; padding: 10px; font-style: italic; color: #64748B;'>{phrase_attente}</td></tr></table></div>"
 
-    # CAS B : Si le DataFrame est None ou vide
+    # CAS B : Si le DataFrame est vide
     if df is None or (isinstance(df, pd.DataFrame) and df.empty): 
         return f"<div class='table-responsive-container'><table class='table-compacte {cl}'><tr><td style='text-align: center; padding: 10px; font-style: italic; color: #64748B;'>{phrase_attente}</td></tr></table></div>"
     
     html_table = df.to_html(index=False, classes=f"table-compacte {cl}", escape=False, border=0)
+    
+    # Injection des fenêtres de défilement locales sur les DataFrames bruts
+    if cl == "table-hist":
+        return f"<div class='div-scroll-local-historique'><div class='table-responsive-container'>{html_table}</div></div>"
+    elif cl == "table-class-robuste":
+        return f"<div class='div-scroll-local-general'><div class='table-responsive-container'>{html_table}</div></div>"
+    elif cl == "table-class-groupes":
+        return f"<div class='div-scroll-local-classes'><div class='table-responsive-container'>{html_table}</div></div>"
+        
     return f"<div class='table-responsive-container'>{html_table}</div>"
 
 # --- LECTURE DU PARAMÈTRE DE COURSE DEPUIS L'URL ---
@@ -264,6 +291,10 @@ except Exception as e:
 # Ajustement forcé des largeurs de colonnes de l'Historique en mode Ordinateur
 st.markdown("<style>@media (min-width: 769px) { .table-hist th:nth-child(1), .table-hist td:nth-child(1) { width: 8% !important; } .table-hist th:nth-child(2), .table-hist td:nth-child(2) { width: 32% !important; } .table-hist th:nth-child(3), .table-hist td:nth-child(3) { width: 28% !important; } .table-hist th:nth-child(4), .table-hist td:nth-child(4) { width: 10% !important; } .table-hist th:nth-child(5), .table-hist td:nth-child(5) { width: 5% !important; } .table-hist th:nth-child(6), .table-hist td:nth-child(6) { width: 17% !important; } }</style>", unsafe_allow_html=True)
 
+# FORCE LE TITRE GLOBAL DU CLASSEMENT SANS LA MENTION TOP 20
+if t_haut and "TOP 20" in t_haut.upper():
+    t_haut = "🏆 CLASSEMENT GENERAL OFFICIEUX RACB"
+
 cg, cd = st.columns([1.3, 0.9])
 with cg:
     conteneur_titre_live = st.empty()
@@ -279,7 +310,7 @@ with cd:
             st.markdown(gen_html(d_haut, "table-class-robuste"), unsafe_allow_html=True)
         if t_milieu:
             st.markdown(f"<span class='titre-classement espace-classement-suivant'>{t_milieu}</span>", unsafe_allow_html=True)
-            st.markdown(gen_html(d_milieu, "table-class-robuste"), unsafe_allow_html=True)
+            st.markdown(gen_html(d_milieu, "table-class-groupes"), unsafe_allow_html=True)
         if t_bas:
             st.markdown(f"<span class='titre-classement espace-classement-suivant'>{t_bas}</span>", unsafe_allow_html=True)
             st.markdown(gen_html(d_bas, "table-class-robuste"), unsafe_allow_html=True)
