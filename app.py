@@ -16,14 +16,14 @@ d_bas = pd.DataFrame()
 
 t_live = "🏎️ EN DIRECT / Derniers concurrents partis"
 t_his = "🕒 HISTORIQUE DES TEMPS / 1er COURSE / Concurrents RACB"
-t_haut = "🏆 CLASSEMENT GENERAL OFFICIEUX RACB"  # RECTIFICATION DU TITRE GENERAL ICI
+t_haut = "🏆 CLASSEMENT GENERAL OFFICIEUX RACB"
 t_milieu = "📊 CLASSEMENT OFFICIEUX PAR Groupe / Classe (Top 3)"
 t_bas = ""
 
 # ==============================================================================
 # ⚠️ METTEZ VOTRE LIEN DROPBOX ICI (Assurez-vous qu'il se termine bien par dl=1)
 # ==============================================================================
-LIEN_DROPBOX_LOGO = "https://dropbox.com"
+LIEN_DROPBOX_LOGO = "https://www.dropbox.com/scl/fi/hi24fjo0vbal4oiiwt9jl/logo-TimeC.png?rlkey=xlw0oqk9gdnq6v5dgahi0klg0&st=y86yrn6y&dl=1"
 
 # --- DÉTECTION DES SCRIPTS DE COURSE DISPONIBLES ---
 try:
@@ -70,6 +70,14 @@ st.markdown(f"""
 button:focus, div:focus, input:focus, select:focus {{
     outline: none !important; border-color: transparent !important; box-shadow: none !important;
 }}
+
+/* RECTIFICATION CRITIQUE : BLOCAGE ET SUPPRESSION ABSOLUE DU SCROLL SUR TOUTE LA PAGE */
+html, body, [data-testid="stAppViewContainer"], .main {{
+    overflow: hidden !important;
+    height: 100vh !important;
+    max-height: 100vh !important;
+}}
+
 .block-container {{ 
     padding-top: 5px !important; 
     padding-bottom: 0rem !important; 
@@ -99,13 +107,11 @@ div.stElementContainer {{
 .titre-hist {{ background-color: #475569 !important; margin-top: 25px !important; margin-bottom: 6px !important; }}
 .titre-classement {{ background-color: #1E3A8A !important; margin-top: 0px !important; margin-bottom: 6px !important; }}
 
-/* Style en gras sur la dernière colonne de l'historique */
 .table-hist td:last-child {{ 
     font-weight: bold !important; 
     color: #0F172A !important; 
 }}
 
-/* Cadre vert très foncé, texte BLANC et NON GRAS pour le Refresh */
 .refresh-bleu-clair-historique {{
     color: #FFFFFF !important;
     font-weight: normal !important;
@@ -121,27 +127,31 @@ div.stElementContainer {{
     margin-top: 25px !important;
 }}
 
-/* RECTIFICATION : DEFINITION DES SCROLLS LOCAUX SUR LES BOITES ASSOCIEES */
+/* APPLICATION IMPÉRATIVE DES FENÊTRES DE SCROLL LOCALISÉES */
 .div-scroll-local-historique {{
-    height: 618px !important;
-    max-height: 618px !important;
+    height: 480px !important;
+    max-height: 480px !important;
     overflow-y: auto !important;
     width: 100% !important;
+    border: 1px solid #CBD5E1 !important;
 }}
 .div-scroll-local-general {{
-    max-height: 380px !important;
+    height: 310px !important;
+    max-height: 310px !important;
     overflow-y: auto !important;
     width: 100% !important;
+    border: 1px solid #CBD5E1 !important;
 }}
 .div-scroll-local-classes {{
-    max-height: 380px !important;
+    height: 310px !important;
+    max-height: 310px !important;
     overflow-y: auto !important;
     width: 100% !important;
+    border: 1px solid #CBD5E1 !important;
 }}
 
 .table-responsive-container {{
     width: 100% !important;
-    margin-bottom: 10px !important;
 }}
 
 .table-compacte {{
@@ -159,7 +169,6 @@ div.stElementContainer {{
 .table-live td:last-child, .table-class-robuste td:last-child {{ font-weight: bold !important; font-size: 0.94rem !important; color: #0F172A !important; }}
 .table-hist tr:nth-child(odd) td {{ background-color: #E0F2FE !important; }}
 
-/* Signature alignée en bleu foncé avec pointillés assortis */
 .signature-fin-page {{
     display: flex !important;
     justify-content: center !important;
@@ -170,47 +179,32 @@ div.stElementContainer {{
     font-size: 0.92rem !important;
     font-weight: bold !important;
     padding-top: 8px !important;
-    margin-top: 35px !important;
+    margin-top: 15px !important;
     border-top: 1px dashed #1E3A8A !important;
     width: 100% !important;
 }}
 
 .logo-signature {{
-    height: 42px !important;
+    height: 36px !important;
     width: auto !important;
     vertical-align: middle !important;
 }}
 
 @media (max-width: 768px) {{
+    html, body, [data-testid="stAppViewContainer"], .main {{ overflow: auto !important; height: auto !important; max-height: none !important; }}
+    .div-scroll-local-historique, .div-scroll-local-general, .div-scroll-local-classes {{ max-height: none !important; height: auto !important; overflow-y: visible !important; }}
     .block-container {{ padding-left: 2px !important; padding-right: 2px !important; }}
     .titre-live, .titre-hist, .titre-classement {{ font-size: 0.85rem !important; padding: 3px 6px !important; }}
     .table-compacte th, .table-compacte td {{ font-size: 0.65rem !important; padding: 1px 2px !important; }}
-    
-    .table-hist td:nth-child(4) {{
-        max-width: 32px !important;
-        overflow: hidden !important;
-        text-overflow: clip !important;
-        white-space: nowrap !important;
-    }}
-    
-    .table-compacte td:nth-child(3), table td:nth-child(3) {{
-        max-width: 60px !important;
-        overflow: hidden !important;
-        text-overflow: ellipsis !important;
-        white-space: nowrap !important;
-    }}
-    
+    .table-hist td:nth-child(4) {{ max-width: 32px !important; overflow: hidden !important; text-overflow: clip !important; white-space: nowrap !important; }}
+    .table-compacte td:nth-child(3), table td:nth-child(3) {{ max-width: 60px !important; overflow: hidden !important; text-overflow: ellipsis !important; white-space: nowrap !important; }}
     .table-live td:last-child, .table-class-robuste td:last-child {{ font-size: 0.70rem !important; }}
     .signature-fin-page {{ font-size: 0.75rem !important; padding-top: 4px !important; }}
     .logo-signature {{ height: 32px !important; }}
 }}
 
-.table-class-robuste tr.ligne-bleue-separation td {{
-    box-shadow: inset 0 -3px 0 0 #1E3A8A !important;
-}}
-tr.ligne-separation-classe td, .table-compacte tr.ligne-separation-classe td {{ 
-    box-shadow: inset 0 -3px 0 0 #1E3A8A !important; 
-}}
+.table-class-robuste tr.ligne-bleue-separation td {{ box-shadow: inset 0 -3px 0 0 #1E3A8A !important; }}
+tr.ligne-separation-classe td, .table-compacte tr.ligne-separation-classe td {{ box-shadow: inset 0 -3px 0 0 #1E3A8A !important; }}
 </style>
 """, unsafe_allow_html=True)
 def gen_html(df, cl):
@@ -221,32 +215,34 @@ def gen_html(df, cl):
     else:
         phrase_attente = "En attente du départ..."
 
-    # CAS A : Si le script de course renvoie directement la structure HTML du tableau
+    # REPRISE TECHNIQUE SÉCURISÉE : Extraction du code HTML de tableau même si injecté avec du CSS tiers
     if isinstance(df, str):
-        if "TABLE-COMPACTE" in df.upper() and "TR" in df.upper():
-            # Injection des fenêtres de défilement locales sur le code HTML intercepté
+        if "<TABLE" in df.upper() and "</TABLE>" in df.upper():
+            # Isolement du tableau pur pour forcer l'ajustement du scroll local
+            debut = df.upper().find("<TABLE")
+            fin = df.upper().find("</TABLE>") + 8
+            tableau_propre = df[debut:fin]
+            
             if cl == "table-hist":
-                return f"<div class='div-scroll-local-historique'>{df}</div>"
+                return f"<div class='div-scroll-local-historique'>{tableau_propre}</div>"
             elif cl == "table-class-robuste":
-                return f"<div class='div-scroll-local-general'>{df}</div>"
+                return f"<div class='div-scroll-local-general'>{tableau_propre}</div>"
             elif cl == "table-class-groupes":
-                return f"<div class='div-scroll-local-classes'>{df}</div>"
-            return df  
+                return f"<div class='div-scroll-local-classes'>{tableau_propre}</div>"
+            return tableau_propre  
         return f"<div class='table-responsive-container'><table class='table-compacte {cl}'><tr><td style='text-align: center; padding: 10px; font-style: italic; color: #64748B;'>{phrase_attente}</td></tr></table></div>"
 
-    # CAS B : Si le DataFrame est vide
     if df is None or (isinstance(df, pd.DataFrame) and df.empty): 
         return f"<div class='table-responsive-container'><table class='table-compacte {cl}'><tr><td style='text-align: center; padding: 10px; font-style: italic; color: #64748B;'>{phrase_attente}</td></tr></table></div>"
     
     html_table = df.to_html(index=False, classes=f"table-compacte {cl}", escape=False, border=0)
     
-    # Injection des fenêtres de défilement locales sur les DataFrames bruts
     if cl == "table-hist":
-        return f"<div class='div-scroll-local-historique'><div class='table-responsive-container'>{html_table}</div></div>"
+        return f"<div class='div-scroll-local-historique'>{html_table}</div>"
     elif cl == "table-class-robuste":
-        return f"<div class='div-scroll-local-general'><div class='table-responsive-container'>{html_table}</div></div>"
+        return f"<div class='div-scroll-local-general'>{html_table}</div>"
     elif cl == "table-class-groupes":
-        return f"<div class='div-scroll-local-classes'><div class='table-responsive-container'>{html_table}</div></div>"
+        return f"<div class='div-scroll-local-classes'>{html_table}</div>"
         
     return f"<div class='table-responsive-container'>{html_table}</div>"
 
@@ -288,10 +284,8 @@ try:
 except Exception as e:
     t_live = "⚠️ Liaison Dropbox ralentie ou instable — Tentative de reconnexon en cours..."
 
-# Ajustement forcé des largeurs de colonnes de l'Historique en mode Ordinateur
 st.markdown("<style>@media (min-width: 769px) { .table-hist th:nth-child(1), .table-hist td:nth-child(1) { width: 8% !important; } .table-hist th:nth-child(2), .table-hist td:nth-child(2) { width: 32% !important; } .table-hist th:nth-child(3), .table-hist td:nth-child(3) { width: 28% !important; } .table-hist th:nth-child(4), .table-hist td:nth-child(4) { width: 10% !important; } .table-hist th:nth-child(5), .table-hist td:nth-child(5) { width: 5% !important; } .table-hist th:nth-child(6), .table-hist td:nth-child(6) { width: 17% !important; } }</style>", unsafe_allow_html=True)
 
-# FORCE LE TITRE GLOBAL DU CLASSEMENT SANS LA MENTION TOP 20
 if t_haut and "TOP 20" in t_haut.upper():
     t_haut = "🏆 CLASSEMENT GENERAL OFFICIEUX RACB"
 
@@ -325,7 +319,6 @@ with cd:
             st.markdown(f"<span class='titre-classement espace-classement-suivant'>{t_bas}</span>", unsafe_allow_html=True)
             st.markdown(gen_html(d_milieu, "table-class-robuste"), unsafe_allow_html=True)
 
-# Ligne de signature esthétique avec logo Dropbox
 st.markdown(f"""
 <div class='signature-fin-page'>
     <img src='{LIEN_DROPBOX_LOGO}' class='logo-signature'>
@@ -333,7 +326,6 @@ st.markdown(f"""
 </div>
 """, unsafe_allow_html=True)
 
-# --- REFRESH ET DÉCOMPTE DYNAMIQUE SECONDE PAR SECONDE ---
 for secondes_restantes in range(30, -1, -1):
     if "Derniers concurrents" in t_live or "DIRECT" in t_live.upper():
         conteneur_titre_live.markdown(f"<span class='titre-live'>🏎️ EN DIRECT / Derniers concurrents partis / <span class='refresh-bleu-clair-historique'>Refresh {secondes_restantes} Sec.</span></span>", unsafe_allow_html=True)
