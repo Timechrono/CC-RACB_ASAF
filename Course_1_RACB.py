@@ -35,7 +35,6 @@ FILE_DEPART      = f"https://{HOTE_PROT}/scl/fi/gbkaq01qzjujc8nq3zj28/LIVE_Temps
 FILE_ENGAGES     = f"https://{HOTE_PROT}/scl/fi/69zkwsb45bpiw3ys3kk4c/LIVE_Liste_ENGAGES_RACB.xlsm?rlkey=qpjrlmbxhcskifnabs84veqh8&dl=1"
 FILE_ENGAGES_ASAF = f"https://{HOTE_PROT}/scl/fi/wyof20d4bg4lbmnv0c7m5/LIVE_Liste_ENGAGES_ASAF.xlsm?rlkey=8q59lu88046nxu8mr8gs5ufvc&st=vny281ln&dl=1"
 
-# SUPPRESSION DU CACHE STATIQUE (TTL) POUR ASSURER UN TELECHARGEMENT EN DIRECT SANS ATTENTE
 def telecharger_excel(url):
     entetes = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'}
     reponse = requests.get(url, headers=entetes, timeout=10)
@@ -121,7 +120,6 @@ def generer_tableau_html(df, classe_specifique):
     return df.to_html(index=False, classes=f"table-compacte {classe_specifique}", escape=False, border=0)
 
 def recuperer_donnees_course():
-    # NETTOYAGE FORCE DE LA MEMOIRE INTERNE DE STREAMLIT A CHAQUE PASSAGE DES COMMISSAIRES
     st.cache_data.clear()
 
     cols_live = ["N°", "Nom_Prenom", "Voiture", "Départ", "Arrivée", "Chrono"]
@@ -205,7 +203,7 @@ def recuperer_donnees_course():
 
         base = pd.merge(base_runs, df_eng, on="N°", how="inner")
         if len(df_dep) > 0: base = pd.merge(base, df_dep, on=["N°", "Run_Index"], how="left")
-        if len(df_arr) > 0: base = pd.merge(base, df_arr, on=["N°", "Run_Index"], how="left")
+        if len(base) > 0: base = pd.merge(base, df_arr, on=["N°", "Run_Index"], how="left")
         
         if len(base) > 0:
             base["Calc_Sec"] = base["Sec_Excel"].fillna((base["Sec_Arr"] - base["Sec_Dep"]).apply(lambda x: x + 3600 if (x is not None and not pd.isna(x) and x < 0) else x))
@@ -215,18 +213,21 @@ def recuperer_donnees_course():
                 base_c1 = base[base["Heure_Depart"].notna()].copy(); base_c1["Ordre_Live"] = range(len(base_c1))
                 base_chronologique_totale = base_c1.sort_values(by="Ordre_Live", ascending=True).copy()
                 
+                # --- EXTRACTION DIRECT (TOUS LES PILOTES AUTORISÉS SONT VISIBLES) ---
                 df_live_base = base_chronologique_totale.tail(5).copy()
                 df_live_base = df_live_base.sort_values(by="Ordre_Live", ascending=False)
                 df_live_base["Chrono"] = df_live_base.apply(lambda r: calculer_statut_chrono(r, est_dans_le_live=True), axis=1)
                 df_live_base["Arrivée_Brute"] = df_live_base["Heure_Arrivee"].apply(formater_heure_ecran)
                 df_live = df_live_base[["N°", "Nom_Prenom", "Voiture", "Départ_C1", "Arrivée_Brute", "Chrono"]].rename(columns={"Départ_C1": "Départ", "Arrivée_Brute": "Arrivée"})
 
+                # --- EXTRACTION HISTORIQUE (TOUS LES PILOTES SONT VISIBLES APRÈS LE LIVE) ---
                 if len(base_chronologique_totale) > 5:
                     df_hist_brut = base_chronologique_totale.iloc[:-5].copy()
                     df_hist_base = df_hist_brut.sort_values(by="Ordre_Live", ascending=False).copy()
                     df_hist_base["Chrono_C1_Visual_Hist"] = df_hist_base.apply(lambda r: "En Piste" if pd.notna(r["Heure_Depart"]) and pd.isna(r["Heure_Arrivee"]) and pd.isna(r["Sec_Excel"]) else format_final_chrono(r["Calc_Sec"]) if pd.notna(r["Calc_Sec"]) and r["Calc_Sec"] > 0 else "No Time", axis=1)
                     df_hist = df_hist_base[["N°", "Nom_Prenom", "Voiture", "Groupe", "Classe", "Chrono_C1_Visual_Hist"]].rename(columns={"Chrono_C1_Visual_Hist": "Chrono", "Classe": "Cl"})
 
+            # --- SÉCURISATION INTERNE DES CLASSEMENTS : FILTRAGE RACB APPLIQUÉ STRICTEMENT ICI ---
             valides = base[base["Calc_Sec"].notna() & (base["Calc_Sec"] > 0) & (base["Origine"] == "RACB")].copy()
             if len(valides) > 0:
                 scr = valides.sort_values(by="Calc_Sec").drop_duplicates(subset=["N°"], keep="first").copy()
@@ -267,3 +268,4 @@ def recuperer_donnees_course():
     html_hist = CSS_RACB + generer_tableau_html(df_hist, "table-hist")
 
     return df_live, html_hist, df_racb, html_class_div, pd.DataFrame(), t_live, t_his, t_haut, t_milieu, t_bas
+
