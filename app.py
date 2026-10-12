@@ -1,10 +1,24 @@
 # https://www.dropbox.com/scl/fi/hi24fjo0vbal4oiiwt9jl/logo-TimeC.png?rlkey=xlw0oqk9gdnq6v5dgahi0klg0&st=y86yrn6y&dl=1
+# https://dropbox.com
 import streamlit as st
 import pandas as pd
 import time
 import requests
 import io
 import Essais
+
+# Initialisation préventive globale de toutes les variables pour éviter le NameError
+d_liv = pd.DataFrame()
+d_his = pd.DataFrame()
+d_haut = pd.DataFrame()
+d_milieu = pd.DataFrame()
+d_bas = pd.DataFrame()
+
+t_live = "🏎️ EN DIRECT / Derniers concurrents partis"
+t_his = "🕒 HISTORIQUE DES TEMPS / 1er COURSE / Concurrents RACB"
+t_haut = "🏆 CLASSEMENT GENERAL OFFICIEUX RACB (Top 20)"
+t_milieu = "📊 CLASSEMENT OFFICIEUX PAR Groupe / Classe (Top 3)"
+t_bas = ""
 
 # ==============================================================================
 # ⚠️ METTEZ VOTRE LIEN DROPBOX ICI (Assurez-vous qu'il se termine bien par dl=1)
@@ -188,8 +202,8 @@ tr.ligne-separation-classe td, .table-compacte tr.ligne-separation-classe td {{
 </style>
 """, unsafe_allow_html=True)
 def gen_html(df, cl):
-    if isinstance(df, str): 
-        # Si le script de course renvoie du texte d'attente brut, on le nettoie et on le personnalise
+    # Interception si le script de course a renvoyé une chaîne de caractères vide ou d'attente d'origine
+    if isinstance(df, str):
         if cl == "table-hist":
             phrase_attente = "En attente d'arrivée..."
         elif cl in ["table-class-robuste", "table-class-groupes"]:
@@ -197,7 +211,8 @@ def gen_html(df, cl):
         else:
             phrase_attente = "En attente du départ..."
         return f"<div class='table-responsive-container'><table class='table-compacte {cl}'><tr><td style='text-align: center; padding: 10px; font-style: italic; color: #64748B;'>{phrase_attente}</td></tr></table></div>"
-        
+
+    # Interception si le DataFrame est None ou vide
     if df is None or (isinstance(df, pd.DataFrame) and df.empty): 
         if cl == "table-hist":
             phrase_attente = "En attente d'arrivée..."
@@ -205,11 +220,29 @@ def gen_html(df, cl):
             phrase_attente = "En attente du premier classé RACB..." if "RACB" in choix_course.upper() else "En attente du premier classé ASAF..." if "ASAF" in choix_course.upper() else "En attente du premier classé..."
         else:
             phrase_attente = "En attente du départ..."
-            
         return f"<div class='table-responsive-container'><table class='table-compacte {cl}'><tr><td style='text-align: center; padding: 10px; font-style: italic; color: #64748B;'>{phrase_attente}</td></tr></table></div>"
     
     html_table = df.to_html(index=False, classes=f"table-compacte {cl}", escape=False, border=0)
     return f"<div class='table-responsive-container'>{html_table}</div>"
+
+# --- LECTURE DU PARAMÈTRE DE COURSE DEPUIS L'URL ---
+query_params = st.query_params
+choix_course_url = query_params.get("course", "essais").lower()
+
+if choix_course_url == "c1asaf" and course1_disponible:
+    choix_course = "Course 1 ASAF"
+elif choix_course_url == "c1racb" and course1_racb_disponible:
+    choix_course = "Course 1 RACB"
+elif choix_course_url == "c2asaf" and course2_disponible:
+    choix_course = "Course 2 ASAF"
+elif choix_course_url == "c2racb" and course2_racb_disponible:
+    choix_course = "Course 2 RACB"
+elif choix_course_url == "c3asaf" and course3_disponible:
+    choix_course = "Course 3 ASAF"
+elif choix_course_url == "c3racb" and course3_racb_disponible:
+    choix_course = "Course 3 RACB"
+else:
+    choix_course = "Essais"
 try:
     from concurrent.futures import ThreadPoolExecutor
 
