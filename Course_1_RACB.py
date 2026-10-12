@@ -26,9 +26,9 @@ CSS_RACB = """
 """
 
 # --- LIENS DROPBOX ---
-C = [100, 108, 46, 100, 114, 111, 112, 98, 111, 120, 117, 115, 101, 114]
-D = [99, 111, 110, 116, 101, 110, 116, 46, 99, 111, 109]
-HOTE_PROT = "".join(chr(x) for x in (C + D))
+C_PROT = [100, 108, 46, 100, 114, 111, 112, 98, 111, 120, 117, 115, 101, 114]
+D_PROT = [99, 111, 110, 116, 101, 110, 116, 46, 99, 111, 109]
+HOTE_PROT = "".join(chr(x) for x in (C_PROT + D_PROT))
 
 FILE_ARRIVEE     = f"https://{HOTE_PROT}/scl/fi/7uu9cmlpzglx0ngvbklpt/LIVE_Temps_ARRIVEE.xlsm?rlkey=g9urz4v3jr36h0apzt45ognm6&dl=1"
 FILE_DEPART      = f"https://{HOTE_PROT}/scl/fi/gbkaq01qzjujc8nq3zj28/LIVE_Temps_DEPART.xlsm?rlkey=4x4rvvlfyzz8v59gqbxn80a4d&dl=1"
@@ -217,19 +217,21 @@ def recuperer_donnees_course():
                 df_live_base["Arrivée_Brute"] = df_live_base["Heure_Arrivee"].apply(formater_heure_ecran)
                 df_live = df_live_base[["N°", "Nom_Prenom", "Voiture", "Départ_C1", "Arrivée_Brute", "Chrono"]].rename(columns={"Départ_C1": "Départ", "Arrivée_Brute": "Arrivée"})
 
-                # --- EXTRACTION HISTORIQUE TOTAL DES PILOTES ---
-                df_hist_base = base_chronologique_totale.sort_values(by="Ordre_Live", ascending=False).copy()
-                
-                def formater_ligne_historique(r):
-                    if pd.notna(r["Heure_Depart"]) and pd.isna(r["Heure_Arrivee"]) and pd.isna(r["Sec_Excel"]): 
-                        return "En Piste"
-                    if pd.notna(r["Calc_Sec"]) and r["Calc_Sec"] > 0:
-                        t_form = format_final_chrono(r["Calc_Sec"])
-                        return f"{t_form}<span class='coche-rouge'>✓</span>" if r["Calc_Sec"] > 240 else f"{t_form}<span class='coche-verte'>✓</span>"
-                    return "No Time"
-                
-                df_hist_base["Chrono_C1_Visual_Hist"] = df_hist_base.apply(formater_ligne_historique, axis=1)
-                df_hist = df_hist_base[["N°", "Nom_Prenom", "Voiture", "Groupe", "Classe", "Chrono_C1_Visual_Hist"]].rename(columns={"Chrono_C1_Visual_Hist": "Chrono", "Classe": "Cl"})
+                # --- EXTRACTION HISTORIQUE : EXCLUSION VISUELLE STRICTE DES 5 CONCURRENTS DU DIRECT ---
+                if len(base_chronologique_totale) > 5:
+                    df_hist_brut = base_chronologique_totale.iloc[:-5].copy()
+                    df_hist_base = df_hist_brut.sort_values(by="Ordre_Live", ascending=False).copy()
+                    
+                    def formater_ligne_historique(r):
+                        if pd.notna(r["Heure_Depart"]) and pd.isna(r["Heure_Arrivee"]) and pd.isna(r["Sec_Excel"]): 
+                            return "En Piste"
+                        if pd.notna(r["Calc_Sec"]) and r["Calc_Sec"] > 0:
+                            t_form = format_final_chrono(r["Calc_Sec"])
+                            return f"{t_form}<span class='coche-rouge'>✓</span>" if r["Calc_Sec"] > 240 else f"{t_form}<span class='coche-verte'>✓</span>"
+                        return "No Time"
+                    
+                    df_hist_base["Chrono_C1_Visual_Hist"] = df_hist_base.apply(formater_ligne_historique, axis=1)
+                    df_hist = df_hist_base[["N°", "Nom_Prenom", "Voiture", "Groupe", "Classe", "Chrono_C1_Visual_Hist"]].rename(columns={"Chrono_C1_Visual_Hist": "Chrono", "Classe": "Cl"})
 
             # --- SECURISATION DES CLASSEMENTS (SEULS LES CONCURRENTS D'ORIGINE RACB SONT CONSERVÉS) ---
             valides = base[base["Calc_Sec"].notna() & (base["Calc_Sec"] > 0) & (base["Origine"] == "RACB")].copy()
