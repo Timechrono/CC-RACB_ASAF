@@ -144,6 +144,7 @@ def recuperer_donnees_course():
 
         df_eng_raw.columns = df_eng_raw.columns.astype(str).str.strip().str.upper()
         
+        # 1. RECUPERATION DES ENGAGÉS PRIORITAIRES RACB
         df_eng_racb = pd.DataFrame({
             "N°": df_eng_raw.iloc[:, 0].apply(nettoyer_numero), 
             "Nom_Prenom": df_eng_raw.iloc[:, 1].fillna("Pilote Inconnu").astype(str).str.strip(),
@@ -155,6 +156,7 @@ def recuperer_donnees_course():
         df_eng_racb = df_eng_racb[df_eng_racb["N°"] != "NAN"].drop_duplicates(subset=["N°"])
         liste_numeros_racb = set(df_eng_racb["N°"].tolist())
 
+        # 2. SECOURS OPTIONNEL SÉCURISÉ POUR LES CONCURRENTS ASAF
         try:
             flux_eng_asaf = telecharger_excel(FILE_ENGAGES_ASAF)
             df_eng_asaf_raw = pd.read_excel(flux_eng_asaf, skiprows=1, engine='openpyxl')
@@ -188,6 +190,7 @@ def recuperer_donnees_course():
         df_dep = pd.DataFrame({"N°": df_dep_raw.iloc[2:, idx_dep_1].apply(nettoyer_numero), "Heure_Depart": df_dep_raw.iloc[2:, idx_dep_1 + 1]}) if idx_dep_1 is not None else pd.DataFrame(columns=["N°", "Heure_Depart"])
         df_arr = pd.DataFrame({"N°": df_arr_raw.iloc[2:, idx_arr_1].apply(nettoyer_numero), "Heure_Arrivee": df_arr_raw.iloc[2:, idx_arr_1 + 2], "Chrono_Excel": df_arr_raw.iloc[2:, idx_arr_1 + 3]}) if idx_arr_1 is not None else pd.DataFrame(columns=["N°", "Heure_Arrivee", "Chrono_Excel"])
 
+        # CORRECTION VISUELLE : Application sur tous les numéros autorisés (RACB + ASAF de secours)
         df_dep = df_dep[df_dep["N°"].isin(tous_numeros_autorises) & (df_dep["N°"] != "NAN") & (df_dep["N°"] != "")]
         df_arr = df_arr[df_arr["N°"].isin(tous_numeros_autorises)]
 
@@ -203,7 +206,7 @@ def recuperer_donnees_course():
 
         base = pd.merge(base_runs, df_eng, on="N°", how="inner")
         if len(df_dep) > 0: base = pd.merge(base, df_dep, on=["N°", "Run_Index"], how="left")
-        if len(base) > 0: base = pd.merge(base, df_arr, on=["N°", "Run_Index"], how="left")
+        if len(df_arr) > 0: base = pd.merge(base, df_arr, on=["N°", "Run_Index"], how="left")
         
         if len(base) > 0:
             base["Calc_Sec"] = base["Sec_Excel"].fillna((base["Sec_Arr"] - base["Sec_Dep"]).apply(lambda x: x + 3600 if (x is not None and not pd.isna(x) and x < 0) else x))
@@ -213,21 +216,21 @@ def recuperer_donnees_course():
                 base_c1 = base[base["Heure_Depart"].notna()].copy(); base_c1["Ordre_Live"] = range(len(base_c1))
                 base_chronologique_totale = base_c1.sort_values(by="Ordre_Live", ascending=True).copy()
                 
-                # --- EXTRACTION DIRECT (TOUS LES PILOTES AUTORISÉS SONT VISIBLES) ---
+                # --- EXTRACTION DIRECT ---
                 df_live_base = base_chronologique_totale.tail(5).copy()
                 df_live_base = df_live_base.sort_values(by="Ordre_Live", ascending=False)
                 df_live_base["Chrono"] = df_live_base.apply(lambda r: calculer_statut_chrono(r, est_dans_le_live=True), axis=1)
                 df_live_base["Arrivée_Brute"] = df_live_base["Heure_Arrivee"].apply(formater_heure_ecran)
                 df_live = df_live_base[["N°", "Nom_Prenom", "Voiture", "Départ_C1", "Arrivée_Brute", "Chrono"]].rename(columns={"Départ_C1": "Départ", "Arrivée_Brute": "Arrivée"})
 
-                # --- EXTRACTION HISTORIQUE (TOUS LES PILOTES SONT VISIBLES APRÈS LE LIVE) ---
+                # --- EXTRACTION HISTORIQUE ---
                 if len(base_chronologique_totale) > 5:
                     df_hist_brut = base_chronologique_totale.iloc[:-5].copy()
                     df_hist_base = df_hist_brut.sort_values(by="Ordre_Live", ascending=False).copy()
                     df_hist_base["Chrono_C1_Visual_Hist"] = df_hist_base.apply(lambda r: "En Piste" if pd.notna(r["Heure_Depart"]) and pd.isna(r["Heure_Arrivee"]) and pd.isna(r["Sec_Excel"]) else format_final_chrono(r["Calc_Sec"]) if pd.notna(r["Calc_Sec"]) and r["Calc_Sec"] > 0 else "No Time", axis=1)
                     df_hist = df_hist_base[["N°", "Nom_Prenom", "Voiture", "Groupe", "Classe", "Chrono_C1_Visual_Hist"]].rename(columns={"Chrono_C1_Visual_Hist": "Chrono", "Classe": "Cl"})
 
-            # --- SÉCURISATION INTERNE DES CLASSEMENTS : FILTRAGE RACB APPLIQUÉ STRICTEMENT ICI ---
+            # --- SECURISATION DES CLASSEMENTS (SEULS LES CONCURRENTS D'ORIGINE RACB SONT CONSERVÉS) ---
             valides = base[base["Calc_Sec"].notna() & (base["Calc_Sec"] > 0) & (base["Origine"] == "RACB")].copy()
             if len(valides) > 0:
                 scr = valides.sort_values(by="Calc_Sec").drop_duplicates(subset=["N°"], keep="first").copy()
@@ -268,4 +271,3 @@ def recuperer_donnees_course():
     html_hist = CSS_RACB + generer_tableau_html(df_hist, "table-hist")
 
     return df_live, html_hist, df_racb, html_class_div, pd.DataFrame(), t_live, t_his, t_haut, t_milieu, t_bas
-
