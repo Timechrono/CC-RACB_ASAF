@@ -1,4 +1,5 @@
 # https://www.dropbox.com/scl/fi/hi24fjo0vbal4oiiwt9jl/logo-TimeC.png?rlkey=xlw0oqk9gdnq6v5dgahi0klg0&st=y86yrn6y&dl=1
+# https://dropbox.com
 import streamlit as st
 import pandas as pd
 import time
@@ -9,7 +10,7 @@ import Essais
 # ==============================================================================
 # ⚠️ METTEZ VOTRE LIEN DROPBOX ICI (Assurez-vous qu'il se termine bien par dl=1)
 # ==============================================================================
-LIEN_DROPBOX_LOGO = "https://www.dropbox.com/scl/fi/hi24fjo0vbal4oiiwt9jl/logo-TimeC.png?rlkey=xlw0oqk9gdnq6v5dgahi0klg0&st=y86yrn6y&dl=1"
+LIEN_DROPBOX_LOGO = "https://dropbox.com"
 
 # --- DÉTECTION DES SCRIPTS DE COURSE DISPONIBLES ---
 try:
@@ -49,7 +50,6 @@ except ModuleNotFoundError:
     course3_racb_disponible = False
 
 st.set_page_config(page_title="Live", layout="wide")
-
 # --- CONCEPTION GRAPHIQUE GÉOMÉTRIQUE UNIFIÉE ---
 st.markdown(f"""
 <style>
@@ -63,11 +63,11 @@ button:focus, div:focus, input:focus, select:focus {{
     padding-left: 0.5rem !important; 
     padding-right: 0.5rem !important; 
 }}
-div[data-testid="stMainBlockContainer"] {{
+[data-testid="stMainBlockContainer"] {{
     padding-top: 5px !important;
     margin-top: 0px !important;
 }}
-div[data-testid="stVerticalBlock"] {{
+[data-testid="stVerticalBlock"] {{
     gap: 0rem !important;
     padding-top: 0px !important;
 }}
@@ -188,14 +188,16 @@ tr.ligne-separation-classe td, .table-compacte tr.ligne-separation-classe td {{
 }}
 </style>
 """, unsafe_allow_html=True)
-
 def gen_html(df, cl):
     if isinstance(df, str): return df 
     if df is None or (isinstance(df, pd.DataFrame) and df.empty): 
-        return f"<div class='table-responsive-container'><table class='table-compacte {cl}'><tr><td style='text-align: center; padding: 10px;'>Données indisponibles (Vérifiez Dropbox)</td></tr></table></div>"
+        # INJECTION DYNAMIQUE DE LA PHRASE EN CAS DE CLASSEMENT VIDE SELON LE PLATEAU SELECTIONNÉ
+        phrase_attente = "En attente du premier classé RACB..." if "RACB" in choix_course.upper() else "En attente du premier classé ASAF..." if "ASAF" in choix_course.upper() else "En attente du départ..."
+        return f"<div class='table-responsive-container'><table class='table-compacte {cl}'><tr><td style='text-align: center; padding: 10px; font-style: italic; color: #64748B;'>{phrase_attente}</td></tr></table></div>"
     
     html_table = df.to_html(index=False, classes=f"table-compacte {cl}", escape=False, border=0)
     return f"<div class='table-responsive-container'>{html_table}</div>"
+
 # --- LECTURE DU PARAMÈTRE DE COURSE DEPUIS L'URL ---
 query_params = st.query_params
 choix_course_url = query_params.get("course", "essais").lower()
@@ -217,7 +219,6 @@ else:
 
 d_liv, d_his, d_haut, d_milieu, d_bas = pd.DataFrame(), pd.DataFrame(), pd.DataFrame(), pd.DataFrame(), pd.DataFrame()
 t_live, t_his, t_haut, t_milieu, t_bas = "Chronométrage", "Historique", "Classement Haut", "Classement Milieu", "Classement Bas"
-
 try:
     from concurrent.futures import ThreadPoolExecutor
 
@@ -232,7 +233,6 @@ try:
 
     with ThreadPoolExecutor(max_workers=1) as executor:
         future = executor.submit(recuperer_avec_timeout)
-        # RECTIFICATION : Nettoyage de la commande de timeout d'origine
         res = future.result(timeout=3.5)
         if res and len(res) == 10:
             d_liv, d_his, d_haut, d_milieu, d_bas, t_live, t_his, t_haut, t_milieu, t_bas = res
