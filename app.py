@@ -63,7 +63,7 @@ except ModuleNotFoundError:
     course3_racb_disponible = False
 
 st.set_page_config(page_title="Live", layout="wide")
-# --- CONCEPTION GRAPHIQUE GÉOMÉTRIQUE UNIFIÉE ---
+# --- CONCEPTION GRAPHIQUE GÉOMÉTRIQUE UNIFIÉE AVEC BLOCAGE RADICAL DU SCROLL ---
 st.markdown(f"""
 <style>
 [data-testid="stHeader"] {{ display: none !important; }}
@@ -71,11 +71,20 @@ button:focus, div:focus, input:focus, select:focus {{
     outline: none !important; border-color: transparent !important; box-shadow: none !important;
 }}
 
-/* RECTIFICATION CRITIQUE : BLOCAGE ET SUPPRESSION ABSOLUE DU SCROLL SUR TOUTE LA PAGE */
-html, body, [data-testid="stAppViewContainer"], .main {{
+/* VERROUILLAGE FORCE CONTRE LE SCROLL GLOBAL DE STREAMLIT ET DU NAVIGATEUR */
+html, body, [data-testid="stAppViewContainer"], .main, [data-testid="stMainBlockContainer"], [data-testid="stMain"] {{
     overflow: hidden !important;
+    overflow-y: hidden !important;
     height: 100vh !important;
     max-height: 100vh !important;
+}}
+
+/* CALIBRAGE DU CONTAINER ENVELOPPE UNIQUE SANS DEBORDEMENT */
+.app-container-fixe {{
+    height: 94vh !important;
+    max-height: 94vh !important;
+    overflow: hidden !important;
+    width: 100% !important;
 }}
 
 .block-container {{ 
@@ -104,7 +113,7 @@ div.stElementContainer {{
     width: 100% !important; display: block !important; clear: both !important;
 }}
 .titre-live {{ background-color: #15803D !important; margin-top: 0px !important; margin-bottom: 6px !important; }}
-.titre-hist {{ background-color: #475569 !important; margin-top: 25px !important; margin-bottom: 6px !important; }}
+.titre-hist {{ background-color: #475569 !important; margin-top: 20px !important; margin-bottom: 6px !important; }}
 .titre-classement {{ background-color: #1E3A8A !important; margin-top: 0px !important; margin-bottom: 6px !important; }}
 
 .table-hist td:last-child {{ 
@@ -124,10 +133,10 @@ div.stElementContainer {{
 }}
 
 .espace-classement-suivant {{
-    margin-top: 25px !important;
+    margin-top: 20px !important;
 }}
 
-/* APPLICATION IMPÉRATIVE DES FENÊTRES DE SCROLL LOCALISÉES */
+/* BOÎTES DE SCROLL INTERNES ET ASSIGNÉES */
 .div-scroll-local-historique {{
     height: 480px !important;
     max-height: 480px !important;
@@ -136,15 +145,15 @@ div.stElementContainer {{
     border: 1px solid #CBD5E1 !important;
 }}
 .div-scroll-local-general {{
-    height: 310px !important;
-    max-height: 310px !important;
+    height: 300px !important;
+    max-height: 300px !important;
     overflow-y: auto !important;
     width: 100% !important;
     border: 1px solid #CBD5E1 !important;
 }}
 .div-scroll-local-classes {{
-    height: 310px !important;
-    max-height: 310px !important;
+    height: 300px !important;
+    max-height: 300px !important;
     overflow-y: auto !important;
     width: 100% !important;
     border: 1px solid #CBD5E1 !important;
@@ -178,20 +187,21 @@ div.stElementContainer {{
     color: #1E3A8A !important;
     font-size: 0.92rem !important;
     font-weight: bold !important;
-    padding-top: 8px !important;
-    margin-top: 15px !important;
+    padding-top: 6px !important;
+    margin-top: 10px !important;
     border-top: 1px dashed #1E3A8A !important;
     width: 100% !important;
 }}
 
 .logo-signature {{
-    height: 36px !important;
+    height: 34px !important;
     width: auto !important;
     vertical-align: middle !important;
 }}
 
 @media (max-width: 768px) {{
-    html, body, [data-testid="stAppViewContainer"], .main {{ overflow: auto !important; height: auto !important; max-height: none !important; }}
+    html, body, [data-testid="stAppViewContainer"], .main, [data-testid="stMainBlockContainer"], [data-testid="stMain"] {{ overflow: auto !important; height: auto !important; max-height: none !important; }}
+    .app-container-fixe {{ height: auto !important; max-height: none !important; overflow: visible !important; }}
     .div-scroll-local-historique, .div-scroll-local-general, .div-scroll-local-classes {{ max-height: none !important; height: auto !important; overflow-y: visible !important; }}
     .block-container {{ padding-left: 2px !important; padding-right: 2px !important; }}
     .titre-live, .titre-hist, .titre-classement {{ font-size: 0.85rem !important; padding: 3px 6px !important; }}
@@ -215,20 +225,22 @@ def gen_html(df, cl):
     else:
         phrase_attente = "En attente du départ..."
 
-    # REPRISE TECHNIQUE SÉCURISÉE : Extraction du code HTML de tableau même si injecté avec du CSS tiers
+    # ASSURANCE HARMONISATION DES CHAINES STR AVEC DESTRUCTEUR DE CSS TIERS PAR MANCHE
     if isinstance(df, str):
         if "<TABLE" in df.upper() and "</TABLE>" in df.upper():
-            # Isolement du tableau pur pour forcer l'ajustement du scroll local
             debut = df.upper().find("<TABLE")
             fin = df.upper().find("</TABLE>") + 8
             tableau_propre = df[debut:fin]
             
             if cl == "table-hist":
                 return f"<div class='div-scroll-local-historique'>{tableau_propre}</div>"
-            elif cl == "table-class-robuste":
+            elif cl in ["table-class-robuste", "table-class-groupes"]:
+                # Intercepte à coup sûr le classement général ou par classe
+                if "POS" in tableau_propre.upper() and ("GROUPE" in tableau_propre.upper() or "CL" in tableau_propre.upper()):
+                    if "GROUPE" in tableau_propre.upper() and "CL" in tableau_propre.upper() and "POS" in tableau_propre.upper():
+                        return f"<div class='div-scroll-local-classes'>{tableau_propre}</div>"
+                    return f"<div class='div-scroll-local-general'>{tableau_propre}</div>"
                 return f"<div class='div-scroll-local-general'>{tableau_propre}</div>"
-            elif cl == "table-class-groupes":
-                return f"<div class='div-scroll-local-classes'>{tableau_propre}</div>"
             return tableau_propre  
         return f"<div class='table-responsive-container'><table class='table-compacte {cl}'><tr><td style='text-align: center; padding: 10px; font-style: italic; color: #64748B;'>{phrase_attente}</td></tr></table></div>"
 
@@ -289,42 +301,46 @@ st.markdown("<style>@media (min-width: 769px) { .table-hist th:nth-child(1), .ta
 if t_haut and "TOP 20" in t_haut.upper():
     t_haut = "🏆 CLASSEMENT GENERAL OFFICIEUX RACB"
 
-cg, cd = st.columns([1.3, 0.9])
-with cg:
-    conteneur_titre_live = st.empty()
-    st.markdown(gen_html(d_liv, "table-live"), unsafe_allow_html=True)
-    if t_his: 
-        st.markdown(f"<span class='titre-hist'>{t_his}</span>", unsafe_allow_html=True)
-    st.markdown(gen_html(d_his, "table-hist"), unsafe_allow_html=True)
-    
-with cd:
-    if choix_course != "Essais":
-        if t_haut:
-            st.markdown(f"<span class='titre-classement'>{t_haut}</span>", unsafe_allow_html=True)
-            st.markdown(gen_html(d_haut, "table-class-robuste"), unsafe_allow_html=True)
-        if t_milieu:
-            st.markdown(f"<span class='titre-classement espace-classement-suivant'>{t_milieu}</span>", unsafe_allow_html=True)
-            st.markdown(gen_html(d_milieu, "table-class-groupes"), unsafe_allow_html=True)
-        if t_bas:
-            st.markdown(f"<span class='titre-classement espace-classement-suivant'>{t_bas}</span>", unsafe_allow_html=True)
-            st.markdown(gen_html(d_bas, "table-class-robuste"), unsafe_allow_html=True)
-    else:
-        if t_haut:
-            st.markdown(f"<span class='titre-classement'>{t_haut}</span>", unsafe_allow_html=True)
-            st.markdown(gen_html(d_bas, "table-class-robuste"), unsafe_allow_html=True)
-        if t_milieu:
-            st.markdown(f"<span class='titre-classement espace-classement-suivant'>{t_milieu}</span>", unsafe_allow_html=True)
-            st.markdown(gen_html(d_haut, "table-class-robuste"), unsafe_allow_html=True)
-        if t_bas:
-            st.markdown(f"<span class='titre-classement espace-classement-suivant'>{t_bas}</span>", unsafe_allow_html=True)
-            st.markdown(gen_html(d_milieu, "table-class-robuste"), unsafe_allow_html=True)
+# VERROUILLAGE SANS FAILLE DANS LA CAPSULE FIXE APPS CONTAINER
+with st.container(border=False):
+    st.markdown("<div class='app-container-fixe'>", unsafe_allow_html=True)
+    cg, cd = st.columns([1.3, 0.9])
+    with cg:
+        conteneur_titre_live = st.empty()
+        st.markdown(gen_html(d_liv, "table-live"), unsafe_allow_html=True)
+        if t_his: 
+            st.markdown(f"<span class='titre-hist'>{t_his}</span>", unsafe_allow_html=True)
+        st.markdown(gen_html(d_his, "table-hist"), unsafe_allow_html=True)
+        
+    with cd:
+        if choix_course != "Essais":
+            if t_haut:
+                st.markdown(f"<span class='st-titre-general-fixe class='titre-classement'>{t_haut}</span>", unsafe_allow_html=True)
+                st.markdown(gen_html(d_haut, "table-class-robuste"), unsafe_allow_html=True)
+            if t_milieu:
+                st.markdown(f"<span class='titre-classement espace-classement-suivant'>{t_milieu}</span>", unsafe_allow_html=True)
+                st.markdown(gen_html(d_milieu, "table-class-groupes"), unsafe_allow_html=True)
+            if t_bas:
+                st.markdown(f"<span class='titre-classement espace-classement-suivant'>{t_bas}</span>", unsafe_allow_html=True)
+                st.markdown(gen_html(d_bas, "table-class-robuste"), unsafe_allow_html=True)
+        else:
+            if t_haut:
+                st.markdown(f"<span class='titre-classement'>{t_haut}</span>", unsafe_allow_html=True)
+                st.markdown(gen_html(d_bas, "table-class-robuste"), unsafe_allow_html=True)
+            if t_milieu:
+                st.markdown(f"<span class='titre-classement espace-classement-suivant'>{t_milieu}</span>", unsafe_allow_html=True)
+                st.markdown(gen_html(d_haut, "table-class-robuste"), unsafe_allow_html=True)
+            if t_bas:
+                st.markdown(f"<span class='titre-classement espace-classement-suivant'>{t_bas}</span>", unsafe_allow_html=True)
+                st.markdown(gen_html(d_milieu, "table-class-robuste"), unsafe_allow_html=True)
 
-st.markdown(f"""
-<div class='signature-fin-page'>
-    <img src='{LIEN_DROPBOX_LOGO}' class='logo-signature'>
-    www.timechrono.be
-</div>
-""", unsafe_allow_html=True)
+    st.markdown(f"""
+    <div class='signature-fin-page'>
+        <img src='{LIEN_DROPBOX_LOGO}' class='logo-signature'>
+        www.timechrono.be
+    </div>
+    """, unsafe_allow_html=True)
+    st.markdown("</div>", unsafe_allow_html=True)
 
 for secondes_restantes in range(30, -1, -1):
     if "Derniers concurrents" in t_live or "DIRECT" in t_live.upper():
