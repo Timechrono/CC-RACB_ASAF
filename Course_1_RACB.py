@@ -5,7 +5,7 @@ import os
 import requests
 import io
 
-# --- DESIGN UNIQUE SÉCURISÉ POUR EMPÊCHER LES DOUBLONS ---
+# --- DESIGN UNIQUE ET VERROUILLAGE DES ARRIÈRES-PLANS ET DU SCROLL DE TABLEAU ---
 CSS_RACB = """
 <style>
 [data-testid="stHeader"] { display: none !important; }
@@ -21,6 +21,31 @@ CSS_RACB = """
 .table-hist td:last-child {
     font-weight: bold !important;
     color: #0F172A !important;
+}
+
+/* ENROBAGE ET BLOCAGE PAR BARRES DE DEFILEMENT LOCALISÉES (SCROLL INNER CSS) */
+.div-scroll-local-historique {
+    height: 618px !important;
+    max-height: 618px !important;
+    overflow-y: auto !important;
+    margin-bottom: 0px !important;
+    width: 100% !important;
+    display: block !important;
+}
+.div-scroll-local-general {
+    max-height: 380px !important;
+    overflow-y: auto !important;
+    margin-bottom: 0px !important;
+    width: 100% !important;
+    display: block !important;
+}
+.div-scroll-local-classes {
+    max-height: 380px !important;
+    overflow-y: auto !important;
+    margin-top: 0px !important;
+    margin-bottom: 0px !important;
+    width: 100% !important;
+    display: block !important;
 }
 </style>
 """
@@ -113,7 +138,12 @@ def generer_tableau_html(df, classe_specifique):
             for col in df.columns: html += f"<td>{df.iloc[idx][col]}</td>"
             html += "</tr>"
         html += "</tbody></table>"
-        return html
+        # Injection de la capsule scroll pour le classement par classe
+        return f"<div class='div-scroll-local-classes'>{html}</div>"
+
+    if classe_specifique == "table-class-robuste":
+        html_base = df.to_html(index=False, classes=f"table-compacte {classe_specifique}", escape=False, border=0)
+        return f"<div class='div-scroll-local-general'>{html_base}</div>"
 
     return df.to_html(index=False, classes=f"table-compacte {classe_specifique}", escape=False, border=0)
 
@@ -128,7 +158,7 @@ def recuperer_donnees_course():
 
     t_live = "🏎️ EN DIRECT / Derniers concurrents partis"
     t_his = "🕒 HISTORIQUE DES TEMPS / 1er COURSE / Concurrents RACB"
-    t_haut = "🏆 CLASSEMENT GENERAL OFFICIEUX RACB (Top 20)"
+    t_haut = "🏆 CLASSEMENT GENERAL OFFICIEUX RACB"  # RECTIFICATION REPRISE DU TITRE SANS LE TOP 20
     t_milieu = "📊 CLASSEMENT OFFICIEUX PAR Groupe / Classe (Top 3)"
     t_bas = ""
     try:
@@ -141,7 +171,8 @@ def recuperer_donnees_course():
         df_dep_raw = pd.read_excel(flux_dep, header=None, engine='openpyxl')
         df_arr_raw = pd.read_excel(flux_arr, header=None, engine='openpyxl')
 
-        # Extraction RACB depuis la Colonne 0 fixe (Filtre strict sur les cellules contenant un chiffre)
+        df_eng_raw.columns = df_eng_raw.columns.astype(str).str.strip().str.upper()
+        
         df_eng_racb = pd.DataFrame({
             "N°": df_eng_raw.iloc[:, 0].apply(nettoyer_numero), 
             "Nom_Prenom": df_eng_raw.iloc[:, 1].fillna("Pilote Inconnu").astype(str).str.strip(),
@@ -153,7 +184,6 @@ def recuperer_donnees_course():
         df_eng_racb = df_eng_racb[(df_eng_racb["N°"] != "NAN") & (df_eng_racb["N°"] != "")].drop_duplicates(subset=["N°"])
         liste_numeros_racb = set(df_eng_racb["N°"].tolist())
 
-        # Extraction ASAF de secours depuis la Colonne 0 fixe (Filtre strict sur les cellules contenant un chiffre)
         try:
             flux_eng_asaf = telecharger_excel(FILE_ENGAGES_ASAF)
             df_eng_asaf_raw = pd.read_excel(flux_eng_asaf, header=None, engine='openpyxl')
@@ -217,7 +247,7 @@ def recuperer_donnees_course():
                 df_live_base["Arrivée_Brute"] = df_live_base["Heure_Arrivee"].apply(formater_heure_ecran)
                 df_live = df_live_base[["N°", "Nom_Prenom", "Voiture", "Départ_C1", "Arrivée_Brute", "Chrono"]].rename(columns={"Départ_C1": "Départ", "Arrivée_Brute": "Arrivée"})
 
-                # --- EXTRACTION HISTORIQUE : EXCLUSION VISUELLE STRICTE DES 5 CONCURRENTS DU DIRECT ---
+                # --- EXTRACTION HISTORIQUE ---
                 if len(base_chronologique_totale) > 5:
                     df_hist_brut = base_chronologique_totale.iloc[:-5].copy()
                     df_hist_base = df_hist_brut.sort_values(by="Ordre_Live", ascending=False).copy()
@@ -268,9 +298,12 @@ def recuperer_donnees_course():
             for col in df_divisions.columns: html_class_div += f"<td>{df_divisions.iloc[idx][col]}</td>"
             html_class_div += "</tr>"
         html_class_div += "</tbody></table>"
+        # Ajout du container de scroll local
+        html_class_div = f"<div class='div-scroll-local-classes'>{html_class_div}</div>"
     else:
         html_class_div = generer_tableau_html(df_divisions, "table-class-groupes")
 
-    html_hist = CSS_RACB + generer_tableau_html(df_hist, "table-hist")
+    # Injection du container de scroll local autour du tableau Historique
+    html_hist = CSS_RACB + f"<div class='div-scroll-local-historique'>{generer_tableau_html(df_hist, 'table-hist')}</div>"
 
     return df_live, html_hist, df_racb, html_class_div, pd.DataFrame(), t_live, t_his, t_haut, t_milieu, t_bas
