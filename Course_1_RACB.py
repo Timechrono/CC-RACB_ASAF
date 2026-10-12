@@ -102,11 +102,11 @@ def calculer_statut_chrono(row, est_dans_le_live=True):
     return "No Time"
 def generer_tableau_html(df, classe_specifique):
     if df.empty: 
-        return f"<table class='table-compacte {classe_specifique}'><tr><td style='text-align: center; padding: 10px;'>Aucune donnée disponible</td></tr></table>"
+        return f"<table class='table-compacte {classe_specifique}'><tr><td style='text-align: center; padding: 10px;'>En attente du départ...</td></tr></table>"
     
     if classe_specifique == "table-class-groupes" and "Classe" in df.columns and "Groupe" in df.columns:
         html = f"<table class='table-compacte table-class-robuste'><thead><tr>"
-        for col in df.columns: html += f"<th>{col}</th>"
+        for col in df.columns: html += f"<th>{col}</th>"En attente du départ..."
         html += "</tr></thead><tbody>"
         for idx in range(len(df)):
             classe_row = ""
