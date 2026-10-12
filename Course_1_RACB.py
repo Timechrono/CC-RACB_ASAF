@@ -34,12 +34,12 @@ FILE_ARRIVEE     = f"https://{HOTE_PROT}/scl/fi/7uu9cmlpzglx0ngvbklpt/LIVE_Temps
 FILE_DEPART      = f"https://{HOTE_PROT}/scl/fi/gbkaq01qzjujc8nq3zj28/LIVE_Temps_DEPART.xlsm?rlkey=4x4rvvlfyzz8v59gqbxn80a4d&dl=1"
 FILE_ENGAGES     = f"https://{HOTE_PROT}/scl/fi/69zkwsb45bpiw3ys3kk4c/LIVE_Liste_ENGAGES_RACB.xlsm?rlkey=qpjrlmbxhcskifnabs84veqh8&dl=1"
 FILE_ENGAGES_ASAF = f"https://{HOTE_PROT}/scl/fi/wyof20d4bg4lbmnv0c7m5/LIVE_Liste_ENGAGES_ASAF.xlsm?rlkey=8q59lu88046nxu8mr8gs5ufvc&st=vny281ln&dl=1"
-
 def telecharger_excel(url):
     entetes = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'}
     reponse = requests.get(url, headers=entetes, timeout=10)
     reponse.raise_for_status()
     return io.BytesIO(reponse.content)
+
 def convertir_en_secondes(valeur):
     if pd.isna(valeur) or valeur is None: return None
     if isinstance(valeur, pd.Timedelta): return valeur.total_seconds()
@@ -98,6 +98,7 @@ def calculer_statut_chrono(row, est_dans_le_live=True):
     if ("Heure_Depart" in row and pd.isna(row["Heure_Depart"])) and ("Heure_Arrivee" in row and pd.isna(row["Heure_Arrivee"])):
         return "Au départ"
     return "No Time"
+
 def generer_tableau_html(df, classe_specifique):
     if df.empty: 
         return f"<table class='table-compacte {classe_specifique}'><tr><td style='text-align: center; padding: 10px; font-style: italic; color: #64748B;'>En attente du départ...</td></tr></table>"
@@ -118,7 +119,6 @@ def generer_tableau_html(df, classe_specifique):
         return html
 
     return df.to_html(index=False, classes=f"table-compacte {classe_specifique}", escape=False, border=0)
-
 def recuperer_donnees_course():
     st.cache_data.clear()
 
@@ -138,7 +138,6 @@ def recuperer_donnees_course():
         flux_dep = telecharger_excel(FILE_DEPART)
         flux_arr = telecharger_excel(FILE_ARRIVEE)
         
-        # SUPPRESSION TOTALE DE SKIPROWS POUR BALAYER TOUTES LES LIGNES EN ABSOLU
         df_eng_raw = pd.read_excel(flux_eng, header=None, engine='openpyxl')
         df_dep_raw = pd.read_excel(flux_dep, header=None, engine='openpyxl')
         df_arr_raw = pd.read_excel(flux_arr, header=None, engine='openpyxl')
@@ -196,7 +195,6 @@ def recuperer_donnees_course():
 
         if len(df_dep) > 0: df_dep["Sec_Dep"] = df_dep["Heure_Depart"].apply(convertir_en_secondes)
         if len(df_arr) > 0: df_arr["Sec_Arr"] = df_arr["Heure_Arrivee"].apply(convertir_en_secondes); df_arr["Sec_Excel"] = df_arr["Chrono_Excel"].apply(convertir_en_secondes)
-
         base_runs = pd.concat([df_dep[["N°", "Run_Index"]], df_arr[["N°", "Run_Index"]]], ignore_index=True).drop_duplicates(subset=["N°", "Run_Index"]) if (len(df_dep) > 0 or len(df_arr) > 0) else df_eng[["N°"]].copy()
         if "Run_Index" not in base_runs.columns: base_runs["Run_Index"] = 1
 
@@ -212,14 +210,12 @@ def recuperer_donnees_course():
                 base_c1 = base[base["Ordre_Tri_Global"].notna()].copy(); base_c1["Ordre_Live"] = range(len(base_c1))
                 base_chronologique_totale = base_c1.sort_values(by="Ordre_Live", ascending=True).copy()
                 
-                # --- EXTRACTION DIRECT ---
                 df_live_base = base_chronologique_totale.tail(5).copy()
                 df_live_base = df_live_base.sort_values(by="Ordre_Live", ascending=False)
                 df_live_base["Chrono"] = df_live_base.apply(lambda r: calculer_statut_chrono(r, est_dans_le_live=True), axis=1)
                 df_live_base["Arrivée_Brute"] = df_live_base["Heure_Arrivee"].apply(formater_heure_ecran)
                 df_live = df_live_base[["N°", "Nom_Prenom", "Voiture", "Départ_C1", "Arrivée_Brute", "Chrono"]].rename(columns={"Départ_C1": "Départ", "Arrivée_Brute": "Arrivée"})
 
-                # --- EXTRACTION HISTORIQUE CLEAN ET STANDARD POUR DUPLICATION DE SCROLL ---
                 if len(base_chronologique_totale) > 5:
                     df_hist_brut = base_chronologique_totale.iloc[:-5].copy()
                     df_hist_base = df_hist_brut.sort_values(by="Ordre_Live", ascending=False).copy()
@@ -235,13 +231,13 @@ def recuperer_donnees_course():
                     df_hist_base["Chrono_C1_Visual_Hist"] = df_hist_base.apply(formater_ligne_historique, axis=1)
                     df_hist = df_hist_base[["N°", "Nom_Prenom", "Voiture", "Groupe", "Classe", "Chrono_C1_Visual_Hist"]].rename(columns={"Chrono_C1_Visual_Hist": "Chrono", "Classe": "Cl"})
 
-            # --- SECURISATION DES CLASSEMENTS (SEULS LES CONCURRENTS D'ORIGINE RACB SONT CONSERVÉS) ---
             valides = base[base["Calc_Sec"].notna() & (base["Calc_Sec"] > 0) & (base["Origine"] == "RACB")].copy()
             if len(valides) > 0:
                 scr = valides.sort_values(by="Calc_Sec").drop_duplicates(subset=["N°"], keep="first").copy()
                 scr = scr[~scr["Groupe"].astype(str).str.strip().str.startswith(('1', '2', '3', '4'), na=False)]
                 
-                racb = scr.head(20).copy()
+                # --- LE CHANGEMENT EST ICI : Tout le classement apparaît ---
+                racb = scr.copy()
                 if len(racb) > 0:
                     racb["Pos"] = range(1, len(racb) + 1); racb["Chrono"] = racb["Calc_Sec"].apply(format_final_chrono)
                     df_racb = racb[["Pos", "N°", "Nom_Prenom", "Groupe", "Classe", "Chrono"]].rename(columns={"Classe": "Cl"})
@@ -257,7 +253,6 @@ def recuperer_donnees_course():
                 df_divisions = df_final_grouped[["Pos", "N°", "Nom_Prenom", "Groupe", "Classe", "Chrono"]].rename(columns={"Classe": "Cl"}).copy()
     except Exception: pass
 
-    # NETTOYAGE ABSOLU DES EMBALLAGES : Sortie HTML épurée pure pour laisser app.py faire le routage de scroll local
     if not df_divisions.empty and "Cl" in df_divisions.columns and "Groupe" in df_divisions.columns:
         html_class_div = f"<table class='table-compacte table-class-robuste'><thead><tr>"
         for col in df_divisions.columns: html_class_div += f"<th>{col}</th>"
