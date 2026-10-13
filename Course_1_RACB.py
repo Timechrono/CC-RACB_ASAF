@@ -192,7 +192,6 @@ def recuperer_donnees_course():
 
         for d in [df_dep, df_arr]:
             if len(d) > 0: d["N°"] = d["N°"].astype(str); d["Run_Index"] = d.groupby("N°").cumcount() + 1
-
         if len(df_dep) > 0: df_dep["Sec_Dep"] = df_dep["Heure_Depart"].apply(convertir_en_secondes)
         if len(df_arr) > 0: df_arr["Sec_Arr"] = df_arr["Heure_Arrivee"].apply(convertir_en_secondes); df_arr["Sec_Excel"] = df_arr["Chrono_Excel"].apply(convertir_en_secondes)
         base_runs = pd.concat([df_dep[["N°", "Run_Index"]], df_arr[["N°", "Run_Index"]]], ignore_index=True).drop_duplicates(subset=["N°", "Run_Index"]) if (len(df_dep) > 0 or len(df_arr) > 0) else df_eng[["N°"]].copy()
@@ -221,8 +220,7 @@ def recuperer_donnees_course():
                     df_hist_base = df_hist_brut.sort_values(by="Ordre_Live", ascending=False).copy()
                     
                     def formater_ligne_historique(r):
-                        if pd.notna(r["Heure_Depart"]) and pd.isna(r["Heure_Arrivee"]) and pd.isna(r["Sec_Excel"]): 
-                            return "En Piste"
+                        if pd.notna(r["Heure_Depart"]) and pd.isna(r["Heure_Arrivee"]) and pd.isna(r["Sec_Excel"]): return "En Piste"
                         if pd.notna(r["Calc_Sec"]) and r["Calc_Sec"] > 0:
                             t_form = format_final_chrono(r["Calc_Sec"])
                             return f"{t_form}<span class='coche-rouge'>✓</span>" if r["Calc_Sec"] > 240 else f"{t_form}<span class='coche-verte'>✓</span>"
@@ -236,7 +234,6 @@ def recuperer_donnees_course():
                 scr = valides.sort_values(by="Calc_Sec").drop_duplicates(subset=["N°"], keep="first").copy()
                 scr = scr[~scr["Groupe"].astype(str).str.strip().str.startswith(('1', '2', '3', '4'), na=False)]
                 
-                # --- LE CHANGEMENT EST ICI : Tout le classement apparaît ---
                 racb = scr.copy()
                 if len(racb) > 0:
                     racb["Pos"] = range(1, len(racb) + 1); racb["Chrono"] = racb["Calc_Sec"].apply(format_final_chrono)
@@ -250,7 +247,21 @@ def recuperer_donnees_course():
                 
                 df_final_grouped["Pos"] = df_final_grouped.groupby(["Groupe_Num", "Classe_Num"]).cumcount() + 1
                 df_final_grouped["Chrono"] = df_final_grouped["Calc_Sec"].apply(format_final_chrono)
-                df_divisions = df_final_grouped[["Pos", "N°", "Nom_Prenom", "Groupe", "Classe", "Chrono"]].rename(columns={"Classe": "Cl"}).copy()
+                df_divisions_raw = df_final_grouped[["Pos", "N°", "Nom_Prenom", "Groupe", "Classe", "Chrono"]].rename(columns={"Classe": "Cl"}).copy()
+                
+                def cle_tri_classe(val):
+                    s = str(val).strip().upper()
+                    if not s or s == "-": return (999, "")
+                    num_part = ""
+                    for c in s:
+                        if c.isdigit(): num_part += c
+                        else: break
+                    alpha_part = s[len(num_part):]
+                    n = int(num_part) if num_part else 999
+                    return (n, alpha_part)
+
+                df_divisions_raw["Tri_Cl"] = df_divisions_raw["Cl"].apply(cle_tri_classe)
+                df_divisions = df_divisions_raw.sort_values(by=["Tri_Cl", "Chrono"]).drop(columns=["Tri_Cl"]).reset_index(drop=True)
     except Exception: pass
 
     if not df_divisions.empty and "Cl" in df_divisions.columns and "Groupe" in df_divisions.columns:
