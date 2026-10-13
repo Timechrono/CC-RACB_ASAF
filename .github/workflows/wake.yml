@@ -3,24 +3,24 @@ name: Gardien Anti-Veille Streamlit
 on:
   schedule:
     - cron: "0 */4 * * *" # S'exécute automatiquement toutes les 4 heures
-  workflow_dispatch: # Permet de forcer le réveil manuellement depuis l'interface GitHub
+  workflow_dispatch: # Permet de forcer le réveil manuellement depuis GitHub
 
 jobs:
   reveiller-site:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-latest
     steps:
       - name: Récupération du code source
-        uses: actions/checkout@v4.2.2
+        uses: actions/checkout@v4
 
       - name: Installation de Python
-        uses: actions/setup-python@v5.3.0
+        uses: actions/setup-python@v5
         with:
           python-version: "3.11"
 
-      - name: Installation des outils de navigation avancés
+      - name: Installation de Playwright
         run: |
           pip install playwright
-          playwright install chromium --with-deps
+          playwright install chromium
 
-      - name: Exécution du script de réveil avec Playwright
+      - name: Exécution du script de réveil
         run: python wake_up.py
