@@ -5,7 +5,6 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options
 from webdriver_manager.chrome import ChromeDriverManager
 
-# Liste de vos 8 pages de course à surveiller
 COURSES = [
     "https://streamlit.app",
     "https://streamlit.app",
@@ -18,29 +17,26 @@ COURSES = [
 ]
 
 def reveiller_les_courses():
-    # Configuration du navigateur invisible Chrome pour le serveur GitHub
     options = Options()
-    options.add_argument("--headless")  # Exécution sans fenêtre
+    options.add_argument("--headless")  # Rendre Chrome invisible
     options.add_argument("--no-sandbox")
     options.add_argument("--disable-dev-shm-usage")
     
     driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
     
     for url in COURSES:
-        print(f"[Anti-Sommeil] Navigation vers : {url}")
+        print(f"Vérification de : {url}")
         driver.get(url)
-        time.sleep(10)  # Laisse la page se charger
+        time.sleep(12)  # Temps nécessaire pour que Streamlit Cloud charge l'interface
         
         try:
-            # Recherche du bouton de réveil Streamlit Cloud par son texte
-            # (Il contient le texte "Yes, get this app back up!")
+            # Recherche de l'élément contenant le bouton de réveil
             bouton = driver.find_element(By.XPATH, "//*[contains(text(), 'get this app back up')]")
             bouton.click()
-            print(f" -> [SUCCÈS] Bouton détecté et cliqué ! Réveil en cours...")
-            time.sleep(5)  # Attend la validation du clic
+            print(" -> [RÉVEIL DE LA PAGE] Clic effectué !")
+            time.sleep(5)
         except Exception:
-            # Si le bouton n'est pas là, c'est que l'application était déjà réveillée
-            print(" -> [OK] L'application est déjà en ligne et éveillée.")
+            print(" -> [OK] Déjà réveillée.")
             
     driver.quit()
 
