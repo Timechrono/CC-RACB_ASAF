@@ -3,32 +3,6 @@ name: Gardien Anti-Veille Streamlit
 on:
   schedule:
     - cron: "0 */4 * * *" # S'exécute automatiquement toutes les 4 heures
-  workflow_dispatch: # Permet de le lancer manuellement depuis GitHub
-
-jobs:
-  reveiller-site:
-    # On fixe la version sur ubuntu-24.04 pour éviter les changements d'octobre 2026
-    runs-on: ubuntu-24.04
-    steps:
-      - name: Récupération du code source
-        uses: actions/checkout@v4.2.2 # Version à jour
-
-      - name: Installation de Python
-        uses: actions/setup-python@v5.3.0 # Version à jour
-        with:
-          python-version: "3.11"
-
-      - name: Installation des dépendances du navigateur
-        run: |
-          pip install selenium webdriver-manager
-
-      - name: Exécution du script de réveil
-        run: python wake_up.py
-name: Gardien Anti-Veille Streamlit
-
-on:
-  schedule:
-    - cron: "0 */4 * * *" # S'exécute automatiquement toutes les 4 heures
   workflow_dispatch: # Permet de forcer le réveil manuellement depuis l'interface GitHub
 
 jobs:
