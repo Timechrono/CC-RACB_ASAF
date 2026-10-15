@@ -78,6 +78,40 @@ def calculer_statut_chrono_essais(row, est_dans_le_live=True):
         return "<span class='vrai-gyrophare'>🚨</span> EN PISTE" if est_dans_le_live else "En Piste"
     return "No Time"
 # fin bloc
+def recuperer_donnees_course():
+    df_live = pd.DataFrame(columns=["N°", "Nom_Prenom", "Voiture", "Départ", "Arrivée", "Chrono"])
+    df_hist = pd.DataFrame(columns=["N°", "Nom_Prenom", "Voiture", "Gr/Div", "Cl", "Chrono"])
+    df_racb = pd.DataFrame(columns=["Pos", "N°", "Nom_Prenom", "Gr/Div", "Cl", "Chrono"])
+    df_asaf123 = pd.DataFrame(columns=["Pos", "N°", "Nom_Prenom", "Gr/Div", "Cl", "Chrono"])
+    df_asaf4 = pd.DataFrame(columns=["Pos", "N°", "Nom_Prenom", "Gr/Div", "Cl", "Chrono"])
+
+    try:
+        flux_eng = telecharger_excel(FILE_ENGAGES)
+        flux_dep = telecharger_excel(FILE_DEPART)
+        flux_arr = telecharger_excel(FILE_ARRIVEE)
+        
+        df_eng_raw = pd.read_excel(flux_eng, skiprows=1, engine='openpyxl')
+        df_dep_raw = pd.read_excel(flux_dep, header=None, engine='openpyxl')
+        df_arr_raw = pd.read_excel(flux_arr, header=None, engine='openpyxl')
+
+        idx_dep, idx_arr = None, None
+        for c_idx in range(len(df_dep_raw.columns)):
+            val = str(df_dep_raw.iloc[1, c_idx]).strip().upper()
+            if "ESSAIS" in val or "ENTRAINEMENT" in val: idx_dep = c_idx
+        for c_idx in range(len(df_arr_raw.columns)):
+            val = str(df_arr_raw.iloc[1, c_idx]).strip().upper()
+            if "ESSAIS" in val or "ENTRAINEMENT" in val: idx_arr = c_idx
+
+        df_dep = pd.DataFrame({"N°": df_dep_raw.iloc[2:, idx_dep].apply(nettoyer_numero), "Heure_Depart": df_dep_raw.iloc[2:, idx_dep + 1]}) if idx_dep is not None else pd.DataFrame(columns=["N°", "Heure_Depart"])
+        df_arr = pd.DataFrame({"N°": df_arr_raw.iloc[2:, idx_arr].apply(nettoyer_numero), "Heure_Arrivee": df_arr_raw.iloc[2:, idx_arr + 2], "Chrono_Excel": df_arr_raw.iloc[2:, idx_arr + 3]}) if idx_arr is not None else pd.DataFrame(columns=["N°", "Heure_Arrivee", "Chrono_Excel"])
+
+        df_eng_raw.columns = df_eng_raw.columns.astype(str).str.strip().str.upper()
+        df_eng = pd.DataFrame({"N°": df_eng_raw.iloc[:, 0].apply(nettoyer_numero), 
+                               "Nom_Prenom": df_eng_raw.iloc[:, 1].fillna("Pilote Inconnu").astype(str).str.strip(),
+                               "Voiture": df_eng_raw.iloc[:, 4].fillna("").astype(str).str.strip(),
+                               "Division": df_eng_raw.iloc[:, 5].apply(lambda x: "-" if pd.isna(x) else str(x).strip()[:-2] if str(x).strip().endswith(".0") else str(x).strip()),
+                               "Classe": df_eng_raw.iloc[:, 6].fillna("-").astype(str).str.strip().apply(lambda x: x[:-2] if x.endswith(".0") else x)})
+
         df_eng = df_eng[df_eng["N°"] != "NAN"].drop_duplicates(subset=["N°"])
         df_dep = df_dep[(df_dep["N°"] != "NAN") & (df_dep["N°"] != "")]
 
@@ -122,8 +156,7 @@ def calculer_statut_chrono_essais(row, est_dans_le_live=True):
                     racb["Chrono"] = racb["Calc_Sec"].apply(format_final_chrono)
                     df_racb = racb[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]].rename(columns={"Division": "Gr/Div", "Classe": "Cl"})
                 
-                # --- LE BRIDAGE .head(15) EST BIEN RETIRÉ ICI ---
-                asaf123 = scr[scr["Division_Clean"].isin(["1", "2", "3", "1.0", "2.0", "3.0"])].copy()
+                asaf123 = scr[scr["Division_Clean"].isin(["1", "2", "3", "1.0", "2.0", "3.0"])].head(15).copy()
                 if len(asaf123) > 0: 
                     asaf123["Pos"] = range(1, len(asaf123) + 1)
                     asaf123["Chrono"] = asaf123["Calc_Sec"].apply(format_final_chrono)
@@ -139,9 +172,7 @@ def calculer_statut_chrono_essais(row, est_dans_le_live=True):
     t_live = "🏎️ EN DIRECT / Derniers concurrents partis"
     t_hist = "🕒 HISTORIQUE DES TEMPS / ENTRAINEMENTS ASAF & RACB"
     t_racb = "🏆 CLASSEMENT EVOLUTIF DES ESSAIS RACB (Top 15)"
-    # --- TITRE MODIFIÉ ICI ---
-    t_as123 = "🏆 CLASSEMENT EVOLUTIF OFFICIEUX DES ESSAIS Division 123"
+    t_as123 = "🏆 CLASSEMENT EVOLUTIF DES ESSAIS Division 123 (Top 15)"
     t_as4 = "🏆 CLASSEMENT EVOLUTIF DES ESSAIS Division 4 (Top 10)"
 
-    return df_live, df_hist, df_asaf123, df_asaf4, df_racb, t_live, t_hist, t_racb, t_as123
-
+    return df_live, df_hist, df_asaf123, df_asaf4, df_racb, t_live, t_hist, t_racb, t_as1
