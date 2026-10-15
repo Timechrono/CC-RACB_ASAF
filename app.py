@@ -19,6 +19,10 @@ elif choix_course_url == "c3asaf" and course3_disponible: choix_course = "Course
 elif choix_course_url == "c3racb" and course3_racb_disponible: choix_course = "Course 3 RACB"
 else: choix_course = "Essais"
 
+# SÉCURITÉ : Initialisation à blanc pour éviter les NameError si Dropbox ralentit au démarrage
+d_liv, d_his, d_haut, d_milieu, d_bas = pd.DataFrame(), pd.DataFrame(), pd.DataFrame(), pd.DataFrame(), pd.DataFrame()
+t_live, t_his, t_haut, t_milieu, t_bas = "", "", "", "", ""
+
 try:
     from concurrent.futures import ThreadPoolExecutor
     def recuperer_avec_timeout():
