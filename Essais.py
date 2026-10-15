@@ -162,7 +162,6 @@ def recuperer_donnees_course():
                     asaf123["Chrono"] = asaf123["Calc_Sec"].apply(format_final_chrono)
                     df_asaf123 = asaf123[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]].rename(columns={"Division": "Gr/Div", "Classe": "Cl"})
                 
-                # Suppression du .head(10) pour la Division 4 :
                 asaf4 = scr[scr["Division_Clean"].isin(["4", "4.0"])].copy()
                 if len(asaf4) > 0: 
                     asaf4["Pos"] = range(1, len(asaf4) + 1)
@@ -174,19 +173,23 @@ def recuperer_donnees_course():
     t_hist = "🕒 HISTORIQUE DES TEMPS / ENTRAINEMENTS ASAF & RACB"
     t_racb = "🏆 CLASSEMENT EVOLUTIF OFFICIEUX DES ESSAIS RACB"
     t_as123 = "🏆 CLASSEMENT EVOLUTIF OFFICIEUX DES ESSAIS Division 123"
-    # Nouveau titre appliqué ici :
     t_as4 = "🏆 CLASSEMENT EVOLUTIF OFFICIEUX DES ESSAIS Division 4"
 
     return df_live, df_hist, df_asaf123, df_asaf4, df_racb, t_live, t_hist, t_racb, t_as123, t_as4
 
-# --- INJECTION CSS ET FONCTION D'AFFICHAGE SANS SCROLL VERTICAL ---
+# --- INJECTION CSS ET STYLE MOBILES ---
 st.markdown("""
     <style>
+    @keyframes fadeInEffect {
+        from { opacity: 0.6; }
+        to { opacity: 1; }
+    }
     .table-container {
         width: 100%;
         overflow-x: auto;
         -webkit-overflow-scrolling: touch;
         margin-bottom: 25px;
+        animation: fadeInEffect 0.4s ease-in-out;
     }
     .custom-table {
         width: 100%;
@@ -222,10 +225,25 @@ def afficher_tableau_complet(df, titre):
     else:
         st.write("Aucune donnée disponible.")
 
-# --- APPEL DU RENDU DE L'INTERFACE ---
+# --- COMPTEUR DE RAFRAÎCHISSEMENT AUTOMATIQUE (30 SECONDES) ---
+# Utilisation de st_autorefresh (si installé) ou st.fragment/time avec st.rerun natif
+if "compteur_refresh" not do st.session_state:
+    st.session_state.compteur_refresh = 0
+
+# Relance automatiquement l'application toutes les 30 secondes (30000 millisecondes)
+try:
+    from streamlit_autorefresh import st_autorefresh
+    st_autorefresh(interval=30000, key="datarefresh")
+except ImportError:
+    # Solution native de secours si le module externe n'est pas présent
+    import time
+    time.sleep(30)
+    st.rerun()
+
+# --- APPEL ET RENDU DE L'INTERFACE ---
 df_live, df_hist, df_asaf123, df_asaf4, df_racb, t_live, t_hist, t_racb, t_as123, t_as4 = recuperer_donnees_course()
 
-# Affichage des classements complets mis à jour
+# Affichage des 3 tableaux synchronisés sans scroll vertical
 afficher_tableau_complet(df_racb, t_racb)
 afficher_tableau_complet(df_asaf123, t_as123)
 afficher_tableau_complet(df_asaf4, t_as4)
