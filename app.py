@@ -8,7 +8,7 @@ import pandas as pd
 # --- CONFIGURATION DU LOGO DROPBOX EN DEBUT DE SCRIPT ---
 LIEN_DROPBOX_LOGO = "https://www.dropbox.com/scl/fi/hi24fjo0vbal4oiiwt9jl/logo-TimeC.png?rlkey=xlw0oqk9gdnq6v5dgahi0klg0&st=y86yrn6y&dl=1" # Remettez votre lien exact ici si nécessaire
 
-# --- DÉFINITION ROBUSTE DE GEN_HTML (Évite le NameError) ---
+# --- DÉFINITION ROBUSTE DE GEN_HTML ---
 def gen_html(df, classe_table="table-class-robuste"):
     if df is None or df.empty:
         return "<p style='text-align:center; color:gray;'>Aucune donnée disponible</p>"
@@ -63,7 +63,7 @@ st.markdown("<style>@media (min-width: 769px) { .table-hist th:nth-child(1), .ta
 
 if t_haut and "TOP 20" in t_haut.upper(): t_haut = "🏆 CLASSEMENT GENERAL OFFICIEUX RACB"
 
-# Extraction de la hauteur personnalisée passée dans les titres de vos fichiers
+# Extraction automatique de la hauteur personnalisée passée dans les titres de vos fichiers
 def extraire_titre_et_hauteur(texte_titre, hauteur_defaut="530px"):
     if not texte_titre: return "", hauteur_defaut
     if "##H=" in str(texte_titre):
@@ -101,10 +101,10 @@ with cd:
     else:
         elements_essais = [(t_haut, d_haut), (t_milieu, d_milieu), (t_bas, d_bas)]
         
-        # Sécurisation avec une valeur par défaut ("", pd.DataFrame()) si le mot-clé n'est pas trouvé
-        bloc_racb = next((t, d) for t, d in elements_essais if t and "RACB" in str(t).upper(), ("", pd.DataFrame()))
-        bloc_div123 = next((t, d) for t, d in elements_essais if t and "123" in str(t).upper(), ("", pd.DataFrame()))
-        bloc_div4 = next((t, d) for t, d in elements_essais if t and "4" in str(t).upper(), ("", pd.DataFrame()))
+        # Structure de recherche du générateur corrigée pour la fonction next()
+        bloc_racb = next(((t, d) for t, d in elements_essais if t and "RACB" in str(t).upper()), ("", pd.DataFrame()))
+        bloc_div123 = next(((t, d) for t, d in elements_essais if t and "123" in str(t).upper()), ("", pd.DataFrame()))
+        bloc_div4 = next(((t, d) for t, d in elements_essais if t and "4" in str(t).upper()), ("", pd.DataFrame()))
         
         t_r_p, h_r = extraire_titre_et_hauteur(bloc_racb[0], "530px")
         t_123_p, h_123 = extraire_titre_et_hauteur(bloc_div123[0], "530px")
@@ -122,7 +122,7 @@ with cd:
             st.markdown(f"<span class='titre-classement espace-classement-suivant'><span>{t_4_p}</span></span>", unsafe_allow_html=True)
             st.markdown(f'<div style="max-height: {h_4}; overflow-y: auto;">{gen_html(bloc_div4[1], "table-class-robuste")}</div>', unsafe_allow_html=True)
 
-# Signature d'origine avec votre variable d'image globale
+# Ligne d'origine restée intacte connectée à la variable globale du Bloc 1
 st.markdown(f"<div class='signature-fin-page'><img src='{LIEN_DROPBOX_LOGO}' class='logo-signature'>www.timechrono.be</div>", unsafe_allow_html=True)
 
 for secondes_restantes in range(30, -1, -1):
