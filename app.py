@@ -87,6 +87,11 @@ html, body, [data-testid="stAppViewContainer"], [data-testid="stMainBlockContain
     padding-right: 0.5rem !important; 
 }}
 
+/* REGLAGE PARFAIT CONTRE L'ÉTIREMENT AUTOMATIQUE DES COLONNES MULTIPLES */
+[data-testid="stHorizontalBlock"] {{
+    align-items: flex-start !important;
+}}
+
 div[data-testid="stVerticalBlock"] {{
     gap: 0rem !important;
     padding-top: 0px !important;
@@ -315,8 +320,8 @@ with cd:
         if t_milieu:
             st.markdown(f"<span class='titre-classement espace-classement-suivant'>{t_milieu}</span>", unsafe_allow_html=True)
             st.markdown(gen_html(d_haut, "table-class-robuste"), unsafe_allow_html=True)
-        # --- NETTOYAGE ICI : On affiche t_bas uniquement s'il contient du texte (pour éviter le cadre vide) ---
-        if t_bas and not d_milieu.empty:
+        # --- CORRECTION FINALE DU CADRE VIDE ICI : On bloque la génération HTML si d_milieu n'existe pas ou est vide en mode texte ---
+        if t_bas and not isinstance(d_milieu, str) and not d_milieu.empty:
             st.markdown(f"<span class='titre-classement espace-classement-suivant'>{t_bas}</span>", unsafe_allow_html=True)
             st.markdown(gen_html(d_milieu, "table-class-robuste"), unsafe_allow_html=True)
 
