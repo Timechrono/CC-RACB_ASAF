@@ -24,7 +24,7 @@ t_bas = ""
 # ==============================================================================
 # ⚠️ METTEZ VOTRE LIEN DROPBOX ICI (Assurez-vous qu'il se termine bien par dl=1)
 # ==============================================================================
-LIEN_DROPBOX_LOGO = "https://www.dropbox.com/scl/fi/hi24fjo0vbal4oiiwt9jl/logo-TimeC.png?rlkey=xlw0oqk9gdnq6v5dgahi0klg0&st=y86yrn6y&dl=1"
+LIEN_DROPBOX_LOGO = "https://dropbox.com"
 
 # --- DÉTECTION DES SCRIPTS DE COURSE DISPONIBLES ---
 try:
@@ -168,7 +168,6 @@ div.stElementContainer {{
 .table-live td:last-child, .table-class-robuste td:last-child {{ font-weight: bold !important; font-size: 0.94rem !important; color: #0F172A !important; }}
 .table-hist tr:nth-child(odd) td {{ background-color: #E0F2FE !important; }}
 
-/* 🛠️ AJUSTEMENT : UN ESPACE DE 25px A ÉTÉ LAISSÉ AVANT LA LIGNE DU LOGO */
 .signature-fin-page {{
     display: flex !important;
     justify-content: center !important;
@@ -316,7 +315,8 @@ with cd:
         if t_milieu:
             st.markdown(f"<span class='titre-classement espace-classement-suivant'>{t_milieu}</span>", unsafe_allow_html=True)
             st.markdown(gen_html(d_haut, "table-class-robuste"), unsafe_allow_html=True)
-        if t_bas:
+        # --- NETTOYAGE ICI : On affiche t_bas uniquement s'il contient du texte (pour éviter le cadre vide) ---
+        if t_bas and not d_milieu.empty:
             st.markdown(f"<span class='titre-classement espace-classement-suivant'>{t_bas}</span>", unsafe_allow_html=True)
             st.markdown(gen_html(d_milieu, "table-class-robuste"), unsafe_allow_html=True)
 
