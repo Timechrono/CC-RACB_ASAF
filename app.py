@@ -203,19 +203,22 @@ with cd:
             st.markdown(f"<span class='titre-classement espace-classement-suivant'><span>{t_bas}</span></span>", unsafe_allow_html=True)
             st.markdown(gen_html(d_bas, "table-class-robuste"), unsafe_allow_html=True)
     else:
-        if t_haut:
-            st.markdown(f"<span class='titre-classement'><span>{t_haut}</span></span>", unsafe_allow_html=True)
+        # --- ORDRE STRICT ET ÉTANCHE POUR LE MODE ESSAIS ---
+        # 1. RACB (t_bas / d_bas)
+        if t_bas:
+            st.markdown(f"<span class='titre-classement'><span>{t_bas}</span></span>", unsafe_allow_html=True)
             st.markdown(gen_html(d_bas, "table-class-robuste"), unsafe_allow_html=True)
+        # 2. Division 123 (t_haut / d_haut)
+        if t_haut:
+            st.markdown(f"<span class='titre-classement espace-classement-suivant'><span>{t_haut}</span></span>", unsafe_allow_html=True)
+            st.markdown(gen_html(d_haut, "table-class-robuste"), unsafe_allow_html=True)
+        # 3. Division 4 (t_milieu / d_milieu)
         if t_milieu:
             st.markdown(f"<span class='titre-classement espace-classement-suivant'><span>{t_milieu}</span></span>", unsafe_allow_html=True)
-            st.markdown(gen_html(d_haut, "table-class-robuste"), unsafe_allow_html=True)
-        if t_bas and not isinstance(d_milieu, str) and not d_milieu.empty:
-            st.markdown(f"<span class='titre-classement espace-classement-suivant'><span>{t_bas}</span></span>", unsafe_allow_html=True)
             st.markdown(gen_html(d_milieu, "table-class-robuste"), unsafe_allow_html=True)
 
 st.markdown(f"<div class='signature-fin-page'><img src='{LIEN_DROPBOX_LOGO}' class='logo-signature'>www.timechrono.be</div>", unsafe_allow_html=True)
 
-# --- REFRESH ET TITRE VERT AVEC HAUTEUR CONFORME ET BADGE SÉCURISÉ ---
 for secondes_restantes in range(30, -1, -1):
     if "Derniers concurrents" in t_live or "DIRECT" in t_live.upper():
         conteneur_titre_live.markdown(
