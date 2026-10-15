@@ -77,6 +77,7 @@ def calculer_statut_chrono_essais(row, est_dans_le_live=True):
     if "Heure_Depart" in row and pd.notna(row["Heure_Depart"]) and pd.isna(row.get("Heure_Arrivee")):
         return "<span class='vrai-gyrophare'>🚨</span> EN PISTE" if est_dans_le_live else "En Piste"
     return "No Time"
+# fin partie 1
 def recuperer_donnees_course():
     df_live = pd.DataFrame(columns=["N°", "Nom_Prenom", "Voiture", "Départ", "Arrivée", "Chrono"])
     df_hist = pd.DataFrame(columns=["N°", "Nom_Prenom", "Voiture", "Gr/Div", "Cl", "Chrono"])
@@ -149,14 +150,14 @@ def recuperer_donnees_course():
                 scr["Division_Clean"] = scr["Division"].astype(str).str.strip()
                 
                 exclus_asaf = ["1", "2", "3", "4", "1.0", "2.0", "3.0", "4.0"]
-                # Suppression du .head(15) pour afficher TOUS les concurrents RACB :
                 racb = scr[~scr["Division_Clean"].isin(exclus_asaf)].copy()
                 if len(racb) > 0: 
                     racb["Pos"] = range(1, len(racb) + 1)
                     racb["Chrono"] = racb["Calc_Sec"].apply(format_final_chrono)
                     df_racb = racb[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]].rename(columns={"Division": "Gr/Div", "Classe": "Cl"})
                 
-                asaf123 = scr[scr["Division_Clean"].isin(["1", "2", "3", "1.0", "2.0", "3.0"])].head(15).copy()
+                # Suppression du .head(15) pour la Division 123 :
+                asaf123 = scr[scr["Division_Clean"].isin(["1", "2", "3", "1.0", "2.0", "3.0"])].copy()
                 if len(asaf123) > 0: 
                     asaf123["Pos"] = range(1, len(asaf123) + 1)
                     asaf123["Chrono"] = asaf123["Calc_Sec"].apply(format_final_chrono)
@@ -172,7 +173,8 @@ def recuperer_donnees_course():
     t_live = "🏎️ EN DIRECT / Derniers concurrents partis"
     t_hist = "🕒 HISTORIQUE DES TEMPS / ENTRAINEMENTS ASAF & RACB"
     t_racb = "🏆 CLASSEMENT EVOLUTIF OFFICIEUX DES ESSAIS RACB"
-    t_as123 = "🏆 CLASSEMENT EVOLUTIF DES ESSAIS Division 123 (Top 15)"
+    # Nouveau titre appliqué ici :
+    t_as123 = "🏆 CLASSEMENT EVOLUTIF OFFICIEUX DES ESSAIS Division 123"
     t_as4 = "🏆 CLASSEMENT EVOLUTIF DES ESSAIS Division 4 (Top 10)"
 
     return df_live, df_hist, df_asaf123, df_asaf4, df_racb, t_live, t_hist, t_racb, t_as123, t_as4
@@ -220,8 +222,9 @@ def afficher_tableau_complet(df, titre):
     else:
         st.write("Aucune donnée disponible.")
 
-# --- APPEL DU RENTRÉ DE L'INTERFACE ---
+# --- APPEL DU RENDU DE L'INTERFACE ---
 df_live, df_hist, df_asaf123, df_asaf4, df_racb, t_live, t_hist, t_racb, t_as123, t_as4 = recuperer_donnees_course()
 
-# Affichage du classement (Entièrement visible, sans la limite artificielle des 15 lignes)
+# Affichage des classements complets
 afficher_tableau_complet(df_racb, t_racb)
+afficher_tableau_complet(df_asaf123, t_as123)
