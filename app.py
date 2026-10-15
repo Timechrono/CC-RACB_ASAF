@@ -125,10 +125,10 @@ div.stElementContainer {{
 }}
 
 /* BOÎTES DE SCROLL INTERNES CLOISONNÉES AUTONOMES COORDONNÉES */
-/* 🛠️ HAUTEUR AJUSTÉE PILE-POIL À 694px POUR L'ALIGNEMENT DES TABLEAUX */
+/* 🛠️ HAUTEUR AJUSTÉE À 690px POUR UN ALIGNEMENT PARFAIT SUR PC */
 .div-scroll-local-historique {{
-    height: 694px !important;
-    max-height: 694px !important;
+    height: 690px !important;
+    max-height: 690px !important;
     overflow-y: auto !important;
     width: 100% !important;
     border: 1px solid #CBD5E1 !important;
