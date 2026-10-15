@@ -149,7 +149,8 @@ def recuperer_donnees_course():
                 scr["Division_Clean"] = scr["Division"].astype(str).str.strip()
                 
                 exclus_asaf = ["1", "2", "3", "4", "1.0", "2.0", "3.0", "4.0"]
-                racb = scr[~scr["Division_Clean"].isin(exclus_asaf)].head(15).copy()
+                # Suppression du .head(15) pour afficher TOUS les concurrents RACB :
+                racb = scr[~scr["Division_Clean"].isin(exclus_asaf)].copy()
                 if len(racb) > 0: 
                     racb["Pos"] = range(1, len(racb) + 1)
                     racb["Chrono"] = racb["Calc_Sec"].apply(format_final_chrono)
@@ -181,7 +182,7 @@ st.markdown("""
     <style>
     .table-container {
         width: 100%;
-        overflow-x: auto; /* Défilement horizontal uniquement si l'écran mobile est trop étroit */
+        overflow-x: auto;
         -webkit-overflow-scrolling: touch;
         margin-bottom: 25px;
     }
@@ -214,15 +215,13 @@ st.markdown("""
 def afficher_tableau_complet(df, titre):
     st.subheader(titre)
     if not df.empty:
-        # L'utilisation du HTML pur force Streamlit à afficher l'entièreté des lignes sans scroll vertical
         html_table = df.to_html(index=False, classes='custom-table', escape=False)
         st.markdown(f'<div class="table-container">{html_table}</div>', unsafe_allow_html=True)
     else:
         st.write("Aucune donnée disponible.")
 
-# --- APPEL DU RENTRÉ DE L'INTERFACE COMPLÈTE ---
+# --- APPEL DU RENTRÉ DE L'INTERFACE ---
 df_live, df_hist, df_asaf123, df_asaf4, df_racb, t_live, t_hist, t_racb, t_as123, t_as4 = recuperer_donnees_course()
 
-# Affichage du classement demandé (découverte complète des 15 lignes sur PC & Smartphone)
+# Affichage du classement (Entièrement visible, sans la limite artificielle des 15 lignes)
 afficher_tableau_complet(df_racb, t_racb)
-
