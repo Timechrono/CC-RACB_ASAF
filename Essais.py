@@ -177,19 +177,14 @@ def recuperer_donnees_course():
 
     return df_live, df_hist, df_asaf123, df_asaf4, df_racb, t_live, t_hist, t_racb, t_as123, t_as4
 
-# --- INJECTION CSS ET STYLE MOBILES ---
+# --- INJECTION CSS ET STYLE SUR MESURE ---
 st.markdown("""
     <style>
-    @keyframes fadeInEffect {
-        from { opacity: 0.7; }
-        to { opacity: 1; }
-    }
     .table-container {
         width: 100%;
         overflow-x: auto;
         -webkit-overflow-scrolling: touch;
         margin-bottom: 25px;
-        animation: fadeInEffect 0.3s ease-in-out;
     }
     .custom-table {
         width: 100%;
@@ -225,19 +220,25 @@ def afficher_tableau_complet(df, titre):
     else:
         st.write("Aucune donnée disponible.")
 
-# --- AUTO-REFRESH ULTRA-STABLE VIA INJECTION HTML JAVASCRIPT ---
-# Exécute un rafraîchissement propre côté navigateur toutes les 30 secondes sans bloquer Python
-st.components.v1.html("""
-    <script>
-    setTimeout(function(){
-        window.parent.location.reload();
-    }, 30000);
-    </script>
-""", height=0, width=0)
-
-# --- APPEL ET RENDU DE L'INTERFACE ---
+# --- CHARGEMENT DES DONNÉES ---
 df_live, df_hist, df_asaf123, df_asaf4, df_racb, t_live, t_hist, t_racb, t_as123, t_as4 = recuperer_donnees_course()
 
+# --- RENDU DE L'INTERFACE GRAPHIQUE ---
 afficher_tableau_complet(df_racb, t_racb)
 afficher_tableau_complet(df_asaf123, t_as123)
 afficher_tableau_complet(df_asaf4, t_as4)
+
+# --- MINUTEUR DE REFRESH 30 SECONDES NATIF ET FIABLE ---
+import time
+if "derniere_maj" not in st.session_state:
+    st.session_state.derniere_maj = time.time()
+
+# Décompte visuel discret en bas de page
+temps_restant = int(30 - (time.time() - st.session_state.derniere_maj))
+
+if temps_restant <= 0:
+    st.session_state.derniere_maj = time.time()
+    st.rerun()
+else:
+    time.sleep(1)
+    st.rerun()
