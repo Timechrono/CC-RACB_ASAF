@@ -1,6 +1,4 @@
 # https://www.dropbox.com/scl/fi/hi24fjo0vbal4oiiwt9jl/logo-TimeC.png?rlkey=xlw0oqk9gdnq6v5dgahi0klg0&st=y86yrn6y&dl=1
-# https://dropbox.com
-# https://dropbox.com
 import streamlit as st
 import pandas as pd
 import time
@@ -24,7 +22,7 @@ t_bas = ""
 # ==============================================================================
 # ⚠️ METTEZ VOTRE LIEN DROPBOX ICI (Assurez-vous qu'il se termine bien par dl=1)
 # ==============================================================================
-LIEN_DROPBOX_LOGO = "https://dropbox.com"
+LIEN_DROPBOX_LOGO = "https://www.dropbox.com/scl/fi/hi24fjo0vbal4oiiwt9jl/logo-TimeC.png?rlkey=xlw0oqk9gdnq6v5dgahi0klg0&st=y86yrn6y&dl=1"
 
 # --- DÉTECTION DES SCRIPTS DE COURSE DISPONIBLES ---
 try:
@@ -127,10 +125,10 @@ div.stElementContainer {{
 }}
 
 /* BOÎTES DE SCROLL INTERNES CLOISONNÉES AUTONOMES COORDONNÉES */
-/* 🛠️ MODIFIEZ LE 700px CI-DESSOUS POUR REGLER LA HAUTEUR SUR ORDINATEUR */
+/* 🛠️ HAUTEUR AJUSTÉE PILE-POIL À 694px POUR L'ALIGNEMENT DES TABLEAUX */
 .div-scroll-local-historique {{
-    height: 700px !important;
-    max-height: 700px !important;
+    height: 694px !important;
+    max-height: 694px !important;
     overflow-y: auto !important;
     width: 100% !important;
     border: 1px solid #CBD5E1 !important;
@@ -206,7 +204,6 @@ div.stElementContainer {{
 tr.ligne-separation-classe td, .table-compacte tr.ligne-separation-classe td {{ box-shadow: inset 0 -3px 0 0 #1E3A8A !important; }}
 </style>
 """, unsafe_allow_html=True)
-# fin bloc
 def gen_html(df, cl):
     if cl == "table-hist":
         phrase_attente = "En attente d'arrivée..."
@@ -273,7 +270,7 @@ try:
         elif choix_course == "Course 1 RACB": return Course_1_RACB.recuperer_donnees_course()
         elif choix_course == "Course 2 ASAF": return Course_2_ASAF.recuperer_donnees_course()
         elif choix_course == "Course 2 RACB": return Course_2_RACB.recuperer_donnees_course()
-        elif choix_course == "Course 2 ASAF": return Course_3_ASAF.recuperer_donnees_course()
+        elif choix_course == "Course 3 ASAF": return Course_3_ASAF.recuperer_donnees_course()
         elif choix_course == "Course 3 RACB": return Course_3_RACB.recuperer_donnees_course()
         else: return Essais.recuperer_donnees_course()
 
