@@ -3,9 +3,10 @@
 
 import streamlit as st
 import time
+import pandas as pd
 
 # --- CONFIGURATION DU LOGO DROPBOX EN DEBUT DE SCRIPT ---
-LIEN_DROPBOX_LOGO = "https://dropboxapi.com" # Remettez votre lien exact ici si nécessaire
+LIEN_DROPBOX_LOGO = "https://www.dropbox.com/scl/fi/hi24fjo0vbal4oiiwt9jl/logo-TimeC.png?rlkey=xlw0oqk9gdnq6v5dgahi0klg0&st=y86yrn6y&dl=1" # Remettez votre lien exact ici si nécessaire
 
 query_params = st.query_params
 choix_course_url = query_params.get("course", "essais").lower()
@@ -17,6 +18,10 @@ elif choix_course_url == "c2racb" and course2_racb_disponible: choix_course = "C
 elif choix_course_url == "c3asaf" and course3_disponible: choix_course = "Course 3 ASAF"
 elif choix_course_url == "c3racb" and course3_racb_disponible: choix_course = "Course 3 RACB"
 else: choix_course = "Essais"
+
+# Initialisation préventive pour éviter les NameError si Dropbox met du temps à répondre
+d_liv, d_his, d_haut, d_milieu, d_bas = pd.DataFrame(), pd.DataFrame(), pd.DataFrame(), pd.DataFrame(), pd.DataFrame()
+t_live, t_his, t_haut, t_milieu, t_bas = "", "", "", "", ""
 
 try:
     from concurrent.futures import ThreadPoolExecutor
@@ -35,13 +40,14 @@ try:
         if res and len(res) == 10: d_liv, d_his, d_haut, d_milieu, d_bas, t_live, t_his, t_haut, t_milieu, t_bas = res
 except Exception as e:
     t_live = "⚠️ Liaison Dropbox ralentie ou instable — Tentative de reconnexon en cours..."
+# fin bloc 1
 # Fichier : app.py - Partie 2
 
 st.markdown("<style>@media (min-width: 769px) { .table-hist th:nth-child(1), .table-hist td:nth-child(1) { width: 8% !important; } .table-hist th:nth-child(2), .table-hist td:nth-child(2) { width: 32% !important; } .table-hist th:nth-child(3), .table-hist td:nth-child(3) { width: 28% !important; } .table-hist th:nth-child(4), .table-hist td:nth-child(4) { width: 10% !important; } .table-hist th:nth-child(5), .table-hist td:nth-child(5) { width: 5% !important; } .table-hist th:nth-child(6), .table-hist td:nth-child(6) { width: 17% !important; } }</style>", unsafe_allow_html=True)
 
 if t_haut and "TOP 20" in t_haut.upper(): t_haut = "🏆 CLASSEMENT GENERAL OFFICIEUX RACB"
 
-# Fonction d'extraction automatique pour lire les hauteurs définies dans vos fichiers (ex: Essais.py)
+# Fonction d'extraction automatique pour lire les hauteurs définies dans vos fichiers de course (ex: Essais.py)
 def extraire_titre_et_hauteur(texte_titre, hauteur_defaut="530px"):
     if not texte_titre: return "", hauteur_defaut
     if "##H=" in str(texte_titre):
@@ -59,6 +65,7 @@ with cg:
     t_his_propre, h_his = extraire_titre_et_hauteur(t_his, "530px")
     if t_his_propre: st.markdown(f"<span class='titre-hist'><span>{t_his_propre}</span></span>", unsafe_allow_html=True)
     st.markdown(f'<div style="max-height: {h_his}; overflow-y: auto;">{gen_html(d_his, "table-hist")}</div>', unsafe_allow_html=True)
+# fin bloc 2
 # Fichier : app.py - Partie 3
 
 with cd:
