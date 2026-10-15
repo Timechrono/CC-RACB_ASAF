@@ -192,7 +192,6 @@ with cg:
     st.markdown(gen_html(d_his, "table-hist"), unsafe_allow_html=True)
     
 with cd:
-    # --- ROUTAGE STRICT DU MODE DE COURSE VS MODE ESSAIS ---
     if choix_course != "Essais":
         if t_haut:
             st.markdown(f"<span class='titre-classement'><span>{t_haut}</span></span>", unsafe_allow_html=True)
@@ -204,30 +203,29 @@ with cd:
             st.markdown(f"<span class='titre-classement espace-classement-suivant'><span>{t_bas}</span></span>", unsafe_allow_html=True)
             st.markdown(gen_html(d_bas, "table-class-robuste"), unsafe_allow_html=True)
     else:
-        # --- FORÇAGE INTELLIGENT PAR VÉRIFICATION DIRECTE DES TITRES ---
-        # On regroupe les paires (titre, dataframe) reçues de Essais.py
+        # --- FORÇAGE AVEC SÉPARATION STRICTE TITRE / DONNÉES ---
         elements_essais = [
             (t_haut, d_haut),
             (t_milieu, d_milieu),
             (t_bas, d_bas)
         ]
         
-        # On extrait la bonne paire pour chaque position demandée
-        bloc_racb = next((t, d) for t, d in elements_essais if t and "RACB" in t.upper())
-        bloc_div123 = next((t, d) for t, d in elements_essais if t and "123" in t.upper())
-        bloc_div4 = next((t, d) for t, d in elements_essais if t and "4" in t.upper())
+        # Extraction propre du titre (t) et du dataframe (d)
+        t_racb, d_racb_data = next((t, d) for t, d in elements_essais if t and "RACB" in t.upper())
+        t_div123, d_div123_data = next((t, d) for t, d in elements_essais if t and "123" in t.upper())
+        t_div4, d_div4_data = next((t, d) for t, d in elements_essais if t and "4" in t.upper())
         
-        # 1. EN PREMIER (TOUT EN HAUT) : RACB
-        st.markdown(f"<span class='titre-classement'><span>{bloc_racb[0]}</span></span>", unsafe_allow_html=True)
-        st.markdown(gen_html(bloc_racb[1], "table-class-robuste"), unsafe_allow_html=True)
+        # 1. EN PREMIER : RACB
+        st.markdown(f"<span class='titre-classement'><span>{t_racb}</span></span>", unsafe_allow_html=True)
+        st.markdown(gen_html(d_racb_data, "table-class-robuste"), unsafe_allow_html=True)
         
-        # 2. EN DEUXIÈME (AU MILIEU) : Division 123
-        st.markdown(f"<span class='titre-classement espace-classement-suivant'><span>{bloc_div123[0]}</span></span>", unsafe_allow_html=True)
-        st.markdown(gen_html(bloc_div123[1], "table-class-robuste"), unsafe_allow_html=True)
+        # 2. EN DEUXIÈME : Division 123
+        st.markdown(f"<span class='titre-classement espace-classement-suivant'><span>{t_div123}</span></span>", unsafe_allow_html=True)
+        st.markdown(gen_html(d_div123_data, "table-class-robuste"), unsafe_allow_html=True)
         
-        # 3. EN TROISIÈME (TOUT EN BAS) : Division 4
-        st.markdown(f"<span class='titre-classement espace-classement-suivant'><span>{bloc_div4[0]}</span></span>", unsafe_allow_html=True)
-        st.markdown(gen_html(bloc_div4[1], "table-class-robuste"), unsafe_allow_html=True)
+        # 3. EN TROISIÈME : Division 4
+        st.markdown(f"<span class='titre-classement espace-classement-suivant'><span>{t_div4}</span></span>", unsafe_allow_html=True)
+        st.markdown(gen_html(d_div4_data, "table-class-robuste"), unsafe_allow_html=True)
 
 st.markdown(f"<div class='signature-fin-page'><img src='{LIEN_DROPBOX_LOGO}' class='logo-signature'>www.timechrono.be</div>", unsafe_allow_html=True)
 
