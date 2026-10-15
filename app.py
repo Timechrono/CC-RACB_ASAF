@@ -21,7 +21,7 @@ t_bas = ""
 
 LIEN_DROPBOX_LOGO = "https://www.dropbox.com/scl/fi/hi24fjo0vbal4oiiwt9jl/logo-TimeC.png?rlkey=xlw0oqk9gdnq6v5dgahi0klg0&st=y86yrn6y&dl=1"
 
-# --- RETOUR STRICT À VOTRE LOGIQUE DE DÉTECTION D'ORIGINE ---
+# --- DÉTECTION DES SCRIPTS DE COURSE D'ORIGINE ---
 try:
     import Course_1_ASAF
     course1_disponible = True
@@ -60,7 +60,7 @@ except ModuleNotFoundError:
 
 st.set_page_config(page_title="Live", layout="wide")
 
-# --- CONCEPTION GRAPHIQUE UNIFIÉE AVEC HAUTEUR HARMONISÉE ---
+# --- CONCEPTION GRAPHIQUE AVEC HAUTEUR INITIALE DE TITRE RESTAURÉE ---
 st.markdown("""
 <style>
 [data-testid="stHeader"] { display: none !important; }
@@ -75,20 +75,18 @@ html, body, [data-testid="stAppViewContainer"], [data-testid="stMainBlockContain
 div[data-testid="stVerticalBlock"] { gap: 0rem !important; padding-top: 0px !important; }
 div.stElementContainer { margin: 0px !important; padding: 0px !important; }
 
-/* REGLAGE DE TOUS LES BANDEAUX EN FLEX SUR 30PX DE HAUTEUR */
+/* REGLAGE DES TITRES EN FLEX ET RESTAURATION DE LA HAUTEUR D'ORIGINE SANS COMPRESSION */
 .titre-live, .titre-hist, .titre-classement {
     color: #FFFFFF !important; font-size: 1.05rem !important; font-weight: bold !important;
     padding: 4px 8px !important; border-radius: 3px !important; width: 100% !important; clear: both !important;
     display: flex !important; justify-content: space-between !important; align-items: center !important; 
-    box-sizing: border-box !important; height: 30px !important; line-height: 1 !important;
+    box-sizing: border-box !important; min-height: 34px !important; height: auto !important; line-height: 1.2 !important;
 }
 .titre-live { background-color: #15803D !important; margin: 0px 0px 6px 0px !important; }
 .titre-hist { background-color: #475569 !important; margin: 15px 0px 6px 0px !important; }
 .titre-classement { background-color: #1E3A8A !important; margin: 0px 0px 6px 0px !important; }
 
 .table-hist td:last-child { font-weight: bold !important; color: #0F172A !important; }
-
-/* BADGE DE REFRESH PARAMÉTRÉ SANS IMPLIQUER DE SURÉPAISSEUR */
 .refresh-bleu-clair-historique {
     color: #FFFFFF !important; font-weight: normal !important; background-color: #064E3B !important;
     border: 1px solid #00FF00 !important; padding: 1px 6px !important; border-radius: 4px !important;
@@ -217,13 +215,13 @@ with cd:
 
 st.markdown(f"<div class='signature-fin-page'><img src='{LIEN_DROPBOX_LOGO}' class='logo-signature'>www.timechrono.be</div>", unsafe_allow_html=True)
 
-# --- REFRESH EMBARQUÉ ET BANDEAUX PARFAITEMENT ALIGNÉS EN CSS GLOBAL ---
+# --- REFRESH ET TITRE VERT AVEC HAUTEUR CONFORME ET BADGE SÉCURISÉ ---
 for secondes_restantes in range(30, -1, -1):
     if "Derniers concurrents" in t_live or "DIRECT" in t_live.upper():
         conteneur_titre_live.markdown(
             f"<span class='titre-live'>"
             f"<span>{t_live}</span>"
-            f"<span class='refresh-bleu-clair-historique'>Refresh {secondes_restantes} Sec.</span>"
+            f"<span class='refresh-bleu-clair-historique' style='padding: 2px 6px !important;'>Refresh {secondes_restantes} Sec.</span>"
             f"</span>", 
             unsafe_allow_html=True
         )
