@@ -176,4 +176,6 @@ def recuperer_donnees_course():
     # --- LE TITRE DE LA DIVISION 4 EST MODIFIÉ ICI ---
     t_as4 = "🏆 CLASSEMENT EVOLUTIF OFFICIEUX DES ESSAIS Division 4"
 
-    return df_live, df_hist, df_asaf123, df_asaf4, df_racb, t_live, t_hist, t_racb, t_as123, t_as4
+    # --- COPIEZ ET REMPLACEZ LA TOUTE DERNIÈRE LIGNE DE ESSAIS.PY PAR CELLE-CI ---
+    return df_live, df_hist, df_racb, df_asaf123, df_asaf4, t_live, t_hist, t_racb, t_as123, t_as4
+
