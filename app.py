@@ -6,13 +6,12 @@ import time
 import pandas as pd
 
 # --- CONFIGURATION DU LOGO DROPBOX EN DEBUT DE SCRIPT ---
-LIEN_DROPBOX_LOGO = "https://dropboxapi.com" # Remettez votre lien exact ici si nécessaire
+LIEN_DROPBOX_LOGO = "https://www.dropbox.com/scl/fi/hi24fjo0vbal4oiiwt9jl/logo-TimeC.png?rlkey=xlw0oqk9gdnq6v5dgahi0klg0&st=y86yrn6y&dl=1" # Remettez votre lien exact ici si nécessaire
 
 # --- DÉFINITION ROBUSTE DE GEN_HTML (Évite le NameError) ---
 def gen_html(df, classe_table="table-class-robuste"):
     if df is None or df.empty:
         return "<p style='text-align:center; color:gray;'>Aucune donnée disponible</p>"
-    # Génération automatique du tableau HTML standard attendu par votre CSS
     html = f"<div class='{classe_table}'><table>"
     html += "<thead><tr>"
     for col in df.columns:
@@ -101,24 +100,29 @@ with cd:
             st.markdown(f'<div style="max-height: {h_bas}; overflow-y: auto;">{gen_html(d_bas, "table-class-robuste")}</div>', unsafe_allow_html=True)
     else:
         elements_essais = [(t_haut, d_haut), (t_milieu, d_milieu), (t_bas, d_bas)]
-        bloc_racb = next((t, d) for t, d in elements_essais if t and "RACB" in str(t).upper())
-        bloc_div123 = next((t, d) for t, d in elements_essais if t and "123" in str(t).upper())
-        bloc_div4 = next((t, d) for t, d in elements_essais if t and "4" in str(t).upper())
         
-        t_r_p, h_r = extraire_titre_et_hauteur(bloc_racb, "530px")
-        t_123_p, h_123 = extraire_titre_et_hauteur(bloc_div123, "530px")
-        t_4_p, h_4 = extraire_titre_et_hauteur(bloc_div4, "530px")
+        # Sécurisation avec une valeur par défaut ("", pd.DataFrame()) si le mot-clé n'est pas trouvé
+        bloc_racb = next((t, d) for t, d in elements_essais if t and "RACB" in str(t).upper(), ("", pd.DataFrame()))
+        bloc_div123 = next((t, d) for t, d in elements_essais if t and "123" in str(t).upper(), ("", pd.DataFrame()))
+        bloc_div4 = next((t, d) for t, d in elements_essais if t and "4" in str(t).upper(), ("", pd.DataFrame()))
+        
+        t_r_p, h_r = extraire_titre_et_hauteur(bloc_racb[0], "530px")
+        t_123_p, h_123 = extraire_titre_et_hauteur(bloc_div123[0], "530px")
+        t_4_p, h_4 = extraire_titre_et_hauteur(bloc_div4[0], "530px")
 
-        st.markdown(f"<span class='titre-classement'><span>{t_r_p}</span></span>", unsafe_allow_html=True)
-        st.markdown(f'<div style="max-height: {h_r}; overflow-y: auto;">{gen_html(bloc_racb, "table-class-robuste")}</div>', unsafe_allow_html=True)
+        if t_r_p:
+            st.markdown(f"<span class='titre-classement'><span>{t_r_p}</span></span>", unsafe_allow_html=True)
+            st.markdown(f'<div style="max-height: {h_r}; overflow-y: auto;">{gen_html(bloc_racb[1], "table-class-robuste")}</div>', unsafe_allow_html=True)
         
-        st.markdown(f"<span class='titre-classement espace-classement-suivant'><span>{t_123_p}</span></span>", unsafe_allow_html=True)
-        st.markdown(f'<div style="max-height: {h_123}; overflow-y: auto;">{gen_html(bloc_div123, "table-class-robuste")}</div>', unsafe_allow_html=True)
+        if t_123_p:
+            st.markdown(f"<span class='titre-classement espace-classement-suivant'><span>{t_123_p}</span></span>", unsafe_allow_html=True)
+            st.markdown(f'<div style="max-height: {h_123}; overflow-y: auto;">{gen_html(bloc_div123[1], "table-class-robuste")}</div>', unsafe_allow_html=True)
         
-        st.markdown(f"<span class='titre-classement espace-classement-suivant'><span>{t_4_p}</span></span>", unsafe_allow_html=True)
-        st.markdown(f'<div style="max-height: {h_4}; overflow-y: auto;">{gen_html(bloc_div4, "table-class-robuste")}</div>', unsafe_allow_html=True)
+        if t_4_p:
+            st.markdown(f"<span class='titre-classement espace-classement-suivant'><span>{t_4_p}</span></span>", unsafe_allow_html=True)
+            st.markdown(f'<div style="max-height: {h_4}; overflow-y: auto;">{gen_html(bloc_div4[1], "table-class-robuste")}</div>', unsafe_allow_html=True)
 
-# Signature utilisant la variable d'image définie au tout début du Bloc 1
+# Signature d'origine avec votre variable d'image globale
 st.markdown(f"<div class='signature-fin-page'><img src='{LIEN_DROPBOX_LOGO}' class='logo-signature'>www.timechrono.be</div>", unsafe_allow_html=True)
 
 for secondes_restantes in range(30, -1, -1):
