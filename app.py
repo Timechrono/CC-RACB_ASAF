@@ -209,13 +209,13 @@ with cd:
 
 st.markdown(f"<div class='signature-fin-page'><img src='{LIEN_DROPBOX_LOGO}' class='logo-signature'>www.timechrono.be</div>", unsafe_allow_html=True)
 
-# --- BOUCLE DE COMPTE À REBOURS AVEC HAUTEUR ET STYLE ALIGNÉS ---
+# --- BOUCLE DE COMPTE À REBOURS AVEC POSITIONNEMENT ABSOLU POUR UNE HAUTEUR PARFAITE ---
 for secondes_restantes in range(30, -1, -1):
     if "Derniers concurrents" in t_live or "DIRECT" in t_live.upper():
         conteneur_titre_live.markdown(
-            f"<span class='titre-live' style='display: flex !important; justify-content: space-between !important; align-items: center !important; box-sizing: border-box !important;'>"
-            f"<span>{t_live}</span>"
-            f"<span class='refresh-bleu-clair-historique' style='margin-left: auto !important; margin-top: 0px !important;'>Refresh {secondes_restantes} Sec.</span>"
+            f"<span class='titre-live' style='position: relative !important; line-height: 1.1 !important; height: auto !important;'>"
+            f"{t_live}"
+            f"<span class='refresh-bleu-clair-historique' style='position: absolute !important; right: 8px !important; top: 50% !important; transform: translateY(-50%) !important; margin: 0px !important; line-height: normal !important;'>Refresh {secondes_restantes} Sec.</span>"
             f"</span>", 
             unsafe_allow_html=True
         )
@@ -227,4 +227,3 @@ for secondes_restantes in range(30, -1, -1):
 
 st.rerun()
 
-st.rerun()
