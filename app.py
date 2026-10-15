@@ -7,8 +7,11 @@ import requests
 import io
 import Essais
 
-d_liv, d_his, d_haut = pd.DataFrame(), pd.DataFrame(), pd.DataFrame()
-d_milieu, d_bas = pd.DataFrame(), pd.DataFrame()
+d_liv = pd.DataFrame()
+d_his = pd.DataFrame()
+d_haut = pd.DataFrame()
+d_milieu = pd.DataFrame()
+d_bas = pd.DataFrame()
 
 t_live = "🏎️ EN DIRECT / Derniers concurrents partis"
 t_his = "🕒 HISTORIQUE DES TEMPS / 1er COURSE / Concurrents RACB"
@@ -18,24 +21,46 @@ t_bas = ""
 
 LIEN_DROPBOX_LOGO = "https://www.dropbox.com/scl/fi/hi24fjo0vbal4oiiwt9jl/logo-TimeC.png?rlkey=xlw0oqk9gdnq6v5dgahi0klg0&st=y86yrn6y&dl=1"
 
-# --- DÉTECTION DES SCRIPTS DE COURSE ---
-def verif_mod(nom):
-    try:
-        __import__(nom)
-        return True
-    except ModuleNotFoundError:
-        return False
+# --- RETOUR STRICT À VOTRE LOGIQUE DE DÉTECTION D'ORIGINE ---
+try:
+    import Course_1_ASAF
+    course1_disponible = True
+except ModuleNotFoundError:
+    course1_disponible = False
 
-course1_disponible = verif_mod("Course_1_ASAF")
-course2_disponible = verif_mod("Course_2_ASAF")
-course3_disponible = verif_mod("Course_3_ASAF")
-course1_racb_disponible = verif_mod("Course_1_RACB")
-course2_racb_disponible = verif_mod("Course_2_RACB")
-course3_racb_disponible = verif_mod("Course_3_RACB")
+try:
+    import Course_2_ASAF
+    course2_disponible = True
+except ModuleNotFoundError:
+    course2_disponible = False
+
+try:
+    import Course_3_ASAF
+    course3_disponible = True
+except ModuleNotFoundError:
+    course3_disponible = False
+
+try:
+    import Course_1_RACB
+    course1_racb_disponible = True
+except ModuleNotFoundError:
+    course1_racb_disponible = False
+
+try:
+    import Course_2_RACB
+    course2_racb_disponible = True
+except ModuleNotFoundError:
+    course2_racb_disponible = False
+
+try:
+    import Course_3_RACB
+    course3_racb_disponible = True
+except ModuleNotFoundError:
+    course3_racb_disponible = False
 
 st.set_page_config(page_title="Live", layout="wide")
 
-# --- STYLE CSS ADAPTÉ ET COMPACT ---
+# --- CONCEPTION GRAPHIQUE UNIFIÉE AVEC HAUTEUR HARMONISÉE ---
 st.markdown("""
 <style>
 [data-testid="stHeader"] { display: none !important; }
@@ -50,7 +75,7 @@ html, body, [data-testid="stAppViewContainer"], [data-testid="stMainBlockContain
 div[data-testid="stVerticalBlock"] { gap: 0rem !important; padding-top: 0px !important; }
 div.stElementContainer { margin: 0px !important; padding: 0px !important; }
 
-/* BANDEAUX ALIGNÉS ET FORCE DE HAUTEUR STRICTE */
+/* REGLAGE DE TOUS LES BANDEAUX EN FLEX SUR 30PX DE HAUTEUR */
 .titre-live, .titre-hist, .titre-classement {
     color: #FFFFFF !important; font-size: 1.05rem !important; font-weight: bold !important;
     padding: 4px 8px !important; border-radius: 3px !important; width: 100% !important; clear: both !important;
@@ -62,10 +87,12 @@ div.stElementContainer { margin: 0px !important; padding: 0px !important; }
 .titre-classement { background-color: #1E3A8A !important; margin: 0px 0px 6px 0px !important; }
 
 .table-hist td:last-child { font-weight: bold !important; color: #0F172A !important; }
+
+/* BADGE DE REFRESH PARAMÉTRÉ SANS IMPLIQUER DE SURÉPAISSEUR */
 .refresh-bleu-clair-historique {
     color: #FFFFFF !important; font-weight: normal !important; background-color: #064E3B !important;
     border: 1px solid #00FF00 !important; padding: 1px 6px !important; border-radius: 4px !important;
-    display: inline-block !important; margin-left: auto !important;
+    display: inline-block !important; margin-left: auto !important; margin-top: 0px !important; margin-bottom: 0px !important;
 }
 .espace-classement-suivant { margin-top: 15px !important; }
 .div-scroll-local-historique { height: 690px !important; max-height: 690px !important; overflow-y: auto !important; width: 100% !important; border: 1px solid #CBD5E1 !important; }
@@ -139,7 +166,7 @@ else: choix_course = "Essais"
 
 try:
     from concurrent.futures import ThreadPoolExecutor
-    def recup():
+    def recuperer_avec_timeout():
         if choix_course == "Course 1 ASAF": return Course_1_ASAF.recuperer_donnees_course()
         elif choix_course == "Course 1 RACB": return Course_1_RACB.recuperer_donnees_course()
         elif choix_course == "Course 2 ASAF": return Course_2_ASAF.recuperer_donnees_course()
@@ -149,11 +176,11 @@ try:
         else: return Essais.recuperer_donnees_course()
 
     with ThreadPoolExecutor(max_workers=1) as executor:
-        f = executor.submit(recup)
-        res = f.result(timeout=3.5)
+        future = executor.submit(recuperer_avec_timeout)
+        res = future.result(timeout=3.5)
         if res and len(res) == 10: d_liv, d_his, d_haut, d_milieu, d_bas, t_live, t_his, t_haut, t_milieu, t_bas = res
 except Exception as e:
-    t_live = "⚠️ Liaison Dropbox ralentie — Reconnexon..."
+    t_live = "⚠️ Liaison Dropbox ralentie ou instable — Tentative de reconnexon en cours..."
 
 st.markdown("<style>@media (min-width: 769px) { .table-hist th:nth-child(1), .table-hist td:nth-child(1) { width: 8% !important; } .table-hist th:nth-child(2), .table-hist td:nth-child(2) { width: 32% !important; } .table-hist th:nth-child(3), .table-hist td:nth-child(3) { width: 28% !important; } .table-hist th:nth-child(4), .table-hist td:nth-child(4) { width: 10% !important; } .table-hist th:nth-child(5), .table-hist td:nth-child(5) { width: 5% !important; } .table-hist th:nth-child(6), .table-hist td:nth-child(6) { width: 17% !important; } }</style>", unsafe_allow_html=True)
 
@@ -190,7 +217,7 @@ with cd:
 
 st.markdown(f"<div class='signature-fin-page'><img src='{LIEN_DROPBOX_LOGO}' class='logo-signature'>www.timechrono.be</div>", unsafe_allow_html=True)
 
-# --- REFRESH : TITRE À GAUCHE, BADGE BLOQUÉ À DROITE SANS ACCROC ---
+# --- REFRESH EMBARQUÉ ET BANDEAUX PARFAITEMENT ALIGNÉS EN CSS GLOBAL ---
 for secondes_restantes in range(30, -1, -1):
     if "Derniers concurrents" in t_live or "DIRECT" in t_live.upper():
         conteneur_titre_live.markdown(
