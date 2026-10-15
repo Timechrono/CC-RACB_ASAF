@@ -111,6 +111,7 @@ def recuperer_donnees_course():
                                "Voiture": df_eng_raw.iloc[:, 4].fillna("").astype(str).str.strip(),
                                "Division": df_eng_raw.iloc[:, 5].apply(lambda x: "-" if pd.isna(x) else str(x).strip()[:-2] if str(x).strip().endswith(".0") else str(x).strip()),
                                "Classe": df_eng_raw.iloc[:, 6].fillna("-").astype(str).str.strip().apply(lambda x: x[:-2] if x.endswith(".0") else x)})
+
         df_eng = df_eng[df_eng["N°"] != "NAN"].drop_duplicates(subset=["N°"])
         df_dep = df_dep[(df_dep["N°"] != "NAN") & (df_dep["N°"] != "")]
 
@@ -149,20 +150,19 @@ def recuperer_donnees_course():
                 scr["Division_Clean"] = scr["Division"].astype(str).str.strip()
                 
                 exclus_asaf = ["1", "2", "3", "4", "1.0", "2.0", "3.0", "4.0"]
-                racb = scr[~scr["Division_Clean"].isin(exclus_asaf)].copy()
+                racb = scr[~scr["Division_Clean"].isin(exclus_asaf)].head(15).copy()
                 if len(racb) > 0: 
                     racb["Pos"] = range(1, len(racb) + 1)
                     racb["Chrono"] = racb["Calc_Sec"].apply(format_final_chrono)
                     df_racb = racb[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]].rename(columns={"Division": "Gr/Div", "Classe": "Cl"})
                 
-                asaf123 = scr[scr["Division_Clean"].isin(["1", "2", "3", "1.0", "2.0", "3.0"])].copy()
+                asaf123 = scr[scr["Division_Clean"].isin(["1", "2", "3", "1.0", "2.0", "3.0"])].head(15).copy()
                 if len(asaf123) > 0: 
                     asaf123["Pos"] = range(1, len(asaf123) + 1)
                     asaf123["Chrono"] = asaf123["Calc_Sec"].apply(format_final_chrono)
                     df_asaf123 = asaf123[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]].rename(columns={"Division": "Gr/Div", "Classe": "Cl"})
                 
-                # --- LE BRIDAGE .head(10) EST ENLEVÉ ICI POUR LE CLASSEMENT COMPLET DIVISION 4 ---
-                asaf4 = scr[scr["Division_Clean"].isin(["4", "4.0"])].copy()
+                asaf4 = scr[scr["Division_Clean"].isin(["4", "4.0"])].head(10).copy()
                 if len(asaf4) > 0: 
                     asaf4["Pos"] = range(1, len(asaf4) + 1)
                     asaf4["Chrono"] = asaf4["Calc_Sec"].apply(format_final_chrono)
@@ -171,10 +171,8 @@ def recuperer_donnees_course():
 
     t_live = "🏎️ EN DIRECT / Derniers concurrents partis"
     t_hist = "🕒 HISTORIQUE DES TEMPS / ENTRAINEMENTS ASAF & RACB"
-    t_racb = "🏆 CLASSEMENT EVOLUTIF OFFICIEUX DES ESSAIS RACB"
-    t_as123 = "🏆 CLASSEMENT EVOLUTIF OFFICIEUX DES ESSAIS Division 123"
-    # --- LE TITRE DE LA DIVISION 4 EST MODIFIÉ ICI ---
-    t_as4 = "🏆 CLASSEMENT EVOLUTIF OFFICIEUX DES ESSAIS Division 4"
+    t_racb = "🏆 CLASSEMENT EVOLUTIF DES ESSAIS RACB (Top 15)"
+    t_as123 = "🏆 CLASSEMENT EVOLUTIF DES ESSAIS Division 123 (Top 15)"
+    t_as4 = "🏆 CLASSEMENT EVOLUTIF DES ESSAIS Division 4 (Top 10)"
 
-    # --- COPIEZ ET REMPLACEZ LA TOUTE DERNIÈRE LIGNE DE ESSAIS.PY PAR CELLE-CI ---
-    return df_live, df_hist, df_racb, df_asaf123, df_asaf4, t_live, t_hist, t_racb, t_as123, t_as4
+    return df_live, df_hist, df_asaf123, df_asaf4, df_racb, t_live, t_hist, t_racb, t_as123, t_as4
