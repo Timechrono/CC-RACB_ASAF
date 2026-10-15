@@ -14,7 +14,7 @@ FILE_ARRIVEE = f"https://{HOTE_PROT}/scl/fi/7uu9cmlpzglx0ngvbklpt/LIVE_Temps_ARR
 FILE_DEPART  = f"https://{HOTE_PROT}/scl/fi/gbkaq01qzjujc8nq3zj28/LIVE_Temps_DEPART.xlsm?rlkey=4x4rvvlfyzz8v59gqbxn80a4d&dl=1"
 FILE_ENGAGES = f"https://{HOTE_PROT}/scl/fi/sqrqinksco1am700s27h4/LIVE_Liste_ENGAGES.xlsm?rlkey=8p0n8jyeuiivaa375bh3p608n&dl=1"
 
-# SÉCURISATION BRIDAGE : Augmenté à 30 secondes pour maximiser la protection de Dropbox
+# SÉCURISATION BRIDAGE : 30 secondes pour protéger Dropbox contre les blocages
 @st.cache_data(ttl=30)
 def telecharger_excel(url):
     entetes = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'}
@@ -78,7 +78,6 @@ def calculer_statut_chrono_essais(row, est_dans_le_live=True):
     if "Heure_Depart" in row and pd.notna(row["Heure_Depart"]) and pd.isna(row.get("Heure_Arrivee")):
         return "<span class='vrai-gyrophare'>🚨</span> EN PISTE" if est_dans_le_live else "En Piste"
     return "No Time"
-# fin partie 1
 def recuperer_donnees_course():
     df_live = pd.DataFrame(columns=["N°", "Nom_Prenom", "Voiture", "Départ", "Arrivée", "Chrono"])
     df_hist = pd.DataFrame(columns=["N°", "Nom_Prenom", "Voiture", "Gr/Div", "Cl", "Chrono"])
@@ -152,18 +151,21 @@ def recuperer_donnees_course():
                 
                 exclus_asaf = ["1", "2", "3", "4", "1.0", "2.0", "3.0", "4.0"]
                 
+                # MODIFICATION : Retrait du .head(15) pour garder l'entièreté
                 racb = scr[~scr["Division_Clean"].isin(exclus_asaf)].copy()
                 if len(racb) > 0: 
                     racb["Pos"] = range(1, len(racb) + 1)
                     racb["Chrono"] = racb["Calc_Sec"].apply(format_final_chrono)
                     df_racb = racb[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]].rename(columns={"Division": "Gr/Div", "Classe": "Cl"})
                 
+                # MODIFICATION : Retrait du .head(15) pour garder l'entièreté
                 asaf123 = scr[scr["Division_Clean"].isin(["1", "2", "3", "1.0", "2.0", "3.0"])].copy()
                 if len(asaf123) > 0: 
                     asaf123["Pos"] = range(1, len(asaf123) + 1)
                     asaf123["Chrono"] = asaf123["Calc_Sec"].apply(format_final_chrono)
                     df_asaf123 = asaf123[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]].rename(columns={"Division": "Gr/Div", "Classe": "Cl"})
                 
+                # MODIFICATION : Retrait du .head(10) pour garder l'entièreté
                 asaf4 = scr[scr["Division_Clean"].isin(["4", "4.0"])].copy()
                 if len(asaf4) > 0: 
                     asaf4["Pos"] = range(1, len(asaf4) + 1)
@@ -173,13 +175,15 @@ def recuperer_donnees_course():
 
     t_live = "🏎️ EN DIRECT / Derniers concurrents partis"
     t_hist = "🕒 HISTORIQUE DES TEMPS / ENTRAINEMENTS ASAF & RACB"
+    
+    # MODIFICATION : Nouveaux titres officieux demandés
     t_racb = "🏆 CLASSEMENT EVOLUTIF OFFICIEUX DES ESSAIS RACB"
     t_as123 = "🏆 CLASSEMENT EVOLUTIF OFFICIEUX DES ESSAIS Division 123"
     t_as4 = "🏆 CLASSEMENT EVOLUTIF OFFICIEUX DES ESSAIS Division 4"
 
     return df_live, df_hist, df_asaf123, df_asaf4, df_racb, t_live, t_hist, t_racb, t_as123, t_as4
 
-# --- INJECTION CSS ET STYLE RESPONSIVE (SANS SCROLL VERTICAL) ---
+# --- DESIGN ET STYLE TABLEAU (ANTI-SCROLL SUR SMARTPHONE) ---
 st.markdown("""
     <style>
     .table-container {
@@ -222,14 +226,15 @@ def afficher_tableau_complet(df, titre):
     else:
         st.write("Aucune donnée disponible.")
 
-# --- APPAREILLAGE ET RENDU GRAPHIQUE ---
+# --- RENDU DE VOTRE INTERFACE COMPLÈTE EN DIRECT ---
 df_live, df_hist, df_asaf123, df_asaf4, df_racb, t_live, t_hist, t_racb, t_as123, t_as4 = recuperer_donnees_course()
 
+# Affichage des classements complets (Ouvrent toute la page sans scroll vertical)
 afficher_tableau_complet(df_racb, t_racb)
 afficher_tableau_complet(df_asaf123, t_as123)
 afficher_tableau_complet(df_asaf4, t_as4)
 
-# --- BLOC DE REFRESH AUTOMATIQUE ET SYNCHRONISÉ (30 SECONDES) ---
+# --- MINUTEUR DE REFRESH AUTOMATIQUE INTERNE (30 SECONDES) ---
 if "derniere_maj" not in st.session_state:
     st.session_state.derniere_maj = time.time()
 
