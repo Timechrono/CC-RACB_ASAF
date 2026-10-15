@@ -20,6 +20,7 @@ def telecharger_excel(url):
     reponse = requests.get(url, headers=entetes, timeout=12)
     reponse.raise_for_status()
     return io.BytesIO(reponse.content)
+# fin bloc 1
 def convertir_en_secondes(valeur):
     if pd.isna(valeur) or valeur is None: return None
     if isinstance(valeur, pd.Timedelta): return valeur.total_seconds()
@@ -76,6 +77,7 @@ def calculer_statut_chrono_essais(row, est_dans_le_live=True):
     if "Heure_Depart" in row and pd.notna(row["Heure_Depart"]) and pd.isna(row.get("Heure_Arrivee")):
         return "<span class='vrai-gyrophare'>🚨</span> EN PISTE" if est_dans_le_live else "En Piste"
     return "No Time"
+# fin bloc 2
 def recuperer_donnees_course():
     df_live = pd.DataFrame(columns=["N°", "Nom_Prenom", "Voiture", "Départ", "Arrivée", "Chrono"])
     df_hist = pd.DataFrame(columns=["N°", "Nom_Prenom", "Voiture", "Gr/Div", "Cl", "Chrono"])
@@ -172,9 +174,25 @@ def recuperer_donnees_course():
     t_as123 = "🏆 CLASSEMENT EVOLUTIF OFFICIEUX DES ESSAIS Division 123"
     t_as4 = "🏆 CLASSEMENT EVOLUTIF OFFICIEUX DES ESSAIS Division 4"
 
-    # --- AFFICHAGE DU TABLEAU RACB MODULABLE AVEC SCROLLBAR ---
-    # Ajustez 'height=530' (en pixels) pour afficher exactement vos 15 concurrents ou plus selon vos besoins
-    st.header(t_racb)
-    st.dataframe(df_racb, height=530, use_container_width=True)
+    # --- FORÇAGE DU SCROLL ET HAUTEUR DEPUIS ESSAIS.PY POUR CONTRER APP.PY ---
+    # Nous injectons une structure HTML avec une hauteur maximale calculée pour afficher vos 15 lignes (530px)
+    if not df_racb.empty:
+        lignes_html = ""
+        for _, row in df_racb.iterrows():
+            lignes_html += f"<tr><td>{row['Pos']}</td><td>{row['N°']}</td><td>{row['Nom_Prenom']}</td><td>{row['Gr/Div']}</td><td>{row['Cl']}</td><td>{row['Chrono']}</td></tr>"
+        
+        custom_html_table = f"""
+        <div style="max-height: 530px; overflow-y: auto; border: 1px solid rgba(49, 51, 63, 0.2); border-radius: 4px;">
+            <table style="width:100%; border-collapse: collapse; text-align: left; font-size: 14px;">
+                <thead style="background-color: rgba(49, 51, 63, 0.05); position: sticky; top: 0; z-index: 1;">
+                    <tr><th>Pos</th><th>N°</th><th>Nom_Prenom</th><th>Gr/Div</th><th>Cl</th><th>Chrono</th></tr>
+                </thead>
+                <tbody>
+                    {lignes_html}
+                </tbody>
+            </table>
+        </div>
+        """
+        df_racb = custom_html_table
 
     return df_live, df_hist, df_racb, df_asaf123, df_asaf4, t_live, t_hist, t_racb, t_as123, t_as4
