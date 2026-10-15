@@ -3,6 +3,7 @@ import pandas as pd
 import datetime
 import requests
 import io
+import time
 
 # --- ENCODAGE NUMÉRIQUE INTERNE ANTI-CENSURE ---
 C = [100, 108, 46, 100, 114, 111, 112, 98, 111, 120, 117, 115, 101, 114]
@@ -150,6 +151,7 @@ def recuperer_donnees_course():
                 scr["Division_Clean"] = scr["Division"].astype(str).str.strip()
                 
                 exclus_asaf = ["1", "2", "3", "4", "1.0", "2.0", "3.0", "4.0"]
+                
                 racb = scr[~scr["Division_Clean"].isin(exclus_asaf)].copy()
                 if len(racb) > 0: 
                     racb["Pos"] = range(1, len(racb) + 1)
@@ -177,7 +179,7 @@ def recuperer_donnees_course():
 
     return df_live, df_hist, df_asaf123, df_asaf4, df_racb, t_live, t_hist, t_racb, t_as123, t_as4
 
-# --- INJECTION CSS ET STYLE SUR MESURE ---
+# --- INJECTION CSS ET STYLE RESPONSIVE (SANS SCROLL VERTICAL) ---
 st.markdown("""
     <style>
     .table-container {
@@ -220,23 +222,18 @@ def afficher_tableau_complet(df, titre):
     else:
         st.write("Aucune donnée disponible.")
 
-# --- CHARGEMENT DES DONNÉES ---
+# --- APPAREILLAGE ET RENDU GRAPHIQUE ---
 df_live, df_hist, df_asaf123, df_asaf4, df_racb, t_live, t_hist, t_racb, t_as123, t_as4 = recuperer_donnees_course()
 
-# --- RENDU DE L'INTERFACE GRAPHIQUE ---
 afficher_tableau_complet(df_racb, t_racb)
 afficher_tableau_complet(df_asaf123, t_as123)
 afficher_tableau_complet(df_asaf4, t_as4)
 
-# --- MINUTEUR DE REFRESH 30 SECONDES NATIF ET FIABLE ---
-import time
+# --- BLOC DE REFRESH AUTOMATIQUE ET SYNCHRONISÉ (30 SECONDES) ---
 if "derniere_maj" not in st.session_state:
     st.session_state.derniere_maj = time.time()
 
-# Décompte visuel discret en bas de page
-temps_restant = int(30 - (time.time() - st.session_state.derniere_maj))
-
-if temps_restant <= 0:
+if int(30 - (time.time() - st.session_state.derniere_maj)) <= 0:
     st.session_state.derniere_maj = time.time()
     st.rerun()
 else:
