@@ -169,10 +169,12 @@ def recuperer_donnees_course():
     except Exception: pass
 
     t_live = "🏎️ EN DIRECT / Derniers concurrents partis"
-    t_hist = "🕒 HISTORIQUE DES TEMPS / ENTRAINEMENTS ASAF & RACB"
-    t_racb = "🏆 CLASSEMENT EVOLUTIF OFFICIEUX DES ESSAIS RACB"
-    t_as123 = "🏆 CLASSEMENT EVOLUTIF OFFICIEUX DES ESSAIS Division 123"
-    t_as4 = "🏆 CLASSEMENT EVOLUTIF OFFICIEUX DES ESSAIS Division 4"
+    
+    # --- AJOUTEZ LES BALISES DE HAUTEUR ICI SELON VOS BESOINS ---
+    t_hist = "🕒 HISTORIQUE DES TEMPS / ENTRAINEMENTS ASAF & RACB ##H=450"
+    t_racb = "🏆 CLASSEMENT EVOLUTIF OFFICIEUX DES ESSAIS RACB ##H=530"
+    t_as123 = "🏆 CLASSEMENT EVOLUTIF OFFICIEUX DES ESSAIS Division 123 ##H=450"
+    t_as4 = "🏆 CLASSEMENT EVOLUTIF OFFICIEUX DES ESSAIS Division 4 ##H=450"
 
     # --- FORÇAGE DU SCROLL ET HAUTEUR DEPUIS ESSAIS.PY POUR CONTRER APP.PY ---
     # Nous injectons une structure HTML avec une hauteur maximale calculée pour afficher vos 15 lignes (530px)
