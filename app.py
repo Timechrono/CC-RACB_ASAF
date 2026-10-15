@@ -6,7 +6,25 @@ import time
 import pandas as pd
 
 # --- CONFIGURATION DU LOGO DROPBOX EN DEBUT DE SCRIPT ---
-LIEN_DROPBOX_LOGO = "https://www.dropbox.com/scl/fi/hi24fjo0vbal4oiiwt9jl/logo-TimeC.png?rlkey=xlw0oqk9gdnq6v5dgahi0klg0&st=y86yrn6y&dl=1" # Remettez votre lien exact ici si nécessaire
+LIEN_DROPBOX_LOGO = "https://dropboxapi.com" # Remettez votre lien exact ici si nécessaire
+
+# --- DÉFINITION ROBUSTE DE GEN_HTML (Évite le NameError) ---
+def gen_html(df, classe_table="table-class-robuste"):
+    if df is None or df.empty:
+        return "<p style='text-align:center; color:gray;'>Aucune donnée disponible</p>"
+    # Génération automatique du tableau HTML standard attendu par votre CSS
+    html = f"<div class='{classe_table}'><table>"
+    html += "<thead><tr>"
+    for col in df.columns:
+        html += f"<th>{col}</th>"
+    html += "</tr></thead><tbody>"
+    for _, row in df.iterrows():
+        html += "<tr>"
+        for val in row:
+            html += f"<td>{str(val) if pd.notna(val) else '-'}</td>"
+        html += "</tr>"
+    html += "</tbody></table></div>"
+    return html
 
 query_params = st.query_params
 choix_course_url = query_params.get("course", "essais").lower()
@@ -19,7 +37,7 @@ elif choix_course_url == "c3asaf" and course3_disponible: choix_course = "Course
 elif choix_course_url == "c3racb" and course3_racb_disponible: choix_course = "Course 3 RACB"
 else: choix_course = "Essais"
 
-# Initialisation préventive pour éviter les NameError si Dropbox met du temps à répondre
+# Initialisation préventive pour éviter les coupures Dropbox
 d_liv, d_his, d_haut, d_milieu, d_bas = pd.DataFrame(), pd.DataFrame(), pd.DataFrame(), pd.DataFrame(), pd.DataFrame()
 t_live, t_his, t_haut, t_milieu, t_bas = "", "", "", "", ""
 
@@ -40,14 +58,13 @@ try:
         if res and len(res) == 10: d_liv, d_his, d_haut, d_milieu, d_bas, t_live, t_his, t_haut, t_milieu, t_bas = res
 except Exception as e:
     t_live = "⚠️ Liaison Dropbox ralentie ou instable — Tentative de reconnexon en cours..."
-# fin bloc 1
 # Fichier : app.py - Partie 2
 
 st.markdown("<style>@media (min-width: 769px) { .table-hist th:nth-child(1), .table-hist td:nth-child(1) { width: 8% !important; } .table-hist th:nth-child(2), .table-hist td:nth-child(2) { width: 32% !important; } .table-hist th:nth-child(3), .table-hist td:nth-child(3) { width: 28% !important; } .table-hist th:nth-child(4), .table-hist td:nth-child(4) { width: 10% !important; } .table-hist th:nth-child(5), .table-hist td:nth-child(5) { width: 5% !important; } .table-hist th:nth-child(6), .table-hist td:nth-child(6) { width: 17% !important; } }</style>", unsafe_allow_html=True)
 
 if t_haut and "TOP 20" in t_haut.upper(): t_haut = "🏆 CLASSEMENT GENERAL OFFICIEUX RACB"
 
-# Fonction d'extraction automatique pour lire les hauteurs définies dans vos fichiers de course (ex: Essais.py)
+# Extraction de la hauteur personnalisée passée dans les titres de vos fichiers
 def extraire_titre_et_hauteur(texte_titre, hauteur_defaut="530px"):
     if not texte_titre: return "", hauteur_defaut
     if "##H=" in str(texte_titre):
@@ -65,7 +82,6 @@ with cg:
     t_his_propre, h_his = extraire_titre_et_hauteur(t_his, "530px")
     if t_his_propre: st.markdown(f"<span class='titre-hist'><span>{t_his_propre}</span></span>", unsafe_allow_html=True)
     st.markdown(f'<div style="max-height: {h_his}; overflow-y: auto;">{gen_html(d_his, "table-hist")}</div>', unsafe_allow_html=True)
-# fin bloc 2
 # Fichier : app.py - Partie 3
 
 with cd:
@@ -102,7 +118,7 @@ with cd:
         st.markdown(f"<span class='titre-classement espace-classement-suivant'><span>{t_4_p}</span></span>", unsafe_allow_html=True)
         st.markdown(f'<div style="max-height: {h_4}; overflow-y: auto;">{gen_html(bloc_div4, "table-class-robuste")}</div>', unsafe_allow_html=True)
 
-# Ligne d'origine connectée à la variable globale LIEN_DROPBOX_LOGO du Bloc 1
+# Signature utilisant la variable d'image définie au tout début du Bloc 1
 st.markdown(f"<div class='signature-fin-page'><img src='{LIEN_DROPBOX_LOGO}' class='logo-signature'>www.timechrono.be</div>", unsafe_allow_html=True)
 
 for secondes_restantes in range(30, -1, -1):
