@@ -226,16 +226,13 @@ def afficher_tableau_complet(df, titre):
         st.write("Aucune donnée disponible.")
 
 # --- COMPTEUR DE RAFRAÎCHISSEMENT AUTOMATIQUE (30 SECONDES) ---
-# Utilisation de st_autorefresh (si installé) ou st.fragment/time avec st.rerun natif
-if "compteur_refresh" not do st.session_state:
+if "compteur_refresh" not in st.session_state:
     st.session_state.compteur_refresh = 0
 
-# Relance automatiquement l'application toutes les 30 secondes (30000 millisecondes)
 try:
     from streamlit_autorefresh import st_autorefresh
     st_autorefresh(interval=30000, key="datarefresh")
 except ImportError:
-    # Solution native de secours si le module externe n'est pas présent
     import time
     time.sleep(30)
     st.rerun()
@@ -243,7 +240,6 @@ except ImportError:
 # --- APPEL ET RENDU DE L'INTERFACE ---
 df_live, df_hist, df_asaf123, df_asaf4, df_racb, t_live, t_hist, t_racb, t_as123, t_as4 = recuperer_donnees_course()
 
-# Affichage des 3 tableaux synchronisés sans scroll vertical
 afficher_tableau_complet(df_racb, t_racb)
 afficher_tableau_complet(df_asaf123, t_as123)
 afficher_tableau_complet(df_asaf4, t_as4)
