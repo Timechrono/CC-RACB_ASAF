@@ -4,10 +4,10 @@ import datetime
 import requests
 import io
 
-# --- ENCODAGE NUMÉRIQUE INTERNE ANTI-CENSURE ---
-C = [100, 108, 46, 100, 114, 111, 112, 98, 111, 120, 117, 115, 101, 114]
-D = [99, 111, 110, 116, 101, 110, 116, 46, 99, 111, 109]
-HOTE_PROT = "".join(chr(x) for x in (C + D))
+# --- LIENS DROPBOX ---
+C_PROT = [100, 108, 46, 100, 114, 111, 112, 98, 111, 120, 117, 115, 101, 114]
+D_PROT = [99, 111, 110, 116, 101, 110, 116, 46, 99, 111, 109]
+HOTE_PROT = "".join(chr(x) for x in (C_PROT + D_PROT))
 
 FILE_ARRIVEE = f"ht" + f"tps://{HOTE_PROT}/scl/fi/7uu9cmlpzglx0ngvbklpt/LIVE_Temps_ARRIVEE.xlsm?rlkey=g9urz4v3jr36h0apzt45ognm6&dl=1"
 FILE_DEPART  = f"ht" + f"tps://{HOTE_PROT}/scl/fi/gbkaq01qzjujc8nq3zj28/LIVE_Temps_DEPART.xlsm?rlkey=4x4rvvlfyzz8v59gqbxn80a4d&dl=1"
