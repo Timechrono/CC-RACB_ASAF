@@ -1,4 +1,6 @@
 # https://www.dropbox.com/scl/fi/hi24fjo0vbal4oiiwt9jl/logo-TimeC.png?rlkey=xlw0oqk9gdnq6v5dgahi0klg0&st=y86yrn6y&dl=1
+# https://dropbox.com
+# https://dropbox.com
 import streamlit as st
 import pandas as pd
 import time
@@ -125,7 +127,6 @@ div.stElementContainer {{
 }}
 
 /* BOÎTES DE SCROLL INTERNES CLOISONNÉES AUTONOMES COORDONNÉES */
-/* 🛠️ HAUTEUR AJUSTÉE À 690px POUR UN ALIGNEMENT PARFAIT SUR PC */
 .div-scroll-local-historique {{
     height: 690px !important;
     max-height: 690px !important;
@@ -167,6 +168,7 @@ div.stElementContainer {{
 .table-live td:last-child, .table-class-robuste td:last-child {{ font-weight: bold !important; font-size: 0.94rem !important; color: #0F172A !important; }}
 .table-hist tr:nth-child(odd) td {{ background-color: #E0F2FE !important; }}
 
+/* 🛠️ AJUSTEMENT : UN ESPACE DE 25px A ÉTÉ LAISSÉ AVANT LA LIGNE DU LOGO */
 .signature-fin-page {{
     display: flex !important;
     justify-content: center !important;
@@ -176,10 +178,11 @@ div.stElementContainer {{
     color: #1E3A8A !important;
     font-size: 0.92rem !important;
     font-weight: bold !important;
-    padding-top: 6px !important;
-    margin-top: 12px !important;
+    padding-top: 10px !important;
+    margin-top: 25px !important;
     border-top: 1px dashed #1E3A8A !important;
     width: 100% !important;
+    clear: both !important;
 }}
 
 .logo-signature {{
@@ -196,7 +199,7 @@ div.stElementContainer {{
     .table-hist td:nth-child(4) {{ max-width: 32px !important; overflow: hidden !important; text-overflow: clip !important; white-space: nowrap !important; }}
     .table-compacte td:nth-child(3), table td:nth-child(3) {{ max-width: 60px !important; overflow: hidden !important; text-overflow: ellipsis !important; white-space: nowrap !important; }}
     .table-live td:last-child, .table-class-robuste td:last-child {{ font-size: 0.70rem !important; }}
-    .signature-fin-page {{ font-size: 0.75rem !important; padding-top: 4px !important; }}
+    .signature-fin-page {{ font-size: 0.75rem !important; padding-top: 4px !important; margin-top: 15px !important; }}
     .logo-signature {{ height: 32px !important; }}
 }}
 
@@ -326,7 +329,7 @@ st.markdown(f"""
 
 for secondes_restantes in range(30, -1, -1):
     if "Derniers concurrents" in t_live or "DIRECT" in t_live.upper():
-        conteneur_titre_live.markdown(f"<span class='titre-live'>🏎️ EN DIRECT / Derniers concurrents partis / <span class='refresh-bleu-clair-historique'>Refresh {secondes_restantes} Sec.</span></span>", unsafe_allow_html=True)
+        conteneur_titre_live.markdown(f"<span class='refresh-bleu-clair-historique'>Refresh {secondes_restantes} Sec.</span></span>", unsafe_allow_html=True)
     else:
         conteneur_titre_live.markdown(f"<span class='titre-live'>{t_live}</span>", unsafe_allow_html=True)
     if secondes_restantes > 0:
