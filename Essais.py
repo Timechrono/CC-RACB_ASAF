@@ -181,7 +181,7 @@ def recuperer_donnees_course():
 st.markdown("""
     <style>
     @keyframes fadeInEffect {
-        from { opacity: 0.6; }
+        from { opacity: 0.7; }
         to { opacity: 1; }
     }
     .table-container {
@@ -189,7 +189,7 @@ st.markdown("""
         overflow-x: auto;
         -webkit-overflow-scrolling: touch;
         margin-bottom: 25px;
-        animation: fadeInEffect 0.4s ease-in-out;
+        animation: fadeInEffect 0.3s ease-in-out;
     }
     .custom-table {
         width: 100%;
@@ -225,17 +225,15 @@ def afficher_tableau_complet(df, titre):
     else:
         st.write("Aucune donnée disponible.")
 
-# --- COMPTEUR DE RAFRAÎCHISSEMENT AUTOMATIQUE (30 SECONDES) ---
-if "compteur_refresh" not in st.session_state:
-    st.session_state.compteur_refresh = 0
-
-try:
-    from streamlit_autorefresh import st_autorefresh
-    st_autorefresh(interval=30000, key="datarefresh")
-except ImportError:
-    import time
-    time.sleep(30)
-    st.rerun()
+# --- AUTO-REFRESH ULTRA-STABLE VIA INJECTION HTML JAVASCRIPT ---
+# Exécute un rafraîchissement propre côté navigateur toutes les 30 secondes sans bloquer Python
+st.components.v1.html("""
+    <script>
+    setTimeout(function(){
+        window.parent.location.reload();
+    }, 30000);
+    </script>
+""", height=0, width=0)
 
 # --- APPEL ET RENDU DE L'INTERFACE ---
 df_live, df_hist, df_asaf123, df_asaf4, df_racb, t_live, t_hist, t_racb, t_as123, t_as4 = recuperer_donnees_course()
