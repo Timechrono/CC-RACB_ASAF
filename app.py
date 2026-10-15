@@ -1,9 +1,11 @@
 # https://www.dropbox.com/scl/fi/hi24fjo0vbal4oiiwt9jl/logo-TimeC.png?rlkey=xlw0oqk9gdnq6v5dgahi0klg0&st=y86yrn6y&dl=1
-
 # Fichier : app.py - Partie 1
 
+import streamlit as st
+import time
+
 # --- CONFIGURATION DU LOGO DROPBOX EN DEBUT DE SCRIPT ---
-LIEN_DROPBOX_LOGO = "https://www.dropbox.com/scl/fi/hi24fjo0vbal4oiiwt9jl/logo-TimeC.png?rlkey=xlw0oqk9gdnq6v5dgahi0klg0&st=y86yrn6y&dl=1" # Remettez votre lien exact ici si nécessaire
+LIEN_DROPBOX_LOGO = "https://dropboxapi.com" # Remettez votre lien exact ici si nécessaire
 
 query_params = st.query_params
 choix_course_url = query_params.get("course", "essais").lower()
