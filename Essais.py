@@ -184,29 +184,14 @@ def recuperer_donnees_course():
                     asaf4["Chrono"] = asaf4["Calc_Sec"].apply(format_final_chrono)
                     df_asaf4 = asaf4[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]].rename(columns={"Division": "Gr/Div", "Classe": "Cl"})
 
-            # --- CONTOURNEMENT MAÎTRE DU RENDU HTML ---
-            # Si le tableau de la Division 4 contient des données, on va forcer l'application à afficher
-            # une structure propre avec une hauteur max adaptative et une marge, sans passer par gen_html.
-            if len(df_asaf4) > 0:
-                # Calcul de la hauteur : max 380px si plus de 10 pilotes, sinon automatique
-                style_hauteur = "max-height: 380px; overflow-y: auto;" if len(df_asaf4) > 10 else "height: auto;"
-                
-                # Reconstruction manuelle du tableau HTML pour bypasser les filtres invisibles de app.py
-                html_table = f"<div style='{style_hauteur} margin-bottom: 25px !important; width: 100%; display: block;' class='table-class-robuste'><table style='width:100%; border-collapse: collapse;'>"
-                # En-têtes
-                html_table += "<thead><tr>" + "".join(f"<th>{col}</th>" for col in df_asaf4.columns) + "</tr></thead>"
-                # Lignes de données
-                html_table += "<tbody>"
-                for _, row in df_asaf4.iterrows():
-                    html_table += "<tr>" + "".join(f"<td>{row[col]}</td>" for col in df_asaf4.columns) + "</tr>"
-                html_table += "</tbody></table></div>"
-                
-                # Remplacement stratégique : on injecte ce bloc HTML autonome dans un DataFrame factice
-                # pour que gen_html renvoie notre code directement sans pouvoir le brider.
-                df_asaf4 = pd.DataFrame({"Pos": [html_table]})
-                
-                # On désactive la fonction gen_html en forçant le style à se fermer immédiatement
-                df_asaf4.columns = ["<span style='display:none;'>"]
+            # --- CORRECTION FINALE PAR INJECTION D'ESPACEMENT ---
+            # Si le tableau a moins de 15 lignes, on injecte un style pour combler proprement le squelette HTML fixe
+            if len(df_asaf4) > 0 and len(df_asaf4) < 15:
+                # Ajout de lignes techniques invisibles pour forcer l'alignement sur la hauteur minimale de l'application
+                lignes_manquantes = 15 - len(df_asaf4)
+                df_structurel = pd.DataFrame([{col: "&nbsp;" for col in df_asaf4.columns} for _ in range(lignes_manquantes)])
+                df_structurel["Pos"] = ""
+                df_asaf4 = pd.concat([df_asaf4, df_structurel], ignore_index=True)
 
     except Exception: pass
 
