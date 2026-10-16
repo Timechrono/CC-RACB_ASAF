@@ -187,32 +187,38 @@ def recuperer_donnees_course():
 
     except Exception: pass
 
-    # --- STYLE CHIRURGICAL PAR INJECTION DE TEXTE POUR ESSAIS.PY ---
-    # Cible les blocs verticaux enfants générés par Streamlit à l'intérieur de la colonne de droite.
-    # index 4 = 1er tableau (RACB), index 6 = 2e tableau (Div 123). On les bride à 15 lignes (310px) avec scroll.
-    # index 8 = 3e tableau (Div 4). S'il y a plus de 10 pilotes, on limite à 210px, sinon hauteur auto.
+    # --- STYLE PAR RECONNAISSANCE DES TITRES POUR ESSAIS.PY ---
+    # On force la boîte du tableau qui suit immédiatement le titre RACB et le titre 123 à mesurer 310px de haut.
+    # Pour la Division 4, s'il y a plus de 10 concurrents, on bloque à 210px de haut, sinon elle reste auto.
     hauteur_max_div4 = "210px" if len(df_asaf4) > 10 else "none"
     overflow_div4 = "auto" if len(df_asaf4) > 10 else "visible"
     border_div4 = "1px solid #CBD5E1" if len(df_asaf4) > 10 else "none"
     
-    css_boites_essais = f"""
+    css_titres_essais = f"""
     <style>
-      /* Bridage visuel strict du 1er tableau (RACB) à 15 concurrents visibles + scroll */
-      [data-testid="stHorizontalBlock"] > div:last-child div.stElementContainer:nth-of-type(4) .div-scroll-local-general {{
+      /* Cible le conteneur général du tableau situé juste après le titre du classement RACB */
+      div:has(> span.titre-classement):contains("RACB") + div .div-scroll-local-general,
+      div.stElementContainer:has(span.titre-classement) + div.stElementContainer .div-scroll-local-general {{
         height: 310px !important;
         max-height: 310px !important;
         overflow-y: auto !important;
         border: 1px solid #CBD5E1 !important;
       }}
-      /* Bridage visuel strict du 2e tableau (Division 123) à 15 concurrents visibles + scroll */
-      [data-testid="stHorizontalBlock"] > div:last-child div.stElementContainer:nth-of-type(6) .div-scroll-local-general {{
+      
+      /* Cible spécifiquement la table HTML générée par gen_html dans la colonne de droite */
+      [data-testid="stHorizontalBlock"] > div:last-child table.table-class-robuste {{
+        display: block !important;
+      }}
+      
+      [data-testid="stHorizontalBlock"] > div:last-child div.stElementContainer:not(:last-child) .div-scroll-local-general {{
         height: 310px !important;
         max-height: 310px !important;
         overflow-y: auto !important;
         border: 1px solid #CBD5E1 !important;
       }}
-      /* Ajustement dynamique au contenu pour le 3e tableau (Division 4) */
-      [data-testid="stHorizontalBlock"] > div:last-child div.stElementContainer:nth-of-type(8) .div-scroll-local-classes {{
+
+      /* Ajustement dynamique strict pour le dernier tableau (Division 4) */
+      [data-testid="stHorizontalBlock"] > div:last-child div.stElementContainer:last-child .div-scroll-local-classes {{
         max-height: {hauteur_max_div4} !important;
         overflow-y: {overflow_div4} !important;
         height: auto !important;
@@ -225,7 +231,7 @@ def recuperer_donnees_course():
     t_hist = "🕒 HISTORIQUE DES TEMPS / ENTRAINEMENTS ASAF & RACB"
     t_racb = "🏆 CLASSEMENT EVOLUTIF OFFICIEUX DES ESSAIS RACB"
     t_as123 = "🏆 CLASSEMENT EVOLUTIF OFFICIEUX DES ESSAIS Division 123"
-    t_as4 = f"{css_boites_essais}🏆 CLASSEMENT EVOLUTIF OFFICIEUX DES ESSAIS Division 4"
+    t_as4 = f"{css_titres_essais}🏆 CLASSEMENT EVOLUTIF OFFICIEUX DES ESSAIS Division 4"
 
     return df_live, df_hist, df_asaf123, df_asaf4, df_racb, t_live, t_hist, t_racb, t_as123, t_as4
 
