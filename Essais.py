@@ -159,7 +159,7 @@ def recuperer_donnees_course():
             base_historique = base[~base["Ordre_Saisie"].isin(idx_exclure_du_hist)].copy()
             df_hist = base_historique.sort_values(by="Ordre_Saisie", ascending=False)[["N°", "Nom_Prenom", "Voiture", "Division", "Classe", "Chrono_Visual_Hist"]].rename(columns={"Chrono_Visual_Hist": "Chrono", "Division": "Gr/Div", "Classe": "Cl"})
 
-            # 3. Traitement des CLASSEMENTS COMPLETs
+            # 3. Traitement des CLASSEMENTS COMPLETs (Indexations complètes sans aucune coupure)
             valides = base[base["Calc_Sec"].notna() & (base["Calc_Sec"] > 0)].copy()
             if len(valides) > 0:
                 scr = valides.sort_values(by="Calc_Sec").drop_duplicates(subset=["N°"], keep="first").copy()
@@ -167,46 +167,56 @@ def recuperer_donnees_course():
                 
                 exclus_asaf = ["1", "2", "3", "4", "1.0", "2.0", "3.0", "4.0"]
                 
-                # --- FONCTION LOCALE DE BRIDAGE VISUEL À 15 LIGNES POUR ESSAIS.PY ---
-                def ajuster_classement_essais(df_source, limite_visuelle=15):
-                    if len(df_source) == 0:
-                        return df_source
-                    df_source["Pos"] = range(1, len(df_source) + 1)
-                    df_source["Chrono"] = df_source["Calc_Sec"].apply(format_final_chrono)
-                    df_res = df_source[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]].rename(columns={"Division": "Gr/Div", "Classe": "Cl"})
-                    
-                    # Si le nombre total dépasse la limite souhaitée, on coupe visuellement à la limite
-                    if len(df_res) > limite_visuelle:
-                        df_res = df_res.head(limite_visuelle).copy()
-                    return df_res
-
-                # Application du filtre à 15 lignes max à l'écran pour RACB et Division 123
                 racb = scr[~scr["Division_Clean"].isin(exclus_asaf)].copy()
-                df_racb = ajuster_classement_essais(racb, limite_visuelle=15)
+                if len(racb) > 0:
+                    racb["Pos"] = range(1, len(racb) + 1)
+                    racb["Chrono"] = racb["Calc_Sec"].apply(format_final_chrono)
+                    df_racb = racb[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]].rename(columns={"Division": "Gr/Div", "Classe": "Cl"})
                 
                 asaf123 = scr[scr["Division_Clean"].isin(["1", "2", "3", "1.0", "2.0", "3.0"])].copy()
-                df_asaf123 = ajuster_classement_essais(asaf123, limite_visuelle=15)
+                if len(asaf123) > 0:
+                    asaf123["Pos"] = range(1, len(asaf123) + 1)
+                    asaf123["Chrono"] = asaf123["Calc_Sec"].apply(format_final_chrono)
+                    df_asaf123 = asaf123[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]].rename(columns={"Division": "Gr/Div", "Classe": "Cl"})
                 
-                # Application du filtre adaptatif à 10 lignes max à l'écran pour la Division 4
                 asaf4 = scr[scr["Division_Clean"].isin(["4", "4.0"])].copy()
-                df_asaf4 = ajuster_classement_essais(asaf4, limite_visuelle=10)
+                if len(asaf4) > 0:
+                    asaf4["Pos"] = range(1, len(asaf4) + 1)
+                    asaf4["Chrono"] = asaf4["Calc_Sec"].apply(format_final_chrono)
+                    df_asaf4 = asaf4[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]].rename(columns={"Division": "Gr/Div", "Classe": "Cl"})
 
     except Exception: pass
 
-    # --- INJECTION DE SÉCURITÉ GRAPHIQUE UNIQUE POUR LE SCRIPT ESSAIS ---
-    # On modifie temporairement l'environnement pour ce fichier via les textes renvoyés
-    css_essais_specifique = (
-        "<style>"
-        "  [data-testid='stHorizontalBlock'] > div:last-child table.table-class-robuste:last-of-type {"
-        "    height: auto !important; max-height: none !important;"
-        "  }"
-        "</style>"
-    )
+    # --- INJECTION DE CONFIGURATION VISUELLE ET DES BOÎTES DE SCROLL POUR ESSAIS.PY ---
+    # On force la boîte du haut et du milieu à mesurer 310px (15 lignes visibles) avec défilement interne.
+    # Pour le dernier tableau (Div 4), s'il y a plus de 10 pilotes, on limite à 210px, sinon il reste auto.
+    hauteur_max_div4 = "210px" if len(df_asaf4) > 10 else "none"
+    overflow_div4 = "auto" if len(df_asaf4) > 10 else "visible"
+    
+    css_boites_essais = f"""
+    <style>
+      /* Force la hauteur visuelle des deux premières boîtes de défilement (RACB et 123) */
+      [data-testid="stHorizontalBlock"] > div:last-child .div-scroll-local-general {{
+        height: 310px !important;
+        max-height: 310px !important;
+        overflow-y: auto !important;
+        border: 1px solid #CBD5E1 !important;
+      }}
+      /* Ajuste dynamiquement le conteneur du bas (Division 4) */
+      [data-testid="stHorizontalBlock"] > div:last-child .div-scroll-local-classes {{
+        max-height: {hauteur_max_div4} !important;
+        overflow-y: {overflow_div4} !important;
+        height: auto !important;
+        border: none !important;
+      }}
+    </style>
+    """
 
     t_live = "🏎️ EN DIRECT / Derniers concurrents partis"
     t_hist = "🕒 HISTORIQUE DES TEMPS / ENTRAINEMENTS ASAF & RACB"
     t_racb = "🏆 CLASSEMENT EVOLUTIF OFFICIEUX DES ESSAIS RACB"
     t_as123 = "🏆 CLASSEMENT EVOLUTIF OFFICIEUX DES ESSAIS Division 123"
-    t_as4 = f"{css_essais_specifique}🏆 CLASSEMENT EVOLUTIF OFFICIEUX DES ESSAIS Division 4"
+    t_as4 = f"{css_boites_essais}🏆 CLASSEMENT EVOLUTIF OFFICIEUX DES ESSAIS Division 4"
 
     return df_live, df_hist, df_asaf123, df_asaf4, df_racb, t_live, t_hist, t_racb, t_as123, t_as4
+
