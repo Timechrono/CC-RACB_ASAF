@@ -182,6 +182,14 @@ def recuperer_donnees_course():
                     asaf4["Pos"] = range(1, len(asaf4) + 1)
                     asaf4["Chrono"] = asaf4["Calc_Sec"].apply(format_final_chrono)
                     df_asaf4 = asaf4[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]].rename(columns={"Division": "Gr/Div", "Classe": "Cl"})
+
+            # --- CORRECTION HAUTEUR DYNAMIQUE DIRECTEMENT DEPUIS ESSAIS.PY ---
+            # Si plus de 10 pilotes classés, on injecte un correctif CSS furtif dans le tableau
+            if len(df_asaf4) > 10:
+                inject_css = "<style>div:has(> table) { max-height: 380px !important; overflow-y: auto !important; }</style>"
+                # On greffe discrètement ce style dans le premier nom de pilote pour qu'il soit exécuté par l'application
+                df_asaf4.iloc[0, 2] = inject_css + str(df_asaf4.iloc[0, 2])
+
     except Exception: pass
 
     t_live = "🏎️ EN DIRECT / Derniers concurrents partis"
