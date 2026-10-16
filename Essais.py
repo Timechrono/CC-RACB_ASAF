@@ -183,22 +183,37 @@ def recuperer_donnees_course():
                     asaf4["Pos"] = range(1, len(asaf4) + 1)
                     asaf4["Chrono"] = asaf4["Calc_Sec"].apply(format_final_chrono)
                     df_asaf4 = asaf4[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]].rename(columns={"Division": "Gr/Div", "Classe": "Cl"})
-    except Exception: pass
 
-    # --- INJECTION CSS ABSOLUE ET PRIORITAIRE ---
-    # Cette règle neutralise les limites de hauteur imposées par gen_html et nettoie l'espace du bas
-    css_override_total = (
-        "<style>"
-        "  table, tbody, tr, td { height: auto !important; max-height: none !important; }"
-        "  .main .block-container { padding-bottom: 2rem !important; }"
-        "  [data-testid='stHorizontalBlock'] > div:last-child { height: max-content !important; }"
-        "</style>"
-    )
+            # --- CONTOURNEMENT MAÎTRE DU RENDU HTML ---
+            # Si le tableau de la Division 4 contient des données, on va forcer l'application à afficher
+            # une structure propre avec une hauteur max adaptative et une marge, sans passer par gen_html.
+            if len(df_asaf4) > 0:
+                # Calcul de la hauteur : max 380px si plus de 10 pilotes, sinon automatique
+                style_hauteur = "max-height: 380px; overflow-y: auto;" if len(df_asaf4) > 10 else "height: auto;"
+                
+                # Reconstruction manuelle du tableau HTML pour bypasser les filtres invisibles de app.py
+                html_table = f"<div style='{style_hauteur} margin-bottom: 25px !important; width: 100%; display: block;' class='table-class-robuste'><table style='width:100%; border-collapse: collapse;'>"
+                # En-têtes
+                html_table += "<thead><tr>" + "".join(f"<th>{col}</th>" for col in df_asaf4.columns) + "</tr></thead>"
+                # Lignes de données
+                html_table += "<tbody>"
+                for _, row in df_asaf4.iterrows():
+                    html_table += "<tr>" + "".join(f"<td>{row[col]}</td>" for col in df_asaf4.columns) + "</tr>"
+                html_table += "</tbody></table></div>"
+                
+                # Remplacement stratégique : on injecte ce bloc HTML autonome dans un DataFrame factice
+                # pour que gen_html renvoie notre code directement sans pouvoir le brider.
+                df_asaf4 = pd.DataFrame({"Pos": [html_table]})
+                
+                # On désactive la fonction gen_html en forçant le style à se fermer immédiatement
+                df_asaf4.columns = ["<span style='display:none;'>"]
+
+    except Exception: pass
 
     t_live = "🏎️ EN DIRECT / Derniers concurrents partis"
     t_hist = "🕒 HISTORIQUE DES TEMPS / ENTRAINEMENTS ASAF & RACB"
     t_racb = "🏆 CLASSEMENT EVOLUTIF OFFICIEUX DES ESSAIS RACB"
     t_as123 = "🏆 CLASSEMENT EVOLUTIF OFFICIEUX DES ESSAIS Division 123"
-    t_as4 = f"{css_override_total}🏆 CLASSEMENT EVOLUTIF OFFICIEUX DES ESSAIS Division 4"
+    t_as4 = "🏆 CLASSEMENT EVOLUTIF OFFICIEUX DES ESSAIS Division 4"
 
     return df_live, df_hist, df_asaf123, df_asaf4, df_racb, t_live, t_hist, t_racb, t_as123, t_as4
