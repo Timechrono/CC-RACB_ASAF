@@ -130,26 +130,27 @@ div.stElementContainer {{
 }}
 
 /* BOÎTES DE SCROLL INTERNES CLOISONNÉES AUTONOMES COORDONNÉES */
-.div-scroll-local-historique {
+.div-scroll-local-historique {{
     width: 100% !important;
     border: 1px solid #CBD5E1 !important;
-}
+}}
 /* Hauteur sur-mesure sur PC pour s'aligner avec le bas de la colonne de droite */
-@media (min-width: 769px) {
-    .div-scroll-local-historique {
+@media (min-width: 769px) {{
+    .div-scroll-local-historique {{
         height: 740px !important;
         max-height: 740px !important;
         overflow-y: auto !important;
-    }
-}
+    }}
+}}
 /* Hauteur d'origine conservée sur smartphone */
-@media (max-width: 768px) {
-    .div-scroll-local-historique {
+@media (max-width: 768px) {{
+    .div-scroll-local-historique {{
         height: auto !important;
         max-height: none !important;
         overflow-y: visible !important;
-    }
-}
+    }}
+}}
+
 
 
 /* Suppression des contraintes fixes de hauteur sur general et classes pour laisser l'adaptation */
