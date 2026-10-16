@@ -159,7 +159,7 @@ def recuperer_donnees_course():
             base_historique = base[~base["Ordre_Saisie"].isin(idx_exclure_du_hist)].copy()
             df_hist = base_historique.sort_values(by="Ordre_Saisie", ascending=False)[["N°", "Nom_Prenom", "Voiture", "Division", "Classe", "Chrono_Visual_Hist"]].rename(columns={"Chrono_Visual_Hist": "Chrono", "Division": "Gr/Div", "Classe": "Cl"})
 
-            # 3. Traitement des CLASSEMENTS COMPLETs par la méthode d'injection
+            # 3. Traitement des CLASSEMENTS COMPLETs (Indexations complètes sans aucune coupure)
             valides = base[base["Calc_Sec"].notna() & (base["Calc_Sec"] > 0)].copy()
             if len(valides) > 0:
                 scr = valides.sort_values(by="Calc_Sec").drop_duplicates(subset=["N°"], keep="first").copy()
@@ -167,44 +167,18 @@ def recuperer_donnees_course():
                 
                 exclus_asaf = ["1", "2", "3", "4", "1.0", "2.0", "3.0", "4.0"]
                 
-                # --- ALGORITHME MAÎTRE DE RENDER HYBRIDE POUR LE SCROLL DANS ESSAIS.PY ---
-                def injecter_scroll_hybride(df_source, limite=15):
-                    if len(df_source) == 0:
-                        return df_source
-                    
-                    df_source["Pos"] = range(1, len(df_source) + 1)
-                    df_source["Chrono"] = df_source["Calc_Sec"].apply(format_final_chrono)
-                    df_complet = df_source[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]].rename(columns={"Division": "Gr/Div", "Classe": "Cl"})
-                    
-                    # Si la liste totale est supérieure à la limite de 15 pilotes
-                    if len(df_complet) > limite:
-                        df_visuel = df_complet.head(limite).copy()
-                        df_masque = df_complet.iloc[limite:].copy()
-                        
-                        # Création du code HTML des lignes supplémentaires cachées (pilotes 16 à 19)
-                        html_lignes_cachees = ""
-                        for _, row in df_masque.iterrows():
-                            # Génération de lignes de tableau identiques alternant les couleurs de fonds
-                            html_lignes_cachees += f"</tr><tr><td>{row['Pos']}</td><td>{row['N°']}</td><td>{row['Nom_Prenom']}</td><td>{row['Gr/Div']}</td><td>{row['Cl']}</td><td>{row['Chrono']}</td>"
-                        
-                        # Récupération de la valeur originale du 15ème chrono
-                        chrono_15 = str(df_visuel.iloc[limite - 1, 5])
-                        
-                        # Injection stratégique : on ferme la ligne courante du tableau HTML généré par pandas, 
-                        # on insère nos lignes masquées, et on réouvre la structure pour que la suite s'exécute proprement
-                        df_visuel.iloc[limite - 1, 5] = f"{chrono_15}{html_lignes_cachees}"
-                        return df_visuel
-                    
-                    return df_complet
-
-                # Application de la technique de scroll sur le RACB et la Division 123
                 racb = scr[~scr["Division_Clean"].isin(exclus_asaf)].copy()
-                df_racb = injecter_scroll_hybride(racb, limite=15)
+                if len(racb) > 0:
+                    racb["Pos"] = range(1, len(racb) + 1)
+                    racb["Chrono"] = racb["Calc_Sec"].apply(format_final_chrono)
+                    df_racb = racb[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]].rename(columns={"Division": "Gr/Div", "Classe": "Cl"})
                 
                 asaf123 = scr[scr["Division_Clean"].isin(["1", "2", "3", "1.0", "2.0", "3.0"])].copy()
-                df_asaf123 = injecter_scroll_hybride(asaf123, limite=15)
+                if len(asaf123) > 0:
+                    asaf123["Pos"] = range(1, len(asaf123) + 1)
+                    asaf123["Chrono"] = asaf123["Calc_Sec"].apply(format_final_chrono)
+                    df_asaf123 = asaf123[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]].rename(columns={"Division": "Gr/Div", "Classe": "Cl"})
                 
-                # La Division 4 utilise le mode adaptatif classique
                 asaf4 = scr[scr["Division_Clean"].isin(["4", "4.0"])].copy()
                 if len(asaf4) > 0:
                     asaf4["Pos"] = range(1, len(asaf4) + 1)
@@ -213,18 +187,25 @@ def recuperer_donnees_course():
 
     except Exception: pass
 
-    # Style correctif pour forcer l'affichage de notre structure de tableau injectée
-    css_harnais = (
-        "<style>"
-        "  [data-testid='stHorizontalBlock'] > div:last-child .div-scroll-local-general table tbody tr:nth-child(15) td:last-child { white-space: normal !important; }"
-        "</style>"
-    )
+    # --- CONTRAINTE CSS ABSOLUE ET UNIVERSELLE ---
+    # Cette règle force le navigateur à appliquer une hauteur fixe sur la boîte de défilement générée par app.py
+    # 310px correspond exactement à la hauteur visuelle de 15 lignes de tableau
+    css_verrou_boites = """
+    <style>
+      .div-scroll-local-general {
+        height: 310px !important;
+        max-height: 310px !important;
+        overflow-y: auto !important;
+        display: block !important;
+      }
+    </style>
+    """
 
     t_live = "🏎️ EN DIRECT / Derniers concurrents partis"
     t_hist = "🕒 HISTORIQUE DES TEMPS / ENTRAINEMENTS ASAF & RACB"
     t_racb = "🏆 CLASSEMENT EVOLUTIF OFFICIEUX DES ESSAIS RACB"
     t_as123 = "🏆 CLASSEMENT EVOLUTIF OFFICIEUX DES ESSAIS Division 123"
-    t_as4 = f"{css_harnais}🏆 CLASSEMENT EVOLUTIF OFFICIEUX DES ESSAIS Division 4"
+    t_as4 = f"{css_verrou_boites}🏆 CLASSEMENT EVOLUTIF OFFICIEUX DES ESSAIS Division 4"
 
     return df_live, df_hist, df_asaf123, df_asaf4, df_racb, t_live, t_hist, t_racb, t_as123, t_as4
 
