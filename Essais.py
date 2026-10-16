@@ -138,7 +138,7 @@ def recuperer_donnees_course():
                 base_c1["Ordre_Live"] = range(len(base_c1))
                 df_live_base = base_c1.sort_values(by="Ordre_Live", ascending=False).head(5).copy()
                 
-                # Sauvegarde des index uniques (N° + Run_Index) à exclure de l'historique
+                # Sauvegarde des index uniques (Ordre_Saisie) à exclure de l'historique temporairement
                 idx_exclure_du_hist = df_live_base["Ordre_Saisie"].tolist()
                 
                 df_live_base["Chrono"] = df_live_base.apply(lambda r: calculer_statut_chrono_essais(r, est_dans_le_live=True), axis=1)
@@ -146,8 +146,16 @@ def recuperer_donnees_course():
                 df_live_base["Départ_Brute"] = df_live_base["Heure_Depart"].apply(formater_heure_ecran)
                 df_live = df_live_base[["N°", "Nom_Prenom", "Voiture", "Départ_Brute", "Arrivée_Brute", "Chrono"]].rename(columns={"Départ_Brute": "Départ", "Arrivée_Brute": "Arrivée"})
 
-            # 2. Filtrage de l'HISTORIQUE (On retire les concurrents affichés dans le Live)
-            base["Chrono_Visual_Hist"] = base.apply(lambda r: "En Piste" if pd.notna(r["Heure_Depart"]) and pd.isna(r["Heure_Arrivee"]) and pd.isna(r["Sec_Excel"]) else format_final_chrono(r["Calc_Sec"]) if pd.notna(r["Calc_Sec"]) and r["Calc_Sec"] > 0 else "No Time", axis=1)
+            # 2. Filtrage et bascule dans l'HISTORIQUE (Sécurisation du statut hors du Live)
+            def determiner_chrono_historique(r):
+                # Si le concurrent est sorti du Live et n'a pas de temps d'arrivée ni de chrono Excel, il passe en "No Time"
+                if pd.notna(r["Heure_Depart"]) and pd.isna(r["Heure_Arrivee"]) and pd.isna(r["Sec_Excel"]):
+                    return "No Time"
+                elif pd.notna(r["Calc_Sec"]) and r["Calc_Sec"] > 0:
+                    return format_final_chrono(r["Calc_Sec"])
+                return "No Time"
+
+            base["Chrono_Visual_Hist"] = base.apply(determiner_chrono_historique, axis=1)
             
             base_historique = base[~base["Ordre_Saisie"].isin(idx_exclure_du_hist)].copy()
             df_hist = base_historique.sort_values(by="Ordre_Saisie", ascending=False)[["N°", "Nom_Prenom", "Voiture", "Division", "Classe", "Chrono_Visual_Hist"]].rename(columns={"Chrono_Visual_Hist": "Chrono", "Division": "Gr/Div", "Classe": "Cl"})
