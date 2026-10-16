@@ -13,7 +13,7 @@ FILE_ARRIVEE = f"ht" + f"tps://{HOTE_PROT}/scl/fi/7uu9cmlpzglx0ngvbklpt/LIVE_Tem
 FILE_DEPART  = f"ht" + f"tps://{HOTE_PROT}/scl/fi/gbkaq01qzjujc8nq3zj28/LIVE_Temps_DEPART.xlsm?rlkey=4x4rvvlfyzz8v59gqbxn80a4d&dl=1"
 FILE_ENGAGES = f"ht" + f"tps://{HOTE_PROT}/scl/fi/sqrqinksco1am700s27h4/LIVE_Liste_ENGAGES.xlsm?rlkey=8p0n8jyeuiivaa375bh3p608n&dl=1"
 
-# SÉCURISATION BRIDAGE : 10 secondes maximum pour protéger Dropbox contre les blocages
+# SÉCURISATION BRIDAGE : 10 secondes maximum pour protéger Dropbox contre les blocages de 11h
 @st.cache_data(ttl=15)
 def telecharger_excel(url):
     entetes = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'}
@@ -159,7 +159,7 @@ def recuperer_donnees_course():
             base_historique = base[~base["Ordre_Saisie"].isin(idx_exclure_du_hist)].copy()
             df_hist = base_historique.sort_values(by="Ordre_Saisie", ascending=False)[["N°", "Nom_Prenom", "Voiture", "Division", "Classe", "Chrono_Visual_Hist"]].rename(columns={"Chrono_Visual_Hist": "Chrono", "Division": "Gr/Div", "Classe": "Cl"})
 
-            # 3. Traitement des CLASSEMENTS COMPLETs (Restauration des structures de colonnes d'origine)
+            # 3. Traitement des CLASSEMENTS COMPLETs (Scroll actif et indexations d'origine)
             valides = base[base["Calc_Sec"].notna() & (base["Calc_Sec"] > 0)].copy()
             if len(valides) > 0:
                 scr = valides.sort_values(by="Calc_Sec").drop_duplicates(subset=["N°"], keep="first").copy()
@@ -184,10 +184,9 @@ def recuperer_donnees_course():
                     asaf4["Pos"] = range(1, len(asaf4) + 1)
                     asaf4["Chrono"] = asaf4["Calc_Sec"].apply(format_final_chrono)
                     df_asaf4 = asaf4[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]].rename(columns={"Division": "Gr/Div", "Classe": "Cl"})
-
     except Exception: pass
 
-    # --- STYLE CIBLÉ EXCLUSIVEMENT POUR LES ÉCRANS PC ---
+    # --- STYLE CIBLÉ EXCLUSIVEMENT POUR LES ÉCRANS PC (FLEX-START ET HAUTEUR 360PX) ---
     hauteur_max_div4 = "210px" if len(df_asaf4) > 10 else "none"
     overflow_div4 = "auto" if len(df_asaf4) > 10 else "visible"
     border_div4 = "1px solid #CBD5E1" if len(df_asaf4) > 10 else "none"
@@ -195,14 +194,14 @@ def recuperer_donnees_course():
     css_exclusif_pc = f"""
     <style>
       @media (min-width: 769px) {{
-        /* Agrandissement visuel des boîtes RACB et 123 pour débloquer le 20e pilote sur ordinateur */
+        /* Agrandissement visuel ciblé à 360px pour faire défiler jusqu'au 20e pilote sur PC */
         .div-scroll-local-general {{
           height: 360px !important;
           max-height: 360px !important;
           overflow-y: auto !important;
           display: block !important;
         }}
-        /* Maintien au plus juste du tableau Division 4 pour optimiser l'espace du bas */
+        /* Maintien de la Division 4 au plus juste pour protéger l'espace du bas */
         .div-scroll-local-classes {{
           max-height: {hauteur_max_div4} !important;
           overflow-y: {overflow_div4} !important;
@@ -221,5 +220,3 @@ def recuperer_donnees_course():
     t_as4 = f"{css_exclusif_pc}🏆 CLASSEMENT EVOLUTIF OFFICIEUX DES ESSAIS Division 4"
 
     return df_live, df_hist, df_asaf123, df_asaf4, df_racb, t_live, t_hist, t_racb, t_as123, t_as4
-
-        if
