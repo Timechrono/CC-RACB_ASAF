@@ -159,7 +159,7 @@ def recuperer_donnees_course():
             base_historique = base[~base["Ordre_Saisie"].isin(idx_exclure_du_hist)].copy()
             df_hist = base_historique.sort_values(by="Ordre_Saisie", ascending=False)[["N°", "Nom_Prenom", "Voiture", "Division", "Classe", "Chrono_Visual_Hist"]].rename(columns={"Chrono_Visual_Hist": "Chrono", "Division": "Gr/Div", "Classe": "Cl"})
 
-            # 3. Traitement des CLASSEMENTS COMPLETs (Scroll actif)
+            # 3. Traitement des CLASSEMENTS COMPLETs (Restauration des structures de colonnes d'origine)
             valides = base[base["Calc_Sec"].notna() & (base["Calc_Sec"] > 0)].copy()
             if len(valides) > 0:
                 scr = valides.sort_values(by="Calc_Sec").drop_duplicates(subset=["N°"], keep="first").copy()
@@ -171,23 +171,23 @@ def recuperer_donnees_course():
                 if len(racb) > 0:
                     racb["Pos"] = range(1, len(racb) + 1)
                     racb["Chrono"] = racb["Calc_Sec"].apply(format_final_chrono)
-                    df_racb = racb[["Pos", "N°", "Nom_Prenom", "Gr/Div", "Classe", "Chrono"]].rename(columns={"Classe": "Cl"})
+                    df_racb = racb[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]].rename(columns={"Division": "Gr/Div", "Classe": "Cl"})
                 
                 asaf123 = scr[scr["Division_Clean"].isin(["1", "2", "3", "1.0", "2.0", "3.0"])].copy()
                 if len(asaf123) > 0:
                     asaf123["Pos"] = range(1, len(asaf123) + 1)
                     asaf123["Chrono"] = asaf123["Calc_Sec"].apply(format_final_chrono)
-                    df_asaf123 = asaf123[["Pos", "N°", "Nom_Prenom", "Gr/Div", "Classe", "Chrono"]].rename(columns={"Classe": "Cl"})
+                    df_asaf123 = asaf123[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]].rename(columns={"Division": "Gr/Div", "Classe": "Cl"})
                 
                 asaf4 = scr[scr["Division_Clean"].isin(["4", "4.0"])].copy()
                 if len(asaf4) > 0:
                     asaf4["Pos"] = range(1, len(asaf4) + 1)
                     asaf4["Chrono"] = asaf4["Calc_Sec"].apply(format_final_chrono)
-                    df_asaf4 = asaf4[["Pos", "N°", "Nom_Prenom", "Gr/Div", "Classe", "Chrono"]].rename(columns={"Classe": "Cl"})
+                    df_asaf4 = asaf4[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]].rename(columns={"Division": "Gr/Div", "Classe": "Cl"})
 
     except Exception: pass
 
-    # --- REGLAGE DES CRITÈRES POUR ÉCRANS D'ORDINATEUR UNIQUEMENT ---
+    # --- STYLE CIBLÉ EXCLUSIVEMENT POUR LES ÉCRANS PC ---
     hauteur_max_div4 = "210px" if len(df_asaf4) > 10 else "none"
     overflow_div4 = "auto" if len(df_asaf4) > 10 else "visible"
     border_div4 = "1px solid #CBD5E1" if len(df_asaf4) > 10 else "none"
@@ -222,3 +222,4 @@ def recuperer_donnees_course():
 
     return df_live, df_hist, df_asaf123, df_asaf4, df_racb, t_live, t_hist, t_racb, t_as123, t_as4
 
+        if
