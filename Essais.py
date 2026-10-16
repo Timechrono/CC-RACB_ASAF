@@ -188,34 +188,29 @@ def recuperer_donnees_course():
 
     except Exception: pass
 
-    # --- STYLE ÉTANCHE : Isole uniquement la dernière table HTML de la colonne droite ---
+    # --- INJECTION ET ENCAPSULATION PROPRE ---
+    # On isole le troisième tableau dans une div dédiée grâce à une astuce HTML dans le titre
     if len(df_asaf4) > 10:
-        css_scroll_div4 = (
+        html_wrapper = (
             "<style>"
-            "[data-testid='stHorizontalBlock'] > div:last-child table.table-class-robuste:last-of-type {"
-            "  display: block !important;"
-            "  max-height: 380px !important;"
-            "  overflow-y: auto !important;"
-            "  margin-bottom: 20px !important;"
-            "}"
+            "  .zone-scroll-div4 { max-height: 380px !important; overflow-y: auto !important; margin-bottom: 25px !important; }"
             "</style>"
+            "</span></span>" # Ferme proprement la structure de titre générée par app.py
+            "<div class='zone-scroll-div4'>" # Ouvre un conteneur de défilement étanche
         )
     else:
-        css_scroll_div4 = (
-            "<style>"
-            "[data-testid='stHorizontalBlock'] > div:last-child table.table-class-robuste:last-of-type {"
-            "  display: block !important;"
-            "  height: auto !important;"
-            "  max-height: none !important;"
-            "  margin-bottom: 20px !important;"
-            "}"
-            "</style>"
+        html_wrapper = (
+            "</span></span>"
+            "<div style='margin-bottom: 25px !important;'>" # Simple marge sans restriction de hauteur
         )
 
     t_live = "🏎️ EN DIRECT / Derniers concurrents partis"
     t_hist = "🕒 HISTORIQUE DES TEMPS / ENTRAINEMENTS ASAF & RACB"
     t_racb = "🏆 CLASSEMENT EVOLUTIF OFFICIEUX DES ESSAIS RACB"
     t_as123 = "🏆 CLASSEMENT EVOLUTIF OFFICIEUX DES ESSAIS Division 123"
-    t_as4 = f"{css_scroll_div4}🏆 CLASSEMENT EVOLUTIF OFFICIEUX DES ESSAIS Division 4"
+    
+    # On injecte le wrapper au début du titre. app.py va afficher le titre, fermer son propre bloc,
+    # ouvrir notre <div> personnalisée, y injecter le tableau HTML de la Div 4, puis fermer la page.
+    t_as4 = f"{html_wrapper}🏆 CLASSEMENT EVOLUTIF OFFICIEUX DES ESSAIS Division 4"
 
     return df_live, df_hist, df_asaf123, df_asaf4, df_racb, t_live, t_hist, t_racb, t_as123, t_as4
