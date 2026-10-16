@@ -184,9 +184,10 @@ def recuperer_donnees_course():
                     asaf4["Pos"] = range(1, len(asaf4) + 1)
                     asaf4["Chrono"] = asaf4["Calc_Sec"].apply(format_final_chrono)
                     df_asaf4 = asaf4[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]].rename(columns={"Division": "Gr/Div", "Classe": "Cl"})
+
     except Exception: pass
 
-    # --- STYLE CIBLÉ EXCLUSIVEMENT POUR LES ÉCRANS PC (FLEX-START ET HAUTEUR 360PX) ---
+    # --- STYLE REHAUSSÉ POUR ENTIÈREMENT DÉGAGER LE DERNIER CONCURRENT SUR PC ---
     hauteur_max_div4 = "210px" if len(df_asaf4) > 10 else "none"
     overflow_div4 = "auto" if len(df_asaf4) > 10 else "visible"
     border_div4 = "1px solid #CBD5E1" if len(df_asaf4) > 10 else "none"
@@ -194,14 +195,15 @@ def recuperer_donnees_course():
     css_exclusif_pc = f"""
     <style>
       @media (min-width: 769px) {{
-        /* Agrandissement visuel ciblé à 360px pour faire défiler jusqu'au 20e pilote sur PC */
+        /* Hauteur ajustée à 390px avec un espace de respiration en bas de table pour libérer le 20e pilote */
         .div-scroll-local-general {{
-          height: 360px !important;
-          max-height: 360px !important;
+          height: 390px !important;
+          max-height: 390px !important;
           overflow-y: auto !important;
           display: block !important;
+          padding-bottom: 8px !important;
         }}
-        /* Maintien de la Division 4 au plus juste pour protéger l'espace du bas */
+        /* Maintien équilibré de la Division 4 */
         .div-scroll-local-classes {{
           max-height: {hauteur_max_div4} !important;
           overflow-y: {overflow_div4} !important;
@@ -220,3 +222,4 @@ def recuperer_donnees_course():
     t_as4 = f"{css_exclusif_pc}🏆 CLASSEMENT EVOLUTIF OFFICIEUX DES ESSAIS Division 4"
 
     return df_live, df_hist, df_asaf123, df_asaf4, df_racb, t_live, t_hist, t_racb, t_as123, t_as4
+
