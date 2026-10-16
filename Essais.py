@@ -195,13 +195,17 @@ def recuperer_donnees_course():
     css_exclusif_pc = f"""
     <style>
       @media (min-width: 769px) {{
-        /* Hauteur augmentée à 720px pour afficher les 20 premiers pilotes sur PC avant le scroll */
-        .div-scroll-local-general {{
-          height: 720px !important;
-          max-height: 720px !important;
+        /* Force la hauteur des tableaux natifs Streamlit sur PC */
+        [data-testid="stDataFrame"], .stTable, [data-testid="stTable"] {{
+          max-height: 750px !important;
+          height: 750px !important;
+        }}
+        /* Force le défilement interne du tableau si plus de 20 lignes */
+        [data-testid="stDataFrame"] data-st-canvas-container, 
+        div[data-testid="stDataFrame"] > div {{
+          max-height: 750px !important;
+          height: 750px !important;
           overflow-y: auto !important;
-          display: block !important;
-          padding-bottom: 15px !important;
         }}
         /* Maintien équilibré de la Division 4 */
         .div-scroll-local-classes {{
@@ -214,6 +218,7 @@ def recuperer_donnees_course():
       }}
     </style>
     """
+
 
 
     t_live = "🏎️ EN DIRECT / Derniers concurrents partis"
