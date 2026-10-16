@@ -188,27 +188,26 @@ def recuperer_donnees_course():
 
     except Exception: pass
 
-    # --- INJECTION CSS ULTRA-CIBLÉE ET RAJUSTEMENT DU SCROLL ---
-    # L'utilisation de div:has(> table.table-class-robuste) permet d'isoler uniquement les classements de droite
-    # Le sélecteur :nth-of-type(3) verrouille la modification exclusivement sur la Division 4
+    # --- STYLE ÉTANCHE : Isole uniquement la dernière table HTML de la colonne droite ---
     if len(df_asaf4) > 10:
         css_scroll_div4 = (
             "<style>"
-            "[data-testid='stHorizontalBlock'] > div:last-child div:has(> table.table-class-robuste):nth-of-type(3) {"
+            "[data-testid='stHorizontalBlock'] > div:last-child table.table-class-robuste:last-of-type {"
+            "  display: block !important;"
             "  max-height: 380px !important;"
             "  overflow-y: auto !important;"
-            "  display: block !important;"
-            "  margin-bottom: 25px !important;"
+            "  margin-bottom: 20px !important;"
             "}"
             "</style>"
         )
     else:
         css_scroll_div4 = (
             "<style>"
-            "[data-testid='stHorizontalBlock'] > div:last-child div:has(> table.table-class-robuste):nth-of-type(3) {"
+            "[data-testid='stHorizontalBlock'] > div:last-child table.table-class-robuste:last-of-type {"
+            "  display: block !important;"
             "  height: auto !important;"
             "  max-height: none !important;"
-            "  margin-bottom: 25px !important;"
+            "  margin-bottom: 20px !important;"
             "}"
             "</style>"
         )
