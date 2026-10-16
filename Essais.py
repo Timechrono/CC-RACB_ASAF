@@ -131,14 +131,13 @@ def recuperer_donnees_course():
             base["Calc_Sec"] = base["Sec_Excel"].fillna((base["Sec_Arr"] - base["Sec_Dep"]).apply(lambda x: x + 3600 if (x is not None and x < 0) else x))
             base["Ordre_Saisie"] = range(len(base))
             
-            # 1. Extraction et formatage du bloc EN DIRECT (Top 5 des derniers partis)
+            # 1. Extraction du bloc EN DIRECT (Top 5 des derniers partis)
             idx_exclure_du_hist = []
             if "Heure_Depart" in base.columns and base["Heure_Depart"].notna().any():
                 base_c1 = base[base["Heure_Depart"].notna()].copy()
                 base_c1["Ordre_Live"] = range(len(base_c1))
                 df_live_base = base_c1.sort_values(by="Ordre_Live", ascending=False).head(5).copy()
                 
-                # Sauvegarde des index uniques (Ordre_Saisie) à exclure de l'historique temporairement
                 idx_exclure_du_hist = df_live_base["Ordre_Saisie"].tolist()
                 
                 df_live_base["Chrono"] = df_live_base.apply(lambda r: calculer_statut_chrono_essais(r, est_dans_le_live=True), axis=1)
@@ -146,9 +145,8 @@ def recuperer_donnees_course():
                 df_live_base["Départ_Brute"] = df_live_base["Heure_Depart"].apply(formater_heure_ecran)
                 df_live = df_live_base[["N°", "Nom_Prenom", "Voiture", "Départ_Brute", "Arrivée_Brute", "Chrono"]].rename(columns={"Départ_Brute": "Départ", "Arrivée_Brute": "Arrivée"})
 
-            # 2. Filtrage et bascule dans l'HISTORIQUE (Sécurisation du statut hors du Live)
+            # 2. Filtrage et bascule dans l'HISTORIQUE (Sécurisation statut "No Time" hors du Live)
             def determiner_chrono_historique(r):
-                # Si le concurrent est sorti du Live et n'a pas de temps d'arrivée ni de chrono Excel, il passe en "No Time"
                 if pd.notna(r["Heure_Depart"]) and pd.isna(r["Heure_Arrivee"]) and pd.isna(r["Sec_Excel"]):
                     return "No Time"
                 elif pd.notna(r["Calc_Sec"]) and r["Calc_Sec"] > 0:
@@ -160,7 +158,7 @@ def recuperer_donnees_course():
             base_historique = base[~base["Ordre_Saisie"].isin(idx_exclure_du_hist)].copy()
             df_hist = base_historique.sort_values(by="Ordre_Saisie", ascending=False)[["N°", "Nom_Prenom", "Voiture", "Division", "Classe", "Chrono_Visual_Hist"]].rename(columns={"Chrono_Visual_Hist": "Chrono", "Division": "Gr/Div", "Classe": "Cl"})
 
-            # 3. Traitement des CLASSEMENTS (On conserve bien TOUT LE MONDE, y compris le Live)
+            # 3. Traitement des CLASSEMENTS COMPLETs (Tout le monde conservé)
             valides = base[base["Calc_Sec"].notna() & (base["Calc_Sec"] > 0)].copy()
             if len(valides) > 0:
                 scr = valides.sort_values(by="Calc_Sec").drop_duplicates(subset=["N°"], keep="first").copy()
