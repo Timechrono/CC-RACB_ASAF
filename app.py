@@ -1,5 +1,7 @@
 # https://www.dropbox.com/scl/fi/hi24fjo0vbal4oiiwt9jl/logo-TimeC.png?rlkey=xlw0oqk9gdnq6v5dgahi0klg0&st=y86yrn6y&dl=1
 
+# https://dropbox.com
+
 import streamlit as st
 import pandas as pd
 import time
@@ -21,7 +23,7 @@ t_milieu = "📊 CLASSEMENT OFFICIEUX PAR Groupe / Classe (Top 3)"
 t_bas = ""
 
 # ==============================================================================
-# ⚠️ METTEZ VOTRE LIEN DROPBOX ICI (Assurez-vous qu'il se termine bien par dl=1)
+# ⚠️ LIEN DROPBOX LOGO
 # ==============================================================================
 LIEN_DROPBOX_LOGO = "https://www.dropbox.com/scl/fi/hi24fjo0vbal4oiiwt9jl/logo-TimeC.png?rlkey=xlw0oqk9gdnq6v5dgahi0klg0&st=y86yrn6y&dl=1"
 
@@ -63,7 +65,8 @@ except ModuleNotFoundError:
     course3_racb_disponible = False
 
 st.set_page_config(page_title="Live", layout="wide")
-# --- CONCEPTION GRAPHIQUE GÉOMÉTRIQUE UNIFIÉE AVEC RETOUR DU SCROLL DE PAGE ---
+
+# --- CONCEPTION GRAPHIQUE GÉOMÉTRIQUE UNIFIÉE ---
 st.markdown(f"""
 <style>
 [data-testid="stHeader"] {{ display: none !important; }}
@@ -133,19 +136,14 @@ div.stElementContainer {{
     width: 100% !important;
     border: 1px solid #CBD5E1 !important;
 }}
-.div-scroll-local-general {{
-    height: 290px !important;
-    max-height: 290px !important;
-    overflow-y: auto !important;
+
+/* Suppression des contraintes fixes de hauteur sur general et classes pour laisser l'adaptation */
+.div-scroll-local-general, .div-scroll-local-classes {{
+    height: auto !important;
+    max-height: none !important;
+    overflow-y: visible !important;
     width: 100% !important;
-    border: 1px solid #CBD5E1 !important;
-}}
-.div-scroll-local-classes {{
-    height: 290px !important;
-    max-height: 290px !important;
-    overflow-y: auto !important;
-    width: 100% !important;
-    border: 1px solid #CBD5E1 !important;
+    border: none !important;
 }}
 
 .table-responsive-container {{
@@ -177,7 +175,7 @@ div.stElementContainer {{
     font-size: 0.92rem !important;
     font-weight: bold !important;
     padding-top: 6px !important;
-    margin-top: 12px !important;
+    margin-top: 25px !important;
     border-top: 1px dashed #1E3A8A !important;
     width: 100% !important;
 }}
@@ -189,7 +187,7 @@ div.stElementContainer {{
 }}
 
 @media (max-width: 768px) {{
-    .div-scroll-local-historique, .div-scroll-local-general, .div-scroll-local-classes {{ max-height: none !important; height: auto !important; overflow-y: visible !important; border: none !important; }}
+    .div-scroll-local-historique {{ max-height: none !important; height: auto !important; overflow-y: visible !important; border: none !important; }}
     .block-container {{ padding-left: 2px !important; padding-right: 2px !important; }}
     .titre-live, .titre-hist, .titre-classement {{ font-size: 0.85rem !important; padding: 3px 6px !important; }}
     .table-compacte th, .table-compacte td {{ font-size: 0.65rem !important; padding: 1px 2px !important; }}
@@ -204,6 +202,7 @@ div.stElementContainer {{
 tr.ligne-separation-classe td, .table-compacte tr.ligne-separation-classe td {{ box-shadow: inset 0 -3px 0 0 #1E3A8A !important; }}
 </style>
 """, unsafe_allow_html=True)
+
 def gen_html(df, cl):
     if cl == "table-hist":
         phrase_attente = "En attente d'arrivée..."
@@ -212,7 +211,6 @@ def gen_html(df, cl):
     else:
         phrase_attente = "En attente du départ..."
 
-    # REPRISE DE L'AIGUILLAGE PAR NATURE EXPLICITE DU TEXTE INTERCEPTÉ (ROUTAGE FORCE DE SCROLL)
     if isinstance(df, str):
         if "<TABLE" in df.upper() and "</TABLE>" in df.upper():
             debut = df.upper().find("<TABLE")
@@ -221,14 +219,8 @@ def gen_html(df, cl):
             
             if cl == "table-hist":
                 return f"<div class='div-scroll-local-historique'>{tableau_propre}</div>"
-            elif cl == "table-class-milieu":
-                # Forçage absolu vers la boîte des groupes/classes
-                return f"<div class='div-scroll-local-classes'>{tableau_propre}</div>"
             else:
-                # Double vérification si le script d'origine envoie une classe générique pour le milieu
-                if "LIGNE-BLEUE-SEPARATION" in tableau_propre.upper() or ("GROUPE" in tableau_propre.upper() and "CL" in tableau_propre.upper() and "POS" in tableau_propre.upper()):
-                    return f"<div class='div-scroll-local-classes'>{tableau_propre}</div>"
-                return f"<div class='div-scroll-local-general'>{tableau_propre}</div>"
+                return f"<div class='table-responsive-container'>{tableau_propre}</div>"
                 
         return f"<div class='table-responsive-container'><table class='table-compacte {cl}'><tr><td style='text-align: center; padding: 10px; font-style: italic; color: #64748B;'>{phrase_attente}</td></tr></table></div>"
 
@@ -239,13 +231,8 @@ def gen_html(df, cl):
     
     if cl == "table-hist":
         return f"<div class='div-scroll-local-historique'>{html_table}</div>"
-    elif cl == "table-class-robuste":
-        return f"<div class='div-scroll-local-general'>{html_table}</div>"
-    elif cl == "table-class-groupes" or cl == "table-class-milieu":
-        return f"<div class='div-scroll-local-classes'>{html_table}</div>"
         
     return f"<div class='table-responsive-container'>{html_table}</div>"
-
 # --- LECTURE DU PARAMÈTRE DE COURSE DEPUIS L'URL ---
 query_params = st.query_params
 choix_course_url = query_params.get("course", "essais").lower()
@@ -264,6 +251,7 @@ elif choix_course_url == "c3racb" and course3_racb_disponible:
     choix_course = "Course 3 RACB"
 else:
     choix_course = "Essais"
+
 try:
     from concurrent.futures import ThreadPoolExecutor
 
@@ -298,45 +286,38 @@ with cg:
     st.markdown(gen_html(d_his, "table-hist"), unsafe_allow_html=True)
     
 with cd:
-    # --- CORRECTIF RADICAL D'ALIGNEMENT PAR LE HAUT ---
-    # Force la grille Streamlit à aligner les colonnes au départ (flex-start) au lieu de les étirer (stretch)
-    st.markdown("""
-        <style>
-            [data-testid="stHorizontalBlock"] {
-                align-items: flex-start !important;
-            }
-            [data-testid="stHorizontalBlock"] > div {
-                height: max-content !important;
-            }
-        </style>
-    """, unsafe_allow_html=True)
-
     if choix_course != "Essais":
+        # --- MODE DE COURSE ---
         if t_haut:
             st.markdown(f"<span class='titre-classement'>{t_haut}</span>", unsafe_allow_html=True)
-            st.markdown(gen_html(d_haut, "table-class-robuste"), unsafe_allow_html=True)
+            # Tableau 1 : RACB (Hauteur bloquée à 380px avec scroll)
+            st.markdown(f"<div style='max-height: 380px; overflow-y: auto; display: block;'>{gen_html(d_haut, 'table-class-robuste')}</div>", unsafe_allow_html=True)
         if t_milieu:
             st.markdown(f"<span class='titre-classement espace-classement-suivant'>{t_milieu}</span>", unsafe_allow_html=True)
-            st.markdown(gen_html(d_milieu, "table-class-milieu"), unsafe_allow_html=True)
+            # Tableau 2 : Division 123 (Hauteur bloquée à 380px avec scroll)
+            st.markdown(f"<div style='max-height: 380px; overflow-y: auto; display: block;'>{gen_html(d_milieu, 'table-class-milieu')}</div>", unsafe_allow_html=True)
         if t_bas:
             st.markdown(f"<span class='titre-classement espace-classement-suivant'>{t_bas}</span>", unsafe_allow_html=True)
+            # Tableau 3 : Division 4 (Extensible au plus juste, scroll au-delà de 10 pilotes)
             nb_lignes = len(d_bas) if hasattr(d_bas, '__len__') else 0
             style_scroll = "max-height: 380px; overflow-y: auto; display: block;" if nb_lignes > 10 else "height: auto; display: block;"
-            st.markdown(f"<div style='{style_scroll} margin-bottom: 20px !important;'>{gen_html(d_bas, 'table-class-robuste')}</div>", unsafe_allow_html=True)
+            st.markdown(f"<div style='{style_scroll}'>{gen_html(d_bas, 'table-class-robuste')}</div>", unsafe_allow_html=True)
     else:
+        # --- MODE ESSAIS ---
         if t_haut:
             st.markdown(f"<span class='titre-classement'>{t_haut}</span>", unsafe_allow_html=True)
-            st.markdown(gen_html(d_bas, "table-class-robuste"), unsafe_allow_html=True)
+            # Tableau 1 : RACB (Hauteur bloquée à 380px avec scroll)
+            st.markdown(f"<div style='max-height: 380px; overflow-y: auto; display: block;'>{gen_html(d_bas, 'table-class-robuste')}</div>", unsafe_allow_html=True)
         if t_milieu:
             st.markdown(f"<span class='titre-classement espace-classement-suivant'>{t_milieu}</span>", unsafe_allow_html=True)
-            st.markdown(gen_html(d_haut, "table-class-robuste"), unsafe_allow_html=True)
+            # Tableau 2 : Division 123 (Hauteur bloquée à 380px avec scroll)
+            st.markdown(f"<div style='max-height: 380px; overflow-y: auto; display: block;'>{gen_html(d_haut, 'table-class-robuste')}</div>", unsafe_allow_html=True)
         if t_bas:
             st.markdown(f"<span class='titre-classement espace-classement-suivant'>{t_bas}</span>", unsafe_allow_html=True)
+            # Tableau 3 : Division 4 (Extensible au plus juste, scroll au-delà de 10 pilotes)
             nb_lignes = len(d_milieu) if hasattr(d_milieu, '__len__') else 0
             style_scroll = "max-height: 380px; overflow-y: auto; display: block;" if nb_lignes > 10 else "height: auto; display: block;"
-            st.markdown(f"<div style='{style_scroll} margin-bottom: 20px !important;'>{gen_html(d_milieu, 'table-class-robuste')}</div>", unsafe_allow_html=True)
-
-
+            st.markdown(f"<div style='{style_scroll}'>{gen_html(d_milieu, 'table-class-robuste')}</div>", unsafe_allow_html=True)
 
 st.markdown(f"""
 <div class='signature-fin-page'>
