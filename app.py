@@ -1,6 +1,7 @@
 # https://www.dropbox.com/scl/fi/hi24fjo0vbal4oiiwt9jl/logo-TimeC.png?rlkey=xlw0oqk9gdnq6v5dgahi0klg0&st=y86yrn6y&dl=1
 
 # https://dropbox.com
+# https://dropbox.com
 
 import streamlit as st
 import pandas as pd
@@ -286,38 +287,40 @@ with cg:
     st.markdown(gen_html(d_his, "table-hist"), unsafe_allow_html=True)
     
 with cd:
+    # Injection CSS dynamique : 575px sur PC (pile 15 lignes visibles), 380px sur Smartphone
+    st.markdown("""
+    <style>
+      @media (min-width: 769px) { .ajust-hauteur-pc { max-height: 575px !important; } }
+      @media (max-width: 768px) { .ajust-hauteur-pc { max-height: 380px !important; } }
+    </style>
+    """, unsafe_allow_html=True)
+
     if choix_course != "Essais":
         # --- MODE DE COURSE ---
         if t_haut:
             st.markdown(f"<span class='titre-classement'>{t_haut}</span>", unsafe_allow_html=True)
-            # Tableau 1 : RACB (Hauteur bloquée à 380px avec scroll)
-            st.markdown(f"<div style='max-height: 380px; overflow-y: auto; display: block;'>{gen_html(d_haut, 'table-class-robuste')}</div>", unsafe_allow_html=True)
+            st.markdown(f"<div class='ajust-hauteur-pc' style='overflow-y: auto; display: block;'>{gen_html(d_haut, 'table-class-robuste')}</div>", unsafe_allow_html=True)
         if t_milieu:
             st.markdown(f"<span class='titre-classement espace-classement-suivant'>{t_milieu}</span>", unsafe_allow_html=True)
-            # Tableau 2 : Division 123 (Hauteur bloquée à 380px avec scroll)
-            st.markdown(f"<div style='max-height: 380px; overflow-y: auto; display: block;'>{gen_html(d_milieu, 'table-class-milieu')}</div>", unsafe_allow_html=True)
+            st.markdown(f"<div class='ajust-hauteur-pc' style='overflow-y: auto; display: block;'>{gen_html(d_milieu, 'table-class-milieu')}</div>", unsafe_allow_html=True)
         if t_bas:
             st.markdown(f"<span class='titre-classement espace-classement-suivant'>{t_bas}</span>", unsafe_allow_html=True)
-            # Tableau 3 : Division 4 (Extensible au plus juste, scroll au-delà de 10 pilotes)
             nb_lignes = len(d_bas) if hasattr(d_bas, '__len__') else 0
-            style_scroll = "max-height: 380px; overflow-y: auto; display: block;" if nb_lignes > 10 else "height: auto; display: block;"
-            st.markdown(f"<div style='{style_scroll}'>{gen_html(d_bas, 'table-class-robuste')}</div>", unsafe_allow_html=True)
+            style_scroll = "class='ajust-hauteur-pc' style='overflow-y: auto; display: block;'" if nb_lignes > 10 else "style='height: auto; display: block;'"
+            st.markdown(f"<div {style_scroll}>{gen_html(d_bas, 'table-class-robuste')}</div>", unsafe_allow_html=True)
     else:
         # --- MODE ESSAIS ---
         if t_haut:
             st.markdown(f"<span class='titre-classement'>{t_haut}</span>", unsafe_allow_html=True)
-            # Tableau 1 : RACB (Hauteur bloquée à 380px avec scroll)
-            st.markdown(f"<div style='max-height: 380px; overflow-y: auto; display: block;'>{gen_html(d_bas, 'table-class-robuste')}</div>", unsafe_allow_html=True)
+            st.markdown(f"<div class='ajust-hauteur-pc' style='overflow-y: auto; display: block;'>{gen_html(d_bas, 'table-class-robuste')}</div>", unsafe_allow_html=True)
         if t_milieu:
             st.markdown(f"<span class='titre-classement espace-classement-suivant'>{t_milieu}</span>", unsafe_allow_html=True)
-            # Tableau 2 : Division 123 (Hauteur bloquée à 380px avec scroll)
-            st.markdown(f"<div style='max-height: 380px; overflow-y: auto; display: block;'>{gen_html(d_haut, 'table-class-robuste')}</div>", unsafe_allow_html=True)
+            st.markdown(f"<div class='ajust-hauteur-pc' style='overflow-y: auto; display: block;'>{gen_html(d_haut, 'table-class-robuste')}</div>", unsafe_allow_html=True)
         if t_bas:
             st.markdown(f"<span class='titre-classement espace-classement-suivant'>{t_bas}</span>", unsafe_allow_html=True)
-            # Tableau 3 : Division 4 (Extensible au plus juste, scroll au-delà de 10 pilotes)
             nb_lignes = len(d_milieu) if hasattr(d_milieu, '__len__') else 0
-            style_scroll = "max-height: 380px; overflow-y: auto; display: block;" if nb_lignes > 10 else "height: auto; display: block;"
-            st.markdown(f"<div style='{style_scroll}'>{gen_html(d_milieu, 'table-class-robuste')}</div>", unsafe_allow_html=True)
+            style_scroll = "class='ajust-hauteur-pc' style='overflow-y: auto; display: block;'" if nb_lignes > 10 else "style='height: auto; display: block;'"
+            st.markdown(f"<div {style_scroll}>{gen_html(d_milieu, 'table-class-robuste')}</div>", unsafe_allow_html=True)
 
 st.markdown(f"""
 <div class='signature-fin-page'>
