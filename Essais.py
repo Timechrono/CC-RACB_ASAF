@@ -20,7 +20,6 @@ def telecharger_excel(url):
     reponse = requests.get(url, headers=entetes, timeout=12)
     reponse.raise_for_status()
     return io.BytesIO(reponse.content)
-# fin bloc 1
 def convertir_en_secondes(valeur):
     if pd.isna(valeur) or valeur is None: return None
     if isinstance(valeur, pd.Timedelta): return valeur.total_seconds()
@@ -77,7 +76,6 @@ def calculer_statut_chrono_essais(row, est_dans_le_live=True):
     if "Heure_Depart" in row and pd.notna(row["Heure_Depart"]) and pd.isna(row.get("Heure_Arrivee")):
         return "<span class='vrai-gyrophare'>🚨</span> EN PISTE" if est_dans_le_live else "En Piste"
     return "No Time"
-# fin bloc 2
 def recuperer_donnees_course():
     df_live = pd.DataFrame(columns=["N°", "Nom_Prenom", "Voiture", "Départ", "Arrivée", "Chrono"])
     df_hist = pd.DataFrame(columns=["N°", "Nom_Prenom", "Voiture", "Gr/Div", "Cl", "Chrono"])
@@ -161,7 +159,7 @@ def recuperer_donnees_course():
             base_historique = base[~base["Ordre_Saisie"].isin(idx_exclure_du_hist)].copy()
             df_hist = base_historique.sort_values(by="Ordre_Saisie", ascending=False)[["N°", "Nom_Prenom", "Voiture", "Division", "Classe", "Chrono_Visual_Hist"]].rename(columns={"Chrono_Visual_Hist": "Chrono", "Division": "Gr/Div", "Classe": "Cl"})
 
-            # 3. Traitement des CLASSEMENTS COMPLETs (Indexations corrigées pour afficher 15+ pilotes)
+            # 3. Traitement des CLASSEMENTS COMPLETs (Indexations corrigées pour afficher la totalité des pilotes)
             valides = base[base["Calc_Sec"].notna() & (base["Calc_Sec"] > 0)].copy()
             if len(valides) > 0:
                 scr = valides.sort_values(by="Calc_Sec").drop_duplicates(subset=["N°"], keep="first").copy()
