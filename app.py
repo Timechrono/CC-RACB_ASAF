@@ -304,11 +304,13 @@ with cd:
             st.markdown(gen_html(d_haut, "table-class-robuste"), unsafe_allow_html=True)
         if t_milieu:
             st.markdown(f"<span class='titre-classement espace-classement-suivant'>{t_milieu}</span>", unsafe_allow_html=True)
-            # ROUTAGE FORCE EN POSITION STATIQUE PAR ETAPE DU MILIEU
             st.markdown(gen_html(d_milieu, "table-class-milieu"), unsafe_allow_html=True)
         if t_bas:
             st.markdown(f"<span class='titre-classement espace-classement-suivant'>{t_bas}</span>", unsafe_allow_html=True)
-            st.markdown(gen_html(d_bas, "table-class-robuste"), unsafe_allow_html=True)
+            # --- APPLICATION DU SCROLL ADAPTATIF SUR LE DERNIER TABLEAU EN MODE COURSE ---
+            nb_lignes = len(d_bas) if hasattr(d_bas, '__len__') else 0
+            style_scroll = "max-height: 380px; overflow-y: auto; display: block;" if nb_lignes > 10 else "height: auto; display: block;"
+            st.markdown(f"<div style='{style_scroll} margin-bottom: 25px !important;'>{gen_html(d_bas, 'table-class-robuste')}</div>", unsafe_allow_html=True)
     else:
         if t_haut:
             st.markdown(f"<span class='titre-classement'>{t_haut}</span>", unsafe_allow_html=True)
@@ -318,7 +320,12 @@ with cd:
             st.markdown(gen_html(d_haut, "table-class-robuste"), unsafe_allow_html=True)
         if t_bas:
             st.markdown(f"<span class='titre-classement espace-classement-suivant'>{t_bas}</span>", unsafe_allow_html=True)
-            st.markdown(gen_html(d_milieu, "table-class-robuste"), unsafe_allow_html=True)
+            # --- APPLICATION DU SCROLL ADAPTATIF SUR LA DIVISION 4 EN MODE ESSAIS ---
+            # En mode Essais, la Division 4 utilise le DataFrame 'd_milieu'
+            nb_lignes = len(d_milieu) if hasattr(d_milieu, '__len__') else 0
+            style_scroll = "max-height: 380px; overflow-y: auto; display: block;" if nb_lignes > 10 else "height: auto; display: block;"
+            st.markdown(f"<div style='{style_scroll} margin-bottom: 25px !important;'>{gen_html(d_milieu, 'table-class-robuste')}</div>", unsafe_allow_html=True)
+
 
 st.markdown(f"""
 <div class='signature-fin-page'>
