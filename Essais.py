@@ -195,13 +195,13 @@ def recuperer_donnees_course():
     css_exclusif_pc = f"""
     <style>
       @media (min-width: 769px) {{
-        /* Hauteur ajustée à 390px avec un espace de respiration en bas de table pour libérer le 20e pilote */
+        /* Hauteur augmentée à 720px pour afficher les 20 premiers pilotes sur PC avant le scroll */
         .div-scroll-local-general {{
-          height: 390px !important;
-          max-height: 390px !important;
+          height: 720px !important;
+          max-height: 720px !important;
           overflow-y: auto !important;
           display: block !important;
-          padding-bottom: 8px !important;
+          padding-bottom: 15px !important;
         }}
         /* Maintien équilibré de la Division 4 */
         .div-scroll-local-classes {{
@@ -214,6 +214,7 @@ def recuperer_donnees_course():
       }}
     </style>
     """
+
 
     t_live = "🏎️ EN DIRECT / Derniers concurrents partis"
     t_hist = "🕒 HISTORIQUE DES TEMPS / ENTRAINEMENTS ASAF & RACB"
