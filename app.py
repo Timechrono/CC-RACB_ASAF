@@ -298,8 +298,18 @@ with cg:
     st.markdown(gen_html(d_his, "table-hist"), unsafe_allow_html=True)
     
 with cd:
-    # Injection d'un style global pour forcer la colonne de droite à épouser son contenu au plus juste
-    st.markdown("<style>[data-testid='stHorizontalBlock'] > div:last-child { height: max-content !important; }</style>", unsafe_allow_html=True)
+    # --- CORRECTIF RADICAL D'ALIGNEMENT PAR LE HAUT ---
+    # Force la grille Streamlit à aligner les colonnes au départ (flex-start) au lieu de les étirer (stretch)
+    st.markdown("""
+        <style>
+            [data-testid="stHorizontalBlock"] {
+                align-items: flex-start !important;
+            }
+            [data-testid="stHorizontalBlock"] > div {
+                height: max-content !important;
+            }
+        </style>
+    """, unsafe_allow_html=True)
 
     if choix_course != "Essais":
         if t_haut:
@@ -310,7 +320,6 @@ with cd:
             st.markdown(gen_html(d_milieu, "table-class-milieu"), unsafe_allow_html=True)
         if t_bas:
             st.markdown(f"<span class='titre-classement espace-classement-suivant'>{t_bas}</span>", unsafe_allow_html=True)
-            # Conteneur adaptatif avec scroll pour le mode course
             nb_lignes = len(d_bas) if hasattr(d_bas, '__len__') else 0
             style_scroll = "max-height: 380px; overflow-y: auto; display: block;" if nb_lignes > 10 else "height: auto; display: block;"
             st.markdown(f"<div style='{style_scroll} margin-bottom: 20px !important;'>{gen_html(d_bas, 'table-class-robuste')}</div>", unsafe_allow_html=True)
@@ -323,10 +332,10 @@ with cd:
             st.markdown(gen_html(d_haut, "table-class-robuste"), unsafe_allow_html=True)
         if t_bas:
             st.markdown(f"<span class='titre-classement espace-classement-suivant'>{t_bas}</span>", unsafe_allow_html=True)
-            # Conteneur adaptatif avec scroll pour le mode essais (Division 4 sur d_milieu)
             nb_lignes = len(d_milieu) if hasattr(d_milieu, '__len__') else 0
             style_scroll = "max-height: 380px; overflow-y: auto; display: block;" if nb_lignes > 10 else "height: auto; display: block;"
             st.markdown(f"<div style='{style_scroll} margin-bottom: 20px !important;'>{gen_html(d_milieu, 'table-class-robuste')}</div>", unsafe_allow_html=True)
+
 
 
 st.markdown(f"""
