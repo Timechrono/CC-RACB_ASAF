@@ -287,11 +287,17 @@ with cg:
     st.markdown(gen_html(d_his, "table-hist"), unsafe_allow_html=True)
     
 with cd:
-    # Injection CSS dynamique : 575px sur PC (pile 15 lignes visibles), 380px sur Smartphone
-    st.markdown("""
+    # 1. Récupération des hauteurs personnalisées depuis le script de course actif (valeurs par défaut si absentes)
+    script_actif = Essais if choix_course == "Essais" else globals().get(choix_course.replace(" ", "_"))
+    
+    h_pc = getattr(script_actif, "HAUTEUR_PC", "380px")
+    h_mob = getattr(script_actif, "HAUTEUR_MOBILE", "380px")
+
+    # 2. Injection CSS dynamique basée sur les souhaits du script de course
+    st.markdown(f"""
     <style>
-      @media (min-width: 769px) { .ajust-hauteur-pc { max-height: 575px !important; } }
-      @media (max-width: 768px) { .ajust-hauteur-pc { max-height: 380px !important; } }
+      @media (min-width: 769px) {{ .ajust-hauteur-pc {{ max-height: {h_pc} !important; }} }}
+      @media (max-width: 768px) {{ .ajust-hauteur-pc {{ max-height: {h_mob} !important; }} }}
     </style>
     """, unsafe_allow_html=True)
 
@@ -321,6 +327,7 @@ with cd:
             nb_lignes = len(d_milieu) if hasattr(d_milieu, '__len__') else 0
             style_scroll = "class='ajust-hauteur-pc' style='overflow-y: auto; display: block;'" if nb_lignes > 10 else "style='height: auto; display: block;'"
             st.markdown(f"<div {style_scroll}>{gen_html(d_milieu, 'table-class-robuste')}</div>", unsafe_allow_html=True)
+
 
 st.markdown(f"""
 <div class='signature-fin-page'>
