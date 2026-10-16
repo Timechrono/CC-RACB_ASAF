@@ -188,26 +188,27 @@ def recuperer_donnees_course():
 
     except Exception: pass
 
-    # --- INJECTION CSS CYBLÉE POUR LA TABLE DIVISION 4 ---
-    # Si plus de 10 pilotes, on applique une hauteur max et un scroll sur le conteneur généré par gen_html
-    # On utilise un sélecteur CSS basé sur l'ordre d'apparition des tables dans la colonne de droite
+    # --- INJECTION CSS ULTRA-CIBLÉE ET RAJUSTEMENT DU SCROLL ---
+    # L'utilisation de div:has(> table.table-class-robuste) permet d'isoler uniquement les classements de droite
+    # Le sélecteur :nth-of-type(3) verrouille la modification exclusivement sur la Division 4
     if len(df_asaf4) > 10:
         css_scroll_div4 = (
             "<style>"
-            "[data-testid='stHorizontalBlock'] > div:last-child div:has(> table):last-of-type {"
+            "[data-testid='stHorizontalBlock'] > div:last-child div:has(> table.table-class-robuste):nth-of-type(3) {"
             "  max-height: 380px !important;"
             "  overflow-y: auto !important;"
             "  display: block !important;"
+            "  margin-bottom: 25px !important;"
             "}"
             "</style>"
         )
     else:
-        # Si <= 10 pilotes, on s'assure que le conteneur s'adapte au contenu sans forcer de hauteur minimale
         css_scroll_div4 = (
             "<style>"
-            "[data-testid='stHorizontalBlock'] > div:last-child div:has(> table):last-of-type {"
+            "[data-testid='stHorizontalBlock'] > div:last-child div:has(> table.table-class-robuste):nth-of-type(3) {"
             "  height: auto !important;"
             "  max-height: none !important;"
+            "  margin-bottom: 25px !important;"
             "}"
             "</style>"
         )
