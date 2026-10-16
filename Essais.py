@@ -124,13 +124,7 @@ def recuperer_donnees_course():
         base_runs = pd.DataFrame(columns=["N°", "Run_Index"])
         if len(df_dep) > 0: base_runs = pd.concat([base_runs, df_dep[["N°", "Run_Index"]]], ignore_index=True)
         if len(base_runs) == 0: base_runs = df_eng[["N°"]].copy(); base_runs["Run_Index"] = 1
-        else: base_runs = base_runs.drop_duplicates(subset=["N°", "Run_Index"])
-
-        base = pd.merge(base_runs, df_eng, on="N°", how="inner")
-        if len(df_dep) > 0: base = pd.merge(base, df_dep, on=["N°", "Run_Index"], how="left")
-        if len(df_arr) > 0: base = pd.merge(base, df_arr, on=["N°", "Run_Index"], how="left")
-# fin bloc 3
-        if len(base) > 0:
+        else: b        if len(base) > 0:
             base["Calc_Sec"] = base["Sec_Excel"].fillna((base["Sec_Arr"] - base["Sec_Dep"]).apply(lambda x: x + 3600 if (x is not None and x < 0) else x))
             base["Ordre_Saisie"] = range(len(base))
             
@@ -188,29 +182,26 @@ def recuperer_donnees_course():
 
     except Exception: pass
 
-    # --- INJECTION ET ENCAPSULATION PROPRE ---
-    # On isole le troisième tableau dans une div dédiée grâce à une astuce HTML dans le titre
-    if len(df_asaf4) > 10:
-        html_wrapper = (
-            "<style>"
-            "  .zone-scroll-div4 { max-height: 380px !important; overflow-y: auto !important; margin-bottom: 25px !important; }"
-            "</style>"
-            "</span></span>" # Ferme proprement la structure de titre générée par app.py
-            "<div class='zone-scroll-div4'>" # Ouvre un conteneur de défilement étanche
-        )
-    else:
-        html_wrapper = (
-            "</span></span>"
-            "<div style='margin-bottom: 25px !important;'>" # Simple marge sans restriction de hauteur
-        )
+    # --- STYLE GLOBAL DE SÉCURITÉ CONTRE LE VIDE DU RERUN ---
+    # Force l'application à éliminer les marges folles en bas de page générées par la boucle temporelle
+    css_global_anti_vide = (
+        "<style>"
+        "  .main .block-container { padding-bottom: 2rem !important; }"
+        "  div[data-testid='stVerticalBlockBorderWrapper'] { margin-bottom: 0px !important; }"
+        "</style>"
+    )
 
     t_live = "🏎️ EN DIRECT / Derniers concurrents partis"
     t_hist = "🕒 HISTORIQUE DES TEMPS / ENTRAINEMENTS ASAF & RACB"
     t_racb = "🏆 CLASSEMENT EVOLUTIF OFFICIEUX DES ESSAIS RACB"
     t_as123 = "🏆 CLASSEMENT EVOLUTIF OFFICIEUX DES ESSAIS Division 123"
-    
-    # On injecte le wrapper au début du titre. app.py va afficher le titre, fermer son propre bloc,
-    # ouvrir notre <div> personnalisée, y injecter le tableau HTML de la Div 4, puis fermer la page.
-    t_as4 = f"{html_wrapper}🏆 CLASSEMENT EVOLUTIF OFFICIEUX DES ESSAIS Division 4"
+    t_as4 = f"{css_global_anti_vide}🏆 CLASSEMENT EVOLUTIF OFFICIEUX DES ESSAIS Division 4"
 
     return df_live, df_hist, df_asaf123, df_asaf4, df_racb, t_live, t_hist, t_racb, t_as123, t_as4
+se_runs = base_runs.drop_duplicates(subset=["N°", "Run_Index"])
+
+        base = pd.merge(base_runs, df_eng, on="N°", how="inner")
+        if len(df_dep) > 0: base = pd.merge(base, df_dep, on=["N°", "Run_Index"], how="left")
+        if len(df_arr) > 0: base = pd.merge(base, df_arr, on=["N°", "Run_Index"], how="left")
+# fin bloc 3
+v
