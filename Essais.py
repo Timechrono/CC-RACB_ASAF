@@ -159,7 +159,7 @@ def recuperer_donnees_course():
             base_historique = base[~base["Ordre_Saisie"].isin(idx_exclure_du_hist)].copy()
             df_hist = base_historique.sort_values(by="Ordre_Saisie", ascending=False)[["N°", "Nom_Prenom", "Voiture", "Division", "Classe", "Chrono_Visual_Hist"]].rename(columns={"Chrono_Visual_Hist": "Chrono", "Division": "Gr/Div", "Classe": "Cl"})
 
-            # 3. Traitement des CLASSEMENTS COMPLETs (Indexations complètes sans aucune coupure)
+            # 3. Traitement des CLASSEMENTS COMPLETs (Indexations complètes pour conserver le scroll)
             valides = base[base["Calc_Sec"].notna() & (base["Calc_Sec"] > 0)].copy()
             if len(valides) > 0:
                 scr = valides.sort_values(by="Calc_Sec").drop_duplicates(subset=["N°"], keep="first").copy()
@@ -187,27 +187,36 @@ def recuperer_donnees_course():
 
     except Exception: pass
 
-    # --- INJECTION DE CONFIGURATION VISUELLE ET DES BOÎTES DE SCROLL POUR ESSAIS.PY ---
-    # On force la boîte du haut et du milieu à mesurer 310px (15 lignes visibles) avec défilement interne.
-    # Pour le dernier tableau (Div 4), s'il y a plus de 10 pilotes, on limite à 210px, sinon il reste auto.
+    # --- STYLE CHIRURGICAL PAR INJECTION DE TEXTE POUR ESSAIS.PY ---
+    # Cible les blocs verticaux enfants générés par Streamlit à l'intérieur de la colonne de droite.
+    # index 4 = 1er tableau (RACB), index 6 = 2e tableau (Div 123). On les bride à 15 lignes (310px) avec scroll.
+    # index 8 = 3e tableau (Div 4). S'il y a plus de 10 pilotes, on limite à 210px, sinon hauteur auto.
     hauteur_max_div4 = "210px" if len(df_asaf4) > 10 else "none"
     overflow_div4 = "auto" if len(df_asaf4) > 10 else "visible"
+    border_div4 = "1px solid #CBD5E1" if len(df_asaf4) > 10 else "none"
     
     css_boites_essais = f"""
     <style>
-      /* Force la hauteur visuelle des deux premières boîtes de défilement (RACB et 123) */
-      [data-testid="stHorizontalBlock"] > div:last-child .div-scroll-local-general {{
+      /* Bridage visuel strict du 1er tableau (RACB) à 15 concurrents visibles + scroll */
+      [data-testid="stHorizontalBlock"] > div:last-child div.stElementContainer:nth-of-type(4) .div-scroll-local-general {{
         height: 310px !important;
         max-height: 310px !important;
         overflow-y: auto !important;
         border: 1px solid #CBD5E1 !important;
       }}
-      /* Ajuste dynamiquement le conteneur du bas (Division 4) */
-      [data-testid="stHorizontalBlock"] > div:last-child .div-scroll-local-classes {{
+      /* Bridage visuel strict du 2e tableau (Division 123) à 15 concurrents visibles + scroll */
+      [data-testid="stHorizontalBlock"] > div:last-child div.stElementContainer:nth-of-type(6) .div-scroll-local-general {{
+        height: 310px !important;
+        max-height: 310px !important;
+        overflow-y: auto !important;
+        border: 1px solid #CBD5E1 !important;
+      }}
+      /* Ajustement dynamique au contenu pour le 3e tableau (Division 4) */
+      [data-testid="stHorizontalBlock"] > div:last-child div.stElementContainer:nth-of-type(8) .div-scroll-local-classes {{
         max-height: {hauteur_max_div4} !important;
         overflow-y: {overflow_div4} !important;
         height: auto !important;
-        border: none !important;
+        border: {border_div4} !important;
       }}
     </style>
     """
