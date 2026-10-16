@@ -20,6 +20,7 @@ def telecharger_excel(url):
     reponse = requests.get(url, headers=entetes, timeout=12)
     reponse.raise_for_status()
     return io.BytesIO(reponse.content)
+# fin bloc 1
 def convertir_en_secondes(valeur):
     if pd.isna(valeur) or valeur is None: return None
     if isinstance(valeur, pd.Timedelta): return valeur.total_seconds()
@@ -76,6 +77,7 @@ def calculer_statut_chrono_essais(row, est_dans_le_live=True):
     if "Heure_Depart" in row and pd.notna(row["Heure_Depart"]) and pd.isna(row.get("Heure_Arrivee")):
         return "<span class='vrai-gyrophare'>🚨</span> EN PISTE" if est_dans_le_live else "En Piste"
     return "No Time"
+# fin bloc 2
 def recuperer_donnees_course():
     df_live = pd.DataFrame(columns=["N°", "Nom_Prenom", "Voiture", "Départ", "Arrivée", "Chrono"])
     df_hist = pd.DataFrame(columns=["N°", "Nom_Prenom", "Voiture", "Gr/Div", "Cl", "Chrono"])
@@ -127,6 +129,7 @@ def recuperer_donnees_course():
         base = pd.merge(base_runs, df_eng, on="N°", how="inner")
         if len(df_dep) > 0: base = pd.merge(base, df_dep, on=["N°", "Run_Index"], how="left")
         if len(df_arr) > 0: base = pd.merge(base, df_arr, on=["N°", "Run_Index"], how="left")
+# fin bloc 3
         if len(base) > 0:
             base["Calc_Sec"] = base["Sec_Excel"].fillna((base["Sec_Arr"] - base["Sec_Dep"]).apply(lambda x: x + 3600 if (x is not None and x < 0) else x))
             base["Ordre_Saisie"] = range(len(base))
@@ -183,19 +186,36 @@ def recuperer_donnees_course():
                     asaf4["Chrono"] = asaf4["Calc_Sec"].apply(format_final_chrono)
                     df_asaf4 = asaf4[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]].rename(columns={"Division": "Gr/Div", "Classe": "Cl"})
 
-            # --- CORRECTION HAUTEUR DYNAMIQUE DIRECTEMENT DEPUIS ESSAIS.PY ---
-            # Si plus de 10 pilotes classés, on injecte un correctif CSS furtif dans le tableau
-            if len(df_asaf4) > 10:
-                inject_css = "<style>div:has(> table) { max-height: 380px !important; overflow-y: auto !important; }</style>"
-                # On greffe discrètement ce style dans le premier nom de pilote pour qu'il soit exécuté par l'application
-                df_asaf4.iloc[0, 2] = inject_css + str(df_asaf4.iloc[0, 2])
-
     except Exception: pass
+
+    # --- INJECTION CSS CYBLÉE POUR LA TABLE DIVISION 4 ---
+    # Si plus de 10 pilotes, on applique une hauteur max et un scroll sur le conteneur généré par gen_html
+    # On utilise un sélecteur CSS basé sur l'ordre d'apparition des tables dans la colonne de droite
+    if len(df_asaf4) > 10:
+        css_scroll_div4 = (
+            "<style>"
+            "[data-testid='stHorizontalBlock'] > div:last-child div:has(> table):last-of-type {"
+            "  max-height: 380px !important;"
+            "  overflow-y: auto !important;"
+            "  display: block !important;"
+            "}"
+            "</style>"
+        )
+    else:
+        # Si <= 10 pilotes, on s'assure que le conteneur s'adapte au contenu sans forcer de hauteur minimale
+        css_scroll_div4 = (
+            "<style>"
+            "[data-testid='stHorizontalBlock'] > div:last-child div:has(> table):last-of-type {"
+            "  height: auto !important;"
+            "  max-height: none !important;"
+            "}"
+            "</style>"
+        )
 
     t_live = "🏎️ EN DIRECT / Derniers concurrents partis"
     t_hist = "🕒 HISTORIQUE DES TEMPS / ENTRAINEMENTS ASAF & RACB"
     t_racb = "🏆 CLASSEMENT EVOLUTIF OFFICIEUX DES ESSAIS RACB"
     t_as123 = "🏆 CLASSEMENT EVOLUTIF OFFICIEUX DES ESSAIS Division 123"
-    t_as4 = "🏆 CLASSEMENT EVOLUTIF OFFICIEUX DES ESSAIS Division 4"
+    t_as4 = f"{css_scroll_div4}🏆 CLASSEMENT EVOLUTIF OFFICIEUX DES ESSAIS Division 4"
 
     return df_live, df_hist, df_asaf123, df_asaf4, df_racb, t_live, t_hist, t_racb, t_as123, t_as4
