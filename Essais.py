@@ -228,7 +228,7 @@ def recuperer_donnees_course():
     t_as4 = f"{css_exclusif_pc}🏆 CLASSEMENT EVOLUTIF OFFICIEUX DES ESSAIS Division 4"
 
     # Configuration des hauteurs sur-mesure pour le fichier Essais
-    HAUTEUR_PC = "340px"      # Pile 15 concurrents sur ordinateur
+    HAUTEUR_PC = "288px"      # Pile 15 concurrents sur ordinateur
     HAUTEUR_MOBILE = "380px"  # Garde votre configuration smartphone d'origine
 
     return df_live, df_hist, df_asaf123, df_asaf4, df_racb, t_live, t_hist, t_racb, t_as123, t_as4
