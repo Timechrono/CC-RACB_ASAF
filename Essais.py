@@ -124,81 +124,7 @@ def recuperer_donnees_course():
         base_runs = pd.DataFrame(columns=["N°", "Run_Index"])
         if len(df_dep) > 0: base_runs = pd.concat([base_runs, df_dep[["N°", "Run_Index"]]], ignore_index=True)
         if len(base_runs) == 0: base_runs = df_eng[["N°"]].copy(); base_runs["Run_Index"] = 1
-        else: b        if len(base) > 0:
-            base["Calc_Sec"] = base["Sec_Excel"].fillna((base["Sec_Arr"] - base["Sec_Dep"]).apply(lambda x: x + 3600 if (x is not None and x < 0) else x))
-            base["Ordre_Saisie"] = range(len(base))
-            
-            # 1. Extraction du bloc EN DIRECT (Top 5 des derniers partis)
-            idx_exclure_du_hist = []
-            if "Heure_Depart" in base.columns and base["Heure_Depart"].notna().any():
-                base_c1 = base[base["Heure_Depart"].notna()].copy()
-                base_c1["Ordre_Live"] = range(len(base_c1))
-                df_live_base = base_c1.sort_values(by="Ordre_Live", ascending=False).head(5).copy()
-                
-                idx_exclure_du_hist = df_live_base["Ordre_Saisie"].tolist()
-                
-                df_live_base["Chrono"] = df_live_base.apply(lambda r: calculer_statut_chrono_essais(r, est_dans_le_live=True), axis=1)
-                df_live_base["Arrivée_Brute"] = df_live_base["Heure_Arrivee"].apply(formater_heure_ecran)
-                df_live_base["Départ_Brute"] = df_live_base["Heure_Depart"].apply(formater_heure_ecran)
-                df_live = df_live_base[["N°", "Nom_Prenom", "Voiture", "Départ_Brute", "Arrivée_Brute", "Chrono"]].rename(columns={"Départ_Brute": "Départ", "Arrivée_Brute": "Arrivée"})
-
-            # 2. Filtrage et bascule dans l'HISTORIQUE (Sécurisation statut "No Time" hors du Live)
-            def determiner_chrono_historique(r):
-                if pd.notna(r["Heure_Depart"]) and pd.isna(r["Heure_Arrivee"]) and pd.isna(r["Sec_Excel"]):
-                    return "No Time"
-                elif pd.notna(r["Calc_Sec"]) and r["Calc_Sec"] > 0:
-                    return format_final_chrono(r["Calc_Sec"])
-                return "No Time"
-
-            base["Chrono_Visual_Hist"] = base.apply(determiner_chrono_historique, axis=1)
-            
-            base_historique = base[~base["Ordre_Saisie"].isin(idx_exclure_du_hist)].copy()
-            df_hist = base_historique.sort_values(by="Ordre_Saisie", ascending=False)[["N°", "Nom_Prenom", "Voiture", "Division", "Classe", "Chrono_Visual_Hist"]].rename(columns={"Chrono_Visual_Hist": "Chrono", "Division": "Gr/Div", "Classe": "Cl"})
-
-            # 3. Traitement des CLASSEMENTS COMPLETs (Tout le monde conservé)
-            valides = base[base["Calc_Sec"].notna() & (base["Calc_Sec"] > 0)].copy()
-            if len(valides) > 0:
-                scr = valides.sort_values(by="Calc_Sec").drop_duplicates(subset=["N°"], keep="first").copy()
-                scr["Division_Clean"] = scr["Division"].astype(str).str.strip()
-                
-                exclus_asaf = ["1", "2", "3", "4", "1.0", "2.0", "3.0", "4.0"]
-                racb = scr[~scr["Division_Clean"].isin(exclus_asaf)].copy()
-                if len(racb) > 0: 
-                    racb["Pos"] = range(1, len(racb) + 1)
-                    racb["Chrono"] = racb["Calc_Sec"].apply(format_final_chrono)
-                    df_racb = racb[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]].rename(columns={"Division": "Gr/Div", "Classe": "Cl"})
-                
-                asaf123 = scr[scr["Division_Clean"].isin(["1", "2", "3", "1.0", "2.0", "3.0"])].copy()
-                if len(asaf123) > 0: 
-                    asaf123["Pos"] = range(1, len(asaf123) + 1)
-                    asaf123["Chrono"] = asaf123["Calc_Sec"].apply(format_final_chrono)
-                    df_asaf123 = asaf123[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]].rename(columns={"Division": "Gr/Div", "Classe": "Cl"})
-                
-                asaf4 = scr[scr["Division_Clean"].isin(["4", "4.0"])].copy()
-                if len(asaf4) > 0: 
-                    asaf4["Pos"] = range(1, len(asaf4) + 1)
-                    asaf4["Chrono"] = asaf4["Calc_Sec"].apply(format_final_chrono)
-                    df_asaf4 = asaf4[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]].rename(columns={"Division": "Gr/Div", "Classe": "Cl"})
-
-    except Exception: pass
-
-    # --- STYLE GLOBAL DE SÉCURITÉ CONTRE LE VIDE DU RERUN ---
-    # Force l'application à éliminer les marges folles en bas de page générées par la boucle temporelle
-    css_global_anti_vide = (
-        "<style>"
-        "  .main .block-container { padding-bottom: 2rem !important; }"
-        "  div[data-testid='stVerticalBlockBorderWrapper'] { margin-bottom: 0px !important; }"
-        "</style>"
-    )
-
-    t_live = "🏎️ EN DIRECT / Derniers concurrents partis"
-    t_hist = "🕒 HISTORIQUE DES TEMPS / ENTRAINEMENTS ASAF & RACB"
-    t_racb = "🏆 CLASSEMENT EVOLUTIF OFFICIEUX DES ESSAIS RACB"
-    t_as123 = "🏆 CLASSEMENT EVOLUTIF OFFICIEUX DES ESSAIS Division 123"
-    t_as4 = f"{css_global_anti_vide}🏆 CLASSEMENT EVOLUTIF OFFICIEUX DES ESSAIS Division 4"
-
-    return df_live, df_hist, df_asaf123, df_asaf4, df_racb, t_live, t_hist, t_racb, t_as123, t_as4
-se_runs = base_runs.drop_duplicates(subset=["N°", "Run_Index"])
+        else: base_runs = base_runs.drop_duplicates(subset=["N°", "Run_Index"])
 
         base = pd.merge(base_runs, df_eng, on="N°", how="inner")
         if len(df_dep) > 0: base = pd.merge(base, df_dep, on=["N°", "Run_Index"], how="left")
@@ -235,7 +161,7 @@ se_runs = base_runs.drop_duplicates(subset=["N°", "Run_Index"])
             base_historique = base[~base["Ordre_Saisie"].isin(idx_exclure_du_hist)].copy()
             df_hist = base_historique.sort_values(by="Ordre_Saisie", ascending=False)[["N°", "Nom_Prenom", "Voiture", "Division", "Classe", "Chrono_Visual_Hist"]].rename(columns={"Chrono_Visual_Hist": "Chrono", "Division": "Gr/Div", "Classe": "Cl"})
 
-            # 3. Traitement des CLASSEMENTS COMPLETs (Correction stricte des index de position)
+            # 3. Traitement des CLASSEMENTS COMPLETs (Indexations corrigées pour afficher 15+ pilotes)
             valides = base[base["Calc_Sec"].notna() & (base["Calc_Sec"] > 0)].copy()
             if len(valides) > 0:
                 scr = valides.sort_values(by="Calc_Sec").drop_duplicates(subset=["N°"], keep="first").copy()
@@ -244,24 +170,21 @@ se_runs = base_runs.drop_duplicates(subset=["N°", "Run_Index"])
                 exclus_asaf = ["1", "2", "3", "4", "1.0", "2.0", "3.0", "4.0"]
                 racb = scr[~scr["Division_Clean"].isin(exclus_asaf)].copy()
                 if len(racb) > 0: 
-                    # Correction du calcul de la position pour inclure la totalité des lignes
                     racb["Pos"] = range(1, len(racb) + 1)
                     racb["Chrono"] = racb["Calc_Sec"].apply(format_final_chrono)
-                    df_racb = racb[["Pos", "N°", "Nom_Prenom", "Gr/Div", "Classe", "Chrono"]].rename(columns={"Classe": "Cl"})
+                    df_racb = racb[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]].rename(columns={"Division": "Gr/Div", "Classe": "Cl"})
                 
                 asaf123 = scr[scr["Division_Clean"].isin(["1", "2", "3", "1.0", "2.0", "3.0"])].copy()
                 if len(asaf123) > 0: 
-                    # Correction du calcul de la position pour inclure la totalité des lignes
                     asaf123["Pos"] = range(1, len(asaf123) + 1)
                     asaf123["Chrono"] = asaf123["Calc_Sec"].apply(format_final_chrono)
-                    df_asaf123 = asaf123[["Pos", "N°", "Nom_Prenom", "Gr/Div", "Classe", "Chrono"]].rename(columns={"Classe": "Cl"})
+                    df_asaf123 = asaf123[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]].rename(columns={"Division": "Gr/Div", "Classe": "Cl"})
                 
                 asaf4 = scr[scr["Division_Clean"].isin(["4", "4.0"])].copy()
                 if len(asaf4) > 0: 
                     asaf4["Pos"] = range(1, len(asaf4) + 1)
                     asaf4["Chrono"] = asaf4["Calc_Sec"].apply(format_final_chrono)
-                    df_asaf4 = asaf4[["Pos", "N°", "Nom_Prenom", "Gr/Div", "Classe", "Chrono"]].rename(columns={"Classe": "Cl"})
-
+                    df_asaf4 = asaf4[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]].rename(columns={"Division": "Gr/Div", "Classe": "Cl"})
     except Exception: pass
 
     t_live = "🏎️ EN DIRECT / Derniers concurrents partis"
@@ -271,4 +194,3 @@ se_runs = base_runs.drop_duplicates(subset=["N°", "Run_Index"])
     t_as4 = "🏆 CLASSEMENT EVOLUTIF OFFICIEUX DES ESSAIS Division 4"
 
     return df_live, df_hist, df_asaf123, df_asaf4, df_racb, t_live, t_hist, t_racb, t_as123, t_as4
-
