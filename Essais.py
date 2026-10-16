@@ -183,16 +183,6 @@ def recuperer_donnees_course():
                     asaf4["Pos"] = range(1, len(asaf4) + 1)
                     asaf4["Chrono"] = asaf4["Calc_Sec"].apply(format_final_chrono)
                     df_asaf4 = asaf4[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]].rename(columns={"Division": "Gr/Div", "Classe": "Cl"})
-
-            # --- CORRECTION FINALE PAR INJECTION D'ESPACEMENT ---
-            # Si le tableau a moins de 15 lignes, on injecte un style pour combler proprement le squelette HTML fixe
-            if len(df_asaf4) > 0 and len(df_asaf4) < 15:
-                # Ajout de lignes techniques invisibles pour forcer l'alignement sur la hauteur minimale de l'application
-                lignes_manquantes = 15 - len(df_asaf4)
-                df_structurel = pd.DataFrame([{col: "&nbsp;" for col in df_asaf4.columns} for _ in range(lignes_manquantes)])
-                df_structurel["Pos"] = ""
-                df_asaf4 = pd.concat([df_asaf4, df_structurel], ignore_index=True)
-
     except Exception: pass
 
     t_live = "🏎️ EN DIRECT / Derniers concurrents partis"
