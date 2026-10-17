@@ -242,18 +242,11 @@ with cg:
 with cd:
     h_mob = "380px"
 
-    # Injection CSS propre avec la chaîne formatée bien fermée
-    code_css_dynamique = f"""
-    <style>
-      @media (min-width: 769px) {{
-          .ajust-hauteur-pc {{ max-height: {h_pc} !important; }}
-      }}
-      @media (max-width: 768px) {{
-          .ajust-hauteur-pc {{ max-height: {h_mob} !important; }}
-      }}
-    </style>
-    """
-    st.markdown(code_css_dynamique, unsafe_allow_html=True)
+    # Construction du CSS sans triple guillemet pour empêcher tout crash de syntaxe Python
+    style_ligne_1 = "@media (min-width: 769px) { .ajust-hauteur-pc { max-height: " + str(h_pc) + " !important; } }"
+    style_ligne_2 = "@media (max-width: 768px) { .ajust-hauteur-pc { max-height: " + str(h_mob) + " !important; } }"
+    
+    st.markdown("<style>" + style_ligne_1 + "\n" + style_ligne_2 + "</style>", unsafe_allow_html=True)
 
     # Repère fixe universel pour la navigation tactile smartphone
     st.markdown("<div id='zone-classements-droite'></div>", unsafe_allow_html=True)
