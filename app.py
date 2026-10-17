@@ -117,16 +117,17 @@ div.stElementContainer {{
 .refresh-bleu-clair-historique {{
     color: #FFFFFF !important;
     font-weight: normal !important;
-    background-color: #064E3B !important;
-    border: 1px solid #00FF00 !important; /* Retour de la bordure d'origine */
-    font-size: 0.92rem !important;        /* Police augmentée */
-    padding: 2px 6px !important;          /* Hauteur de la boîte augmentée */
-    line-radius: 4px !important;
+    background-color: #1E3A8A !important; /* Changé en bleu foncé RACB */
+    border: 1px solid #94A3B8 !important; /* Bordure changée en gris/bleu clair discret */
+    font-size: 0.92rem !important;        
+    padding: 2px 6px !important;          
+    border-radius: 4px !important;
     display: inline-block !important;
     margin-left: 4px !important;
     vertical-align: middle !important;
     line-height: 1.1 !important;
 }}
+
 
 
 
