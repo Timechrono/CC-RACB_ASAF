@@ -310,7 +310,7 @@ with cg:
 with cd:
     # 1. Détection ultra-fiable de la hauteur selon le nom de la course active
     if "ESSAIS" in choix_course.upper():
-        h_pc = "310px"  # Force 15 concurrents max pour les Essais sur PC
+        h_pc = "215px"  # Force 10 concurrents max pour les Essais sur PC (au lieu de 310px pour 15)
     elif "COURSE 1" in choix_course.upper():
         h_pc = "425px"  # Exemple : 19 concurrents pour la Course 1 sur PC
     else:
