@@ -201,12 +201,8 @@ div.stElementContainer {{
     line-height: 34px !important;       /* Aligne la hauteur de ligne textuelle sur la hauteur du logo (34px) */
 }}
 
-
-
-
-
 .logo-signature {{
-    height: 24px !important;
+    height: 20px !important;
     width: auto !important;
     vertical-align: middle !important;
 }}
