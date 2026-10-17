@@ -1,6 +1,7 @@
 # https://www.dropbox.com/scl/fi/hi24fjo0vbal4oiiwt9jl/logo-TimeC.png?rlkey=xlw0oqk9gdnq6v5dgahi0klg0&st=y86yrn6y&dl=1
 
 
+
 import streamlit as st
 import pandas as pd
 import time
@@ -136,14 +137,15 @@ div.stElementContainer {{
     width: 100% !important;
     border: 1px solid #CBD5E1 !important;
 }}
-/* Hauteur sur-mesure sur PC pour s'aligner avec le bas de la colonne de droite */
+/* Hauteur sur-mesure sur PC pour s'aligner parfaitement avec le bas de la Division 4 */
 @media (min-width: 769px) {{
     .div-scroll-local-historique {{
-        height: 539px !important;
-        max-height: 539px !important;
+        height: 580px !important;
+        max-height: 580px !important;
         overflow-y: auto !important;
     }}
 }}
+# fin bloc 1
 /* Hauteur d'origine conservée sur smartphone */
 @media (max-width: 768px) {{
     .div-scroll-local-historique {{
@@ -251,6 +253,7 @@ def gen_html(df, cl):
         return f"<div class='div-scroll-local-historique'>{html_table}</div>"
         
     return f"<div class='table-responsive-container'>{html_table}</div>"
+# fin bloc 2
 # --- LECTURE DU PARAMÈTRE DE COURSE DEPUIS L'URL ---
 query_params = st.query_params
 choix_course_url = query_params.get("course", "essais").lower()
@@ -304,15 +307,14 @@ with cg:
     st.markdown(gen_html(d_his, "table-hist"), unsafe_allow_html=True)
     
 with cd:
-    # 1. Détection ultra-fiable de la hauteur selon le nom de la course active
+    # 1. Détection de la hauteur selon le nom de la course active
     if "ESSAIS" in choix_course.upper():
         h_pc = "215px"  # Force 10 concurrents max pour les Essais sur PC
     elif "COURSE 1" in choix_course.upper():
-        h_pc = "425px"  # Exemple : 19 concurrents pour la Course 1 sur PC
+        h_pc = "425px"
     else:
-        h_pc = "380px"  # Valeur par défaut d'origine pour les autres configurations
+        h_pc = "380px"
 
-    # Le smartphone reste toujours protégé à 380px
     h_mob = "380px"
 
     # 2. Injection CSS dynamique
@@ -348,8 +350,11 @@ with cd:
             st.markdown(f"<span class='titre-classement espace-classement-suivant'>{t_bas}</span>", unsafe_allow_html=True)
             nb_lignes = len(d_milieu) if hasattr(d_milieu, '__len__') else 0
             
-            # CHANGEMENT ICI : Activation du scroll dès le 6ème concurrent (nb_lignes > 5 au lieu de 10)
-            style_scroll = "class='ajust-hauteur-pc' style='overflow-y: auto; display: block; max-height: 120px !important;'" if nb_lignes > 5 else "style='height: auto; display: block;'"
+            # FORCE L'AFFICHAGE VISUEL STRICT À 5 CONCURRENTS (120px max-height) POUR LA DIV 4
+            if nb_lignes > 5:
+                style_scroll = "style='height: 120px !important; max-height: 120px !important; overflow-y: auto !important; display: block;'"
+            else:
+                style_scroll = "style='height: auto; display: block;'"
             st.markdown(f"<div {style_scroll}>{gen_html(d_milieu, 'table-class-robuste')}</div>", unsafe_allow_html=True)
 
 
