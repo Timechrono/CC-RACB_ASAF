@@ -116,17 +116,18 @@ div.stElementContainer {{
 
 .refresh-bleu-clair-historique {{
     color: #FFFFFF !important;
-    font-weight: normal !important;
-    font-size: 0.78rem !important;
+    font-weight: bold !important; /* Passé en gras pour une meilleure lisibilité */
+    font-size: 0.84rem !important; /* Augmenté de 0.78rem à 0.84rem */
     background-color: #064E3B !important;
-    border: 1px solid #00FF00 !important;
-    padding: 0px 5px !important;
-    line-height: 1.2 !important;
-    border-radius: 4px !important;
+    border: 0px solid transparent !important; /* Bordure supprimée pour gagner de la hauteur */
+    padding: 0px 5px !important; /* Compression maximale en haut/bas */
+    line-height: 1.1 !important;
+    border-radius: 3px !important;
     display: inline-block !important;
-    margin-left: 4px !important;
+    margin-left: 6px !important;
     vertical-align: middle !important;
 }}
+
 
 .espace-classement-suivant {{
     margin-top: 15px !important;
