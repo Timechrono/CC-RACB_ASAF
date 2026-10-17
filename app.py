@@ -117,12 +117,15 @@ div.stElementContainer {{
 .refresh-bleu-clair-historique {{
     color: #FFFFFF !important;
     font-weight: normal !important;
+    font-size: 0.78rem !important;
     background-color: #064E3B !important;
     border: 1px solid #00FF00 !important;
-    padding: 1px 6px !important;
+    padding: 0px 5px !important;
+    line-height: 1.2 !important;
     border-radius: 4px !important;
     display: inline-block !important;
     margin-left: 4px !important;
+    vertical-align: middle !important;
 }}
 
 .espace-classement-suivant {{
