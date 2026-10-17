@@ -104,12 +104,18 @@ div.stElementContainer {{
 }}
 
 /* AJUSTEMENT 1 : HAUTEUR PHYSIQUE DU BANDEAU DE TITRE A 24PX */
+/* REGLAGE DU TITRE A 24PX AVEC EMOJI DE SCROLL REPOUSSÉ À DROITE */
 .titre-live, .titre-hist, .titre-classement {{
-    color: #FFFFFF !important; font-size: 1.05rem !important; font-weight: bold !important;
-    height: 24px !important; max-height: 24px !important; line-height: 24px !important;
+    color: #FFFFFF !important; font-size: 1.02rem !important; font-weight: bold !important;
+    height: 24px !important; max-height: 24px !important;
     padding: 0px 8px !important; border-radius: 3px !important;
-    width: 100% !important; display: block !important; clear: both !important;
+    width: 100% !important; clear: both !important;
+    /* STRUCTURE FLEXBOX POUR CHASSER L'EMOJI A DROITE */
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
 }}
+
 .titre-live {{ background-color: #15803D !important; margin-top: 0px !important; margin-bottom: 6px !important; }}
 .titre-hist {{ background-color: #475569 !important; margin-top: 15px !important; margin-bottom: 6px !important; }}
 .titre-classement {{ background-color: #1E3A8A !important; margin-top: 0px !important; margin-bottom: 6px !important; }}
