@@ -155,6 +155,8 @@ div.stElementContainer {{
     }}
 }}
 
+
+
 /* Suppression des contraintes fixes de hauteur sur general et classes pour laisser l'adaptation */
 .div-scroll-local-general, .div-scroll-local-classes {{
     height: auto !important;
@@ -220,6 +222,7 @@ div.stElementContainer {{
 tr.ligne-separation-classe td, .table-compacte tr.ligne-separation-classe td {{ box-shadow: inset 0 -3px 0 0 #1E3A8A !important; }}
 </style>
 """, unsafe_allow_html=True)
+
 
 
 def gen_html(df, cl):
