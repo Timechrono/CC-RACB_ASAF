@@ -78,13 +78,21 @@ button:focus, div:focus, input:focus, select:focus {{
     outline: none !important; border-color: transparent !important; box-shadow: none !important;
 }}
 
-/* RESTAURATION COMPLÈTE DU SCROLL SUR TOUTE LA PAGE WEB */
-html, body, [data-testid="stAppViewContainer"], [data-testid="stMainBlockContainer"] {{
+/* RESTAURATION COMPLÈTE DU SCROLL ET SUPPRESSION DES MARGES BLANCHES DE BAS DE PAGE */
+html, body, [data-testid="stAppViewContainer"] {{
     overflow: auto !important;
     overflow-y: auto !important;
     height: auto !important;
     max-height: none !important;
 }}
+[data-testid="stMainBlockContainer"] {{
+    overflow: auto !important;
+    overflow-y: auto !important;
+    height: auto !important;
+    max-height: none !important;
+    padding-bottom: 0px !important;
+}}
+
 
 .block-container {{ 
     padding-top: 5px !important; 
