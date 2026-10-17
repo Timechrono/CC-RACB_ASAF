@@ -187,8 +187,8 @@ div.stElementContainer {{
 /* BRIDAGE STRICT À 5 CONCURRENTS EN VISUEL POUR LA DIVISION 4 SUR PC */
 @media (min-width: 769px) {{
     .div-scroll-local-div4 {{
-        height: 114px !important;
-        max-height: 114px !important;
+        height: 120px !important;
+        max-height: 120px !important;
         overflow-y: auto !important;
         width: 100% !important;
         display: block !important;
@@ -292,21 +292,28 @@ def gen_html(df, cl):
     else:
         phrase_attente = "En attente du départ..."
 
+    # LOGIQUE REVOUEE POUR ASSURER LE CONTENEUR DU SCROLL DANS TOUS LES CAS DE STR ET DATAFRAME
     if isinstance(df, str):
         if "<TABLE" in df.upper() and "</TABLE>" in df.upper():
-            debut = df.upper().find("<TABLE")
-            fin = df.upper().find("</TABLE>") + 8
-            tableau_propre = df[debut:fin]
+            debut_html = df.upper().find("<TABLE")
+            fin_html = df.upper().find("</TABLE>") + 8
+            tableau_propre = df[debut_html:fin_html]
             
             if cl == "table-hist":
                 return f"<div class='div-scroll-local-historique'>{tableau_propre}</div>"
             else:
                 return f"<div class='table-responsive-container'>{tableau_propre}</div>"
                 
-        return f"<div class='table-responsive-container'><table class='table-compacte {cl}'><tr><td style='text-align: center; padding: 10px; font-style: italic; color: #64748B;'>{phrase_attente}</td></tr></table></div>"
+        tableau_vide = f"<table class='table-compacte {cl}'><tr><td style='text-align: center; padding: 10px; font-style: italic; color: #64748B;'>{phrase_attente}</td></tr></table>"
+        if cl == "table-hist":
+            return f"<div class='div-scroll-local-historique'>{tableau_vide}</div>"
+        return f"<div class='table-responsive-container'>{tableau_vide}</div>"
 
     if df is None or (isinstance(df, pd.DataFrame) and df.empty): 
-        return f"<div class='table-responsive-container'><table class='table-compacte {cl}'><tr><td style='text-align: center; padding: 10px; font-style: italic; color: #64748B;'>{phrase_attente}</td></tr></table></div>"
+        tableau_vide = f"<table class='table-compacte {cl}'><tr><td style='text-align: center; padding: 10px; font-style: italic; color: #64748B;'>{phrase_attente}</td></tr></table>"
+        if cl == "table-hist":
+            return f"<div class='div-scroll-local-historique'>{tableau_vide}</div>"
+        return f"<div class='table-responsive-container'>{tableau_vide}</div>"
     
     html_table = df.to_html(index=False, classes=f"table-compacte {cl}", escape=False, border=0)
     
@@ -314,7 +321,6 @@ def gen_html(df, cl):
         return f"<div class='div-scroll-local-historique'>{html_table}</div>"
         
     return f"<div class='table-responsive-container'>{html_table}</div>"
-
 
 # fin bloc 2
 # --- LECTURE DU PARAMÈTRE DE COURSE DEPUIS L'URL ---
