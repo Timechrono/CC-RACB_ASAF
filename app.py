@@ -126,10 +126,10 @@ div.stElementContainer {{
 }}
 
 .refresh-bleu-clair-historique {{
-    color: #FFFFFF !important;
-    font-weight: normal !important;
-    background-color: #064E3B !important;
-    border: 1px solid #00FF00 !important;
+    color: #064E3B !important;          /* VERT FONCÉ ULTRA-LISIBLE POUR LE TEXTE */
+    background-color: #DCF2E8 !important; /* VERT CLAIR PASTEL/MENTHE POUR LE FOND */
+    border: 1px solid #3B8F44 !important; /* BORDURE ASSORTIE AU VERT DE VOTRE SITE */
+    font-weight: bold !important;         /* PASSÉ EN GRAS POUR AMÉLIORER LA LISIBILITÉ */
     padding: 1px 6px !important;
     border-radius: 4px !important;
     display: inline-block !important;
