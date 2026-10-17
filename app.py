@@ -106,24 +106,6 @@ footer {{
 }}
 
 
-div[data-testid="stMainBlockContainer"] > div:last-child {{
-    padding-bottom: 0px !important;
-    margin-bottom: 0px !important;
-}}
-
-div[data-testid="stVerticalBlock"] {{
-    gap: 0rem !important;
-    padding-top: 0px !important;
-}}
-
-div.stElementContainer {{
-    margin-top: 0px !important;
-    margin-bottom: 0px !important;
-    padding-top: 0px !important;
-    padding-bottom: 0px !important;
-}}
-
-
 .titre-live, .titre-hist, .titre-classement {{
     color: #FFFFFF !important; font-size: 1.05rem !important; font-weight: bold !important;
     padding: 2px 6px !important; border-radius: 3px !important;
