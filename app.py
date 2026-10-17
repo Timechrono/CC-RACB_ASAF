@@ -114,6 +114,21 @@ footer {{
     visibility: hidden !important;
 }}
 
+/* SUPPRESSION DE LA MARGE DE SÉCURITÉ INVISIBLE INJECTÉE PAR STREAMLIT EMBED */
+div[data-testid="stApp"] {{
+    height: 100vh !important;
+    max-height: 100vh !important;
+    padding-bottom: 0px !important;
+    margin-bottom: 0px !important;
+}}
+
+/* Écrase l'espacement forcé du dernier élément html généré par la plateforme */
+.main .block-container > div:last-child {{
+    padding-bottom: 0px !important;
+    margin-bottom: 0px !important;
+}}
+
+
 /* Définition propre des titres fins et sans marges parasites */
 .titre-live, .titre-hist, .titre-classement {{
     color: #FFFFFF !important; font-size: 0.92rem !important; font-weight: bold !important;
