@@ -253,9 +253,26 @@ div.stElementContainer {{
 
 @media (max-width: 768px) {{
     .block-container {{ padding-left: 2px !important; padding-right: 2px !important; }}
-    .table-compacte th, .table-compacte td {{ font-size: 0.65rem !important; padding: 1px 2px !important; }}
+    
+    /* BRIDAGE STRICT À 30 LIGNES MAXIMUM ET ACTIVATION DU SCROLL SUR SMARTPHONE */
+    .div-scroll-local-historique {{
+        height: 775px !important;
+        max-height: 775px !important;
+        overflow-y: auto !important;
+        display: block !important;
+        -webkit-overflow-scrolling: touch !important;
+        border: 1px solid #CBD5E1 !important;
+    }}
+    
+    /* Ajustement de la hauteur de ligne sur mobile pour fiabiliser le calcul du bridage */
+    .table-compacte th, .table-compacte td {{ 
+        font-size: 0.65rem !important; 
+        padding: 1px 2px !important; 
+        height: 25px !important; 
+    }}
+    
     .table-hist td:nth-child(4) {{ max-width: 32px !important; overflow: hidden !important; text-overflow: clip !important; white-space: nowrap !important; }}
-    .table-compacte td:nth-child(3), table td:nth-child(3) {{ max-width: 60px !important; overflow: hidden !overflow: ellipsis !important; white-space: nowrap !important; }}
+    .table-compacte td:nth-child(3), table td:nth-child(3) {{ max-width: 60px !important; overflow: hidden !important; text-overflow: ellipsis !important; white-space: nowrap !important; }}
     .table-live td:last-child, .table-class-robuste td:last-child {{ font-size: 0.70rem !important; }}
     .signature-fin-page {{ font-size: 0.75rem !important; padding-top: 4px !important; }}
     .logo-signature {{ height: 32px !important; }}
@@ -275,46 +292,40 @@ tr.ligne-separation-classe td, .table-compacte tr.ligne-separation-classe td {{ 
 """, unsafe_allow_html=True)
 
 def gen_html(df, cl):
+    # Sécurisation préventive des variables de session ou d'URL
     if cl == "table-hist":
         phrase_attente = "En attente d'arrivée..."
     elif cl in ["table-class-robuste", "table-class-groupes", "table-class-milieu"]:
-        phrase_attente = "En attente du premier classé RACB..." if "RACB" in choix_course.upper() else "En attente du premier classé ASAF..." if "ASAF" in choix_course.upper() else "En attente du premier classé..."
+        nom_course = choix_course.upper() if 'choix_course' in globals() else ""
+        if "RACB" in nom_course:
+            phrase_attente = "En attente du premier classé RACB..."
+        elif "ASAF" in nom_course:
+            phrase_attente = "En attente du premier classé ASAF..."
+        else:
+            phrase_attente = "En attente du premier classé..."
     else:
         phrase_attente = "En attente du départ..."
 
-    # AJUSTEMENT INDISPENSABLE MOBILE : DETECTION DYNAMIQUE DES STYLES INLINE APPLIQUES SUR LA BOÎTE DE L'HISTORIQUE
-    style_hist_pc = "class='div-scroll-local-historique'"
-    style_hist_mob = "class='div-scroll-local-historique' style='height: 560px !important; max-height: 560px !important; overflow-y: auto !important; display: block !important; -webkit-overflow-scrolling: touch !important; border: 1px solid #CBD5E1 !important;'"
+    # Définition propre du conteneur
+    style_conteneur = "class='div-scroll-local-historique'" if cl == "table-hist" else "class='table-responsive-container'"
 
     if isinstance(df, str):
         if "<TABLE" in df.upper() and "</TABLE>" in df.upper():
             debut = df.upper().find("<TABLE")
             fin = df.upper().find("</TABLE>") + 8
             tableau_propre = df[debut:fin]
-            
-            if cl == "table-hist":
-                return f"<div {style_hist_pc}><div @media (max-width: 768px) {{{style_hist_mob}}}>{tableau_propre}</div></div>"
-            else:
-                return f"<div class='table-responsive-container'>{tableau_propre}</div>"
+            return f"<div {style_conteneur}>{tableau_propre}</div>"
                 
         tableau_vide = f"<table class='table-compacte {cl}'><tr><td style='text-align: center; padding: 10px; font-style: italic; color: #64748B;'>{phrase_attente}</td></tr></table>"
-        if cl == "table-hist":
-            return f"<div {style_hist_pc}><div @media (max-width: 768px) {{{style_hist_mob}}}>{tableau_vide}</div></div>"
-        return f"<div class='table-responsive-container'>{tableau_vide}</div>"
+        return f"<div {style_conteneur}>{tableau_vide}</div>"
 
     if df is None or (isinstance(df, pd.DataFrame) and df.empty): 
         tableau_vide = f"<table class='table-compacte {cl}'><tr><td style='text-align: center; padding: 10px; font-style: italic; color: #64748B;'>{phrase_attente}</td></tr></table>"
-        if cl == "table-hist":
-            return f"<div {style_hist_pc}><div @media (max-width: 768px) {{{style_hist_mob}}}>{tableau_vide}</div></div>"
-        return f"<div class='table-responsive-container'>{tableau_vide}</div>"
+        return f"<div {style_conteneur}>{tableau_vide}</div>"
     
     html_table = df.to_html(index=False, classes=f"table-compacte {cl}", escape=False, border=0)
-    
-    if cl == "table-hist":
-        # Injection du conteneur double (Style CSS PC standard + Sécurité Inline Smartphone forcée à 560px)
-        return f"<div {style_hist_pc}><div class='div-mobile-uniquement-scroll' style='@media (max-width: 768px) {{ height: 560px !important; max-height: 560px !important; overflow-y: auto !important; display: block !important; -webkit-overflow-scrolling: touch !important; border: 1px solid #CBD5E1 !important; }}'>{html_table}</div></div>"
-        
-    return f"<div class='table-responsive-container'>{html_table}</div>"
+    return f"<div {style_conteneur}>{html_table}</div>"
+
 
 
 # fin bloc 2
