@@ -171,12 +171,14 @@ div.stElementContainer {{
 
 
 # fin bloc 1
-/* Hauteur d'origine conservée sur smartphone */
+
+/* CONFIGURATION DU SCROLL HISTORIQUE SUR SMARTPHONE : BRIDÉ À 30 CONCURRENTS MAX (560PX) */
 @media (max-width: 768px) {{
     .div-scroll-local-historique {{
-        height: auto !important;
-        max-height: none !important;
-        overflow-y: visible !important;
+        height: 560px !important;
+        max-height: 560px !important;
+        overflow-y: auto !important;
+        border: 1px solid #CBD5E1 !important; /* Rétablit la bordure propre sur mobile */
     }}
 }}
 
