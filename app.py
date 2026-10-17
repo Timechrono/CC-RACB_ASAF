@@ -193,20 +193,21 @@ div.stElementContainer {{
     color: #1E3A8A !important;
     font-size: 0.92rem !important;
     font-weight: bold !important;
-    padding-top: 0px !important;        /* Forcé à 0px pour supprimer tout espace interne */
+    padding-top: 3px !important;        /* Espace réel de 3px sous la ligne */
     margin-top: 20px !important; 
     border-top: 1px dashed #1E3A8A !important;
     width: 100% !important;
     clear: both !important;
-    line-height: 1 !important;          /* Force la boîte de texte à être la plus plate possible */
+    line-height: 1.0 !important;        /* Écrase l'interlignage invisible du texte */
 }}
 
 .logo-signature {{
     height: 24px !important;            
     width: auto !important;
     vertical-align: middle !important;
-    margin-top: -6px !important;        /* MARGE NÉGATIVE : Aspire le logo vers la ligne pointillée */
+    margin-top: 0px !important;         /* Remis à 0px pour ne plus déborder */
 }}
+
 
 
 @media (max-width: 768px) {{
@@ -364,7 +365,6 @@ st.markdown(f"""
     www.timechrono.be
 </div>
 """, unsafe_allow_html=True)
-
 
 # CODE ACTUEL (À MODIFIER)
 for secondes_restantes in range(30, -1, -1):
