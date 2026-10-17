@@ -137,6 +137,7 @@ div.stElementContainer {{
     line-height: 1.2 !important;
 }}
 
+
 .espace-classement-suivant {{
     margin-top: 15px !important;
 }}
