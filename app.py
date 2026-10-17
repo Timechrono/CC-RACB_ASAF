@@ -91,20 +91,20 @@ html, body, [data-testid="stAppViewContainer"], [data-testid="stMainBlockContain
     margin-bottom: 0px !important;
 }}
 
-/* Masquage strict et standard du footer Streamlit d'origine */
+/* Désactive proprement le footer gris Streamlit d'origine */
 footer {{
     display: none !important;
     visibility: hidden !important;
-    opacity: 0 !important;
     height: 0px !important;
     padding: 0px !important;
     margin: 0px !important;
 }}
 
-/* Supprime l'espace forcé tout en bas de la structure Streamlit */
+/* Supprime l'espace blanc forcé tout en bas du site */
 [data-testid="stAppViewContainer"] {{
     padding-bottom: 0px !important;
 }}
+
 
 div[data-testid="stMainBlockContainer"] > div:last-child {{
     padding-bottom: 0px !important;
