@@ -104,10 +104,10 @@ div.stElementContainer {{
 }}
 
 /* AJUSTEMENT 1 : HAUTEUR PHYSIQUE DU BANDEAU DE TITRE A 24PX */
-/* REGLAGE DU TITRE A 24PX AVEC EMOJI DE SCROLL REPOUSSÉ À DROITE */
+/* REGLAGE DU TITRE A 34PX AVEC EMOJI DE SCROLL REPOUSSÉ À DROITE */
 .titre-live, .titre-hist, .titre-classement {{
     color: #FFFFFF !important; font-size: 1.02rem !important; font-weight: bold !important;
-    height: 30px !important; max-height: 24px !important;
+    height: 34px !important; max-height: 24px !important;
     padding: 0px 8px !important; border-radius: 3px !important;
     width: 100% !important; clear: both !important;
     /* STRUCTURE FLEXBOX POUR CHASSER L'EMOJI A DROITE */
