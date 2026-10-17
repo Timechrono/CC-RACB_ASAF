@@ -128,11 +128,6 @@ div.stElementContainer {{
     line-height: 1.1 !important;
 }}
 
-
-
-
-
-
 .espace-classement-suivant {{
     margin-top: 15px !important;
 }}
@@ -145,8 +140,8 @@ div.stElementContainer {{
 /* Hauteur sur-mesure sur PC pour s'aligner avec le bas de la colonne de droite */
 @media (min-width: 769px) {{
     .div-scroll-local-historique {{
-        height: 450px !important;
-        max-height: 450px !important;
+        height: 445px !important;
+        max-height: 445px !important;
         overflow-y: auto !important;
     }}
 }}
