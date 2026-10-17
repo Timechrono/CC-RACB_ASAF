@@ -1,6 +1,8 @@
 # https://www.dropbox.com/scl/fi/hi24fjo0vbal4oiiwt9jl/logo-TimeC.png?rlkey=xlw0oqk9gdnq6v5dgahi0klg0&st=y86yrn6y&dl=1
 
 # https://dropbox.com
+
+# https://dropbox.com
 # https://dropbox.com
 
 import streamlit as st
@@ -154,9 +156,6 @@ div.stElementContainer {{
         overflow-y: visible !important;
     }}
 }}
-
-
-
 /* Suppression des contraintes fixes de hauteur sur general et classes pour laisser l'adaptation */
 .div-scroll-local-general, .div-scroll-local-classes {{
     height: auto !important;
@@ -222,9 +221,6 @@ div.stElementContainer {{
 tr.ligne-separation-classe td, .table-compacte tr.ligne-separation-classe td {{ box-shadow: inset 0 -3px 0 0 #1E3A8A !important; }}
 </style>
 """, unsafe_allow_html=True)
-
-
-
 def gen_html(df, cl):
     if cl == "table-hist":
         phrase_attente = "En attente d'arrivée..."
@@ -272,7 +268,6 @@ elif choix_course_url == "c3asaf" and course3_disponible:
 elif choix_course_url == "c3racb" and course3_racb_disponible:
     choix_course = "Course 3 RACB"
 else:
-
     choix_course = "Essais"
 
 try:
@@ -309,58 +304,53 @@ with cg:
     st.markdown(gen_html(d_his, "table-hist"), unsafe_allow_html=True)
     
 with cd:
-    # 1. Ajustement millimétré des hauteurs pour les lignes compactes de 17px
+    # 1. Détection ultra-fiable de la hauteur selon le nom de la course active
     if "ESSAIS" in choix_course.upper():
-        h_pc_10 = "202px"  # Hauteur ajustée pour couper net sous le 10ème concurrent à 17px
-        h_pc_5 = "106px"   # Hauteur ajustée pour couper net sous le 5ème concurrent à 17px
+        h_pc = "310px"  # Force 15 concurrents max pour les Essais sur PC
     elif "COURSE 1" in choix_course.upper():
-        h_pc_10 = "425px"  
-        h_pc_5 = "425px"
+        h_pc = "425px"  # Exemple : 19 concurrents pour la Course 1 sur PC
     else:
-        h_pc_10 = "380px"  
-        h_pc_5 = "380px"
+        h_pc = "380px"  # Valeur par défaut d'origine pour les autres configurations
 
-    h_mob = "380px"  
+    # Le smartphone reste toujours protégé à 380px
+    h_mob = "380px"
 
     # 2. Injection CSS dynamique
     st.markdown(f"""
     <style>
-      @media (min-width: 769px) {{ 
-          .ajust-hauteur-pc-10 {{ height: {h_pc_10} !important; max-height: {h_pc_10} !important; overflow-y: auto !important; }} 
-          .ajust-hauteur-pc-5 {{ height: {h_pc_5} !important; max-height: {h_pc_5} !important; overflow-y: auto !important; }} 
-      }}
-      @media (max-width: 768px) {{ 
-          .ajust-hauteur-pc-10, .ajust-hauteur-pc-5 {{ height: auto !important; max-height: {h_mob} !important; overflow-y: auto !important; }} 
-      }}
+      @media (min-width: 769px) {{ .ajust-hauteur-pc {{ max-height: {h_pc} !important; }} }}
+      @media (max-width: 768px) {{ .ajust-hauteur-pc {{ max-height: {h_mob} !important; }} }}
     </style>
     """, unsafe_allow_html=True)
-
 
     if choix_course != "Essais":
         # --- MODE DE COURSE ---
         if t_haut:
             st.markdown(f"<span class='titre-classement'>{t_haut}</span>", unsafe_allow_html=True)
-            st.markdown(f"<div class='ajust-hauteur-pc-10' style='display: block;'>{gen_html(d_haut, 'table-class-robuste')}</div>", unsafe_allow_html=True)
+            st.markdown(f"<div class='ajust-hauteur-pc' style='overflow-y: auto; display: block;'>{gen_html(d_haut, 'table-class-robuste')}</div>", unsafe_allow_html=True)
         if t_milieu:
             st.markdown(f"<span class='titre-classement espace-classement-suivant'>{t_milieu}</span>", unsafe_allow_html=True)
-            st.markdown(f"<div class='ajust-hauteur-pc-10' style='display: block;'>{gen_html(d_milieu, 'table-class-milieu')}</div>", unsafe_allow_html=True)
+            st.markdown(f"<div class='ajust-hauteur-pc' style='overflow-y: auto; display: block;'>{gen_html(d_milieu, 'table-class-milieu')}</div>", unsafe_allow_html=True)
         if t_bas:
             st.markdown(f"<span class='titre-classement espace-classement-suivant'>{t_bas}</span>", unsafe_allow_html=True)
-            st.markdown(f"<div class='ajust-hauteur-pc-5' style='display: block;'>{gen_html(d_bas, 'table-class-robuste')}</div>", unsafe_allow_html=True)
+            nb_lignes = len(d_bas) if hasattr(d_bas, '__len__') else 0
+            style_scroll = "class='ajust-hauteur-pc' style='overflow-y: auto; display: block;'" if nb_lignes > 10 else "style='height: auto; display: block;'"
+            st.markdown(f"<div {style_scroll}>{gen_html(d_bas, 'table-class-robuste')}</div>", unsafe_allow_html=True)
     else:
         # --- MODE ESSAIS ---
         if t_haut:
             st.markdown(f"<span class='titre-classement'>{t_haut}</span>", unsafe_allow_html=True)
-            st.markdown(f"<div class='ajust-hauteur-pc-10' style='display: block;'>{gen_html(d_bas, 'table-class-robuste')}</div>", unsafe_allow_html=True)
+            st.markdown(f"<div class='ajust-hauteur-pc' style='overflow-y: auto; display: block;'>{gen_html(d_bas, 'table-class-robuste')}</div>", unsafe_allow_html=True)
         if t_milieu:
             st.markdown(f"<span class='titre-classement espace-classement-suivant'>{t_milieu}</span>", unsafe_allow_html=True)
-            st.markdown(f"<div class='ajust-hauteur-pc-10' style='display: block;'>{gen_html(d_haut, 'table-class-robuste')}</div>", unsafe_allow_html=True)
+            st.markdown(f"<div class='ajust-hauteur-pc' style='overflow-y: auto; display: block;'>{gen_html(d_haut, 'table-class-robuste')}</div>", unsafe_allow_html=True)
         if t_bas:
             st.markdown(f"<span class='titre-classement espace-classement-suivant'>{t_bas}</span>", unsafe_allow_html=True)
-            st.markdown(f"<div class='ajust-hauteur-pc-5' style='display: block;'>{gen_html(d_milieu, 'table-class-robuste')}</div>", unsafe_allow_html=True)
+            nb_lignes = len(d_milieu) if hasattr(d_milieu, '__len__') else 0
+            style_scroll = "class='ajust-hauteur-pc' style='overflow-y: auto; display: block;'" if nb_lignes > 10 else "style='height: auto; display: block;'"
+            st.markdown(f"<div {style_scroll}>{gen_html(d_milieu, 'table-class-robuste')}</div>", unsafe_allow_html=True)
 
-# Force la fermeture invisible des colonnes Streamlit avant d'afficher la signature
-st.markdown("<div style='clear: both; display: block; width: 100%; height: 1px;'></div>", unsafe_allow_html=True)
+
 
 st.markdown(f"""
 <div class='signature-fin-page'>
@@ -368,7 +358,6 @@ st.markdown(f"""
     www.timechrono.be
 </div>
 """, unsafe_allow_html=True)
-
 
 # CODE ACTUEL (À MODIFIER)
 for secondes_restantes in range(30, -1, -1):
