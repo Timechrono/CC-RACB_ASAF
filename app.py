@@ -146,8 +146,8 @@ div.stElementContainer {{
 /* Hauteur réajustée à 595px pour compenser l'agrandissement des bandeaux de titres à 24px */
 @media (min-width: 769px) {{
     .div-scroll-local-historique {{
-        height: 470px !important;
-        max-height: 470px !important;
+        height: 455px !important;
+        max-height: 455px !important;
         overflow-y: auto !important;
     }}
 }}
