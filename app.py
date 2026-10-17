@@ -140,8 +140,8 @@ div.stElementContainer {{
 /* Hauteur sur-mesure sur PC pour s'aligner avec le bas de la colonne de droite */
 @media (min-width: 769px) {{
     .div-scroll-local-historique {{
-        height: 446px !important;
-        max-height: 446px !important;
+        height: 443px !important;
+        max-height: 443px !important;
         overflow-y: auto !important;
     }}
 }}
@@ -285,6 +285,7 @@ elif choix_course_url == "c3asaf" and course3_disponible:
 elif choix_course_url == "c3racb" and course3_racb_disponible:
     choix_course = "Course 3 RACB"
 else:
+
     choix_course = "Essais"
 
 try:
