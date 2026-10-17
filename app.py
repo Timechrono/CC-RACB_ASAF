@@ -172,12 +172,14 @@ div.stElementContainer {{
 
 # fin bloc 1
 
-/* CONFIGURATION DU SCROLL HISTORIQUE SUR SMARTPHONE : BRIDÉ À 30 CONCURRENTS MAX (560PX) */
+/* CONFIGURATION DU SCROLL HISTORIQUE SUR SMARTPHONE : FORCÉ À 30 CONCURRENTS MAX (560PX) */
 @media (max-width: 768px) {{
     .div-scroll-local-historique {{
         height: 560px !important;
         max-height: 560px !important;
+        display: block !important;
         overflow-y: auto !important;
+        -webkit-overflow-scrolling: touch !important; /* Force le scroll tactile sur iPhone/Android */
         border: 1px solid #CBD5E1 !important;
     }}
 }}
@@ -260,7 +262,6 @@ div.stElementContainer {{
 }}
 
 @media (max-width: 768px) {{
-    /* Ligne nettoyée du doublon de l'historique mobile qui l'écrasait */
     .block-container {{ padding-left: 2px !important; padding-right: 2px !important; }}
     .table-compacte th, .table-compacte td {{ font-size: 0.65rem !important; padding: 1px 2px !important; }}
     .table-hist td:nth-child(4) {{ max-width: 32px !important; overflow: hidden !important; text-overflow: clip !important; white-space: nowrap !important; }}
@@ -313,6 +314,7 @@ def gen_html(df, cl):
         return f"<div class='div-scroll-local-historique'>{html_table}</div>"
         
     return f"<div class='table-responsive-container'>{html_table}</div>"
+
 
 # fin bloc 2
 # --- LECTURE DU PARAMÈTRE DE COURSE DEPUIS L'URL ---
