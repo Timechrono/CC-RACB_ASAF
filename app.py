@@ -194,12 +194,11 @@ div.stElementContainer {{
     font-size: 0.92rem !important;
     font-weight: bold !important;
     padding-top: 6px !important;
-    margin-top: 0px !important; /* Fixé à 0px pour s'aligner sur les 2px du bloc de sécurité */
+    margin-top: 20px !important; /* Fixé à 20px pour maintenir la ligne sous les grands tableaux */
     border-top: 1px dashed #1E3A8A !important;
     width: 100% !important;
     clear: both !important;
 }}
-
 
 
 .logo-signature {{
@@ -356,9 +355,6 @@ with cd:
         if t_bas:
             st.markdown(f"<span class='titre-classement espace-classement-suivant'>{t_bas}</span>", unsafe_allow_html=True)
             st.markdown(f"<div class='ajust-hauteur-pc-5' style='display: block;'>{gen_html(d_milieu, 'table-class-robuste')}</div>", unsafe_allow_html=True)
-
-# Bloc de sécurité fixé à 2px pour un espacement minimal parfait
-st.markdown("<div style='clear: both; height: 2px;'></div>", unsafe_allow_html=True)
 
 st.markdown(f"""
 <div class='signature-fin-page'>
