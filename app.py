@@ -236,7 +236,14 @@ div.stElementContainer {{
     margin-top: 25px !important;
     border-top: 1px dashed #1E3A8A !important;
     width: 100% !important;
+    line-height: 1 !important;
 }}
+.signature-fin-page p, .signature-fin-page div {{
+    margin: 0px !important;
+    padding: 0px !important;
+    line-height: 1 !important;
+}}
+
 
 .logo-signature {{
     height: 24px !important;
