@@ -83,12 +83,23 @@ html, body, [data-testid="stAppViewContainer"], [data-testid="stMainBlockContain
     max-height: none !important;
 }}
 
-.block-container {{ 
-    padding-top: 5px !important; 
-    padding-bottom: 0rem !important; 
-    padding-left: 0.5rem !important; 
-    padding-right: 0.5rem !important; 
+/* FORCE L'ALIGNEMENT STRICTEMENT PARFAIT DU SOMMET DES DEUX COLONNES */
+div[data-testid="stColumn"] {{
+    padding-top: 0px !important;
+    margin-top: 0px !important;
 }}
+
+/* RECALAGE DES DEUX PREMIERS BANDEAUX POUR EFFACER LA BANDE BLANCHE INVISIBLE */
+.titre-live {{ 
+    margin-top: 0px !important; 
+    margin-bottom: 6px !important; 
+}}
+
+.titre-classement {{ 
+    margin-top: 0px !important; 
+    margin-bottom: 6px !important; 
+}}
+
 
 /* Masquage propre du pied de page sans casser la structure */
 footer, [data-testid="stHeader"] {{
