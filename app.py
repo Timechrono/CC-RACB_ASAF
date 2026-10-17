@@ -1,5 +1,4 @@
 # https://www.dropbox.com/scl/fi/hi24fjo0vbal4oiiwt9jl/logo-TimeC.png?rlkey=xlw0oqk9gdnq6v5dgahi0klg0&st=y86yrn6y&dl=1
-
 # https://dropbox.com
 
 # https://dropbox.com
@@ -310,7 +309,7 @@ with cg:
 with cd:
     # 1. Détection ultra-fiable de la hauteur selon le nom de la course active
     if "ESSAIS" in choix_course.upper():
-        h_pc = "215px"  # Force 10 concurrents max pour les Essais sur PC (au lieu de 310px pour 15)
+        h_pc = "215px"  # Force 10 concurrents max pour les Essais sur PC
     elif "COURSE 1" in choix_course.upper():
         h_pc = "425px"  # Exemple : 19 concurrents pour la Course 1 sur PC
     else:
@@ -351,7 +350,9 @@ with cd:
         if t_bas:
             st.markdown(f"<span class='titre-classement espace-classement-suivant'>{t_bas}</span>", unsafe_allow_html=True)
             nb_lignes = len(d_milieu) if hasattr(d_milieu, '__len__') else 0
-            style_scroll = "class='ajust-hauteur-pc' style='overflow-y: auto; display: block;'" if nb_lignes > 10 else "style='height: auto; display: block;'"
+            
+            # CHANGEMENT ICI : Activation du scroll dès le 6ème concurrent (nb_lignes > 5 au lieu de 10)
+            style_scroll = "class='ajust-hauteur-pc' style='overflow-y: auto; display: block; max-height: 120px !important;'" if nb_lignes > 5 else "style='height: auto; display: block;'"
             st.markdown(f"<div {style_scroll}>{gen_html(d_milieu, 'table-class-robuste')}</div>", unsafe_allow_html=True)
 
 
