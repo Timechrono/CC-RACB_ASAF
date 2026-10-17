@@ -154,7 +154,24 @@ div.stElementContainer {{
     }}
 }}
 
-
+/* BRIDAGE STRICT À 5 CONCURRENTS EN VISUEL POUR LA DIVISION 4 SUR PC */
+@media (min-width: 769px) {{
+    .div-scroll-local-div4 {{
+        height: 120px !important;
+        max-height: 120px !important;
+        overflow-y: auto !important;
+        width: 100% !important;
+        display: block !important;
+    }}
+}}
+@media (max-width: 768px) {{
+    .div-scroll-local-div4 {{
+        height: auto !important;
+        max-height: none !important;
+        overflow-y: visible !important;
+        display: block !important;
+    }}
+}}
 
 /* Suppression des contraintes fixes de hauteur sur general et classes pour laisser l'adaptation */
 .div-scroll-local-general, .div-scroll-local-classes {{
@@ -173,12 +190,20 @@ div.stElementContainer {{
     width: 100% !important; margin-bottom: 0px !important;
     border-collapse: collapse !important; table-layout: auto !important;
 }}
-.table-compacte tr {{ height: 18px !important; }}
+
+/* APPLICATION DE LA HAUTEUR À 17PX SUR TOUS LES TABLEAUX */
+.table-compacte tr {{ height: 17px !important; }}
+
+/* EXCEPTION : TABLEAU EN DIRECT RESTE À SON HAUTEUR D'ORIGINE DE 18PX */
+.table-live tr {{ height: 18px !important; }}
+
 .table-compacte th, .table-compacte td {{ 
-    height: 18px !important; padding: 1px 5px !important; line-height: 1.1 !important; 
+    height: 17px !important; padding: 1px 5px !important; line-height: 1.1 !important; 
     font-size: 0.85rem !important; color: #000000 !important; vertical-align: middle !important; 
     white-space: nowrap !important; 
 }}
+.table-live th, .table-live td {{ height: 18px !important; }}
+
 .table-compacte td {{ border-bottom: 1px solid #E0E0E0 !important; background-color: #FFFFFF !important; }}
 .table-compacte th {{ font-weight: bold !important; background-color: #F5F5F5 !important; border-bottom: 2px solid #CCCCCC !important; text-align: left !important; }}
 .table-live td:last-child, .table-class-robuste td:last-child {{ font-weight: bold !important; font-size: 0.94rem !important; color: #0F172A !important; }}
@@ -211,7 +236,7 @@ div.stElementContainer {{
     .titre-live, .titre-hist, .titre-classement {{ font-size: 0.85rem !important; padding: 3px 6px !important; }}
     .table-compacte th, .table-compacte td {{ font-size: 0.65rem !important; padding: 1px 2px !important; }}
     .table-hist td:nth-child(4) {{ max-width: 32px !important; overflow: hidden !important; text-overflow: clip !important; white-space: nowrap !important; }}
-    .table-compacte td:nth-child(3), table td:nth-child(3) {{ max-width: 60px !important; overflow: hidden !important; text-overflow: ellipsis !important; white-space: nowrap !important; }}
+    .table-compacte td:nth-child(3), table td:nth-child(3) {{ max-width: 60px !important; overflow: hidden !overflow: ellipsis !important; white-space: nowrap !important; }}
     .table-live td:last-child, .table-class-robuste td:last-child {{ font-size: 0.70rem !important; }}
     .signature-fin-page {{ font-size: 0.75rem !important; padding-top: 4px !important; }}
     .logo-signature {{ height: 32px !important; }}
@@ -252,6 +277,7 @@ def gen_html(df, cl):
         return f"<div class='div-scroll-local-historique'>{html_table}</div>"
         
     return f"<div class='table-responsive-container'>{html_table}</div>"
+
 # fin bloc 2
 # --- LECTURE DU PARAMÈTRE DE COURSE DEPUIS L'URL ---
 query_params = st.query_params
