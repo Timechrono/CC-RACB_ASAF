@@ -102,7 +102,7 @@ div.stElementContainer {{
 }}
 .titre-live, .titre-hist, .titre-classement {{
     color: #FFFFFF !important; font-size: 1.05rem !important; font-weight: bold !important;
-    padding: 4px 8px !important; border-radius: 3px !important;
+    padding: 2px 6px !important; border-radius: 3px !important;
     width: 100% !important; display: block !important; clear: both !important;
 }}
 .titre-live {{ background-color: #15803D !important; margin-top: 0px !important; margin-bottom: 6px !important; }}
