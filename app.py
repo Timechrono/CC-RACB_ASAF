@@ -88,15 +88,16 @@ html, body, [data-testid="stAppViewContainer"], [data-testid="stMainBlockContain
     padding-bottom: 0px !important; 
     padding-left: 0.5rem !important; 
     padding-right: 0.5rem !important; 
-    margin-bottom: -35px !important; /* Augmenté à -35px pour annuler complètement le vide sous la signature */
+    margin-bottom: 0px !important; /* Remis à 0px pour réparer l'affichage des colonnes */
 }}
 
-/* AJOUT : Force le bandeau gris Streamlit invisible et sa marge à s'effacer */
+/* On neutralise proprement le footer sans casser le layout */
 footer {{
-    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
     height: 0px !important;
-    margin: 0px !important;
     padding: 0px !important;
+    margin: 0px !important;
 }}
 
 /* AJOUT : Supprime l'espace forcé tout en bas de la structure Streamlit */
@@ -232,12 +233,15 @@ div.stElementContainer {{
     color: #1E3A8A !important;
     font-size: 0.92rem !important;
     font-weight: bold !important;
-    padding-top: 3px !important;        /* Espace réel de 3px sous la ligne */
-    margin-top: 20px !important; 
-    border-top: 1px dashed #1E3A8A !important;
+    padding-top: 4px !important;        
     width: 100% !important;
     clear: both !important;
-    line-height: 1.0 !important;        /* Écrase l'interlignage invisible du texte */
+    line-height: 1.0 !important;
+    
+    /* ANCRAGE FIXE ABSOLU AU RAS DU SOL VISUEL */
+    border-top: 1px dashed #1E3A8A !important;
+    margin-top: 25px !important; 
+    padding-bottom: 5px !important;
 }}
 
 .logo-signature {{
