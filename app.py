@@ -304,8 +304,8 @@ with cg:
 with cd:
     # 1. Détection ultra-fiable de la hauteur selon le nom de la course active
     if "ESSAIS" in choix_course.upper():
-        h_pc_10 = "220px"  # Hauteur fixe compacte pour le Top 10 (défilement si plus de 10)
-        h_pc_5 = "120px"   # Hauteur fixe compacte pour le Top 5 (défilement si plus de 5)
+        h_pc_10 = "210px"  # Hauteur fixe compacte pour le Top 10 (défilement si plus de 10)
+        h_pc_5 = "110px"   # Hauteur fixe compacte pour le Top 5 (défilement si plus de 5)
     elif "COURSE 1" in choix_course.upper():
         h_pc_10 = "425px"  
         h_pc_5 = "425px"
