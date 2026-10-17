@@ -91,18 +91,24 @@ html, body, [data-testid="stAppViewContainer"], [data-testid="stMainBlockContain
     margin-bottom: 0px !important;
 }}
 
-/* Désactive proprement le footer gris Streamlit d'origine */
+/* CORRECTIF DE POSITIONNEMENT ABSOLU POUR EXPULSER LE FOOTER EN BAS DE PAGE */
 footer {{
+    position: absolute !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    z-index: -9999 !important;
     display: none !important;
     visibility: hidden !important;
     height: 0px !important;
-    padding: 0px !important;
     margin: 0px !important;
+    padding: 0px !important;
 }}
 
-/* Supprime l'espace blanc forcé tout en bas du site */
-[data-testid="stAppViewContainer"] {{
+/* RECALAGE RIGOUREUX DU CONTENEUR DE VOS COLONNES ET DU DEFILLEMENT NATURAL */
+[data-testid="stAppViewContainer"], [data-testid="stMainBlockContainer"] {{
     padding-bottom: 0px !important;
+    margin-bottom: 0px !important;
 }}
 
 
