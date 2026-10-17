@@ -242,15 +242,19 @@ with cg:
 with cd:
     h_mob = "380px"
 
-    # Injection CSS dynamique
+    # CORRECTION : Utilisation de f""" et d'accolades simples pour éviter le crash Python
     st.markdown(f"""
     <style>
-      @media (min-width: 769px) {{ .ajust-hauteur-pc {{ max-height: {h_pc} !important; }} }}
-      @media (max-width: 768px) {{ .ajust-hauteur-pc {{ max-height: {h_mob} !important; }} }}
+      @media (min-width: 769px) {{
+          .ajust-hauteur-pc {{ max-height: {h_pc} !important; }}
+      }}
+      @media (max-width: 768px) {{
+          .ajust-hauteur-pc {{ max-height: {h_mob} !important; }}
+      }}
     </style>
     """, unsafe_allow_html=True)
 
-    # 🟢 AJOUT ICI : Repère fixe pour le bouton mobile, insensible aux variations des 7 fichiers
+    # Repère fixe universel pour la navigation tactile smartphone
     st.markdown("<div id='zone-classements-droite'></div>", unsafe_allow_html=True)
 
     if choix_course != "Essais":
