@@ -172,19 +172,17 @@ div.stElementContainer {{
 
 # fin bloc 1
 
-/* Hauteur d'origine conservée sur smartphone */
-@media (max-width: 768px) {{
+/* CONFIGURATION DU SCROLL HISTORIQUE SUR PC */
+@media (min-width: 769px) {{
     .div-scroll-local-historique {{
-        height: 560px !important;
-        max-height: 560px !important;
+        height: 456px !important;
+        max-height: 456px !important;
         overflow-y: auto !important;
         display: block !important;
-        -webkit-overflow-scrolling: touch !important;
-        border: 1px solid #CBD5E1 !important;
     }}
 }}
 
-/* AJUSTEMENT : CONTENEUR SPECIAL SUR PC POUR FIXER LA DIVISION 4 A 114PX AVEC SCROLL */
+/* BRIDAGE STRICT À 5 CONCURRENTS EN VISUEL POUR LA DIVISION 4 SUR PC */
 @media (min-width: 769px) {{
     .div-scroll-local-div4 {{
         height: 114px !important;
@@ -284,6 +282,10 @@ def gen_html(df, cl):
     else:
         phrase_attente = "En attente du départ..."
 
+    # AJUSTEMENT INDISPENSABLE MOBILE : DETECTION DYNAMIQUE DES STYLES INLINE APPLIQUES SUR LA BOÎTE DE L'HISTORIQUE
+    style_hist_pc = "class='div-scroll-local-historique'"
+    style_hist_mob = "class='div-scroll-local-historique' style='height: 560px !important; max-height: 560px !important; overflow-y: auto !important; display: block !important; -webkit-overflow-scrolling: touch !important; border: 1px solid #CBD5E1 !important;'"
+
     if isinstance(df, str):
         if "<TABLE" in df.upper() and "</TABLE>" in df.upper():
             debut = df.upper().find("<TABLE")
@@ -291,21 +293,30 @@ def gen_html(df, cl):
             tableau_propre = df[debut:fin]
             
             if cl == "table-hist":
-                return f"<div class='div-scroll-local-historique'>{tableau_propre}</div>"
+                return f"<div {style_hist_pc}><div @media (max-width: 768px) {{{style_hist_mob}}}>{tableau_propre}</div></div>"
             else:
                 return f"<div class='table-responsive-container'>{tableau_propre}</div>"
                 
-        return f"<div class='table-responsive-container'><table class='table-compacte {cl}'><tr><td style='text-align: center; padding: 10px; font-style: italic; color: #64748B;'>{phrase_attente}</td></tr></table></div>"
+        tableau_vide = f"<table class='table-compacte {cl}'><tr><td style='text-align: center; padding: 10px; font-style: italic; color: #64748B;'>{phrase_attente}</td></tr></table>"
+        if cl == "table-hist":
+            return f"<div {style_hist_pc}><div @media (max-width: 768px) {{{style_hist_mob}}}>{tableau_vide}</div></div>"
+        return f"<div class='table-responsive-container'>{tableau_vide}</div>"
 
     if df is None or (isinstance(df, pd.DataFrame) and df.empty): 
-        return f"<div class='table-responsive-container'><table class='table-compacte {cl}'><tr><td style='text-align: center; padding: 10px; font-style: italic; color: #64748B;'>{phrase_attente}</td></tr></table></div>"
+        tableau_vide = f"<table class='table-compacte {cl}'><tr><td style='text-align: center; padding: 10px; font-style: italic; color: #64748B;'>{phrase_attente}</td></tr></table>"
+        if cl == "table-hist":
+            return f"<div {style_hist_pc}><div @media (max-width: 768px) {{{style_hist_mob}}}>{tableau_vide}</div></div>"
+        return f"<div class='table-responsive-container'>{tableau_vide}</div>"
     
     html_table = df.to_html(index=False, classes=f"table-compacte {cl}", escape=False, border=0)
     
     if cl == "table-hist":
-        return f"<div class='div-scroll-local-historique'>{html_table}</div>"
+        # Injection du conteneur double (Style CSS PC standard + Sécurité Inline Smartphone forcée à 560px)
+        return f"<div {style_hist_pc}><div class='div-mobile-uniquement-scroll' style='@media (max-width: 768px) {{ height: 560px !important; max-height: 560px !important; overflow-y: auto !important; display: block !important; -webkit-overflow-scrolling: touch !important; border: 1px solid #CBD5E1 !important; }}'>{html_table}</div></div>"
         
     return f"<div class='table-responsive-container'>{html_table}</div>"
+
+
 # fin bloc 2
 
 # --- LECTURE DU PARAMÈTRE DE COURSE DEPUIS L'URL ---
