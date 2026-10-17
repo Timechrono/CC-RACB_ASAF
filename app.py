@@ -1,6 +1,9 @@
 # https://www.dropbox.com/scl/fi/hi24fjo0vbal4oiiwt9jl/logo-TimeC.png?rlkey=xlw0oqk9gdnq6v5dgahi0klg0&st=y86yrn6y&dl=1
 
+# https://dropbox.com
 
+# https://dropbox.com
+# https://dropbox.com
 
 import streamlit as st
 import pandas as pd
@@ -25,7 +28,7 @@ t_bas = ""
 # ==============================================================================
 # ⚠️ LIEN DROPBOX LOGO
 # ==============================================================================
-LIEN_DROPBOX_LOGO = "https://www.dropbox.com/scl/fi/hi24fjo0vbal4oiiwt9jl/logo-TimeC.png?rlkey=xlw0oqk9gdnq6v5dgahi0klg0&st=y86yrn6y&dl=1"
+LIEN_DROPBOX_LOGO = "https://dropbox.com"
 
 # --- DÉTECTION DES SCRIPTS DE COURSE DISPONIBLES ---
 try:
@@ -69,7 +72,7 @@ st.set_page_config(page_title="Live", layout="wide")
 # --- CONCEPTION GRAPHIQUE GÉOMÉTRIQUE UNIFIÉE ---
 st.markdown(f"""
 <style>
-/* SUPPRESSION DU BANDEAU BLANC ET DU FOOTER STREAMLIT */
+/* MASQUAGE DU FOOTER ET DU BANDEAU BLANC SANS ALTERATION DU CODE UTILISATEUR */
 footer {{ visibility: hidden !important; }}
 [data-testid="stFooterContainer"] {{ display: none !important; }}
 
@@ -137,15 +140,14 @@ div.stElementContainer {{
     width: 100% !important;
     border: 1px solid #CBD5E1 !important;
 }}
-/* Hauteur sur-mesure sur PC pour s'aligner parfaitement avec le bas de la Division 4 */
+/* Hauteur sur-mesure sur PC pour s'aligner avec le bas de la colonne de droite */
 @media (min-width: 769px) {{
     .div-scroll-local-historique {{
-        height: 580px !important;
-        max-height: 580px !important;
+        height: 740px !important;
+        max-height: 740px !important;
         overflow-y: auto !important;
     }}
 }}
-# fin bloc 1
 /* Hauteur d'origine conservée sur smartphone */
 @media (max-width: 768px) {{
     .div-scroll-local-historique {{
@@ -253,7 +255,6 @@ def gen_html(df, cl):
         return f"<div class='div-scroll-local-historique'>{html_table}</div>"
         
     return f"<div class='table-responsive-container'>{html_table}</div>"
-# fin bloc 2
 # --- LECTURE DU PARAMÈTRE DE COURSE DEPUIS L'URL ---
 query_params = st.query_params
 choix_course_url = query_params.get("course", "essais").lower()
@@ -307,14 +308,15 @@ with cg:
     st.markdown(gen_html(d_his, "table-hist"), unsafe_allow_html=True)
     
 with cd:
-    # 1. Détection de la hauteur selon le nom de la course active
+    # 1. Détection ultra-fiable de la hauteur selon le nom de la course active
     if "ESSAIS" in choix_course.upper():
-        h_pc = "215px"  # Force 10 concurrents max pour les Essais sur PC
+        h_pc = "310px"  # Force 15 concurrents max pour les Essais sur PC
     elif "COURSE 1" in choix_course.upper():
-        h_pc = "425px"
+        h_pc = "425px"  # Exemple : 19 concurrents pour la Course 1 sur PC
     else:
-        h_pc = "380px"
+        h_pc = "380px"  # Valeur par défaut d'origine pour les autres configurations
 
+    # Le smartphone reste toujours protégé à 380px
     h_mob = "380px"
 
     # 2. Injection CSS dynamique
@@ -349,12 +351,7 @@ with cd:
         if t_bas:
             st.markdown(f"<span class='titre-classement espace-classement-suivant'>{t_bas}</span>", unsafe_allow_html=True)
             nb_lignes = len(d_milieu) if hasattr(d_milieu, '__len__') else 0
-            
-            # FORCE L'AFFICHAGE VISUEL STRICT À 5 CONCURRENTS (120px max-height) POUR LA DIV 4
-            if nb_lignes > 5:
-                style_scroll = "style='height: 120px !important; max-height: 120px !important; overflow-y: auto !important; display: block;'"
-            else:
-                style_scroll = "style='height: auto; display: block;'"
+            style_scroll = "class='ajust-hauteur-pc' style='overflow-y: auto; display: block;'" if nb_lignes > 10 else "style='height: auto; display: block;'"
             st.markdown(f"<div {style_scroll}>{gen_html(d_milieu, 'table-class-robuste')}</div>", unsafe_allow_html=True)
 
 
