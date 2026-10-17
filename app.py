@@ -199,9 +199,10 @@ div.stElementContainer {{
     font-size: 0.92rem !important;
     font-weight: bold !important;
     padding-top: 6px !important;
-    margin-top: 10px !important; /* Réduit de 25px à 10px pour remonter le bloc */
+    margin-top: 15px !important; /* Rétabli à 15px pour un espacement propre */
     border-top: 1px dashed #1E3A8A !important;
     width: 100% !important;
+    clear: both !important;       /* Sécurité anti-chevauchement CSS */
 }}
 
 
