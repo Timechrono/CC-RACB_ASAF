@@ -68,31 +68,22 @@ st.set_page_config(page_title="Live", layout="wide")
 # --- CONCEPTION GRAPHIQUE GÉOMÉTRIQUE UNIFIÉE ---
 st.markdown(f"""
 <style>
-/* SUPPRESSION DU BANDEAU BLANC ET DU FOOTER STREAMLIT */
-footer {{ display: none !important; visibility: hidden !important; height: 0px !important; }}
-[data-testid="stFooterContainer"] {{ display: none !important; height: 0px !important; border: none !important; background: transparent !important; }}
-
+/* Masquer le bandeau blanc et la mention Built with Streamlit */
+footer {{ visibility: hidden !important; }}
+[data-testid="stFooterContainer"] {{ display: none !important; }}
 
 [data-testid="stHeader"] {{ display: none !important; }}
 button:focus, div:focus, input:focus, select:focus {{
     outline: none !important; border-color: transparent !important; box-shadow: none !important;
 }}
 
-/* RESTAURATION COMPLÈTE DU SCROLL ET SUPPRESSION DES MARGES BLANCHES DE BAS DE PAGE */
-html, body, [data-testid="stAppViewContainer"] {{
+/* RESTAURATION COMPLÈTE DU SCROLL SUR TOUTE LA PAGE WEB */
+html, body, [data-testid="stAppViewContainer"], [data-testid="stMainBlockContainer"] {{
     overflow: auto !important;
     overflow-y: auto !important;
     height: auto !important;
     max-height: none !important;
 }}
-[data-testid="stMainBlockContainer"] {{
-    overflow: auto !important;
-    overflow-y: auto !important;
-    height: auto !important;
-    max-height: none !important;
-    padding-bottom: 0px !important;
-}}
-
 
 .block-container {{ 
     padding-top: 5px !important; 
@@ -112,9 +103,9 @@ div.stElementContainer {{
     padding-bottom: 0px !important;
 }}
 
-/* REGLAGE DE LA HAUTEUR PHYSIQUE DU BANDEAU DE TITRE PASSE A 24PX */
+/* AJUSTEMENT 1 : HAUTEUR PHYSIQUE DU BANDEAU DE TITRE A 24PX */
 .titre-live, .titre-hist, .titre-classement {{
-    color: #FFFFFF !important; font-size: 1.02rem !important; font-weight: bold !important;
+    color: #FFFFFF !important; font-size: 1.05rem !important; font-weight: bold !important;
     height: 24px !important; max-height: 24px !important; line-height: 24px !important;
     padding: 0px 8px !important; border-radius: 3px !important;
     width: 100% !important; display: block !important; clear: both !important;
@@ -149,7 +140,7 @@ div.stElementContainer {{
     width: 100% !important;
     border: 1px solid #CBD5E1 !important;
 }}
-/* Hauteur réajustée à 595px pour compenser l'agrandissement des bandeaux de titres à 24px */
+/* AJUSTEMENT 2 : HAUTEUR DE L'HISTORIQUE SUR PC FORCEE A 456PX */
 @media (min-width: 769px) {{
     .div-scroll-local-historique {{
         height: 456px !important;
@@ -157,7 +148,6 @@ div.stElementContainer {{
         overflow-y: auto !important;
     }}
 }}
-
 # fin bloc 1
 /* Hauteur d'origine conservée sur smartphone */
 @media (max-width: 768px) {{
@@ -168,7 +158,7 @@ div.stElementContainer {{
     }}
 }}
 
-/* BRIDAGE STRICT À 5 CONCURRENTS EN VISUEL POUR LA DIVISION 4 SUR PC */
+/* AJUSTEMENT 3 : CONTENEUR SPECIAL SUR PC POUR FIXER LA DIVISION 4 A 114PX AVEC SCROLL */
 @media (min-width: 769px) {{
     .div-scroll-local-div4 {{
         height: 114px !important;
@@ -201,30 +191,15 @@ div.stElementContainer {{
 }}
 
 .table-compacte {{
-    width: 100% !important; 
-    margin-top: 0px !important;
-    margin-bottom: 0px !important;
-    border-collapse: collapse !important; 
-    border-spacing: 0px !important;
-    border: none !important;
-    table-layout: auto !important;
+    width: 100% !important; margin-bottom: 0px !important;
+    border-collapse: collapse !important; table-layout: auto !important;
 }}
-
-
-/* APPLICATION DE LA HAUTEUR À 17PX SUR TOUS LES TABLEAUX */
-.table-compacte tr {{ height: 17px !important; }}
-
-/* EXCEPTION : TABLEAU EN DIRECT RESTE À SON HAUTEUR D'ORIGINE DE 18PX */
-.table-live tr {{ height: 18px !important; }}
-
+.table-compacte tr {{ height: 18px !important; }}
 .table-compacte th, .table-compacte td {{ 
-    height: 17px !important; padding: 1px 5px !important; line-height: 1.0 !important; 
+    height: 18px !important; padding: 1px 5px !important; line-height: 1.1 !important; 
     font-size: 0.85rem !important; color: #000000 !important; vertical-align: middle !important; 
-    white-space: nowrap !important; border: none !important;
+    white-space: nowrap !important; 
 }}
-
-.table-live th, .table-live td {{ height: 18px !important; }}
-
 .table-compacte td {{ border-bottom: 1px solid #E0E0E0 !important; background-color: #FFFFFF !important; }}
 .table-compacte th {{ font-weight: bold !important; background-color: #F5F5F5 !important; border-bottom: 2px solid #CCCCCC !important; text-align: left !important; }}
 .table-live td:last-child, .table-class-robuste td:last-child {{ font-weight: bold !important; font-size: 0.94rem !important; color: #0F172A !important; }}
@@ -243,15 +218,9 @@ div.stElementContainer {{
     margin-top: 25px !important;
     border-top: 1px dashed #1E3A8A !important;
     width: 100% !important;
-    line-height: 1 !important;
-}}
-.signature-fin-page p, .signature-fin-page div {{
-    margin: 0px !important;
-    padding: 0px !important;
-    line-height: 1 !important;
 }}
 
-
+/* AJUSTEMENT 4 : LOGO DE SIGNATURE REDUIT A 24PX SUR PC */
 .logo-signature {{
     height: 24px !important;
     width: auto !important;
@@ -264,7 +233,7 @@ div.stElementContainer {{
     .titre-live, .titre-hist, .titre-classement {{ font-size: 0.85rem !important; padding: 3px 6px !important; }}
     .table-compacte th, .table-compacte td {{ font-size: 0.65rem !important; padding: 1px 2px !important; }}
     .table-hist td:nth-child(4) {{ max-width: 32px !important; overflow: hidden !important; text-overflow: clip !important; white-space: nowrap !important; }}
-    .table-compacte td:nth-child(3), table td:nth-child(3) {{ max-width: 60px !important; overflow: hidden !overflow: ellipsis !important; white-space: nowrap !important; }}
+    .table-compacte td:nth-child(3), table td:nth-child(3) {{ max-width: 60px !important; overflow: hidden !important; text-overflow: ellipsis !important; white-space: nowrap !important; }}
     .table-live td:last-child, .table-class-robuste td:last-child {{ font-size: 0.70rem !important; }}
     .signature-fin-page {{ font-size: 0.75rem !important; padding-top: 4px !important; }}
     .logo-signature {{ height: 32px !important; }}
@@ -305,7 +274,6 @@ def gen_html(df, cl):
         return f"<div class='div-scroll-local-historique'>{html_table}</div>"
         
     return f"<div class='table-responsive-container'>{html_table}</div>"
-
 # fin bloc 2
 # --- LECTURE DU PARAMÈTRE DE COURSE DEPUIS L'URL ---
 query_params = st.query_params
@@ -360,14 +328,15 @@ with cg:
     st.markdown(gen_html(d_his, "table-hist"), unsafe_allow_html=True)
     
 with cd:
-    # 1. Détection de la hauteur générale
+    # 1. Détection ultra-fiable de la hauteur selon le nom de la course active
     if "ESSAIS" in choix_course.upper():
-        h_pc = "215px"  # BRIDAGE FORCE SUR PC À 10 CONCURRENTS (215px au lieu de 310px pour 15)
+        h_pc = "310px"  # Rétabli d'origine pour les Essais
     elif "COURSE 1" in choix_course.upper():
-        h_pc = "425px"
+        h_pc = "425px"  # Exemple : 19 concurrents pour la Course 1 sur PC
     else:
-        h_pc = "380px"
+        h_pc = "380px"  # Valeur par défaut d'origine pour les autres configurations
 
+    # Le smartphone reste toujours protégé à 380px
     h_mob = "380px"
 
     # 2. Injection CSS dynamique
@@ -402,19 +371,8 @@ with cd:
         if t_bas:
             st.markdown(f"<span class='titre-classement espace-classement-suivant'>{t_bas}</span>", unsafe_allow_html=True)
             
-            # BRIDAGE CSS FORCE STRICT SUR L'ÉLÉMENT DU TABLEAU DE LA DIVISION 4 À 5 CONCURRENTS MAX (120px) AVEC SCROLL ACTIF
-            st.markdown(f"""
-            <style>
-            @media (min-width: 769px) {{
-                .boite-forcee-div4 {{ height: 120px !important; max-height: 120px !important; overflow-y: auto !important; display: block !important; }}
-            }}
-            @media (max-width: 768px) {{
-                .boite-forcee-div4 {{ height: auto !important; max-height: none !important; overflow-y: visible !important; display: block !important; }}
-            }}
-            </style>
-            """, unsafe_allow_html=True)
-            
-            st.markdown(f"<div class='boite-forcee-div4'>{gen_html(d_milieu, 'table-class-robuste')}</div>", unsafe_allow_html=True)
+            # APPLICATION BRIDAGE : Encapsulation dans le conteneur forcé à 114px pour la Division 4 en mode Essais
+            st.markdown(f"<div class='div-scroll-local-div4'>{gen_html(d_milieu, 'table-class-robuste')}</div>", unsafe_allow_html=True)
 
 
 
