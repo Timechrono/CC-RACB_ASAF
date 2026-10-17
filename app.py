@@ -70,12 +70,16 @@ st.set_page_config(page_title="Live", layout="wide")
 # --- CONCEPTION GRAPHIQUE GÉOMÉTRIQUE UNIFIÉE ---
 st.markdown(f"""
 <style>
+/* SUPPRESSION DU BANDEAU BLANC ET DU FOOTER STREAMLIT */
+footer {{ visibility: hidden !important; }}
+[data-testid="stFooterContainer"] {{ display: none !important; }}
+
 [data-testid="stHeader"] {{ display: none !important; }}
 button:focus, div:focus, input:focus, select:focus {{
     outline: none !important; border-color: transparent !important; box-shadow: none !important;
 }}
 
-/* RESTAURATION DU SCROLL ET COMPRESSION DU BLOC PRINCIPAL */
+/* RESTAURATION COMPLÈTE DU SCROLL SUR TOUTE LA PAGE WEB */
 html, body, [data-testid="stAppViewContainer"], [data-testid="stMainBlockContainer"] {{
     overflow: auto !important;
     overflow-y: auto !important;
@@ -83,19 +87,11 @@ html, body, [data-testid="stAppViewContainer"], [data-testid="stMainBlockContain
     max-height: none !important;
 }}
 
-/* suppression stricte de l'espace blanc invisible au sommet de Streamlit */
 .block-container {{ 
-    padding-top: 0px !important; 
-    padding-bottom: 0px !important; /* Passé rigoureusement à 0px */
+    padding-top: 5px !important; 
+    padding-bottom: 0rem !important; 
     padding-left: 0.5rem !important; 
     padding-right: 0.5rem !important; 
-    margin-bottom: -40px !important; /* Force la fermeture du bloc de fin */
-}}
-
-/* Alignement forcé au pixel près des têtes de colonnes cg et cd */
-div[data-testid="stColumn"] {{
-    padding-top: 0px !important;
-    margin-top: 0px !important;
 }}
 
 div[data-testid="stVerticalBlock"] {{
@@ -108,45 +104,14 @@ div.stElementContainer {{
     padding-top: 0px !important;
     padding-bottom: 0px !important;
 }}
-
-/* Masquage total et définitif du footer Streamlit pour libérer le bas de page */
-footer {{
-    display: none !important;
-    visibility: hidden !important;
-    height: 0px !important;
-    padding: 0px !important;
-    margin: 0px !important;
-}}
-
-/* ÉCRASEMENT DE LA ZONE INVISIBLE RESPONSABLE DE LA BANDE BLANCHE */
-div[data-testid="stAppViewBlockContainer"] {{
-    padding-bottom: 0px !important;
-    margin-bottom: 0px !important;
-}}
-
-/* SUPPRESSION DE LA MARGE DE SÉCURITÉ INVISIBLE INJECTÉE PAR STREAMLIT EMBED */
-div[data-testid="stApp"] {{
-    padding-bottom: 0px !important;
-    margin-bottom: 0px !important;
-}}
-
-/* Écrase l'espacement forcé du dernier élément html généré par la plateforme */
-.main .block-container > div:last-child {{
-    padding-bottom: 0px !important;
-    margin-bottom: 0px !important;
-}}
-
-
-/* Définition propre des titres fins et sans marges parasites */
 .titre-live, .titre-hist, .titre-classement {{
-    color: #FFFFFF !important; font-size: 0.92rem !important; font-weight: bold !important;
-    padding: 3px 6px !important; border-radius: 3px !important;
+    color: #FFFFFF !important; font-size: 1.05rem !important; font-weight: bold !important;
+    padding: 4px 8px !important; border-radius: 3px !important;
     width: 100% !important; display: block !important; clear: both !important;
 }}
 .titre-live {{ background-color: #15803D !important; margin-top: 0px !important; margin-bottom: 6px !important; }}
 .titre-hist {{ background-color: #475569 !important; margin-top: 15px !important; margin-bottom: 6px !important; }}
 .titre-classement {{ background-color: #1E3A8A !important; margin-top: 0px !important; margin-bottom: 6px !important; }}
-
 
 .table-hist td:last-child {{ 
     font-weight: bold !important; 
@@ -154,17 +119,14 @@ div[data-testid="stApp"] {{
 }}
 
 .refresh-bleu-clair-historique {{
-    color: #14532D !important;             /* Texte en vert foncé */
-    font-weight: bold !important;          /* Conservé en gras pour une lisibilité maximale */
-    background-color: #BBF7D0 !important;  /* Fond en vert clair */
-    border: 1px solid #14532D !important;  /* Bordure fine en vert foncé */
-    font-size: 0.92rem !important;        
-    padding: 2px 6px !important;          
+    color: #FFFFFF !important;
+    font-weight: normal !important;
+    background-color: #064E3B !important;
+    border: 1px solid #00FF00 !important;
+    padding: 1px 6px !important;
     border-radius: 4px !important;
     display: inline-block !important;
     margin-left: 4px !important;
-    vertical-align: middle !important;
-    line-height: 1.1 !important;
 }}
 
 .espace-classement-suivant {{
@@ -176,16 +138,14 @@ div[data-testid="stApp"] {{
     width: 100% !important;
     border: 1px solid #CBD5E1 !important;
 }}
-
 /* Hauteur sur-mesure sur PC pour s'aligner avec le bas de la colonne de droite */
 @media (min-width: 769px) {{
     .div-scroll-local-historique {{
-        height: 423px !important;     /* Réduit de 442px à 417px pour suivre la colonne de droite */
-        max-height: 423px !important; /* Réduit de 442px à 417px */
+        height: 740px !important;
+        max-height: 740px !important;
         overflow-y: auto !important;
     }}
 }}
-
 /* Hauteur d'origine conservée sur smartphone */
 @media (max-width: 768px) {{
     .div-scroll-local-historique {{
@@ -194,8 +154,6 @@ div[data-testid="stApp"] {{
         overflow-y: visible !important;
     }}
 }}
-
-
 
 /* Suppression des contraintes fixes de hauteur sur general et classes pour laisser l'adaptation */
 .div-scroll-local-general, .div-scroll-local-classes {{
@@ -214,27 +172,16 @@ div[data-testid="stApp"] {{
     width: 100% !important; margin-bottom: 0px !important;
     border-collapse: collapse !important; table-layout: auto !important;
 }}
-/* RÈGLE GÉNÉRALE : Toutes les lignes de base passent à 17px */
-.table-compacte tr {{ height: 17px !important; }}
+.table-compacte tr {{ height: 18px !important; }}
 .table-compacte th, .table-compacte td {{ 
-    height: 17px !important; padding: 0.5px 5px !important; line-height: 1.05 !important; 
-    font-size: 0.84rem !important; color: #000000 !important; vertical-align: middle !important; 
+    height: 18px !important; padding: 1px 5px !important; line-height: 1.1 !important; 
+    font-size: 0.85rem !important; color: #000000 !important; vertical-align: middle !important; 
     white-space: nowrap !important; 
 }}
-
-/* EXCEPTION : Maintien du tableau EN DIRECT à ses dimensions d'origine (18px) */
-.table-live tr {{ height: 18px !important; }}
-.table-live th, .table-live td {{ 
-    height: 18px !important; padding: 1px 5px !important; line-height: 1.1 !important; 
-    font-size: 0.85rem !important; 
-}}
-
-/* RESTAURATION DE VOS RÈGLES DE STYLE ET COULEURS D'ORIGINE */
 .table-compacte td {{ border-bottom: 1px solid #E0E0E0 !important; background-color: #FFFFFF !important; }}
 .table-compacte th {{ font-weight: bold !important; background-color: #F5F5F5 !important; border-bottom: 2px solid #CCCCCC !important; text-align: left !important; }}
 .table-live td:last-child, .table-class-robuste td:last-child {{ font-weight: bold !important; font-size: 0.94rem !important; color: #0F172A !important; }}
 .table-hist tr:nth-child(odd) td {{ background-color: #E0F2FE !important; }}
-
 
 .signature-fin-page {{
     display: flex !important;
@@ -249,18 +196,13 @@ div[data-testid="stApp"] {{
     margin-top: 25px !important;
     border-top: 1px dashed #1E3A8A !important;
     width: 100% !important;
-    clear: both !important;
 }}
-
 
 .logo-signature {{
-    height: 24px !important;            
+    height: 34px !important;
     width: auto !important;
     vertical-align: middle !important;
-    margin-top: 0px !important;         /* Remis à 0px pour ne plus déborder */
 }}
-
-
 
 @media (max-width: 768px) {{
     .div-scroll-local-historique {{ max-height: none !important; height: auto !important; overflow-y: visible !important; border: none !important; }}
@@ -278,6 +220,7 @@ div[data-testid="stApp"] {{
 tr.ligne-separation-classe td, .table-compacte tr.ligne-separation-classe td {{ box-shadow: inset 0 -3px 0 0 #1E3A8A !important; }}
 </style>
 """, unsafe_allow_html=True)
+
 
 def gen_html(df, cl):
     if cl == "table-hist":
