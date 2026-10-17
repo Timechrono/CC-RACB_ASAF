@@ -194,11 +194,12 @@ div.stElementContainer {{
     font-size: 0.92rem !important;
     font-weight: bold !important;
     padding-top: 6px !important;
-    margin-top: 15px !important; /* Rétabli à 15px pour un espacement propre */
+    margin-top: 0px !important; /* Fixé à 0px pour s'aligner sur les 2px du bloc de sécurité */
     border-top: 1px dashed #1E3A8A !important;
     width: 100% !important;
-    clear: both !important;       /* Sécurité anti-chevauchement CSS */
+    clear: both !important;
 }}
+
 
 
 .logo-signature {{
