@@ -115,10 +115,10 @@ div.stElementContainer {{
 }}
 
 .refresh-bleu-clair-historique {{
-    color: #FFFFFF !important;
-    font-weight: normal !important;
-    background-color: #1E3A8A !important; /* Changé en bleu foncé RACB */
-    border: 1px solid #94A3B8 !important; /* Bordure changée en gris/bleu clair discret */
+    color: #1E3A8A !important;             /* Texte en bleu foncé */
+    font-weight: bold !important;          /* Mis en gras pour que le bleu ressorte bien */
+    background-color: #BBF7D0 !important;  /* Fond en vert clair agréable */
+    border: 1px solid #1E3A8A !important;  /* Bordure fine en bleu foncé */
     font-size: 0.92rem !important;        
     padding: 2px 6px !important;          
     border-radius: 4px !important;
@@ -127,6 +127,7 @@ div.stElementContainer {{
     vertical-align: middle !important;
     line-height: 1.1 !important;
 }}
+
 
 
 
