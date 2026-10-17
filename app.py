@@ -242,8 +242,8 @@ with cg:
 with cd:
     h_mob = "380px"
 
-    # CORRECTION : Utilisation de f""" et d'accolades simples pour éviter le crash Python
-    st.markdown(f"""
+    # Injection CSS propre avec la chaîne formatée bien fermée
+    code_css_dynamique = f"""
     <style>
       @media (min-width: 769px) {{
           .ajust-hauteur-pc {{ max-height: {h_pc} !important; }}
@@ -252,15 +252,11 @@ with cd:
           .ajust-hauteur-pc {{ max-height: {h_mob} !important; }}
       }}
     </style>
-    """, unsafe_allow_html=True)
+    """
+    st.markdown(code_css_dynamique, unsafe_allow_html=True)
 
     # Repère fixe universel pour la navigation tactile smartphone
     st.markdown("<div id='zone-classements-droite'></div>", unsafe_allow_html=True)
-
-    if choix_course != "Essais":
-        # --- MODE DE COURSE ---
-        if t_haut:
-
 
     if choix_course != "Essais":
         # --- MODE DE COURSE ---
@@ -289,8 +285,6 @@ with cd:
             # APPLICATION BRIDAGE : Encapsulation dans le conteneur forcé à 114px pour la Division 4 en mode Essais
             st.markdown(f"<div class='div-scroll-local-div4'>{gen_html(d_milieu, 'table-class-robuste')}</div>", unsafe_allow_html=True)
 
-
-
 st.markdown(f"""
 <div class='signature-fin-page'>
     <img src='{LIEN_DROPBOX_LOGO}' class='logo-signature'>
@@ -298,7 +292,7 @@ st.markdown(f"""
 </div>
 """, unsafe_allow_html=True)
 
-# CODE ACTUEL
+# CODE ACTUEL DE REFRESH
 for secondes_restantes in range(30, -1, -1):
     if "Derniers concurrents" in t_live or "DIRECT" in t_live.upper():
         conteneur_titre_live.markdown(f"<span class='titre-live'>🏎️ EN DIRECT / Derniers concurrents partis / <span class='refresh-bleu-clair-historique'>Refresh {secondes_restantes} Sec.</span></span>", unsafe_allow_html=True)
