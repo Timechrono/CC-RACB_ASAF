@@ -322,10 +322,10 @@ with cg:
     st.markdown(gen_html(d_his, "table-hist"), unsafe_allow_html=True)
     
 with cd:
-    # 1. Détection ultra-fiable de la hauteur selon le nom de la course active
+    # 1. Ajustement millimétré des hauteurs pour les lignes compactes de 17px
     if "ESSAIS" in choix_course.upper():
-        h_pc_10 = "210px"  # Hauteur fixe compacte pour le Top 10 (défilement si plus de 10)
-        h_pc_5 = "110px"   # Hauteur fixe compacte pour le Top 5 (défilement si plus de 5)
+        h_pc_10 = "202px"  # Hauteur ajustée pour couper net sous le 10ème concurrent à 17px
+        h_pc_5 = "106px"   # Hauteur ajustée pour couper net sous le 5ème concurrent à 17px
     elif "COURSE 1" in choix_course.upper():
         h_pc_10 = "425px"  
         h_pc_5 = "425px"
@@ -333,9 +333,9 @@ with cd:
         h_pc_10 = "380px"  
         h_pc_5 = "380px"
 
-    h_mob = "380px"  # Hauteur maximale sur smartphone avant de scroller
+    h_mob = "380px"  
 
-    # 2. Injection CSS dynamique (Rétablissement du scroll auto à la place de hidden)
+    # 2. Injection CSS dynamique
     st.markdown(f"""
     <style>
       @media (min-width: 769px) {{ 
@@ -347,6 +347,7 @@ with cd:
       }}
     </style>
     """, unsafe_allow_html=True)
+
 
     if choix_course != "Essais":
         # --- MODE DE COURSE ---
