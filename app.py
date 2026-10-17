@@ -115,10 +115,10 @@ div.stElementContainer {{
 }}
 
 .refresh-bleu-clair-historique {{
-    color: #1E3A8A !important;             /* Texte en bleu foncé */
-    font-weight: bold !important;          /* Mis en gras pour que le bleu ressorte bien */
-    background-color: #BBF7D0 !important;  /* Fond en vert clair agréable */
-    border: 1px solid #1E3A8A !important;  /* Bordure fine en bleu foncé */
+    color: #14532D !important;             /* Texte en vert foncé */
+    font-weight: bold !important;          /* Conservé en gras pour une lisibilité maximale */
+    background-color: #BBF7D0 !important;  /* Fond en vert clair */
+    border: 1px solid #14532D !important;  /* Bordure fine en vert foncé */
     font-size: 0.92rem !important;        
     padding: 2px 6px !important;          
     border-radius: 4px !important;
@@ -127,6 +127,7 @@ div.stElementContainer {{
     vertical-align: middle !important;
     line-height: 1.1 !important;
 }}
+
 
 
 
