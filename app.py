@@ -172,23 +172,23 @@ div.stElementContainer {{
 
 # fin bloc 1
 
-/* CONFIGURATION DU SCROLL HISTORIQUE SUR SMARTPHONE : FORCÉ À 30 CONCURRENTS MAX (560PX) */
+/* Hauteur d'origine conservée sur smartphone */
 @media (max-width: 768px) {{
     .div-scroll-local-historique {{
         height: 560px !important;
         max-height: 560px !important;
-        display: block !important;
         overflow-y: auto !important;
-        -webkit-overflow-scrolling: touch !important; /* Force le scroll tactile sur iPhone/Android */
+        display: block !important;
+        -webkit-overflow-scrolling: touch !important;
         border: 1px solid #CBD5E1 !important;
     }}
 }}
 
-/* BRIDAGE STRICT À 5 CONCURRENTS EN VISUEL POUR LA DIVISION 4 SUR PC */
+/* AJUSTEMENT : CONTENEUR SPECIAL SUR PC POUR FIXER LA DIVISION 4 A 114PX AVEC SCROLL */
 @media (min-width: 769px) {{
     .div-scroll-local-div4 {{
-        height: 120px !important;
-        max-height: 120px !important;
+        height: 114px !important;
+        max-height: 114px !important;
         overflow-y: auto !important;
         width: 100% !important;
         display: block !important;
@@ -220,20 +220,12 @@ div.stElementContainer {{
     width: 100% !important; margin-bottom: 0px !important;
     border-collapse: collapse !important; table-layout: auto !important;
 }}
-
-/* APPLICATION DE LA HAUTEUR À 17PX SUR TOUS LES TABLEAUX */
-.table-compacte tr {{ height: 17px !important; }}
-
-/* EXCEPTION : TABLEAU EN DIRECT RESTE À SON HAUTEUR D'ORIGINE DE 18PX */
-.table-live tr {{ height: 18px !important; }}
-
+.table-compacte tr {{ height: 18px !important; }}
 .table-compacte th, .table-compacte td {{ 
-    height: 17px !important; padding: 1px 5px !important; line-height: 1.1 !important; 
+    height: 18px !important; padding: 1px 5px !important; line-height: 1.1 !important; 
     font-size: 0.85rem !important; color: #000000 !important; vertical-align: middle !important; 
     white-space: nowrap !important; 
 }}
-.table-live th, .table-live td {{ height: 18px !important; }}
-
 .table-compacte td {{ border-bottom: 1px solid #E0E0E0 !important; background-color: #FFFFFF !important; }}
 .table-compacte th {{ font-weight: bold !important; background-color: #F5F5F5 !important; border-bottom: 2px solid #CCCCCC !important; text-align: left !important; }}
 .table-live td:last-child, .table-class-robuste td:last-child {{ font-weight: bold !important; font-size: 0.94rem !important; color: #0F172A !important; }}
@@ -254,7 +246,7 @@ div.stElementContainer {{
     width: 100% !important;
 }}
 
-/* AJUSTEMENT : LOGO DE SIGNATURE RÉDUIT À 24PX SUR PC */
+/* AJUSTEMENT : LOGO DE SIGNATURE REDUIT A 24PX SUR PC */
 .logo-signature {{
     height: 24px !important;
     width: auto !important;
@@ -292,28 +284,21 @@ def gen_html(df, cl):
     else:
         phrase_attente = "En attente du départ..."
 
-    # LOGIQUE REVOUEE POUR ASSURER LE CONTENEUR DU SCROLL DANS TOUS LES CAS DE STR ET DATAFRAME
     if isinstance(df, str):
         if "<TABLE" in df.upper() and "</TABLE>" in df.upper():
-            debut_html = df.upper().find("<TABLE")
-            fin_html = df.upper().find("</TABLE>") + 8
-            tableau_propre = df[debut_html:fin_html]
+            debut = df.upper().find("<TABLE")
+            fin = df.upper().find("</TABLE>") + 8
+            tableau_propre = df[debut:fin]
             
             if cl == "table-hist":
                 return f"<div class='div-scroll-local-historique'>{tableau_propre}</div>"
             else:
                 return f"<div class='table-responsive-container'>{tableau_propre}</div>"
                 
-        tableau_vide = f"<table class='table-compacte {cl}'><tr><td style='text-align: center; padding: 10px; font-style: italic; color: #64748B;'>{phrase_attente}</td></tr></table>"
-        if cl == "table-hist":
-            return f"<div class='div-scroll-local-historique'>{tableau_vide}</div>"
-        return f"<div class='table-responsive-container'>{tableau_vide}</div>"
+        return f"<div class='table-responsive-container'><table class='table-compacte {cl}'><tr><td style='text-align: center; padding: 10px; font-style: italic; color: #64748B;'>{phrase_attente}</td></tr></table></div>"
 
     if df is None or (isinstance(df, pd.DataFrame) and df.empty): 
-        tableau_vide = f"<table class='table-compacte {cl}'><tr><td style='text-align: center; padding: 10px; font-style: italic; color: #64748B;'>{phrase_attente}</td></tr></table>"
-        if cl == "table-hist":
-            return f"<div class='div-scroll-local-historique'>{tableau_vide}</div>"
-        return f"<div class='table-responsive-container'>{tableau_vide}</div>"
+        return f"<div class='table-responsive-container'><table class='table-compacte {cl}'><tr><td style='text-align: center; padding: 10px; font-style: italic; color: #64748B;'>{phrase_attente}</td></tr></table></div>"
     
     html_table = df.to_html(index=False, classes=f"table-compacte {cl}", escape=False, border=0)
     
@@ -321,7 +306,6 @@ def gen_html(df, cl):
         return f"<div class='div-scroll-local-historique'>{html_table}</div>"
         
     return f"<div class='table-responsive-container'>{html_table}</div>"
-
 # fin bloc 2
 
 # --- LECTURE DU PARAMÈTRE DE COURSE DEPUIS L'URL ---
@@ -368,35 +352,26 @@ st.markdown("<style>@media (min-width: 769px) { .table-hist th:nth-child(1), .ta
 if t_haut and "TOP 20" in t_haut.upper():
     t_haut = "🏆 CLASSEMENT GENERAL OFFICIEUX RACB"
 
-# INITIALISATION PRÉVENTIVE DE H_PC POUR ÉVITER LE NAMEERROR
-if "ESSAIS" in choix_course.upper():
-    h_pc = "215px"
-elif "COURSE 1" in choix_course.upper():
-    h_pc = "425px"
-else:
-    h_pc = "380px"
-
 cg, cd = st.columns([1.3, 0.9])
 with cg:
     conteneur_titre_live = st.empty()
     st.markdown(gen_html(d_liv, "table-live"), unsafe_allow_html=True)
     if t_his: 
         st.markdown(f"<span class='titre-hist'>{t_his}</span>", unsafe_allow_html=True)
-        
-    # SÉCURITÉ PYTHON MOBILE ET ESSAIS : CORRIGÉE SANS CONFLIT
-    if h_pc == "380px" or h_pc == "215px":
-        if isinstance(d_his, pd.DataFrame) and not d_his.empty:
-            d_his_mobile = d_his.head(30)
-            st.markdown(gen_html(d_his_mobile, "table-hist"), unsafe_allow_html=True)
-        else:
-            st.markdown(gen_html(d_his, "table-hist"), unsafe_allow_html=True)
-    else:
-        st.markdown(gen_html(d_his, "table-hist"), unsafe_allow_html=True)
+    st.markdown(gen_html(d_his, "table-hist"), unsafe_allow_html=True)
     
 with cd:
+    # 1. Détection ultra-fiable de la hauteur selon le nom de la course active
+    if "ESSAIS" in choix_course.upper():
+        h_pc = "310px"  # Rétabli d'origine pour les Essais
+    elif "COURSE 1" in choix_course.upper():
+        h_pc = "425px"
+    else:
+        h_pc = "380px"
+
     h_mob = "380px"
 
-    # Injection CSS dynamique
+    # 2. Injection CSS dynamique
     st.markdown(f"""
     <style>
       @media (min-width: 769px) {{ .ajust-hauteur-pc {{ max-height: {h_pc} !important; }} }}
@@ -427,7 +402,6 @@ with cd:
             st.markdown(f"<div class='ajust-hauteur-pc' style='overflow-y: auto; display: block;'>{gen_html(d_haut, 'table-class-robuste')}</div>", unsafe_allow_html=True)
         if t_bas:
             st.markdown(f"<span class='titre-classement espace-classement-suivant'>{t_bas}</span>", unsafe_allow_html=True)
-            nb_lignes = len(d_milieu) if hasattr(d_milieu, '__len__') else 0
             
             # APPLICATION BRIDAGE : Encapsulation dans le conteneur forcé à 114px pour la Division 4 en mode Essais
             st.markdown(f"<div class='div-scroll-local-div4'>{gen_html(d_milieu, 'table-class-robuste')}</div>", unsafe_allow_html=True)
@@ -451,4 +425,5 @@ for secondes_restantes in range(30, -1, -1):
         time.sleep(1)
 
 st.rerun()
+
 
