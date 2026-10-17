@@ -193,12 +193,13 @@ div.stElementContainer {{
     color: #1E3A8A !important;
     font-size: 0.92rem !important;
     font-weight: bold !important;
-    padding-top: 6px !important;
-    margin-top: 20px !important; /* Fixé à 20px pour maintenir la ligne sous les grands tableaux */
+    padding-top: 2px !important; /* Réduit de 6px à 2px pour coller à la ligne */
+    margin-top: 20px !important; 
     border-top: 1px dashed #1E3A8A !important;
     width: 100% !important;
     clear: both !important;
 }}
+
 
 
 .logo-signature {{
