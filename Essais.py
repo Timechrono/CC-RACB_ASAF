@@ -226,12 +226,13 @@ def recuperer_donnees_course():
 
 
 
-    t_live = "🏎️ EN DIRECT / Derniers concurrents partis"
-    t_hist = "🕒 HISTORIQUE DES TEMPS / ENTRAINEMENTS ASAF & RACB"
-    t_racb = "🏆 CLASSEMENT EVOLUTIF OFFICIEUX DES ESSAIS RACB"
-    t_as123 = "🏆 CLASSEMENT EVOLUTIF OFFICIEUX DES ESSAIS Division 123"
+    t_live = "<span>🏎️ EN DIRECT / Derniers concurrents partis</span>"
+    t_hist = "<span>🕒 HISTORIQUE DES TEMPS / ENTRAINEMENTS ASAF & RACB</span> <span>↕️</span>"
+    t_racb = "<span>🏆 CLASSEMENT EVOLUTIF OFFICIEUX DES ESSAIS RACB</span> <span>↕️</span>"
+    t_as123 = "<span>🏆 CLASSEMENT EVOLUTIF OFFICIEUX DES ESSAIS Division 123</span> <span>↕️</span>"
     
     # Nettoyage ici : On retire l'ancienne variable CSS qui écrasait la taille du titre
-    t_as4 = "🏆 CLASSEMENT EVOLUTIF OFFICIEUX DES ESSAIS Division 4"
+    t_as4 = "<span>🏆 CLASSEMENT EVOLUTIF OFFICIEUX DES ESSAIS Division 4</span> <span>↕️</span>"
+
 
     return df_live, df_hist, df_asaf123, df_asaf4, df_racb, t_live, t_hist, t_racb, t_as123, t_as4
