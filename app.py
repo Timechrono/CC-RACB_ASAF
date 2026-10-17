@@ -1,5 +1,4 @@
 # https://www.dropbox.com/scl/fi/hi24fjo0vbal4oiiwt9jl/logo-TimeC.png?rlkey=xlw0oqk9gdnq6v5dgahi0klg0&st=y86yrn6y&dl=1
-
 # https://dropbox.com
 
 # https://dropbox.com
@@ -107,10 +106,10 @@ div.stElementContainer {{
     padding-bottom: 0px !important;
 }}
 
-/* REGLAGE STRICT DE LA HAUTEUR PHYSIQUE DU BANDEAU DE TITRE A 20PX */
+/* REGLAGE DE LA HAUTEUR PHYSIQUE DU BANDEAU DE TITRE PASSE A 24PX */
 .titre-live, .titre-hist, .titre-classement {{
-    color: #FFFFFF !important; font-size: 0.94rem !important; font-weight: bold !important;
-    height: 20px !important; max-height: 20px !important; line-height: 20px !important;
+    color: #FFFFFF !important; font-size: 1.02rem !important; font-weight: bold !important;
+    height: 24px !important; max-height: 24px !important; line-height: 24px !important;
     padding: 0px 8px !important; border-radius: 3px !important;
     width: 100% !important; display: block !important; clear: both !important;
 }}
@@ -132,7 +131,7 @@ div.stElementContainer {{
     border-radius: 4px !important;
     display: inline-block !important;
     margin-left: 4px !important;
-    line-height: 1.1 !important;
+    line-height: 1.2 !important;
 }}
 
 .espace-classement-suivant {{
@@ -144,11 +143,11 @@ div.stElementContainer {{
     width: 100% !important;
     border: 1px solid #CBD5E1 !important;
 }}
-/* Hauteur sur-mesure sur PC pour s'aligner avec le bas de la colonne de droite */
+/* Hauteur réajustée à 595px pour compenser l'agrandissement des bandeaux de titres à 24px */
 @media (min-width: 769px) {{
     .div-scroll-local-historique {{
-        height: 580px !important;
-        max-height: 580px !important;
+        height: 595px !important;
+        max-height: 595px !important;
         overflow-y: auto !important;
     }}
 }}
