@@ -363,6 +363,14 @@ st.markdown("<style>@media (min-width: 769px) { .table-hist th:nth-child(1), .ta
 if t_haut and "TOP 20" in t_haut.upper():
     t_haut = "🏆 CLASSEMENT GENERAL OFFICIEUX RACB"
 
+# CORRECTION DU BLOCAGE ICI : FORCE STRICTEMENT LE BRIDAGE VISUEL À 10 LIGNES (215PX) POUR LES ESSAIS
+if "ESSAIS" in choix_course.upper():
+    h_pc = "215px"
+elif "COURSE 1" in choix_course.upper():
+    h_pc = "425px"
+else:
+    h_pc = "380px"
+
 cg, cd = st.columns([1.3, 0.9])
 with cg:
     conteneur_titre_live = st.empty()
@@ -372,17 +380,9 @@ with cg:
     st.markdown(gen_html(d_his, "table-hist"), unsafe_allow_html=True)
     
 with cd:
-    # 1. Détection ultra-fiable de la hauteur selon le nom de la course active
-    if "ESSAIS" in choix_course.upper():
-        h_pc = "310px"  # Rétabli d'origine pour les Essais
-    elif "COURSE 1" in choix_course.upper():
-        h_pc = "425px"
-    else:
-        h_pc = "380px"
-
     h_mob = "380px"
 
-    # 2. Injection CSS dynamique
+    # Injection CSS dynamique
     st.markdown(f"""
     <style>
       @media (min-width: 769px) {{ .ajust-hauteur-pc {{ max-height: {h_pc} !important; }} }}
@@ -436,5 +436,3 @@ for secondes_restantes in range(30, -1, -1):
         time.sleep(1)
 
 st.rerun()
-
-
