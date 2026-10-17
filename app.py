@@ -206,7 +206,7 @@ div.stElementContainer {{
 
 
 .logo-signature {{
-    height: 34px !important;
+    height: 24px !important;
     width: auto !important;
     vertical-align: middle !important;
 }}
