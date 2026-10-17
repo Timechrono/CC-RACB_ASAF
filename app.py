@@ -84,7 +84,7 @@ html, body, [data-testid="stAppViewContainer"], [data-testid="stMainBlockContain
 }}
 
 .block-container {{ 
-    padding-top: 5px !important; 
+    padding-top: 0px !important; 
     padding-bottom: 0rem !important; 
     padding-left: 0.5rem !important; 
     padding-right: 0.5rem !important; 
