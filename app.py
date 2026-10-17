@@ -86,9 +86,10 @@ html, body, [data-testid="stAppViewContainer"], [data-testid="stMainBlockContain
 /* suppression stricte de l'espace blanc invisible au sommet de Streamlit */
 .block-container {{ 
     padding-top: 0px !important; 
-    padding-bottom: 0rem !important; 
+    padding-bottom: 0px !important; /* Passé rigoureusement à 0px */
     padding-left: 0.5rem !important; 
     padding-right: 0.5rem !important; 
+    margin-bottom: -40px !important; /* Force la fermeture du bloc de fin */
 }}
 
 /* Alignement forcé au pixel près des têtes de colonnes cg et cd */
@@ -108,16 +109,23 @@ div.stElementContainer {{
     padding-bottom: 0px !important;
 }}
 
-/* Masquage du footer Streamlit pour libérer le bas de page */
+/* Masquage total et définitif du footer Streamlit pour libérer le bas de page */
 footer {{
     display: none !important;
     visibility: hidden !important;
+    height: 0px !important;
+    padding: 0px !important;
+    margin: 0px !important;
+}}
+
+/* ÉCRASEMENT DE LA ZONE INVISIBLE RESPONSABLE DE LA BANDE BLANCHE */
+div[data-testid="stAppViewBlockContainer"] {{
+    padding-bottom: 0px !important;
+    margin-bottom: 0px !important;
 }}
 
 /* SUPPRESSION DE LA MARGE DE SÉCURITÉ INVISIBLE INJECTÉE PAR STREAMLIT EMBED */
 div[data-testid="stApp"] {{
-    height: 100vh !important;
-    max-height: 100vh !important;
     padding-bottom: 0px !important;
     margin-bottom: 0px !important;
 }}
