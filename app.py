@@ -85,11 +85,29 @@ html, body, [data-testid="stAppViewContainer"], [data-testid="stMainBlockContain
 
 .block-container {{ 
     padding-top: 0px !important; 
-    padding-bottom: 0px !important; /* Forcé rigoureusement à 0px */
+    padding-bottom: 0px !important; 
     padding-left: 0.5rem !important; 
     padding-right: 0.5rem !important; 
-    margin-bottom: -15px !important; /* Marge négative pour absorber la bande blanche sous la signature */
+    margin-bottom: -35px !important; /* Augmenté à -35px pour annuler complètement le vide sous la signature */
 }}
+
+/* AJOUT : Force le bandeau gris Streamlit invisible et sa marge à s'effacer */
+footer {{
+    display: none !important;
+    height: 0px !important;
+    margin: 0px !important;
+    padding: 0px !important;
+}}
+
+/* AJOUT : Supprime l'espace forcé tout en bas de la structure Streamlit */
+[data-testid="stAppViewContainer"] {{
+    padding-bottom: 0px !important;
+}}
+div[data-testid="stMainBlockContainer"] > div:last-child {{
+    padding-bottom: 0px !important;
+    margin-bottom: 0px !important;
+}}
+
 
 /* AJOUT SÉCURITÉ : Supprime l'espace imposé par Streamlit juste au-dessus du footer gris */
 div[data-testid="stMainBlockContainer"] > div:last-child {{
