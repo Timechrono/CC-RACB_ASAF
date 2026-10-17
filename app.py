@@ -1,5 +1,9 @@
 # https://www.dropbox.com/scl/fi/hi24fjo0vbal4oiiwt9jl/logo-TimeC.png?rlkey=xlw0oqk9gdnq6v5dgahi0klg0&st=y86yrn6y&dl=1
 
+# https://dropbox.com
+
+# https://dropbox.com
+# https://dropbox.com
 
 import streamlit as st
 import pandas as pd
@@ -24,7 +28,7 @@ t_bas = ""
 # ==============================================================================
 # ⚠️ LIEN DROPBOX LOGO
 # ==============================================================================
-LIEN_DROPBOX_LOGO = "https://www.dropbox.com/scl/fi/hi24fjo0vbal4oiiwt9jl/logo-TimeC.png?rlkey=xlw0oqk9gdnq6v5dgahi0klg0&st=y86yrn6y&dl=1"
+LIEN_DROPBOX_LOGO = "https://dropbox.com"
 
 # --- DÉTECTION DES SCRIPTS DE COURSE DISPONIBLES ---
 try:
@@ -102,9 +106,12 @@ div.stElementContainer {{
     padding-top: 0px !important;
     padding-bottom: 0px !important;
 }}
+
+/* REGLAGE STRICT DE LA HAUTEUR PHYSIQUE DU BANDEAU DE TITRE A 20PX */
 .titre-live, .titre-hist, .titre-classement {{
-    color: #FFFFFF !important; font-size: 1.05rem !important; font-weight: bold !important;
-    padding: 4px 8px !important; border-radius: 3px !important;
+    color: #FFFFFF !important; font-size: 0.94rem !important; font-weight: bold !important;
+    height: 20px !important; max-height: 20px !important; line-height: 20px !important;
+    padding: 0px 8px !important; border-radius: 3px !important;
     width: 100% !important; display: block !important; clear: both !important;
 }}
 .titre-live {{ background-color: #15803D !important; margin-top: 0px !important; margin-bottom: 6px !important; }}
@@ -125,6 +132,7 @@ div.stElementContainer {{
     border-radius: 4px !important;
     display: inline-block !important;
     margin-left: 4px !important;
+    line-height: 1.1 !important;
 }}
 
 .espace-classement-suivant {{
@@ -139,11 +147,12 @@ div.stElementContainer {{
 /* Hauteur sur-mesure sur PC pour s'aligner avec le bas de la colonne de droite */
 @media (min-width: 769px) {{
     .div-scroll-local-historique {{
-        height: 465px !important;
-        max-height: 465px !important;
+        height: 580px !important;
+        max-height: 580px !important;
         overflow-y: auto !important;
     }}
 }}
+
 # fin bloc 1
 /* Hauteur d'origine conservée sur smartphone */
 @media (max-width: 768px) {{
