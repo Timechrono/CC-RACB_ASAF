@@ -165,8 +165,8 @@ div.stElementContainer {{
 /* BRIDAGE STRICT À 5 CONCURRENTS EN VISUEL POUR LA DIVISION 4 SUR PC */
 @media (min-width: 769px) {{
     .div-scroll-local-div4 {{
-        height: 120px !important;
-        max-height: 120px !important;
+        height: 118px !important;
+        max-height: 118px !important;
         overflow-y: auto !important;
         width: 100% !important;
         display: block !important;
