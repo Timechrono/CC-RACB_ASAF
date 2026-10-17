@@ -304,20 +304,27 @@ with cg:
 with cd:
     # 1. Détection ultra-fiable de la hauteur selon le nom de la course active
     if "ESSAIS" in choix_course.upper():
-        h_pc = "310px"  # Force 15 concurrents max pour les Essais sur PC
+        h_pc_10 = "220px"  # Hauteur parfaite sans scroll pour 10 concurrents (RACB / Div 123)
+        h_pc_5 = "120px"   # Hauteur parfaite sans scroll pour 5 concurrents (Div 4)
     elif "COURSE 1" in choix_course.upper():
-        h_pc = "425px"  # Exemple : 19 concurrents pour la Course 1 sur PC
+        h_pc_10 = "425px"  
+        h_pc_5 = "425px"
     else:
-        h_pc = "380px"  # Valeur par défaut d'origine pour les autres configurations
+        h_pc_10 = "380px"  
+        h_pc_5 = "380px"
 
-    # Le smartphone reste toujours protégé à 380px
-    h_mob = "380px"
+    h_mob = "auto"
 
-    # 2. Injection CSS dynamique
+    # 2. Injection CSS dynamique adaptée aux nouvelles limites de lignes
     st.markdown(f"""
     <style>
-      @media (min-width: 769px) {{ .ajust-hauteur-pc {{ max-height: {h_pc} !important; }} }}
-      @media (max-width: 768px) {{ .ajust-hauteur-pc {{ max-height: {h_mob} !important; }} }}
+      @media (min-width: 769px) {{ 
+          .ajust-hauteur-pc-10 {{ max-height: {h_pc_10} !important; overflow-y: hidden !important; }} 
+          .ajust-hauteur-pc-5 {{ max-height: {h_pc_5} !important; overflow-y: hidden !important; }} 
+      }}
+      @media (max-width: 768px) {{ 
+          .ajust-hauteur-pc-10, .ajust-hauteur-pc-5 {{ max-height: {h_mob} !important; }} 
+      }}
     </style>
     """, unsafe_allow_html=True)
 
@@ -325,28 +332,25 @@ with cd:
         # --- MODE DE COURSE ---
         if t_haut:
             st.markdown(f"<span class='titre-classement'>{t_haut}</span>", unsafe_allow_html=True)
-            st.markdown(f"<div class='ajust-hauteur-pc' style='overflow-y: auto; display: block;'>{gen_html(d_haut, 'table-class-robuste')}</div>", unsafe_allow_html=True)
+            st.markdown(f"<div class='ajust-hauteur-pc-10' style='display: block;'>{gen_html(d_haut, 'table-class-robuste')}</div>", unsafe_allow_html=True)
         if t_milieu:
             st.markdown(f"<span class='titre-classement espace-classement-suivant'>{t_milieu}</span>", unsafe_allow_html=True)
-            st.markdown(f"<div class='ajust-hauteur-pc' style='overflow-y: auto; display: block;'>{gen_html(d_milieu, 'table-class-milieu')}</div>", unsafe_allow_html=True)
+            st.markdown(f"<div class='ajust-hauteur-pc-10' style='display: block;'>{gen_html(d_milieu, 'table-class-milieu')}</div>", unsafe_allow_html=True)
         if t_bas:
             st.markdown(f"<span class='titre-classement espace-classement-suivant'>{t_bas}</span>", unsafe_allow_html=True)
-            nb_lignes = len(d_bas) if hasattr(d_bas, '__len__') else 0
-            style_scroll = "class='ajust-hauteur-pc' style='overflow-y: auto; display: block;'" if nb_lignes > 10 else "style='height: auto; display: block;'"
-            st.markdown(f"<div {style_scroll}>{gen_html(d_bas, 'table-class-robuste')}</div>", unsafe_allow_html=True)
+            st.markdown(f"<div class='ajust-hauteur-pc-5' style='display: block;'>{gen_html(d_bas, 'table-class-robuste')}</div>", unsafe_allow_html=True)
     else:
         # --- MODE ESSAIS ---
         if t_haut:
             st.markdown(f"<span class='titre-classement'>{t_haut}</span>", unsafe_allow_html=True)
-            st.markdown(f"<div class='ajust-hauteur-pc' style='overflow-y: auto; display: block;'>{gen_html(d_bas, 'table-class-robuste')}</div>", unsafe_allow_html=True)
+            st.markdown(f"<div class='ajust-hauteur-pc-10' style='display: block;'>{gen_html(d_bas, 'table-class-robuste')}</div>", unsafe_allow_html=True)
         if t_milieu:
             st.markdown(f"<span class='titre-classement espace-classement-suivant'>{t_milieu}</span>", unsafe_allow_html=True)
-            st.markdown(f"<div class='ajust-hauteur-pc' style='overflow-y: auto; display: block;'>{gen_html(d_haut, 'table-class-robuste')}</div>", unsafe_allow_html=True)
+            st.markdown(f"<div class='ajust-hauteur-pc-10' style='display: block;'>{gen_html(d_haut, 'table-class-robuste')}</div>", unsafe_allow_html=True)
         if t_bas:
             st.markdown(f"<span class='titre-classement espace-classement-suivant'>{t_bas}</span>", unsafe_allow_html=True)
-            nb_lignes = len(d_milieu) if hasattr(d_milieu, '__len__') else 0
-            style_scroll = "class='ajust-hauteur-pc' style='overflow-y: auto; display: block;'" if nb_lignes > 10 else "style='height: auto; display: block;'"
-            st.markdown(f"<div {style_scroll}>{gen_html(d_milieu, 'table-class-robuste')}</div>", unsafe_allow_html=True)
+            st.markdown(f"<div class='ajust-hauteur-pc-5' style='display: block;'>{gen_html(d_milieu, 'table-class-robuste')}</div>", unsafe_allow_html=True)
+
 
 
 
