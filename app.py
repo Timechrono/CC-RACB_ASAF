@@ -254,10 +254,10 @@ div.stElementContainer {{
 @media (max-width: 768px) {{
     .block-container {{ padding-left: 2px !important; padding-right: 2px !important; }}
     
-    /* BRIDAGE STRICT À 30 LIGNES MAXIMUM ET ACTIVATION DU SCROLL SUR SMARTPHONE */
+    /* BRIDAGE STRICT À 40 LIGNES MAXIMUM ET ACTIVATION DU SCROLL SUR SMARTPHONE */
     .div-scroll-local-historique {{
-        height: 775px !important;
-        max-height: 775px !important;
+        height: 1025px !important;
+        max-height: 1025px !important;
         overflow-y: auto !important;
         display: block !important;
         -webkit-overflow-scrolling: touch !important;
@@ -325,6 +325,7 @@ def gen_html(df, cl):
     
     html_table = df.to_html(index=False, classes=f"table-compacte {cl}", escape=False, border=0)
     return f"<div {style_conteneur}>{html_table}</div>"
+
 
 
 
