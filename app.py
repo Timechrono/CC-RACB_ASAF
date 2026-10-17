@@ -201,9 +201,15 @@ div.stElementContainer {{
 }}
 
 .table-compacte {{
-    width: 100% !important; margin-bottom: 0px !important;
-    border-collapse: collapse !important; table-layout: auto !important;
+    width: 100% !important; 
+    margin-top: 0px !important;
+    margin-bottom: 0px !important;
+    border-collapse: collapse !important; 
+    border-spacing: 0px !important;
+    border: none !important;
+    table-layout: auto !important;
 }}
+
 
 /* APPLICATION DE LA HAUTEUR À 17PX SUR TOUS LES TABLEAUX */
 .table-compacte tr {{ height: 17px !important; }}
@@ -212,10 +218,11 @@ div.stElementContainer {{
 .table-live tr {{ height: 18px !important; }}
 
 .table-compacte th, .table-compacte td {{ 
-    height: 17px !important; padding: 1px 5px !important; line-height: 1.1 !important; 
+    height: 17px !important; padding: 1px 5px !important; line-height: 1.0 !important; 
     font-size: 0.85rem !important; color: #000000 !important; vertical-align: middle !important; 
-    white-space: nowrap !important; 
+    white-space: nowrap !important; border: none !important;
 }}
+
 .table-live th, .table-live td {{ height: 18px !important; }}
 
 .table-compacte td {{ border-bottom: 1px solid #E0E0E0 !important; background-color: #FFFFFF !important; }}
