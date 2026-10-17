@@ -254,43 +254,41 @@ with cd:
     if choix_course != "Essais":
         # --- MODE DE COURSE ---
         if t_haut:
-            st.markdown(f"<span class='titre-classement'>{t_haut}</span>", unsafe_allow_html=True)
-            st.markdown(f"<div class='ajust-hauteur-pc' style='overflow-y: auto; display: block;'>{gen_html(d_haut, 'table-class-robuste')}</div>", unsafe_allow_html=True)
+            st.markdown("<span class='titre-classement'>" + str(t_haut) + "</span>", unsafe_allow_html=True)
+            st.markdown("<div class='ajust-hauteur-pc' style='overflow-y: auto; display: block;'>" + str(gen_html(d_haut, 'table-class-robuste')) + "</div>", unsafe_allow_html=True)
         if t_milieu:
-            st.markdown(f"<span class='titre-classement espace-classement-suivant'>{t_milieu}</span>", unsafe_allow_html=True)
-            st.markdown(f"<div class='ajust-hauteur-pc' style='overflow-y: auto; display: block;'>{gen_html(d_milieu, 'table-class-milieu')}</div>", unsafe_allow_html=True)
+            st.markdown("<span class='titre-classement espace-classement-suivant'>" + str(t_milieu) + "</span>", unsafe_allow_html=True)
+            st.markdown("<div class='ajust-hauteur-pc' style='overflow-y: auto; display: block;'>" + str(gen_html(d_milieu, 'table-class-milieu')) + "</div>", unsafe_allow_html=True)
         if t_bas:
-            st.markdown(f"<span class='titre-classement espace-classement-suivant'>{t_bas}</span>", unsafe_allow_html=True)
+            st.markdown("<span class='titre-classement espace-classement-suivant'>" + str(t_bas) + "</span>", unsafe_allow_html=True)
             nb_lignes = len(d_bas) if hasattr(d_bas, '__len__') else 0
             style_scroll = "class='ajust-hauteur-pc' style='overflow-y: auto; display: block;'" if nb_lignes > 10 else "style='height: auto; display: block;'"
-            st.markdown(f"<div {style_scroll}>{gen_html(d_bas, 'table-class-robuste')}</div>", unsafe_allow_html=True)
+            st.markdown("<div " + style_scroll + ">" + str(gen_html(d_bas, 'table-class-robuste')) + "</div>", unsafe_allow_html=True)
     else:
         # --- MODE ESSAIS ---
         if t_haut:
-            st.markdown(f"<span class='titre-classement'>{t_haut}</span>", unsafe_allow_html=True)
-            st.markdown(f"<div class='ajust-hauteur-pc' style='overflow-y: auto; display: block;'>{gen_html(d_bas, 'table-class-robuste')}</div>", unsafe_allow_html=True)
+            st.markdown("<span class='titre-classement'>" + str(t_haut) + "</span>", unsafe_allow_html=True)
+            st.markdown("<div class='ajust-hauteur-pc' style='overflow-y: auto; display: block;'>" + str(gen_html(d_bas, 'table-class-robuste')) + "</div>", unsafe_allow_html=True)
         if t_milieu:
-            st.markdown(f"<span class='titre-classement espace-classement-suivant'>{t_milieu}</span>", unsafe_allow_html=True)
-            st.markdown(f"<div class='ajust-hauteur-pc' style='overflow-y: auto; display: block;'>{gen_html(d_haut, 'table-class-robuste')}</div>", unsafe_allow_html=True)
+            st.markdown("<span class='titre-classement espace-classement-suivant'>" + str(t_milieu) + "</span>", unsafe_allow_html=True)
+            st.markdown("<div class='ajust-hauteur-pc' style='overflow-y: auto; display: block;'>" + str(gen_html(d_haut, 'table-class-robuste')) + "</div>", unsafe_allow_html=True)
         if t_bas:
-            st.markdown(f"<span class='titre-classement espace-classement-suivant'>{t_bas}</span>", unsafe_allow_html=True)
+            st.markdown("<span class='titre-classement espace-classement-suivant'>" + str(t_bas) + "</span>", unsafe_allow_html=True)
             
             # APPLICATION BRIDAGE : Encapsulation dans le conteneur forcé à 114px pour la Division 4 en mode Essais
-            st.markdown(f"<div class='div-scroll-local-div4'>{gen_html(d_milieu, 'table-class-robuste')}</div>", unsafe_allow_html=True)
+            st.markdown("<div class='div-scroll-local-div4'>" + str(gen_html(d_milieu, 'table-class-robuste')) + "</div>", unsafe_allow_html=True)
 
-st.markdown(f"""
-<div class='signature-fin-page'>
-    <img src='{LIEN_DROPBOX_LOGO}' class='logo-signature'>
-    www.timechrono.be
-</div>
-""", unsafe_allow_html=True)
+# CORRECTION DU TRIPLE GUILLEMET DE LA SIGNATURE : Utilisation de guillemets simples standard
+html_signature = "<div class='signature-fin-page'><img src='" + str(LIEN_DROPBOX_LOGO) + "' class='logo-signature'> www.timechrono.be</div>"
+st.markdown(html_signature, unsafe_allow_html=True)
 
-# CODE ACTUEL DE REFRESH
+# CODE DE REFRESH EN DIRECT
 for secondes_restantes in range(30, -1, -1):
     if "Derniers concurrents" in t_live or "DIRECT" in t_live.upper():
-        conteneur_titre_live.markdown(f"<span class='titre-live'>🏎️ EN DIRECT / Derniers concurrents partis / <span class='refresh-bleu-clair-historique'>Refresh {secondes_restantes} Sec.</span></span>", unsafe_allow_html=True)
+        st_titre = "<span class='titre-live'>🏎️ EN DIRECT / Derniers concurrents partis / <span class='refresh-bleu-clair-historique'>Refresh " + str(secondes_restantes) + " Sec.</span></span>"
+        conteneur_titre_live.markdown(st_titre, unsafe_allow_html=True)
     else:
-        conteneur_titre_live.markdown(f"<span class='titre-live'>{t_live}</span>", unsafe_allow_html=True)
+        conteneur_titre_live.markdown("<span class='titre-live'>" + str(t_live) + "</span>", unsafe_allow_html=True)
     if secondes_restantes > 0:
         time.sleep(1)
 
