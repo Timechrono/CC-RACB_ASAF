@@ -360,9 +360,8 @@ with cd:
             st.markdown(f"<span class='titre-classement espace-classement-suivant'>{t_bas}</span>", unsafe_allow_html=True)
             st.markdown(f"<div class='ajust-hauteur-pc-5' style='display: block;'>{gen_html(d_milieu, 'table-class-robuste')}</div>", unsafe_allow_html=True)
 
-
-
-
+# Bloc de sécurité pour empêcher les tableaux de déborder sur la signature
+st.markdown("<div style='clear: both; height: 15px;'></div>", unsafe_allow_html=True)
 
 st.markdown(f"""
 <div class='signature-fin-page'>
@@ -370,6 +369,7 @@ st.markdown(f"""
     www.timechrono.be
 </div>
 """, unsafe_allow_html=True)
+
 
 # CODE ACTUEL (À MODIFIER)
 for secondes_restantes in range(30, -1, -1):
