@@ -28,7 +28,7 @@ t_bas = ""
 # ==============================================================================
 # ⚠️ LIEN DROPBOX LOGO
 # ==============================================================================
-LIEN_DROPBOX_LOGO = "https://www.dropbox.com/scl/fi/hi24fjo0vbal4oiiwt9jl/logo-TimeC.png?rlkey=xlw0oqk9gdnq6v5dgahi0klg0&st=y86yrn6y&dl=1"
+LIEN_DROPBOX_LOGO = "https://dropbox.com"
 
 # --- DÉTECTION DES SCRIPTS DE COURSE DISPONIBLES ---
 try:
@@ -156,6 +156,9 @@ div.stElementContainer {{
         overflow-y: visible !important;
     }}
 }}
+
+
+
 /* Suppression des contraintes fixes de hauteur sur general et classes pour laisser l'adaptation */
 .div-scroll-local-general, .div-scroll-local-classes {{
     height: auto !important;
@@ -221,6 +224,7 @@ div.stElementContainer {{
 tr.ligne-separation-classe td, .table-compacte tr.ligne-separation-classe td {{ box-shadow: inset 0 -3px 0 0 #1E3A8A !important; }}
 </style>
 """, unsafe_allow_html=True)
+
 def gen_html(df, cl):
     if cl == "table-hist":
         phrase_attente = "En attente d'arrivée..."
