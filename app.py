@@ -75,7 +75,7 @@ button:focus, div:focus, input:focus, select:focus {{
     outline: none !important; border-color: transparent !important; box-shadow: none !important;
 }}
 
-/* RESTAURATION COMPLÈTE DU SCROLL SUR TOUTE LA PAGE WEB */
+/* RESTAURATION DU SCROLL ET COMPRESSION DU BLOC PRINCIPAL */
 html, body, [data-testid="stAppViewContainer"], [data-testid="stMainBlockContainer"] {{
     overflow: auto !important;
     overflow-y: auto !important;
@@ -83,59 +83,47 @@ html, body, [data-testid="stAppViewContainer"], [data-testid="stMainBlockContain
     max-height: none !important;
 }}
 
-/* FORCE L'ALIGNEMENT STRICTEMENT PARFAIT DU SOMMET DES DEUX COLONNES */
+/* suppression stricte de l'espace blanc invisible au sommet de Streamlit */
+.block-container {{ 
+    padding-top: 0px !important; 
+    padding-bottom: 0rem !important; 
+    padding-left: 0.5rem !important; 
+    padding-right: 0.5rem !important; 
+}}
+
+/* Alignement forcé au pixel près des têtes de colonnes cg et cd */
 div[data-testid="stColumn"] {{
     padding-top: 0px !important;
     margin-top: 0px !important;
 }}
 
-/* RECALAGE DES DEUX PREMIERS BANDEAUX POUR EFFACER LA BANDE BLANCHE INVISIBLE */
-.titre-live {{ 
-    margin-top: 0px !important; 
-    margin-bottom: 6px !important; 
+div[data-testid="stVerticalBlock"] {{
+    gap: 0rem !important;
+    padding-top: 0px !important;
 }}
-
-.titre-classement {{ 
-    margin-top: 0px !important; 
-    margin-bottom: 6px !important; 
-}}
-
-
-/* Masquage propre du pied de page sans casser la structure */
-footer, [data-testid="stHeader"] {{
-    display: none !important;
-    visibility: hidden !important;
-}}
-
-/* CORRECTIF DE POSITIONNEMENT ABSOLU POUR EXPULSER LE FOOTER EN BAS DE PAGE */
-footer {{
-    position: absolute !important;
-    bottom: 0 !important;
-    left: 0 !important;
-    width: 100% !important;
-    z-index: -9999 !important;
-    display: none !important;
-    visibility: hidden !important;
-    height: 0px !important;
-    margin: 0px !important;
-    padding: 0px !important;
-}}
-
-/* RECALAGE RIGOUREUX DU CONTENEUR DE VOS COLONNES ET DU DEFILLEMENT NATURAL */
-[data-testid="stAppViewContainer"], [data-testid="stMainBlockContainer"] {{
-    padding-bottom: 0px !important;
+div.stElementContainer {{
+    margin-top: 0px !important;
     margin-bottom: 0px !important;
+    padding-top: 0px !important;
+    padding-bottom: 0px !important;
 }}
 
+/* Masquage du footer Streamlit pour libérer le bas de page */
+footer {{
+    display: none !important;
+    visibility: hidden !important;
+}}
 
+/* Définition propre des titres fins et sans marges parasites */
 .titre-live, .titre-hist, .titre-classement {{
-    color: #FFFFFF !important; font-size: 1.05rem !important; font-weight: bold !important;
-    padding: 2px 6px !important; border-radius: 3px !important;
+    color: #FFFFFF !important; font-size: 0.92rem !important; font-weight: bold !important;
+    padding: 3px 6px !important; border-radius: 3px !important;
     width: 100% !important; display: block !important; clear: both !important;
 }}
 .titre-live {{ background-color: #15803D !important; margin-top: 0px !important; margin-bottom: 6px !important; }}
 .titre-hist {{ background-color: #475569 !important; margin-top: 15px !important; margin-bottom: 6px !important; }}
 .titre-classement {{ background-color: #1E3A8A !important; margin-top: 0px !important; margin-bottom: 6px !important; }}
+
 
 .table-hist td:last-child {{ 
     font-weight: bold !important; 
