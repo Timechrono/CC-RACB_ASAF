@@ -1,8 +1,5 @@
 # https://www.dropbox.com/scl/fi/hi24fjo0vbal4oiiwt9jl/logo-TimeC.png?rlkey=xlw0oqk9gdnq6v5dgahi0klg0&st=y86yrn6y&dl=1
-# https://dropbox.com
 
-# https://dropbox.com
-# https://dropbox.com
 
 import streamlit as st
 import pandas as pd
@@ -27,7 +24,7 @@ t_bas = ""
 # ==============================================================================
 # ⚠️ LIEN DROPBOX LOGO
 # ==============================================================================
-LIEN_DROPBOX_LOGO = "https://dropbox.com"
+LIEN_DROPBOX_LOGO = "https://www.dropbox.com/scl/fi/hi24fjo0vbal4oiiwt9jl/logo-TimeC.png?rlkey=xlw0oqk9gdnq6v5dgahi0klg0&st=y86yrn6y&dl=1"
 
 # --- DÉTECTION DES SCRIPTS DE COURSE DISPONIBLES ---
 try:
@@ -142,8 +139,8 @@ div.stElementContainer {{
 /* Hauteur sur-mesure sur PC pour s'aligner avec le bas de la colonne de droite */
 @media (min-width: 769px) {{
     .div-scroll-local-historique {{
-        height: 740px !important;
-        max-height: 740px !important;
+        height: 540px !important;
+        max-height: 540px !important;
         overflow-y: auto !important;
     }}
 }}
