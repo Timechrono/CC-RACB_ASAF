@@ -104,10 +104,10 @@ div.stElementContainer {{
 }}
 
 /* AJUSTEMENT 1 : HAUTEUR PHYSIQUE DU BANDEAU DE TITRE A 24PX */
-/* REGLAGE DU TITRE A 34PX AVEC EMOJI DE SCROLL REPOUSSÉ À DROITE */
+/* REGLAGE DU TITRE A 24PX AVEC EMOJI DE SCROLL REPOUSSÉ À DROITE */
 .titre-live, .titre-hist, .titre-classement {{
     color: #FFFFFF !important; font-size: 1.02rem !important; font-weight: bold !important;
-    height: 34px !important; max-height: 24px !important;
+    height: 24px !important; max-height: 24px !important;
     padding: 0px 8px !important; border-radius: 3px !important;
     width: 100% !important; clear: both !important;
     /* STRUCTURE FLEXBOX POUR CHASSER L'EMOJI A DROITE */
@@ -258,6 +258,16 @@ div.stElementContainer {{
 
 .table-class-robuste tr.ligne-bleue-separation td {{ box-shadow: inset 0 -3px 0 0 #1E3A8A !important; }}
 tr.ligne-separation-classe td, .table-compacte tr.ligne-separation-classe td {{ box-shadow: inset 0 -3px 0 0 #1E3A8A !important; }}
+
+/* AJUSTEMENT SPÉCIFIQUE SMARTPHONE : PASSE LE TITRE EN HAUTEUR AUTOMATIQUE S'IL FAUT 2 LIGNES */
+@media (max-width: 768px) {{
+    .titre-live, .titre-hist, .titre-classement {{
+        height: auto !important;
+        max-height: none !important;
+        line-height: 1.3 !important;
+        padding: 4px 8px !important;
+    }}
+}}
 </style>
 """, unsafe_allow_html=True)
 
