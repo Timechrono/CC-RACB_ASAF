@@ -173,16 +173,27 @@ div.stElementContainer {{
     width: 100% !important; margin-bottom: 0px !important;
     border-collapse: collapse !important; table-layout: auto !important;
 }}
-.table-compacte tr {{ height: 18px !important; }}
+/* RÈGLE GÉNÉRALE : Toutes les lignes de base passent à 17px */
+.table-compacte tr {{ height: 17px !important; }}
 .table-compacte th, .table-compacte td {{ 
-    height: 18px !important; padding: 1px 5px !important; line-height: 1.1 !important; 
-    font-size: 0.85rem !important; color: #000000 !important; vertical-align: middle !important; 
+    height: 17px !important; padding: 0.5px 5px !important; line-height: 1.05 !important; 
+    font-size: 0.84rem !important; color: #000000 !important; vertical-align: middle !important; 
     white-space: nowrap !important; 
 }}
+
+/* EXCEPTION : Maintien du tableau EN DIRECT à ses dimensions d'origine (18px) */
+.table-live tr {{ height: 18px !important; }}
+.table-live th, .table-live td {{ 
+    height: 18px !important; padding: 1px 5px !important; line-height: 1.1 !important; 
+    font-size: 0.85rem !important; 
+}}
+
+/* RESTAURATION DE VOS RÈGLES DE STYLE ET COULEURS D'ORIGINE */
 .table-compacte td {{ border-bottom: 1px solid #E0E0E0 !important; background-color: #FFFFFF !important; }}
 .table-compacte th {{ font-weight: bold !important; background-color: #F5F5F5 !important; border-bottom: 2px solid #CCCCCC !important; text-align: left !important; }}
 .table-live td:last-child, .table-class-robuste td:last-child {{ font-weight: bold !important; font-size: 0.94rem !important; color: #0F172A !important; }}
 .table-hist tr:nth-child(odd) td {{ background-color: #E0F2FE !important; }}
+
 
 .signature-fin-page {{
     display: flex !important;
