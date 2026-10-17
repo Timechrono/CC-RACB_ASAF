@@ -172,159 +172,7 @@ div.stElementContainer {{
 
 # fin bloc 1
 
-/* CONFIGURATION DU SCROLL HISTORIQUE SUR PC */
-@media (min-width: 769px) {{
-    .div-scroll-local-historique {{
-        height: 456px !important;
-        max-height: 456px !important;
-        overflow-y: auto !important;
-        display: block !important;
-    }}
-}}
-
-/* BRIDAGE STRICT À 5 CONCURRENTS EN VISUEL POUR LA DIVISION 4 SUR PC */
-@media (min-width: 769px) {{
-    .div-scroll-local-div4 {{
-        height: 114px !important;
-        max-height: 114px !important;
-        overflow-y: auto !important;
-        width: 100% !important;
-        display: block !important;
-    }}
-}}
-@media (max-width: 768px) {{
-    .div-scroll-local-div4 {{
-        height: auto !important;
-        max-height: none !important;
-        overflow-y: visible !important;
-        display: block !important;
-    }}
-}}
-
-/* Suppression des contraintes fixes de hauteur sur general et classes pour laisser l'adaptation */
-.div-scroll-local-general, .div-scroll-local-classes {{
-    height: auto !important;
-    max-height: none !important;
-    overflow-y: visible !important;
-    width: 100% !important;
-    border: none !important;
-}}
-
-.table-responsive-container {{
-    width: 100% !important;
-}}
-
-.table-compacte {{
-    width: 100% !important; margin-bottom: 0px !important;
-    border-collapse: collapse !important; table-layout: auto !important;
-}}
-.table-compacte tr {{ height: 18px !important; }}
-.table-compacte th, .table-compacte td {{ 
-    height: 18px !important; padding: 1px 5px !important; line-height: 1.1 !important; 
-    font-size: 0.85rem !important; color: #000000 !important; vertical-align: middle !important; 
-    white-space: nowrap !important; 
-}}
-.table-compacte td {{ border-bottom: 1px solid #E0E0E0 !important; background-color: #FFFFFF !important; }}
-.table-compacte th {{ font-weight: bold !important; background-color: #F5F5F5 !important; border-bottom: 2px solid #CCCCCC !important; text-align: left !important; }}
-.table-live td:last-child, .table-class-robuste td:last-child {{ font-weight: bold !important; font-size: 0.94rem !important; color: #0F172A !important; }}
-.table-hist tr:nth-child(odd) td {{ background-color: #E0F2FE !important; }}
-
-.signature-fin-page {{
-    display: flex !important;
-    justify-content: center !important;
-    align-items: center !important;
-    gap: 12px !important;
-    text-align: center !important;
-    color: #1E3A8A !important;
-    font-size: 0.92rem !important;
-    font-weight: bold !important;
-    padding-top: 6px !important;
-    margin-top: 25px !important;
-    border-top: 1px dashed #1E3A8A !important;
-    width: 100% !important;
-}}
-
-/* AJUSTEMENT : LOGO DE SIGNATURE REDUIT A 24PX SUR PC */
-.logo-signature {{
-    height: 24px !important;
-    width: auto !important;
-    vertical-align: middle !important;
-}}
-
-@media (max-width: 768px) {{
-    .block-container {{ padding-left: 2px !important; padding-right: 2px !important; }}
-    
-    /* BRIDAGE STRICT À 40 LIGNES MAXIMUM ET ACTIVATION DU SCROLL SUR SMARTPHONE */
-    .div-scroll-local-historique {{
-        height: 1025px !important;
-        max-height: 1025px !important;
-        overflow-y: auto !important;
-        display: block !important;
-        -webkit-overflow-scrolling: touch !important;
-        border: 1px solid #CBD5E1 !important;
-    }}
-    
-    /* Ajustement de la hauteur de ligne sur mobile pour fiabiliser le calcul du bridage */
-    .table-compacte th, .table-compacte td {{ 
-        font-size: 0.65rem !important; 
-        padding: 1px 2px !important; 
-        height: 25px !important; 
-    }}
-    
-    .table-hist td:nth-child(4) {{ max-width: 32px !important; overflow: hidden !important; text-overflow: clip !important; white-space: nowrap !important; }}
-    .table-compacte td:nth-child(3), table td:nth-child(3) {{ max-width: 60px !important; overflow: hidden !important; text-overflow: ellipsis !important; white-space: nowrap !important; }}
-    .table-live td:last-child, .table-class-robuste td:last-child {{ font-size: 0.70rem !important; }}
-    .signature-fin-page {{ font-size: 0.75rem !important; padding-top: 4px !important; }}
-    .logo-signature {{ height: 32px !important; }}
-    
-    /* AJUSTEMENT SPÉCIFIQUE SMARTPHONE : PASSE LE TITRE EN HAUTEUR AUTOMATIQUE S'IL FAUT 2 LIGNES */
-    .titre-live, .titre-hist, .titre-classement {{
-        height: auto !important;
-        max-height: none !important;
-        line-height: 1.3 !important;
-        padding: 4px 8px !important;
-    }}
-}}
-
-.table-class-robuste tr.ligne-bleue-separation td {{ box-shadow: inset 0 -3px 0 0 #1E3A8A !important; }}
-tr.ligne-separation-classe td, .table-compacte tr.ligne-separation-classe td {{ box-shadow: inset 0 -3px 0 0 #1E3A8A !important; }}
-</style>
-""", unsafe_allow_html=True)
-
-def gen_html(df, cl):
-    # Sécurisation préventive des variables de session ou d'URL
-    if cl == "table-hist":
-        phrase_attente = "En attente d'arrivée..."
-    elif cl in ["table-class-robuste", "table-class-groupes", "table-class-milieu"]:
-        nom_course = choix_course.upper() if 'choix_course' in globals() else ""
-        if "RACB" in nom_course:
-            phrase_attente = "En attente du premier classé RACB..."
-        elif "ASAF" in nom_course:
-            phrase_attente = "En attente du premier classé ASAF..."
-        else:
-            phrase_attente = "En attente du premier classé..."
-    else:
-        phrase_attente = "En attente du départ..."
-
-    # Définition propre du conteneur
-    style_conteneur = "class='div-scroll-local-historique'" if cl == "table-hist" else "class='table-responsive-container'"
-
-    if isinstance(df, str):
-        if "<TABLE" in df.upper() and "</TABLE>" in df.upper():
-            debut = df.upper().find("<TABLE")
-            fin = df.upper().find("</TABLE>") + 8
-            tableau_propre = df[debut:fin]
-            return f"<div {style_conteneur}>{tableau_propre}</div>"
-                
-        tableau_vide = f"<table class='table-compacte {cl}'><tr><td style='text-align: center; padding: 10px; font-style: italic; color: #64748B;'>{phrase_attente}</td></tr></table>"
-        return f"<div {style_conteneur}>{tableau_vide}</div>"
-
-    if df is None or (isinstance(df, pd.DataFrame) and df.empty): 
-        tableau_vide = f"<table class='table-compacte {cl}'><tr><td style='text-align: center; padding: 10px; font-style: italic; color: #64748B;'>{phrase_attente}</td></tr></table>"
-        return f"<div {style_conteneur}>{tableau_vide}</div>"
-    
-    html_table = df.to_html(index=False, classes=f"table-compacte {cl}", escape=False, border=0)
-    return f"<div {style_conteneur}>{html_table}</div>"
+source: 1
 
 
 
@@ -401,6 +249,14 @@ with cd:
       @media (max-width: 768px) {{ .ajust-hauteur-pc {{ max-height: {h_mob} !important; }} }}
     </style>
     """, unsafe_allow_html=True)
+
+    # 🟢 AJOUT ICI : Repère fixe pour le bouton mobile, insensible aux variations des 7 fichiers
+    st.markdown("<div id='zone-classements-droite'></div>", unsafe_allow_html=True)
+
+    if choix_course != "Essais":
+        # --- MODE DE COURSE ---
+        if t_haut:
+
 
     if choix_course != "Essais":
         # --- MODE DE COURSE ---
