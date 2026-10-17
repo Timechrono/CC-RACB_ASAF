@@ -1,5 +1,4 @@
 # https://www.dropbox.com/scl/fi/hi24fjo0vbal4oiiwt9jl/logo-TimeC.png?rlkey=xlw0oqk9gdnq6v5dgahi0klg0&st=y86yrn6y&dl=1
-
 # https://dropbox.com
 
 # https://dropbox.com
@@ -72,7 +71,7 @@ st.set_page_config(page_title="Live", layout="wide")
 # --- CONCEPTION GRAPHIQUE GÉOMÉTRIQUE UNIFIÉE ---
 st.markdown(f"""
 <style>
-/* MASQUAGE DU FOOTER ET DU BANDEAU BLANC SANS ALTERATION DU CODE UTILISATEUR */
+/* SUPPRESSION DU BANDEAU BLANC ET DU FOOTER STREAMLIT */
 footer {{ visibility: hidden !important; }}
 [data-testid="stFooterContainer"] {{ display: none !important; }}
 
@@ -148,6 +147,7 @@ div.stElementContainer {{
         overflow-y: auto !important;
     }}
 }}
+# fin bloc 1
 /* Hauteur d'origine conservée sur smartphone */
 @media (max-width: 768px) {{
     .div-scroll-local-historique {{
@@ -255,6 +255,7 @@ def gen_html(df, cl):
         return f"<div class='div-scroll-local-historique'>{html_table}</div>"
         
     return f"<div class='table-responsive-container'>{html_table}</div>"
+# fin bloc 2
 # --- LECTURE DU PARAMÈTRE DE COURSE DEPUIS L'URL ---
 query_params = st.query_params
 choix_course_url = query_params.get("course", "essais").lower()
@@ -308,15 +309,14 @@ with cg:
     st.markdown(gen_html(d_his, "table-hist"), unsafe_allow_html=True)
     
 with cd:
-    # 1. Détection ultra-fiable de la hauteur selon le nom de la course active
+    # 1. Détection de la hauteur générale
     if "ESSAIS" in choix_course.upper():
-        h_pc = "310px"  # Force 15 concurrents max pour les Essais sur PC
+        h_pc = "215px"  # BRIDAGE FORCE SUR PC À 10 CONCURRENTS (215px au lieu de 310px pour 15)
     elif "COURSE 1" in choix_course.upper():
-        h_pc = "425px"  # Exemple : 19 concurrents pour la Course 1 sur PC
+        h_pc = "425px"
     else:
-        h_pc = "380px"  # Valeur par défaut d'origine pour les autres configurations
+        h_pc = "380px"
 
-    # Le smartphone reste toujours protégé à 380px
     h_mob = "380px"
 
     # 2. Injection CSS dynamique
@@ -350,9 +350,20 @@ with cd:
             st.markdown(f"<div class='ajust-hauteur-pc' style='overflow-y: auto; display: block;'>{gen_html(d_haut, 'table-class-robuste')}</div>", unsafe_allow_html=True)
         if t_bas:
             st.markdown(f"<span class='titre-classement espace-classement-suivant'>{t_bas}</span>", unsafe_allow_html=True)
-            nb_lignes = len(d_milieu) if hasattr(d_milieu, '__len__') else 0
-            style_scroll = "class='ajust-hauteur-pc' style='overflow-y: auto; display: block;'" if nb_lignes > 10 else "style='height: auto; display: block;'"
-            st.markdown(f"<div {style_scroll}>{gen_html(d_milieu, 'table-class-robuste')}</div>", unsafe_allow_html=True)
+            
+            # BRIDAGE CSS FORCE STRICT SUR L'ÉLÉMENT DU TABLEAU DE LA DIVISION 4 À 5 CONCURRENTS MAX (120px) AVEC SCROLL ACTIF
+            st.markdown(f"""
+            <style>
+            @media (min-width: 769px) {{
+                .boite-forcee-div4 {{ height: 120px !important; max-height: 120px !important; overflow-y: auto !important; display: block !important; }}
+            }}
+            @media (max-width: 768px) {{
+                .boite-forcee-div4 {{ height: auto !important; max-height: none !important; overflow-y: visible !important; display: block !important; }}
+            }}
+            </style>
+            """, unsafe_allow_html=True)
+            
+            st.markdown(f"<div class='boite-forcee-div4'>{gen_html(d_milieu, 'table-class-robuste')}</div>", unsafe_allow_html=True)
 
 
 
