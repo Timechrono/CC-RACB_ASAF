@@ -323,6 +323,7 @@ def gen_html(df, cl):
     return f"<div class='table-responsive-container'>{html_table}</div>"
 
 # fin bloc 2
+
 # --- LECTURE DU PARAMÈTRE DE COURSE DEPUIS L'URL ---
 query_params = st.query_params
 choix_course_url = query_params.get("course", "essais").lower()
@@ -367,6 +368,14 @@ st.markdown("<style>@media (min-width: 769px) { .table-hist th:nth-child(1), .ta
 if t_haut and "TOP 20" in t_haut.upper():
     t_haut = "🏆 CLASSEMENT GENERAL OFFICIEUX RACB"
 
+# INITIALISATION PRÉVENTIVE DE H_PC POUR ÉVITER LE NAMEERROR
+if "ESSAIS" in choix_course.upper():
+    h_pc = "215px"
+elif "COURSE 1" in choix_course.upper():
+    h_pc = "425px"
+else:
+    h_pc = "380px"
+
 cg, cd = st.columns([1.3, 0.9])
 with cg:
     conteneur_titre_live = st.empty()
@@ -374,31 +383,20 @@ with cg:
     if t_his: 
         st.markdown(f"<span class='titre-hist'>{t_his}</span>", unsafe_allow_html=True)
         
-    # SÉCURITÉ PYTHON MOBILE : SI ON EST SUR SMARTPHONE, ON COUPE STRICTEMENT À 30 CONCURRENTS MAX
-    if h_pc == "380px" or h_pc == "215px":  # Détection du mode mobile / essais
+    # SÉCURITÉ PYTHON MOBILE ET ESSAIS : CORRIGÉE SANS CONFLIT
+    if h_pc == "380px" or h_pc == "215px":
         if isinstance(d_his, pd.DataFrame) and not d_his.empty:
             d_his_mobile = d_his.head(30)
             st.markdown(gen_html(d_his_mobile, "table-hist"), unsafe_allow_html=True)
         else:
             st.markdown(gen_html(d_his, "table-hist"), unsafe_allow_html=True)
     else:
-        # Sur PC, on garde le comportement d'origine avec tout le tableau
         st.markdown(gen_html(d_his, "table-hist"), unsafe_allow_html=True)
-
     
 with cd:
-    # 1. Détection ultra-fiable de la hauteur selon le nom de la course active
-    if "ESSAIS" in choix_course.upper():
-        h_pc = "215px"  # BRIDAGE FORCE SUR PC À 10 CONCURRENTS MAX (au lieu de 310px pour 15)
-    elif "COURSE 1" in choix_course.upper():
-        h_pc = "425px"  # Exemple : 19 concurrents pour la Course 1 sur PC
-    else:
-        h_pc = "380px"  # Valeur par défaut d'origine pour les autres configurations
-
-    # Le smartphone reste toujours protégé à 380px
     h_mob = "380px"
 
-    # 2. Injection CSS dynamique
+    # Injection CSS dynamique
     st.markdown(f"""
     <style>
       @media (min-width: 769px) {{ .ajust-hauteur-pc {{ max-height: {h_pc} !important; }} }}
@@ -429,6 +427,7 @@ with cd:
             st.markdown(f"<div class='ajust-hauteur-pc' style='overflow-y: auto; display: block;'>{gen_html(d_haut, 'table-class-robuste')}</div>", unsafe_allow_html=True)
         if t_bas:
             st.markdown(f"<span class='titre-classement espace-classement-suivant'>{t_bas}</span>", unsafe_allow_html=True)
+            nb_lignes = len(d_milieu) if hasattr(d_milieu, '__len__') else 0
             
             # APPLICATION BRIDAGE : Encapsulation dans le conteneur forcé à 114px pour la Division 4 en mode Essais
             st.markdown(f"<div class='div-scroll-local-div4'>{gen_html(d_milieu, 'table-class-robuste')}</div>", unsafe_allow_html=True)
@@ -442,7 +441,7 @@ st.markdown(f"""
 </div>
 """, unsafe_allow_html=True)
 
-# CODE ACTUEL (À MODIFIER)
+# CODE ACTUEL
 for secondes_restantes in range(30, -1, -1):
     if "Derniers concurrents" in t_live or "DIRECT" in t_live.upper():
         conteneur_titre_live.markdown(f"<span class='titre-live'>🏎️ EN DIRECT / Derniers concurrents partis / <span class='refresh-bleu-clair-historique'>Refresh {secondes_restantes} Sec.</span></span>", unsafe_allow_html=True)
@@ -452,3 +451,4 @@ for secondes_restantes in range(30, -1, -1):
         time.sleep(1)
 
 st.rerun()
+
