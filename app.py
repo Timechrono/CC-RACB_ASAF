@@ -84,11 +84,16 @@ html, body, [data-testid="stAppViewContainer"], [data-testid="stMainBlockContain
 }}
 
 .block-container {{ 
-    padding-top: 0px !important; 
-    padding-bottom: 0px !important; 
+    padding-top: 5px !important; 
+    padding-bottom: 0rem !important; 
     padding-left: 0.5rem !important; 
     padding-right: 0.5rem !important; 
-    margin-bottom: 0px !important;
+}}
+
+/* Masquage propre du pied de page sans casser la structure */
+footer, [data-testid="stHeader"] {{
+    display: none !important;
+    visibility: hidden !important;
 }}
 
 /* CORRECTIF DE POSITIONNEMENT ABSOLU POUR EXPULSER LE FOOTER EN BAS DE PAGE */
@@ -212,21 +217,17 @@ footer {{
 .signature-fin-page {{
     display: flex !important;
     justify-content: center !important;
-    align-items: center !important;     
+    align-items: center !important;
     gap: 12px !important;
     text-align: center !important;
     color: #1E3A8A !important;
     font-size: 0.92rem !important;
     font-weight: bold !important;
-    padding-top: 4px !important;        
-    width: 100% !important;
-    line-height: 1.0 !important;
-    border-top: 1px dashed #1E3A8A !important;
-    
-    /* FORCE LE BLOC À SE RECALER TOUT EN BAS DE LA PAGE WEB */
-    clear: both !important;
+    padding-top: 6px !important;
     margin-top: 25px !important;
-    float: left !important;
+    border-top: 1px dashed #1E3A8A !important;
+    width: 100% !important;
+    clear: both !important;
 }}
 
 
