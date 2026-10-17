@@ -373,7 +373,18 @@ with cg:
     st.markdown(gen_html(d_liv, "table-live"), unsafe_allow_html=True)
     if t_his: 
         st.markdown(f"<span class='titre-hist'>{t_his}</span>", unsafe_allow_html=True)
-    st.markdown(gen_html(d_his, "table-hist"), unsafe_allow_html=True)
+        
+    # SÉCURITÉ PYTHON MOBILE : SI ON EST SUR SMARTPHONE, ON COUPE STRICTEMENT À 30 CONCURRENTS MAX
+    if h_pc == "380px" or h_pc == "215px":  # Détection du mode mobile / essais
+        if isinstance(d_his, pd.DataFrame) and not d_his.empty:
+            d_his_mobile = d_his.head(30)
+            st.markdown(gen_html(d_his_mobile, "table-hist"), unsafe_allow_html=True)
+        else:
+            st.markdown(gen_html(d_his, "table-hist"), unsafe_allow_html=True)
+    else:
+        # Sur PC, on garde le comportement d'origine avec tout le tableau
+        st.markdown(gen_html(d_his, "table-hist"), unsafe_allow_html=True)
+
     
 with cd:
     # 1. Détection ultra-fiable de la hauteur selon le nom de la course active
