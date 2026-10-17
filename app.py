@@ -178,11 +178,11 @@ div.stElementContainer {{
         height: 560px !important;
         max-height: 560px !important;
         overflow-y: auto !important;
-        border: 1px solid #CBD5E1 !important; /* Rétablit la bordure propre sur mobile */
+        border: 1px solid #CBD5E1 !important;
     }}
 }}
 
-/* AJUSTEMENT 3 : CONTENEUR SPECIAL SUR PC POUR FIXER LA DIVISION 4 A 114PX AVEC SCROLL */
+/* BRIDAGE STRICT À 5 CONCURRENTS EN VISUEL POUR LA DIVISION 4 SUR PC */
 @media (min-width: 769px) {{
     .div-scroll-local-div4 {{
         height: 114px !important;
@@ -218,12 +218,20 @@ div.stElementContainer {{
     width: 100% !important; margin-bottom: 0px !important;
     border-collapse: collapse !important; table-layout: auto !important;
 }}
-.table-compacte tr {{ height: 18px !important; }}
+
+/* APPLICATION DE LA HAUTEUR À 17PX SUR TOUS LES TABLEAUX */
+.table-compacte tr {{ height: 17px !important; }}
+
+/* EXCEPTION : TABLEAU EN DIRECT RESTE À SON HAUTEUR D'ORIGINE DE 18PX */
+.table-live tr {{ height: 18px !important; }}
+
 .table-compacte th, .table-compacte td {{ 
-    height: 18px !important; padding: 1px 5px !important; line-height: 1.1 !important; 
+    height: 17px !important; padding: 1px 5px !important; line-height: 1.1 !important; 
     font-size: 0.85rem !important; color: #000000 !important; vertical-align: middle !important; 
     white-space: nowrap !important; 
 }}
+.table-live th, .table-live td {{ height: 18px !important; }}
+
 .table-compacte td {{ border-bottom: 1px solid #E0E0E0 !important; background-color: #FFFFFF !important; }}
 .table-compacte th {{ font-weight: bold !important; background-color: #F5F5F5 !important; border-bottom: 2px solid #CCCCCC !important; text-align: left !important; }}
 .table-live td:last-child, .table-class-robuste td:last-child {{ font-weight: bold !important; font-size: 0.94rem !important; color: #0F172A !important; }}
@@ -244,7 +252,7 @@ div.stElementContainer {{
     width: 100% !important;
 }}
 
-/* AJUSTEMENT 4 : LOGO DE SIGNATURE REDUIT A 24PX SUR PC */
+/* AJUSTEMENT : LOGO DE SIGNATURE RÉDUIT À 24PX SUR PC */
 .logo-signature {{
     height: 24px !important;
     width: auto !important;
@@ -252,22 +260,16 @@ div.stElementContainer {{
 }}
 
 @media (max-width: 768px) {{
-    .div-scroll-local-historique {{ max-height: none !important; height: auto !important; overflow-y: visible !important; border: none !important; }}
+    /* Ligne nettoyée du doublon de l'historique mobile qui l'écrasait */
     .block-container {{ padding-left: 2px !important; padding-right: 2px !important; }}
-    .titre-live, .titre-hist, .titre-classement {{ font-size: 0.85rem !important; padding: 3px 6px !important; }}
     .table-compacte th, .table-compacte td {{ font-size: 0.65rem !important; padding: 1px 2px !important; }}
     .table-hist td:nth-child(4) {{ max-width: 32px !important; overflow: hidden !important; text-overflow: clip !important; white-space: nowrap !important; }}
-    .table-compacte td:nth-child(3), table td:nth-child(3) {{ max-width: 60px !important; overflow: hidden !important; text-overflow: ellipsis !important; white-space: nowrap !important; }}
+    .table-compacte td:nth-child(3), table td:nth-child(3) {{ max-width: 60px !important; overflow: hidden !overflow: ellipsis !important; white-space: nowrap !important; }}
     .table-live td:last-child, .table-class-robuste td:last-child {{ font-size: 0.70rem !important; }}
     .signature-fin-page {{ font-size: 0.75rem !important; padding-top: 4px !important; }}
     .logo-signature {{ height: 32px !important; }}
-}}
-
-.table-class-robuste tr.ligne-bleue-separation td {{ box-shadow: inset 0 -3px 0 0 #1E3A8A !important; }}
-tr.ligne-separation-classe td, .table-compacte tr.ligne-separation-classe td {{ box-shadow: inset 0 -3px 0 0 #1E3A8A !important; }}
-
-/* AJUSTEMENT SPÉCIFIQUE SMARTPHONE : PASSE LE TITRE EN HAUTEUR AUTOMATIQUE S'IL FAUT 2 LIGNES */
-@media (max-width: 768px) {{
+    
+    /* AJUSTEMENT SPÉCIFIQUE SMARTPHONE : PASSE LE TITRE EN HAUTEUR AUTOMATIQUE S'IL FAUT 2 LIGNES */
     .titre-live, .titre-hist, .titre-classement {{
         height: auto !important;
         max-height: none !important;
@@ -275,6 +277,9 @@ tr.ligne-separation-classe td, .table-compacte tr.ligne-separation-classe td {{ 
         padding: 4px 8px !important;
     }}
 }}
+
+.table-class-robuste tr.ligne-bleue-separation td {{ box-shadow: inset 0 -3px 0 0 #1E3A8A !important; }}
+tr.ligne-separation-classe td, .table-compacte tr.ligne-separation-classe td {{ box-shadow: inset 0 -3px 0 0 #1E3A8A !important; }}
 </style>
 """, unsafe_allow_html=True)
 
@@ -308,6 +313,7 @@ def gen_html(df, cl):
         return f"<div class='div-scroll-local-historique'>{html_table}</div>"
         
     return f"<div class='table-responsive-container'>{html_table}</div>"
+
 # fin bloc 2
 # --- LECTURE DU PARAMÈTRE DE COURSE DEPUIS L'URL ---
 query_params = st.query_params
