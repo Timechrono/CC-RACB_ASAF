@@ -88,11 +88,12 @@ html, body, [data-testid="stAppViewContainer"], [data-testid="stMainBlockContain
     padding-bottom: 0px !important; 
     padding-left: 0.5rem !important; 
     padding-right: 0.5rem !important; 
-    margin-bottom: 0px !important; /* Remis à 0px pour réparer l'affichage des colonnes */
+    margin-bottom: 0px !important;
 }}
 
-/* On neutralise proprement le footer sans casser le layout */
+/* Masquage strict et standard du footer Streamlit d'origine */
 footer {{
+    display: none !important;
     visibility: hidden !important;
     opacity: 0 !important;
     height: 0px !important;
@@ -100,33 +101,29 @@ footer {{
     margin: 0px !important;
 }}
 
-/* AJOUT : Supprime l'espace forcé tout en bas de la structure Streamlit */
+/* Supprime l'espace forcé tout en bas de la structure Streamlit */
 [data-testid="stAppViewContainer"] {{
     padding-bottom: 0px !important;
 }}
+
 div[data-testid="stMainBlockContainer"] > div:last-child {{
     padding-bottom: 0px !important;
     margin-bottom: 0px !important;
 }}
-
-
-/* AJOUT SÉCURITÉ : Supprime l'espace imposé par Streamlit juste au-dessus du footer gris */
-div[data-testid="stMainBlockContainer"] > div:last-child {{
-    padding-bottom: 0px !important;
-    margin-bottom: 0px !important;
-}}
-
 
 div[data-testid="stVerticalBlock"] {{
     gap: 0rem !important;
     padding-top: 0px !important;
 }}
+
 div.stElementContainer {{
     margin-top: 0px !important;
     margin-bottom: 0px !important;
     padding-top: 0px !important;
     padding-bottom: 0px !important;
 }}
+
+
 .titre-live, .titre-hist, .titre-classement {{
     color: #FFFFFF !important; font-size: 1.05rem !important; font-weight: bold !important;
     padding: 2px 6px !important; border-radius: 3px !important;
@@ -235,14 +232,15 @@ div.stElementContainer {{
     font-weight: bold !important;
     padding-top: 4px !important;        
     width: 100% !important;
-    clear: both !important;
     line-height: 1.0 !important;
-    
-    /* ANCRAGE FIXE ABSOLU AU RAS DU SOL VISUEL */
     border-top: 1px dashed #1E3A8A !important;
-    margin-top: 25px !important; 
-    padding-bottom: 5px !important;
+    
+    /* FORCE LE BLOC À SE RECALER TOUT EN BAS DE LA PAGE WEB */
+    clear: both !important;
+    margin-top: 25px !important;
+    float: left !important;
 }}
+
 
 .logo-signature {{
     height: 24px !important;            
@@ -404,12 +402,16 @@ with cd:
             st.markdown(f"<span class='titre-classement espace-classement-suivant'>{t_bas}</span>", unsafe_allow_html=True)
             st.markdown(f"<div class='ajust-hauteur-pc-5' style='display: block;'>{gen_html(d_milieu, 'table-class-robuste')}</div>", unsafe_allow_html=True)
 
+# Force la fermeture invisible des colonnes Streamlit avant d'afficher la signature
+st.markdown("<div style='clear: both; display: block; width: 100%; height: 1px;'></div>", unsafe_allow_html=True)
+
 st.markdown(f"""
 <div class='signature-fin-page'>
     <img src='{LIEN_DROPBOX_LOGO}' class='logo-signature'>
     www.timechrono.be
 </div>
 """, unsafe_allow_html=True)
+
 
 # CODE ACTUEL (À MODIFIER)
 for secondes_restantes in range(30, -1, -1):
