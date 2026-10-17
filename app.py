@@ -148,6 +148,17 @@ div.stElementContainer {{
         overflow-y: auto !important;
     }}
 }}
+
+/* Hauteur sur-mesure sur PC pour s'aligner avec le bas de la colonne de droite */
+@media (min-width: 769px) {{
+    .div-scroll-local-historique {{
+        height: 595px !important;
+        max-height: 595px !important;
+        overflow-y: auto !important;
+    }}
+}}
+
+
 # fin bloc 1
 /* Hauteur d'origine conservée sur smartphone */
 @media (max-width: 768px) {{
