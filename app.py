@@ -304,8 +304,8 @@ with cg:
 with cd:
     # 1. Détection ultra-fiable de la hauteur selon le nom de la course active
     if "ESSAIS" in choix_course.upper():
-        h_pc_10 = "220px"  # Hauteur parfaite sans scroll pour 10 concurrents (RACB / Div 123)
-        h_pc_5 = "120px"   # Hauteur parfaite sans scroll pour 5 concurrents (Div 4)
+        h_pc_10 = "220px"  # Hauteur fixe compacte pour le Top 10 (défilement si plus de 10)
+        h_pc_5 = "120px"   # Hauteur fixe compacte pour le Top 5 (défilement si plus de 5)
     elif "COURSE 1" in choix_course.upper():
         h_pc_10 = "425px"  
         h_pc_5 = "425px"
@@ -313,17 +313,17 @@ with cd:
         h_pc_10 = "380px"  
         h_pc_5 = "380px"
 
-    h_mob = "auto"
+    h_mob = "380px"  # Hauteur maximale sur smartphone avant de scroller
 
-    # 2. Injection CSS dynamique adaptée aux nouvelles limites de lignes
+    # 2. Injection CSS dynamique (Rétablissement du scroll auto à la place de hidden)
     st.markdown(f"""
     <style>
       @media (min-width: 769px) {{ 
-          .ajust-hauteur-pc-10 {{ max-height: {h_pc_10} !important; overflow-y: hidden !important; }} 
-          .ajust-hauteur-pc-5 {{ max-height: {h_pc_5} !important; overflow-y: hidden !important; }} 
+          .ajust-hauteur-pc-10 {{ height: {h_pc_10} !important; max-height: {h_pc_10} !important; overflow-y: auto !important; }} 
+          .ajust-hauteur-pc-5 {{ height: {h_pc_5} !important; max-height: {h_pc_5} !important; overflow-y: auto !important; }} 
       }}
       @media (max-width: 768px) {{ 
-          .ajust-hauteur-pc-10, .ajust-hauteur-pc-5 {{ max-height: {h_mob} !important; }} 
+          .ajust-hauteur-pc-10, .ajust-hauteur-pc-5 {{ height: auto !important; max-height: {h_mob} !important; overflow-y: auto !important; }} 
       }}
     </style>
     """, unsafe_allow_html=True)
@@ -350,6 +350,7 @@ with cd:
         if t_bas:
             st.markdown(f"<span class='titre-classement espace-classement-suivant'>{t_bas}</span>", unsafe_allow_html=True)
             st.markdown(f"<div class='ajust-hauteur-pc-5' style='display: block;'>{gen_html(d_milieu, 'table-class-robuste')}</div>", unsafe_allow_html=True)
+
 
 
 
