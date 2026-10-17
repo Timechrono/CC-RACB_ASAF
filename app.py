@@ -187,18 +187,20 @@ div.stElementContainer {{
 .signature-fin-page {{
     display: flex !important;
     justify-content: center !important;
-    align-items: flex-start !important; /* Aligne le logo et le texte tout en haut, contre la ligne */
+    align-items: center !important;     /* Rétablit le centrage vertical parfait entre logo et texte */
     gap: 12px !important;
     text-align: center !important;
     color: #1E3A8A !important;
     font-size: 0.92rem !important;
     font-weight: bold !important;
-    padding-top: 2px !important;        /* Maintenant, ce padding à 2px fonctionne réellement */
+    padding-top: 3px !important;        /* Espace ultra-serré sous la ligne pointillée */
     margin-top: 20px !important; 
     border-top: 1px dashed #1E3A8A !important;
     width: 100% !important;
     clear: both !important;
+    line-height: 34px !important;       /* Aligne la hauteur de ligne textuelle sur la hauteur du logo (34px) */
 }}
+
 
 
 
