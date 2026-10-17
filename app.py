@@ -140,8 +140,8 @@ div.stElementContainer {{
 /* Hauteur sur-mesure sur PC pour s'aligner avec le bas de la colonne de droite */
 @media (min-width: 769px) {{
     .div-scroll-local-historique {{
-        height: 447px !important;
-        max-height: 447px !important;
+        height: 450px !important;
+        max-height: 450px !important;
         overflow-y: auto !important;
     }}
 }}
