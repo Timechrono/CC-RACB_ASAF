@@ -130,14 +130,15 @@ div.stElementContainer {{
     background-color: #DCF2E8 !important;
     border: 1px solid #3B8F44 !important;
     font-weight: bold !important;
-    font-size: 11px !important;           /* TEXTE LÉGÈREMENT PLUS PETIT */
-    padding: 0px 5px !important;          /* CADRE RESSERRÉ (0px en haut/bas, 5px sur les côtés) */
-    line-height: 14px !important;         /* HAUTEUR VERTICALE INTERNE PLUS PETITE */
+    font-size: 13px !important;           /* TAILLE INTERMÉDIAIRE IDÉALE */
+    padding: 1px 6px !important;          /* REHAUSSÉ LÉGÈREMENT POUR REDONNER DE L'AIR */
+    line-height: 16px !important;         /* HAUTEUR AJUSTÉE POUR RESTER COMPACTE */
     border-radius: 4px !important;
     display: inline-block !important;
     margin-left: 4px !important;
-    vertical-align: middle !important;    /* FORCE LE CENTRAGE PARFAIT DANS LE TITRE DE 24PX */
+    vertical-align: middle !important;    /* MAINTIENT LE CENTRAGE HORIZONTAL */
 }}
+
 
 
 
