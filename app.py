@@ -69,9 +69,9 @@ st.set_page_config(page_title="Live", layout="wide")
 st.markdown(f"""
 <style>
 /* SUPPRESSION DU BANDEAU BLANC ET DU FOOTER STREAMLIT */
-footer {{ visibility: hidden !important; height: 0px !important; padding: 0px !important; margin: 0px !important; }}
-[data-testid="stFooterContainer"] {{ display: none !important; height: 0px !important; padding: 0px !important; }}
-[data-testid="stAppViewBlockContainer"] {{ padding-bottom: 0px !important; }}
+footer {{ display: none !important; visibility: hidden !important; height: 0px !important; }}
+[data-testid="stFooterContainer"] {{ display: none !important; height: 0px !important; border: none !important; background: transparent !important; }}
+
 
 [data-testid="stHeader"] {{ display: none !important; }}
 button:focus, div:focus, input:focus, select:focus {{
