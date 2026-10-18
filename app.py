@@ -66,34 +66,36 @@ st.set_page_config(page_title="Live", layout="wide")
 
 # --- CONCEPTION GRAPHIQUE GÉOMÉTRIQUE UNIFIÉE ---
 st.markdown(f"""
+
 <style>
 
-/* FORCE LA RÉDUCTION DE HAUTEUR AU STRICT MINIMUM DE TOUTES LES BARRES STREAMLIT */
-[data-testid="stStatusWidget"], 
-.stStatusWidget, 
+/* 1. FORCE L'EFFACEMENT TOTAL ET LOGICIEL DES CONSTRUCTEURS STREAMLIT (PC & MOBILE) */
+footer, 
 [data-testid="stFooterContainer"], 
-footer {{
-    height: 1px !important;
-    max-height: 1px !important;
-    min-height: 1px !important;
+[data-testid="stStatusWidget"], 
+.stStatusWidget,
+[data-testid="stHeader"], 
+[data-testid="stDecoration"] {{
+    display: none !important;
+    visibility: hidden !important;
+    height: 0px !important;
+    max-height: 0px !important;
+    min-height: 0px !important;
     margin: 0px !important;
     padding: 0px !important;
     overflow: hidden !important;
+    opacity: 0 !important;
     line-height: 0 !important;
     font-size: 0 !important;
-    opacity: 0.01 !important; /* Presque totalement transparente */
+    position: absolute !important; /* Sort l'élément du flux pour libérer l'espace en bas */
+    bottom: -9999px !important;    /* Propulse la barre invisible hors de l'écran */
 }}
 
-/* Masque complètement les éléments de marque et les barres de statut Streamlit */
-footer {{ visibility: hidden !important; }}
-[data-testid="stDecoration"] {{ display: none !important; }}
-
-[data-testid="stHeader"] {{ display: none !important; }}
 button:focus, div:focus, input:focus, select:focus {{
     outline: none !important; border-color: transparent !important; box-shadow: none !important;
 }}
 
-/* RESTAURATION COMPLÈTE DU SCROLL SUR TOUTE LA PAGE WEB */
+/* 2. CONFIGURATION ET SCROLL DE LA PAGE GLOBALE */
 html, body, [data-testid="stAppViewContainer"], [data-testid="stMainBlockContainer"] {{
     overflow: auto !important;
     overflow-y: auto !important;
@@ -101,18 +103,18 @@ html, body, [data-testid="stAppViewContainer"], [data-testid="stMainBlockContain
     max-height: none !important;
 }}
 
-/* Espace par défaut (très réduit) pour les smartphones */
+/* Évite l'espace vide sous la signature sur Smartphone */
 .block-container {{ 
     padding-top: 5px !important; 
-    padding-bottom: 5px !important; /* Réduit au strict minimum sur Mobile */
+    padding-bottom: 5px !important; 
     padding-left: 0.5rem !important; 
     padding-right: 0.5rem !important; 
 }}
 
-/* Espace de sécurité de 60px appliqué UNIQUEMENT sur PC (écrans larges) */
+/* Marge de sécurité appliquée uniquement sur PC */
 @media (min-width: 769px) {{
     .block-container {{ 
-        padding-bottom: 60px !important; 
+        padding-bottom: 40px !important; 
     }}
 }}
 
@@ -127,14 +129,12 @@ div.stElementContainer {{
     padding-bottom: 0px !important;
 }}
 
-/* AJUSTEMENT 1 : HAUTEUR PHYSIQUE DU BANDEAU DE TITRE A 24PX */
-/* REGLAGE DU TITRE A 24PX AVEC EMOJI DE SCROLL REPOUSSÉ À DROITE */
+/* 3. STRUCTURATION DES BANDEAUX DE TITRES GRAPHIQUES */
 .titre-live, .titre-hist, .titre-classement {{
     color: #FFFFFF !important; font-size: 1.02rem !important; font-weight: bold !important;
     height: 26px !important; max-height: 26px !important;
     padding: 0px 8px !important; border-radius: 3px !important;
     width: 100% !important; clear: both !important;
-    /* STRUCTURE FLEXBOX POUR CHASSER L'EMOJI A DROITE */
     display: flex !important;
     justify-content: space-between !important;
     align-items: center !important;
@@ -144,88 +144,30 @@ div.stElementContainer {{
 .titre-hist {{ background-color: #475569 !important; margin-top: 15px !important; margin-bottom: 6px !important; }}
 .titre-classement {{ background-color: #1E3A8A !important; margin-top: 0px !important; margin-bottom: 6px !important; }}
 
-.table-hist td:last-child {{ 
-    font-weight: bold !important; 
-    color: #0F172A !important; 
-}}
-
 .refresh-bleu-clair-historique {{
     color: #064E3B !important;
     background-color: #DCF2E8 !important;
     border: 1px solid #3B8F44 !important;
     font-weight: bold !important;
-    font-size: 13px !important;           /* TAILLE INTERMÉDIAIRE IDÉALE */
-    padding: 1px 6px !important;          /* REHAUSSÉ LÉGÈREMENT POUR REDONNER DE L'AIR */
-    line-height: 16px !important;         /* HAUTEUR AJUSTÉE POUR RESTER COMPACTE */
+    font-size: 13px !important;
+    padding: 1px 6px !important;
+    line-height: 16px !important;
     border-radius: 4px !important;
     display: inline-block !important;
     margin-left: 4px !important;
-    vertical-align: middle !important;    /* MAINTIENT LE CENTRAGE HORIZONTAL */
+    vertical-align: middle !important;
 }}
-
-
-
 
 .espace-classement-suivant {{
     margin-top: 15px !important;
 }}
 
-/* BOÎTES DE SCROLL INTERNES CLOISONNÉES AUTONOMES COORDONNÉES */
+/* 4. BLOCS DE SCROLL INTERNES CLOISONNÉS */
 .div-scroll-local-historique {{
     width: 100% !important;
     border: 1px solid #CBD5E1 !important;
 }}
-/* AJUSTEMENT 2 : HAUTEUR DE L'HISTORIQUE SUR PC FORCEE A 456PX */
-@media (min-width: 769px) {{
-    .div-scroll-local-historique {{
-        height: 456px !important;
-        max-height: 456px !important;
-        overflow-y: auto !important;
-    }}
-}}
 
-/* Hauteur sur-mesure sur PC pour s'aligner avec le bas de la colonne de droite */
-@media (min-width: 769px) {{
-    .div-scroll-local-historique {{
-        height: 456px !important;
-        max-height: 456px !important;
-        overflow-y: auto !important;
-    }}
-}}
-
-
-# fin bloc 1
-
-/* CONFIGURATION DU SCROLL HISTORIQUE SUR PC */
-@media (min-width: 769px) {{
-    .div-scroll-local-historique {{
-        height: 456px !important;
-        max-height: 456px !important;
-        overflow-y: auto !important;
-        display: block !important;
-    }}
-}}
-
-/* BRIDAGE STRICT À 5 CONCURRENTS EN VISUEL POUR LA DIVISION 4 SUR PC */
-@media (min-width: 769px) {{
-    .div-scroll-local-div4 {{
-        height: 114px !important;
-        max-height: 114px !important;
-        overflow-y: auto !important;
-        width: 100% !important;
-        display: block !important;
-    }}
-}}
-@media (max-width: 768px) {{
-    .div-scroll-local-div4 {{
-        height: auto !important;
-        max-height: none !important;
-        overflow-y: visible !important;
-        display: block !important;
-    }}
-}}
-
-/* Suppression des contraintes fixes de hauteur sur general et classes pour laisser l'adaptation */
 .div-scroll-local-general, .div-scroll-local-classes {{
     height: auto !important;
     max-height: none !important;
@@ -234,10 +176,45 @@ div.stElementContainer {{
     border: none !important;
 }}
 
+@media (min-width: 769px) {{
+    .div-scroll-local-historique {{
+        height: 456px !important;
+        max-height: 456px !important;
+        overflow-y: auto !important;
+        display: block !important;
+    }}
+    .div-scroll-local-div4 {{
+        height: 114px !important;
+        max-height: 114px !important;
+        overflow-y: auto !important;
+        width: 100% !important;
+        display: block !important;
+    }}
+}}
+
+@media (max-width: 768px) {{
+    .block-container {{ padding-left: 2px !important; padding-right: 2px !important; }}
+    
+    .div-scroll-local-historique {{
+        height: 1025px !important;
+        max-height: 1025px !important;
+        overflow-y: auto !important;
+        display: block !important;
+        -webkit-overflow-scrolling: touch !important;
+        border: 1px solid #CBD5E1 !important;
+    }}
+    .div-scroll-local-div4 {{
+        height: auto !important;
+        max-height: none !important;
+        overflow-y: visible !important;
+        display: block !important;
+    }}
+}}
+
+/* 5. DESIGN ET RENDU COMPACT DES TABLEAUX */
 .table-responsive-container {{
     width: 100% !important;
 }}
-
 .table-compacte {{
     width: 100% !important; margin-bottom: 0px !important;
     border-collapse: collapse !important; table-layout: auto !important;
@@ -250,10 +227,37 @@ div.stElementContainer {{
 }}
 .table-compacte td {{ border-bottom: 1px solid #E0E0E0 !important; background-color: #FFFFFF !important; }}
 .table-compacte th {{ font-weight: bold !important; background-color: #F5F5F5 !important; border-bottom: 2px solid #CCCCCC !important; text-align: left !important; }}
-.table-live td:last-child, .table-class-robuste td:last-child {{ font-weight: bold !important; font-size: 0.94rem !important; color: #0F172A !important; }}
+
+.table-live td:last-child, .table-class-robuste td:last-child, .table-hist td:last-child {{ 
+    font-weight: bold !important; font-size: 0.94rem !important; color: #0F172A !important; 
+}}
 .table-hist tr:nth-child(odd) td {{ background-color: #E0F2FE !important; }}
 
-/* Ajoutez "margin-bottom: 50px !important;" à votre classe existante */
+@media (max-width: 768px) {{
+    .table-compacte th, .table-compacte td {{ 
+        font-size: 0.65rem !important; 
+        padding: 1px 2px !important; 
+        height: 25px !important; 
+    }}
+    .table-hist td:nth-child(4) {{ max-width: 32px !important; overflow: hidden !important; text-overflow: clip !important; white-space: nowrap !important; }}
+    .table-compacte td:nth-child(3), table td:nth-child(3) {{ max-width: 60px !important; overflow: hidden !important; text-overflow: ellipsis !important; white-space: nowrap !important; }}
+    .table-live td:last-child, .table-class-robuste td:last-child {{ font-size: 0.70rem !important; }}
+    
+    .titre-live, .titre-hist, .titre-classement {{
+        height: auto !important;
+        max-height: none !important;
+        line-height: 1.3 !important;
+        padding: 4px 8px !important;
+    }}
+}}
+
+.table-class-robuste tr.ligne-bleue-separation td,
+tr.ligne-separation-classe td, 
+.table-compacte tr.ligne-separation-classe td {{ 
+    box-shadow: inset 0 -3px 0 0 #1E3A8A !important; 
+}}
+
+/* 6. CORRECTION DE LA SIGNATURE DE FIN DE PAGE */
 .signature-fin-page {{
     display: flex !important;
     justify-content: center !important;
@@ -265,13 +269,11 @@ div.stElementContainer {{
     font-weight: bold !important;
     padding-top: 6px !important;
     margin-top: 25px !important;
-    margin-bottom: 50px !important; /* Repousse la signature vers le haut sur PC */
+    margin-bottom: 10px !important; /* Marge propre et légère */
     border-top: 1px dashed #1E3A8A !important;
     width: 100% !important;
 }}
 
-
-/* AJUSTEMENT : LOGO DE SIGNATURE REDUIT A 24PX SUR PC */
 .logo-signature {{
     height: 24px !important;
     width: auto !important;
@@ -279,43 +281,12 @@ div.stElementContainer {{
 }}
 
 @media (max-width: 768px) {{
-    .block-container {{ padding-left: 2px !important; padding-right: 2px !important; }}
-    
-    /* BRIDAGE STRICT À 40 LIGNES MAXIMUM ET ACTIVATION DU SCROLL SUR SMARTPHONE */
-    .div-scroll-local-historique {{
-        height: 1025px !important;
-        max-height: 1025px !important;
-        overflow-y: auto !important;
-        display: block !important;
-        -webkit-overflow-scrolling: touch !important;
-        border: 1px solid #CBD5E1 !important;
-    }}
-    
-    /* Ajustement de la hauteur de ligne sur mobile pour fiabiliser le calcul du bridage */
-    .table-compacte th, .table-compacte td {{ 
-        font-size: 0.65rem !important; 
-        padding: 1px 2px !important; 
-        height: 25px !important; 
-    }}
-    
-    .table-hist td:nth-child(4) {{ max-width: 32px !important; overflow: hidden !important; text-overflow: clip !important; white-space: nowrap !important; }}
-    .table-compacte td:nth-child(3), table td:nth-child(3) {{ max-width: 60px !important; overflow: hidden !important; text-overflow: ellipsis !important; white-space: nowrap !important; }}
-    .table-live td:last-child, .table-class-robuste td:last-child {{ font-size: 0.70rem !important; }}
-    .signature-fin-page {{ font-size: 0.75rem !important; padding-top: 4px !important; }}
+    .signature-fin-page {{ font-size: 0.75rem !important; padding-top: 4px !important; margin-bottom: 0px !important; }}
     .logo-signature {{ height: 32px !important; }}
-    
-    /* AJUSTEMENT SPÉCIFIQUE SMARTPHONE : PASSE LE TITRE EN HAUTEUR AUTOMATIQUE S'IL FAUT 2 LIGNES */
-    .titre-live, .titre-hist, .titre-classement {{
-        height: auto !important;
-        max-height: none !important;
-        line-height: 1.3 !important;
-        padding: 4px 8px !important;
-    }}
 }}
 
-.table-class-robuste tr.ligne-bleue-separation td {{ box-shadow: inset 0 -3px 0 0 #1E3A8A !important; }}
-tr.ligne-separation-classe td, .table-compacte tr.ligne-separation-classe td {{ box-shadow: inset 0 -3px 0 0 #1E3A8A !important; }}
 </style>
+
 """, unsafe_allow_html=True)
 
 def gen_html(df, cl):
