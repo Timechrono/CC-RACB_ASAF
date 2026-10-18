@@ -351,12 +351,6 @@ tr.ligne-separation-classe td,
 </style>
 
 
-
-
-
-
-
-
 """, unsafe_allow_html=True)
 
 def gen_html(df, cl):
