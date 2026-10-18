@@ -290,9 +290,9 @@ tr.ligne-separation-classe td,
     color: #1E3A8A !important;
     font-size: 0.92rem !important;
     font-weight: bold !important;
-    padding-top: 6px !important;
-    margin-top: 15px !important;    /* CHANGÉ : Réduit l'espace au-dessus de la signature pour tout remonter */
-    margin-bottom: -15px !important; /* CHANGÉ : Marge négative pour forcer la signature à descendre dans l'espace vide */
+    padding-top: 4px !important;
+    margin-top: 8px !important;     /* Espace minimaliste au-dessus */
+    margin-bottom: 0px !important;    /* Bloqué au ras du sol */
     border-top: 1px dashed #1E3A8A !important;
     width: 100% !important;
 }}
