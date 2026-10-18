@@ -69,16 +69,18 @@ st.markdown(f"""
 
 <style>
 
-/* 1. DISPARITION TOTALE, RADICALE ET ABSOLUE DE TOUTE L'INFRASTRUCTURE STREAMLIT (PC & MOBILE) */
+/* 1. NETTOYAGE RADICAL DES COMPOSANTS ET EN-TÊTES STREAMLIT */
 footer, 
 [data-testid="stFooterContainer"], 
 [data-testid="stStatusWidget"], 
 .stStatusWidget,
 [data-testid="stHeader"], 
 [data-testid="stDecoration"],
-[class*="viewerBadge"],
+[data-testid="stAppEmbedFooter"],
+div[class*="StyledFooter"],
+div[class*="viewerBadge"],
 [class*="embeddedAppMetaInfoBar"],
-[data-testid="stAppEmbedFooter"] {{
+.stAppDeployButton {{
     display: none !important;
     visibility: hidden !important;
     height: 0px !important;
@@ -92,26 +94,29 @@ footer,
     font-size: 0 !important;
 }}
 
-/* TUER LE SCROLL FANTÔME ET LA ZONE DE COMPRESSION DU LOGO SUR PC */
+/* 2. DESTRUCTION DU SCROLL FANTÔME SUR PC (BLOQUE LE FOND DE PAGE) */
 @media (min-width: 769px) {{
-    footer, [data-testid="stFooterContainer"], [data-testid="stStatusWidget"], .stStatusWidget {{
-        position: fixed !important;
-        bottom: -500px !important;
-        transform: translateY(500px) !important;
-    }}
-    /* Force le conteneur racine de Streamlit à ignorer le calcul d'espace de la barre */
-    .stApp, [data-testid="stApp"] {{
-        max-height: 100vh !important;
-        height: 100vh !important;
+    html, body, .stApp, [data-testid="stApp"], .main, .stAppViewMain, [data-testid="stAppViewContainer"] {{
         overflow: hidden !important;
+        overflow-y: hidden !important;
+        height: 100vh !important;
+        max-height: 100vh !important;
+    }}
+    
+    /* Permet le défilement uniquement dans la zone utile de vos données */
+    [data-testid="stMainBlockContainer"] {{
+        overflow-y: auto !important;
+        max-height: 100vh !important;
     }}
 }}
 
+/* RESTAURATION DU SCROLL NORMAL SUR SMARTPHONE */
 @media (max-width: 768px) {{
-    footer, [data-testid="stFooterContainer"], [data-testid="stStatusWidget"], .stStatusWidget {{
-        position: static !important;
-        bottom: auto !important;
-        transform: none !important;
+    html, body, [data-testid="stAppViewContainer"], [data-testid="stMainBlockContainer"], .main, .stAppViewMain {{
+        overflow: auto !important;
+        overflow-y: auto !important;
+        height: auto !important;
+        max-height: none !important;
     }}
 }}
 
@@ -119,29 +124,21 @@ button:focus, div:focus, input:focus, select:focus {{
     outline: none !important; border-color: transparent !important; box-shadow: none !important;
 }}
 
-/* 2. CONFIGURATION DE LA PAGE ET MAXIMISATION DE L'ESPACE UTILE */
-html, body, [data-testid="stAppViewContainer"], [data-testid="stMainBlockContainer"] {{
-    overflow: auto !important;
-    overflow-y: auto !important;
-    height: auto !important;
-    max-height: none !important;
-}}
-
+/* 3. CONFIGURATION DES MARGES DES BLOCS DE CONTENU */
 .block-container {{ 
     padding-top: 5px !important; 
     padding-left: 0.5rem !important; 
     padding-right: 0.5rem !important; 
 }}
 
-/* Élimination totale du vide inutile en bas sur PC */
 @media (min-width: 769px) {{
     .block-container {{ 
-        padding-bottom: 2px !important; 
+        padding-bottom: 5px !important; /* Collé au strict minimum sur PC */
     }}
 }}
 @media (max-width: 768px) {{
     .block-container {{ 
-        padding-bottom: 25px !important; 
+        padding-bottom: 25px !important; /* Coussin mobile conservé */
     }}
 }}
 
@@ -156,7 +153,7 @@ div.stElementContainer {{
     padding-bottom: 0px !important;
 }}
 
-/* 3. STRUCTURATION DES BANDEAUX DE TITRES GRAPHIQUES */
+/* 4. STRUCTURATION DES BANDEAUX DE TITRES GRAPHIQUES */
 .titre-live, .titre-hist, .titre-classement {{
     color: #FFFFFF !important; font-size: 1.02rem !important; font-weight: bold !important;
     height: 26px !important; max-height: 26px !important;
@@ -189,7 +186,7 @@ div.stElementContainer {{
     margin-top: 15px !important;
 }}
 
-/* 4. BLOCS DE SCROLL INTERNES CLOISONNÉS */
+/* 5. BLOCS DE SCROLL INTERNES CLOISONNÉS */
 .div-scroll-local-historique {{
     width: 100% !important;
     border: 1px solid #CBD5E1 !important;
@@ -238,7 +235,7 @@ div.stElementContainer {{
     }}
 }}
 
-/* 5. DESIGN ET RENDU COMPACT DES TABLEAUX */
+/* 6. DESIGN COMPACT DES TABLEAUX */
 .table-responsive-container {{
     width: 100% !important;
 }}
@@ -284,7 +281,7 @@ tr.ligne-separation-classe td,
     box-shadow: inset 0 -3px 0 0 #1E3A8A !important; 
 }}
 
-/* 6. SIGNATURE DE FIN DE PAGE ET COLLAGE STRICT AU BAS DE L'ÉCRAN */
+/* 7. DESIGN ET COLLAGE STRICT DE LA SIGNATURE DE FIN DE PAGE */
 .signature-fin-page {{
     display: flex !important;
     justify-content: center !important;
@@ -317,6 +314,7 @@ tr.ligne-separation-classe td,
 }}
 
 </style>
+
 
 """, unsafe_allow_html=True)
 
