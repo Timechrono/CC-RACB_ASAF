@@ -441,9 +441,9 @@ if t_haut and "TOP 20" in t_haut.upper():
 if "ESSAIS" in choix_course.upper():
     h_pc = "240px"
 elif "COURSE 1" in choix_course.upper():
-    h_pc = "425px"
+    h_pc = "240px"
 else:
-    h_pc = "380px"
+    h_pc = "240px"
 
 cg, cd = st.columns([1.3, 0.9])
 with cg:
@@ -453,52 +453,36 @@ with cg:
         st.markdown(f"<span class='titre-hist'>{t_his}</span>", unsafe_allow_html=True)
     st.markdown(gen_html(d_his, "table-hist"), unsafe_allow_html=True)
     
-with cd:
-    h_mob = "380px"
+# 1. DÉFINITION DU COMPORTEMENT SUR MOBILE UNIQUE
+h_mob = "380px"
 
-    # Injection CSS dynamique
-    st.markdown(f"""
-    <style>
-      @media (min-width: 769px) {{ .ajust-hauteur-pc {{ max-height: {h_pc} !important; }} }}
-      @media (max-width: 768px) {{ .ajust-hauteur-pc {{ max-height: {h_mob} !important; }} }}
-    </style>
-    """, unsafe_allow_html=True)
-
-    if choix_course != "Essais":
-        # --- MODE DE COURSE ---
-        if t_haut:
-            st.markdown(f"<span class='titre-classement'>{t_haut}</span>", unsafe_allow_html=True)
-            st.markdown(f"<div class='ajust-hauteur-pc' style='overflow-y: auto; display: block;'>{gen_html(d_haut, 'table-class-robuste')}</div>", unsafe_allow_html=True)
-        if t_milieu:
-            st.markdown(f"<span class='titre-classement espace-classement-suivant'>{t_milieu}</span>", unsafe_allow_html=True)
-            st.markdown(f"<div class='ajust-hauteur-pc' style='overflow-y: auto; display: block;'>{gen_html(d_milieu, 'table-class-milieu')}</div>", unsafe_allow_html=True)
-        if t_bas:
-            st.markdown(f"<span class='titre-classement espace-classement-suivant'>{t_bas}</span>", unsafe_allow_html=True)
-            nb_lignes = len(d_bas) if hasattr(d_bas, '__len__') else 0
-            style_scroll = "class='ajust-hauteur-pc' style='overflow-y: auto; display: block;'" if nb_lignes > 10 else "style='height: auto; display: block;'"
-            st.markdown(f"<div {style_scroll}>{gen_html(d_bas, 'table-class-robuste')}</div>", unsafe_allow_html=True)
-    else:
-        # --- MODE ESSAIS ---
-        if t_haut:
-            st.markdown(f"<span class='titre-classement'>{t_haut}</span>", unsafe_allow_html=True)
-            st.markdown(f"<div class='ajust-hauteur-pc' style='overflow-y: auto; display: block;'>{gen_html(d_bas, 'table-class-robuste')}</div>", unsafe_allow_html=True)
-        if t_milieu:
-            st.markdown(f"<span class='titre-classement espace-classement-suivant'>{t_milieu}</span>", unsafe_allow_html=True)
-            st.markdown(f"<div class='ajust-hauteur-pc' style='overflow-y: auto; display: block;'>{gen_html(d_haut, 'table-class-robuste')}</div>", unsafe_allow_html=True)
-        if t_bas:
-            st.markdown(f"<span class='titre-classement espace-classement-suivant'>{t_bas}</span>", unsafe_allow_html=True)
-            
-            # APPLICATION BRIDAGE : Encapsulation dans le conteneur forcé à 114px pour la Division 4 en mode Essais
-            st.markdown(f"<div class='div-scroll-local-div4'>{gen_html(d_milieu, 'table-class-robuste')}</div>", unsafe_allow_html=True)
-
-
-
+# 2. INJECTION DU SYSTÈME FLEX PC : Rend le remplissage des tableaux 100% automatique
 st.markdown(f"""
-<div class='signature-fin-page'>
-    <img src='{LIEN_DROPBOX_LOGO}' class='logo-signature'>
-    www.timechrono.be
-</div>
+<style>
+  @media (min-width: 769px) {{
+    /* Force la colonne de droite à occuper toute la hauteur disponible sans déborder */
+    div[data-testid="stColumn"]:nth-of-type(2) {{
+        display: flex !important;
+        flex-direction: column !important;
+        height: 490px !important; /* Calé sur la même hauteur exacte que l'historique de gauche */
+        justify-content: flex-start !important;
+    }}
+    
+    /* Chaque conteneur de tableau s'ajuste tout seul à l'espace restant */
+    .ajust-hauteur-pc {{ 
+        flex-grow: 1 !important;
+        overflow-y: auto !important; 
+        display: block !important;
+        height: auto !important;
+        max-height: none !important;
+    }}
+  }}
+  @media (max-width: 768px) {{ 
+    .ajust-hauteur-pc {{ max-height: {h_mob} !important; }} 
+  }}
+</style>
 """, unsafe_allow_html=True)
+
 
 # CODE ACTUEL
 for secondes_restantes in range(30, -1, -1):
