@@ -69,7 +69,7 @@ st.markdown(f"""
 
 <style>
 
-/* 1. DISPARITION LOGICIELLE DES BARRES STREAMLIT - RENDU DE BASE */
+/* 1. DISPARITION TOTALE ET RADICALE DES COMPOSANTS STREAMLIT (PC & MOBILE) */
 footer, 
 [data-testid="stFooterContainer"], 
 [data-testid="stStatusWidget"], 
@@ -89,19 +89,20 @@ footer,
     font-size: 0 !important;
 }}
 
-/* COMPORTEMENT SPÉCIFIQUE PC : ON ÉJECTE HORS ÉCRAN POUR LIBÉRER LA SIGNATURE */
+/* L'ASTUCE SUR PC : ON EXTRACT LE PIED DE PAGE HORS DE L'ESPACE DE CALCUL DU NAVIGATEUR */
 @media (min-width: 769px) {{
     footer, [data-testid="stFooterContainer"], [data-testid="stStatusWidget"], .stStatusWidget {{
-        position: absolute !important;
-        bottom: -9999px !important;
+        position: fixed !important;
+        bottom: -500px !important;
+        transform: translateY(500px) !important; /* Force le navigateur à ignorer cet espace dans la hauteur totale */
     }}
 }}
 
-/* COMPORTEMENT SPÉCIFIQUE SMARTPHONE : ON REPASSE EN POSITION NORMALE POUR ÉVITER DE RABOTER */
 @media (max-width: 768px) {{
     footer, [data-testid="stFooterContainer"], [data-testid="stStatusWidget"], .stStatusWidget {{
         position: static !important;
         bottom: auto !important;
+        transform: none !important;
     }}
 }}
 
@@ -109,7 +110,7 @@ button:focus, div:focus, input:focus, select:focus {{
     outline: none !important; border-color: transparent !important; box-shadow: none !important;
 }}
 
-/* 2. CONFIGURATION ET SCROLL DE LA PAGE GLOBALE */
+/* 2. CONFIGURATION DE LA PAGE ET RECUPERATION DE L'ESPACE MAXIMUM SUR PC */
 html, body, [data-testid="stAppViewContainer"], [data-testid="stMainBlockContainer"] {{
     overflow: auto !important;
     overflow-y: auto !important;
@@ -117,22 +118,22 @@ html, body, [data-testid="stAppViewContainer"], [data-testid="stMainBlockContain
     max-height: none !important;
 }}
 
-/* Configuration des marges par défaut */
+/* Réduction des marges globales de Streamlit pour gagner de la place */
 .block-container {{ 
     padding-top: 5px !important; 
     padding-left: 0.5rem !important; 
     padding-right: 0.5rem !important; 
 }}
 
-/* Gestion différenciée de l'espace du bas */
+/* Libère l'espace du bas : plus aucun pixel perdu sur PC */
 @media (min-width: 769px) {{
     .block-container {{ 
-        padding-bottom: 40px !important; 
+        padding-bottom: 5px !important; /* Réduit au strict minimum sur PC pour supprimer le scroll inutile */
     }}
 }}
 @media (max-width: 768px) {{
     .block-container {{ 
-        padding-bottom: 25px !important; /* Petit coussin de sécurité global pour contrer les barres mobiles */
+        padding-bottom: 25px !important; 
     }}
 }}
 
@@ -275,7 +276,7 @@ tr.ligne-separation-classe td,
     box-shadow: inset 0 -3px 0 0 #1E3A8A !important; 
 }}
 
-/* 6. CORRECTION ET POSITIONNEMENT DE LA SIGNATURE EN FIN DE PAGE */
+/* 6. SIGNATURE DE FIN DE PAGE ET AJUSTEMENT DU DESIGN */
 .signature-fin-page {{
     display: flex !important;
     justify-content: center !important;
@@ -287,7 +288,7 @@ tr.ligne-separation-classe td,
     font-weight: bold !important;
     padding-top: 6px !important;
     margin-top: 25px !important;
-    margin-bottom: 10px !important;
+    margin-bottom: 5px !important; /* Marge minime sur PC pour coller au bas de page réel */
     border-top: 1px dashed #1E3A8A !important;
     width: 100% !important;
 }}
@@ -302,12 +303,13 @@ tr.ligne-separation-classe td,
     .signature-fin-page {{ 
         font-size: 0.75rem !important; 
         padding-top: 4px !important; 
-        margin-bottom: 30px !important; /* Augmenté de 15px à 30px pour remonter la signature au-dessus des menus mobiles */
+        margin-bottom: 30px !important; /* Conserve la sécurité smartphone */
     }}
     .logo-signature {{ height: 32px !important; }}
 }}
 
 </style>
+
 
 
 
