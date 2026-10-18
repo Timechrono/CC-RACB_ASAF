@@ -69,6 +69,11 @@ st.markdown(f"""
 
 <style>
 
+/* FORCE LE BLANC SUR TOUS LES CONTENEURS INTERNES DE STREAMLIT */
+.stApp, [data-testid="stAppViewContainer"], .main {{
+    background-color: #FFFFFF !important;
+}}
+
 /* 1. DISPARITION TOTALE ET RADICALE DES COMPOSANTS STREAMLIT (PC & MOBILE) */
 footer, 
 [data-testid="stFooterContainer"], 
