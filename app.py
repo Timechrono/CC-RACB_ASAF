@@ -242,21 +242,21 @@ div.stElementContainer {{
     border-collapse: collapse !important; table-layout: auto !important;
 }}
 
-/* Règle par défaut pour le tableau direct (Conserve 18px d'origine) */
+/* Règle par défaut pour le tableau direct */
 .table-live tr {{ 
     height: 18px !important; 
 }}
 
-/* Hauteur forcée à 17.5px sur PC pour tous les tableaux SAUF le direct */
+/* Hauteur forcée à 18px sur PC pour tous les tableaux SAUF le direct */
 @media (min-width: 769px) {{
     .table-compacte:not(.table-live) tr {{ 
-        height: 17.5px !important; 
+        height: 18px !important; 
     }}
     .table-compacte:not(.table-live) th, 
     .table-compacte:not(.table-live) td {{ 
-        height: 17.5px !important; 
-        padding: 0px 5px !important;    /* Légère réduction du padding vertical */
-        line-height: 17px !important;   /* Calage du texte */
+        height: 18px !important; 
+        padding: 1px 5px !important; 
+        line-height: 18px !important; 
     }}
 }}
 
@@ -349,6 +349,7 @@ tr.ligne-separation-classe td,
 }}
 
 </style>
+
 
 
 
