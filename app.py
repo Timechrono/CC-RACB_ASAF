@@ -288,8 +288,8 @@ tr.ligne-separation-classe td,
     font-size: 0.92rem !important;
     font-weight: bold !important;
     padding-top: 6px !important;
-    margin-top: 25px !important;
-    margin-bottom: 5px !important; /* Marge minime sur PC pour coller au bas de page réel */
+    margin-top: 15px !important;    /* CHANGÉ : Réduit l'espace au-dessus de la signature pour tout remonter */
+    margin-bottom: -15px !important; /* CHANGÉ : Marge négative pour forcer la signature à descendre dans l'espace vide */
     border-top: 1px dashed #1E3A8A !important;
     width: 100% !important;
 }}
@@ -299,6 +299,7 @@ tr.ligne-separation-classe td,
     width: auto !important;
     vertical-align: middle !important;
 }}
+
 
 @media (max-width: 768px) {{
     .signature-fin-page {{ 
