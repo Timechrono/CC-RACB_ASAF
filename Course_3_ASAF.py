@@ -117,7 +117,7 @@ FILE_ENGAGES = f"ht" + f"tps://{HOTE_PROT}/scl/fi/sqrqinksco1am700s27h4/LIVE_Lis
 
 # SAUVEGARDE : Utilisation de votre fonction réseau RACB à 100% stable
 # SÉCURISATION BRIDAGE : 10 secondes maximum pour protéger Dropbox contre les blocages de 11h
-@st.cache_data(ttl=15)
+@st.cache_data(ttl=30)
 def telecharger_excel(url):
     try:
         entetes = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'}
