@@ -86,7 +86,7 @@ html, body, [data-testid="stAppViewContainer"], [data-testid="stMainBlockContain
 
 .block-container {{ 
     padding-top: 5px !important; 
-    padding-bottom: 0rem !important; 
+    padding-bottom: 70px !important; /* Ajoute l'espace nécessaire pour que la barre Streamlit ne cache plus rien */
     padding-left: 0.5rem !important; 
     padding-right: 0.5rem !important; 
 }}
@@ -228,6 +228,7 @@ div.stElementContainer {{
 .table-live td:last-child, .table-class-robuste td:last-child {{ font-weight: bold !important; font-size: 0.94rem !important; color: #0F172A !important; }}
 .table-hist tr:nth-child(odd) td {{ background-color: #E0F2FE !important; }}
 
+/* Ajoutez "margin-bottom: 50px !important;" à votre classe existante */
 .signature-fin-page {{
     display: flex !important;
     justify-content: center !important;
@@ -239,9 +240,11 @@ div.stElementContainer {{
     font-weight: bold !important;
     padding-top: 6px !important;
     margin-top: 25px !important;
+    margin-bottom: 50px !important; /* Repousse la signature vers le haut sur PC */
     border-top: 1px dashed #1E3A8A !important;
     width: 100% !important;
 }}
+
 
 /* AJUSTEMENT : LOGO DE SIGNATURE REDUIT A 24PX SUR PC */
 .logo-signature {{
