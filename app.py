@@ -201,8 +201,8 @@ div.stElementContainer {{
 
 @media (min-width: 769px) {{
     .div-scroll-local-historique {{
-        height: 456px !important;
-        max-height: 456px !important;
+        height: 490px !important;
+        max-height: 490px !important;
         overflow-y: auto !important;
         display: block !important;
     }}
