@@ -69,7 +69,6 @@ st.markdown(f"""
 <style>
 
 /* Masque complètement les éléments de marque et les barres de statut Streamlit */
-#MainMenu { visibility: hidden !important; }
 footer {{ visibility: hidden !important; }}
 [data-testid="stDecoration"] {{ display: none !important; }}
 
