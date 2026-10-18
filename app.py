@@ -85,11 +85,19 @@ html, body, [data-testid="stAppViewContainer"], [data-testid="stMainBlockContain
     max-height: none !important;
 }}
 
+/* Espace par défaut (très réduit) pour les smartphones */
 .block-container {{ 
     padding-top: 5px !important; 
-    padding-bottom: 70px !important; /* Ajoute l'espace nécessaire pour que la barre Streamlit ne cache plus rien */
+    padding-bottom: 5px !important; /* Réduit au strict minimum sur Mobile */
     padding-left: 0.5rem !important; 
     padding-right: 0.5rem !important; 
+}}
+
+/* Espace de sécurité de 60px appliqué UNIQUEMENT sur PC (écrans larges) */
+@media (min-width: 769px) {{
+    .block-container {{ 
+        padding-bottom: 60px !important; 
+    }}
 }}
 
 div[data-testid="stVerticalBlock"] {{
