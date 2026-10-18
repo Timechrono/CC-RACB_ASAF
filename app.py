@@ -89,11 +89,12 @@ footer,
     font-size: 0 !important;
 }}
 
-/* NETTOYAGE DES ANCIENNES ASTUCES DE DÉCALAGE QUI CRÉAIENT L'ESPACE BLANC SUR PC */
+/* RE-SÉCURISATION DU FOOTER POUR ÉVITER QU'IL NE POUSSE LA PAGE */
 @media (min-width: 769px) {{
     footer, [data-testid="stFooterContainer"], [data-testid="stStatusWidget"], .stStatusWidget {{
         position: absolute !important;
         height: 0px !important;
+        bottom: 0px !important;
     }}
 }}
 
@@ -101,23 +102,27 @@ button:focus, div:focus, input:focus, select:focus {{
     outline: none !important; border-color: transparent !important; box-shadow: none !important;
 }}
 
-/* 2. CONFIGURATION DE LA PAGE ET NETTOYAGE DES MARGES INVISIBLES DE STREAMLIT */
-html, body, [data-testid="stAppViewContainer"], [data-testid="stMainBlockContainer"], #root {{
+/* 2. FORÇAGE ANATOMIQUE RADICAL DE TOUTE LA STRUCTURE STREAMLIT (ANTI-SCROLL BLANC PC) */
+html, body, #root, .stApp, 
+[data-testid="stAppViewContainer"], 
+[data-testid="stAppViewBlockContainer"], 
+[data-testid="stMainBlockContainer"],
+.main, .main .block-container {{
+    height: auto !important;
+    min-height: 0px !important;
+    max-height: none !important;
     overflow: auto !important;
     overflow-y: auto !important;
-    height: auto !important;
-    max-height: none !important;
-    min-height: 0px !important; /* Force le navigateur à ne pas ajouter de hauteur minimale */
 }}
 
-/* Réduction des marges globales de Streamlit pour gagner de la place */
+/* Réduction agressive des marges intérieures invisibles de Streamlit */
 .block-container {{ 
     padding-top: 5px !important; 
     padding-left: 0.5rem !important; 
     padding-right: 0.5rem !important; 
 }}
 
-/* Libère l'espace du bas : supprime définitivement la barre blanche et le scroll sur PC */
+/* Suppression totale de l'espace mort sous la signature sur PC */
 @media (min-width: 769px) {{
     .block-container {{ 
         padding-bottom: 0px !important; 
@@ -280,7 +285,7 @@ tr.ligne-separation-classe td,
     font-weight: bold !important;
     padding-top: 6px !important;
     margin-top: 25px !important;
-    margin-bottom: 5px !important; /* Marge minime sur PC pour coller au bas de page réel */
+    margin-bottom: 5px !important;
     border-top: 1px dashed #1E3A8A !important;
     width: 100% !important;
 }}
@@ -295,7 +300,7 @@ tr.ligne-separation-classe td,
     .signature-fin-page {{ 
         font-size: 0.75rem !important; 
         padding-top: 4px !important; 
-        margin-bottom: 30px !important; /* Conserve la sécurité smartphone */
+        margin-bottom: 30px !important; 
     }}
     .logo-signature {{ height: 32px !important; }}
 }}
@@ -303,6 +308,7 @@ tr.ligne-separation-classe td,
 </style>
 
 """, unsafe_allow_html=True)
+
 
 def gen_html(df, cl):
     # Sécurisation préventive des variables de session ou d'URL
