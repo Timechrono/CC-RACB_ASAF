@@ -67,9 +67,11 @@ st.set_page_config(page_title="Live", layout="wide")
 # --- CONCEPTION GRAPHIQUE GÉOMÉTRIQUE UNIFIÉE ---
 st.markdown(f"""
 <style>
-/* Masquer le bandeau blanc et la mention Built with Streamlit */
+
+/* Masque complètement les éléments de marque et les barres de statut Streamlit */
+#MainMenu { visibility: hidden !important; }
 footer {{ visibility: hidden !important; }}
-[data-testid="stFooterContainer"] {{ display: none !important; }}
+[data-testid="stDecoration"] {{ display: none !important; }}
 
 [data-testid="stHeader"] {{ display: none !important; }}
 button:focus, div:focus, input:focus, select:focus {{
