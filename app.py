@@ -69,7 +69,7 @@ st.markdown(f"""
 
 <style>
 
-/* 1. FORCE L'EFFACEMENT TOTAL ET LOGICIEL DES CONSTRUCTEURS STREAMLIT (PC & MOBILE) */
+/* 1. DISPARITION LOGICIELLE DES BARRES STREAMLIT - RENDU DE BASE */
 footer, 
 [data-testid="stFooterContainer"], 
 [data-testid="stStatusWidget"], 
@@ -87,8 +87,22 @@ footer,
     opacity: 0 !important;
     line-height: 0 !important;
     font-size: 0 !important;
-    position: absolute !important; /* Sort l'élément du flux pour libérer l'espace en bas */
-    bottom: -9999px !important;    /* Propulse la barre invisible hors de l'écran */
+}}
+
+/* COMPORTEMENT SPÉCIFIQUE PC : ON ÉJECTE HORS ÉCRAN POUR LIBÉRER LA SIGNATURE */
+@media (min-width: 769px) {{
+    footer, [data-testid="stFooterContainer"], [data-testid="stStatusWidget"], .stStatusWidget {{
+        position: absolute !important;
+        bottom: -9999px !important;
+    }}
+}}
+
+/* COMPORTEMENT SPÉCIFIQUE SMARTPHONE : ON REPASSE EN POSITION NORMALE POUR ÉVITER DE RABOTER */
+@media (max-width: 768px) {{
+    footer, [data-testid="stFooterContainer"], [data-testid="stStatusWidget"], .stStatusWidget {{
+        position: static !important;
+        bottom: auto !important;
+    }}
 }}
 
 button:focus, div:focus, input:focus, select:focus {{
@@ -103,7 +117,7 @@ html, body, [data-testid="stAppViewContainer"], [data-testid="stMainBlockContain
     max-height: none !important;
 }}
 
-/* Évite l'espace vide sous la signature sur Smartphone */
+/* Nettoyage des marges pour éviter les blancs indésirables */
 .block-container {{ 
     padding-top: 5px !important; 
     padding-bottom: 5px !important; 
@@ -111,7 +125,6 @@ html, body, [data-testid="stAppViewContainer"], [data-testid="stMainBlockContain
     padding-right: 0.5rem !important; 
 }}
 
-/* Marge de sécurité appliquée uniquement sur PC */
 @media (min-width: 769px) {{
     .block-container {{ 
         padding-bottom: 40px !important; 
@@ -257,7 +270,7 @@ tr.ligne-separation-classe td,
     box-shadow: inset 0 -3px 0 0 #1E3A8A !important; 
 }}
 
-/* 6. CORRECTION DE LA SIGNATURE DE FIN DE PAGE */
+/* 6. CORRECTION ET POSITIONNEMENT DE LA SIGNATURE EN FIN DE PAGE */
 .signature-fin-page {{
     display: flex !important;
     justify-content: center !important;
@@ -269,7 +282,7 @@ tr.ligne-separation-classe td,
     font-weight: bold !important;
     padding-top: 6px !important;
     margin-top: 25px !important;
-    margin-bottom: 10px !important; /* Marge propre et légère */
+    margin-bottom: 10px !important;
     border-top: 1px dashed #1E3A8A !important;
     width: 100% !important;
 }}
@@ -281,11 +294,16 @@ tr.ligne-separation-classe td,
 }}
 
 @media (max-width: 768px) {{
-    .signature-fin-page {{ font-size: 0.75rem !important; padding-top: 4px !important; margin-bottom: 0px !important; }}
+    .signature-fin-page {{ 
+        font-size: 0.75rem !important; 
+        padding-top: 4px !important; 
+        margin-bottom: 15px !important; /* Ajoute un léger coussin de sécurité sur mobile */
+    }}
     .logo-signature {{ height: 32px !important; }}
 }}
 
 </style>
+
 
 """, unsafe_allow_html=True)
 
