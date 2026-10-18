@@ -69,13 +69,16 @@ st.markdown(f"""
 
 <style>
 
-/* 1. DISPARITION TOTALE ET RADICALE DES COMPOSANTS STREAMLIT (PC & MOBILE) */
+/* 1. DISPARITION TOTALE, RADICALE ET ABSOLUE DE TOUTE L'INFRASTRUCTURE STREAMLIT (PC & MOBILE) */
 footer, 
 [data-testid="stFooterContainer"], 
 [data-testid="stStatusWidget"], 
 .stStatusWidget,
 [data-testid="stHeader"], 
-[data-testid="stDecoration"] {{
+[data-testid="stDecoration"],
+[class*="viewerBadge"],
+[class*="embeddedAppMetaInfoBar"],
+[data-testid="stAppEmbedFooter"] {{
     display: none !important;
     visibility: hidden !important;
     height: 0px !important;
@@ -89,12 +92,18 @@ footer,
     font-size: 0 !important;
 }}
 
-/* L'ASTUCE SUR PC : ON EXTRACT LE PIED DE PAGE HORS DE L'ESPACE DE CALCUL DU NAVIGATEUR */
+/* TUER LE SCROLL FANTÔME ET LA ZONE DE COMPRESSION DU LOGO SUR PC */
 @media (min-width: 769px) {{
     footer, [data-testid="stFooterContainer"], [data-testid="stStatusWidget"], .stStatusWidget {{
         position: fixed !important;
         bottom: -500px !important;
-        transform: translateY(500px) !important; /* Force le navigateur à ignorer cet espace dans la hauteur totale */
+        transform: translateY(500px) !important;
+    }}
+    /* Force le conteneur racine de Streamlit à ignorer le calcul d'espace de la barre */
+    .stApp, [data-testid="stApp"] {{
+        max-height: 100vh !important;
+        height: 100vh !important;
+        overflow: hidden !important;
     }}
 }}
 
@@ -110,7 +119,7 @@ button:focus, div:focus, input:focus, select:focus {{
     outline: none !important; border-color: transparent !important; box-shadow: none !important;
 }}
 
-/* 2. CONFIGURATION DE LA PAGE ET RECUPERATION DE L'ESPACE MAXIMUM SUR PC */
+/* 2. CONFIGURATION DE LA PAGE ET MAXIMISATION DE L'ESPACE UTILE */
 html, body, [data-testid="stAppViewContainer"], [data-testid="stMainBlockContainer"] {{
     overflow: auto !important;
     overflow-y: auto !important;
@@ -118,17 +127,16 @@ html, body, [data-testid="stAppViewContainer"], [data-testid="stMainBlockContain
     max-height: none !important;
 }}
 
-/* Réduction des marges globales de Streamlit pour gagner de la place */
 .block-container {{ 
     padding-top: 5px !important; 
     padding-left: 0.5rem !important; 
     padding-right: 0.5rem !important; 
 }}
 
-/* Libère l'espace du bas : plus aucun pixel perdu sur PC */
+/* Élimination totale du vide inutile en bas sur PC */
 @media (min-width: 769px) {{
     .block-container {{ 
-        padding-bottom: 5px !important; /* Réduit au strict minimum sur PC pour supprimer le scroll inutile */
+        padding-bottom: 2px !important; 
     }}
 }}
 @media (max-width: 768px) {{
@@ -276,7 +284,7 @@ tr.ligne-separation-classe td,
     box-shadow: inset 0 -3px 0 0 #1E3A8A !important; 
 }}
 
-/* 6. SIGNATURE DE FIN DE PAGE ET AJUSTEMENT DU DESIGN */
+/* 6. SIGNATURE DE FIN DE PAGE ET COLLAGE STRICT AU BAS DE L'ÉCRAN */
 .signature-fin-page {{
     display: flex !important;
     justify-content: center !important;
@@ -288,7 +296,7 @@ tr.ligne-separation-classe td,
     font-weight: bold !important;
     padding-top: 6px !important;
     margin-top: 25px !important;
-    margin-bottom: 5px !important; /* Marge minime sur PC pour coller au bas de page réel */
+    margin-bottom: 5px !important; 
     border-top: 1px dashed #1E3A8A !important;
     width: 100% !important;
 }}
@@ -303,15 +311,12 @@ tr.ligne-separation-classe td,
     .signature-fin-page {{ 
         font-size: 0.75rem !important; 
         padding-top: 4px !important; 
-        margin-bottom: 30px !important; /* Conserve la sécurité smartphone */
+        margin-bottom: 30px !important; 
     }}
     .logo-signature {{ height: 32px !important; }}
 }}
 
 </style>
-
-
-
 
 """, unsafe_allow_html=True)
 
