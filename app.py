@@ -116,9 +116,10 @@ html, body, #root, .stApp,
     height: auto !important;
     min-height: 0px !important;
     max-height: none !important;
-    overflow: auto !important;
-    overflow-y: auto !important;
+    overflow: visible !important; /* CHANGÉ EN VISIBLE POUR TRANSMETTRE LA HAUTEUR */
+    overflow-y: visible !important; /* CHANGÉ EN VISIBLE POUR TRANSMETTRE LA HAUTEUR */
 }}
+
 
 /* Réduction agressive des marges intérieures invisibles de Streamlit */
 .block-container {{ 
