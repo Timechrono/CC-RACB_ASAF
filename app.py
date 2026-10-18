@@ -445,7 +445,7 @@ if t_haut and "TOP 20" in t_haut.upper():
 
 # CORRECTION DU BLOCAGE ICI : FORCE STRICTEMENT LE BRIDAGE VISUEL À 10 LIGNES (215PX) POUR LES ESSAIS
 if "ESSAIS" in choix_course.upper():
-    h_pc = "215px"
+    h_pc = "240px"
 elif "COURSE 1" in choix_course.upper():
     h_pc = "425px"
 else:
