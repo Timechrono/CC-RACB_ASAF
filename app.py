@@ -95,7 +95,7 @@ footer,
 @media (min-width: 769px) {{
     footer, [data-testid="stFooterContainer"], [data-testid="stStatusWidget"], .stStatusWidget {{
         position: fixed !important;
-        bottom: -1000px !important;
+        bottom: -1000px !important; /* Poussé encore plus loin pour libérer l'iframe */
         z-index: -9999 !important;
         height: 0px !important;
     }}
@@ -115,11 +115,13 @@ button:focus, div:focus, input:focus, select:focus {{
 
 /* 2. CONFIGURATION DE LA PAGE ET RECUPERATION DE L'ESPACE MAXIMUM SUR PC */
 html, body, [data-testid="stAppViewContainer"], [data-testid="stMainBlockContainer"] {{
-    overflow: auto !important;
-    overflow-y: auto !important;
-    height: auto !important;
-    max-height: none !important;
+    overflow: hidden !important; 
+    height: 100vh !important;    
+    max-height: 100vh !important;
+    padding-bottom: 0px !important; /* Force la suppression de toute marge Streamlit */
+    margin-bottom: 0px !important;
 }}
+
 
 /* Réduction des marges globales de Streamlit pour gagner de la place */
 .block-container {{ 
@@ -131,7 +133,7 @@ html, body, [data-testid="stAppViewContainer"], [data-testid="stMainBlockContain
 /* Libère l'espace du bas : plus aucun pixel perdu sur PC */
 @media (min-width: 769px) {{
     .block-container {{ 
-        padding-bottom: 0px !important; 
+        padding-bottom: 0px !important; /* Réduit à 0 pour empêcher de pousser l'iframe parent */
     }}
 }}
 @media (max-width: 768px) {{
@@ -200,7 +202,7 @@ div.stElementContainer {{
 
 @media (min-width: 769px) {{
     .div-scroll-local-historique {{
-        height: 490px !important; 
+        height: 490px !important;
         max-height: 490px !important;
         overflow-y: auto !important;
         display: block !important;
@@ -241,27 +243,9 @@ div.stElementContainer {{
     width: 100% !important; margin-bottom: 0px !important;
     border-collapse: collapse !important; table-layout: auto !important;
 }}
-
-/* Règle par défaut pour le tableau en direct */
-.table-live tr {{ 
-    height: 18px !important; 
-}}
-
-/* Hauteur forcée à 18px sur PC pour tous les tableaux SAUF le direct */
-@media (min-width: 769px) {{
-    .table-compacte:not(.table-live) tr {{ 
-        height: 18px !important; 
-    }}
-    .table-compacte:not(.table-live) th, 
-    .table-compacte:not(.table-live) td {{ 
-        height: 18px !important; 
-        padding: 1px 5px !important;
-        line-height: 18px !important;
-    }}
-}}
-
+.table-compacte tr {{ height: 18px !important; }}
 .table-compacte th, .table-compacte td {{ 
-    padding: 1px 5px !important; line-height: 1.1 !important; 
+    height: 18px !important; padding: 1px 5px !important; line-height: 1.1 !important; 
     font-size: 0.85rem !important; color: #000000 !important; vertical-align: middle !important; 
     white-space: nowrap !important; 
 }}
@@ -305,7 +289,7 @@ tr.ligne-separation-classe td,
         left: 0.5rem !important;
         right: 0.5rem !important;
         width: calc(100% - 1rem) !important;
-        background-color: #FFFFFF !important;
+        background-color: #FFFFFF !important; /* Crée un fond propre pour que les tableaux défilent derrière si besoin */
         z-index: 9999 !important;
         display: flex !important;
         justify-content: center !important;
@@ -322,7 +306,7 @@ tr.ligne-separation-classe td,
 }}
 
 @media (max-width: 768px) {{
-    .signature-fin-page {{ 
+    .signature-fin-page {{
         display: flex !important;
         justify-content: center !important;
         align-items: center !important;
@@ -332,7 +316,7 @@ tr.ligne-separation-classe td,
         font-size: 0.75rem !important; 
         padding-top: 4px !important; 
         margin-top: 25px !important;
-        margin-bottom: 30px !important;
+        margin-bottom: 30px !important; /* Conserve la sécurité smartphone intacte */
         border-top: 1px dashed #1E3A8A !important;
         width: 100% !important;
     }}
@@ -348,7 +332,11 @@ tr.ligne-separation-classe td,
     .logo-signature {{ height: 32px !important; }}
 }}
 
+
 </style>
+
+
+
 
 
 """, unsafe_allow_html=True)
@@ -439,11 +427,11 @@ if t_haut and "TOP 20" in t_haut.upper():
 
 # CORRECTION DU BLOCAGE ICI : FORCE STRICTEMENT LE BRIDAGE VISUEL À 10 LIGNES (215PX) POUR LES ESSAIS
 if "ESSAIS" in choix_course.upper():
-    h_pc = "240px"
+    h_pc = "215px"
 elif "COURSE 1" in choix_course.upper():
-    h_pc = "240px"
+    h_pc = "425px"
 else:
-    h_pc = "240px"
+    h_pc = "380px"
 
 cg, cd = st.columns([1.3, 0.9])
 with cg:
@@ -453,68 +441,52 @@ with cg:
         st.markdown(f"<span class='titre-hist'>{t_his}</span>", unsafe_allow_html=True)
     st.markdown(gen_html(d_his, "table-hist"), unsafe_allow_html=True)
     
-# ==============================================================================
-# 🛠️ AJUSTEMENT GÉOMÉTRIQUE ET FLUIDE DE LA COLONNE DE DROITE (PC & MOBILE)
-# ==============================================================================
-h_mob = "380px"
-
-st.markdown(f"""
-<style>
-  @media (min-width: 769px) {{
-    /* Conteneur personnalisé pour fixer la hauteur totale à droite sur PC */
-    .colonne-droite-pc {{
-        display: flex !important;
-        flex-direction: column !important;
-        height: 490px !important; /* Calé au millimètre sur l'historique de gauche */
-        overflow: hidden !important;
-    }}
-    
-    /* Répartition automatique et fluide de l'espace entre vos tableaux */
-    .ajust-hauteur-pc {{ 
-        flex-grow: 1 !important;
-        overflow-y: auto !important; 
-        display: block !important;
-        height: auto !important;
-        max-height: none !important;
-    }}
-  }}
-  @media (max-width: 768px) {{ 
-    .ajust-hauteur-pc {{ max-height: {h_mob} !important; }} 
-  }}
-</style>
-""", unsafe_allow_html=True)
-
 with cd:
-    # Ouverture du conteneur géométrique sur PC
-    st.markdown("<div class='colonne-droite-pc'>", unsafe_allow_html=True)
+    h_mob = "380px"
+
+    # Injection CSS dynamique
+    st.markdown(f"""
+    <style>
+      @media (min-width: 769px) {{ .ajust-hauteur-pc {{ max-height: {h_pc} !important; }} }}
+      @media (max-width: 768px) {{ .ajust-hauteur-pc {{ max-height: {h_mob} !important; }} }}
+    </style>
+    """, unsafe_allow_html=True)
 
     if choix_course != "Essais":
         # --- MODE DE COURSE ---
         if t_haut:
             st.markdown(f"<span class='titre-classement'>{t_haut}</span>", unsafe_allow_html=True)
-            st.markdown(f"<div class='ajust-hauteur-pc'>{gen_html(d_haut, 'table-class-robuste')}</div>", unsafe_allow_html=True)
+            st.markdown(f"<div class='ajust-hauteur-pc' style='overflow-y: auto; display: block;'>{gen_html(d_haut, 'table-class-robuste')}</div>", unsafe_allow_html=True)
         if t_milieu:
             st.markdown(f"<span class='titre-classement espace-classement-suivant'>{t_milieu}</span>", unsafe_allow_html=True)
-            st.markdown(f"<div class='ajust-hauteur-pc'>{gen_html(d_milieu, 'table-class-milieu')}</div>", unsafe_allow_html=True)
+            st.markdown(f"<div class='ajust-hauteur-pc' style='overflow-y: auto; display: block;'>{gen_html(d_milieu, 'table-class-milieu')}</div>", unsafe_allow_html=True)
         if t_bas:
             st.markdown(f"<span class='titre-classement espace-classement-suivant'>{t_bas}</span>", unsafe_allow_html=True)
-            st.markdown(f"<div class='ajust-hauteur-pc'>{gen_html(d_bas, 'table-class-robuste')}</div>", unsafe_allow_html=True)
+            nb_lignes = len(d_bas) if hasattr(d_bas, '__len__') else 0
+            style_scroll = "class='ajust-hauteur-pc' style='overflow-y: auto; display: block;'" if nb_lignes > 10 else "style='height: auto; display: block;'"
+            st.markdown(f"<div {style_scroll}>{gen_html(d_bas, 'table-class-robuste')}</div>", unsafe_allow_html=True)
     else:
         # --- MODE ESSAIS ---
         if t_haut:
             st.markdown(f"<span class='titre-classement'>{t_haut}</span>", unsafe_allow_html=True)
-            st.markdown(f"<div class='ajust-hauteur-pc'>{gen_html(d_bas, 'table-class-robuste')}</div>", unsafe_allow_html=True)
+            st.markdown(f"<div class='ajust-hauteur-pc' style='overflow-y: auto; display: block;'>{gen_html(d_bas, 'table-class-robuste')}</div>", unsafe_allow_html=True)
         if t_milieu:
             st.markdown(f"<span class='titre-classement espace-classement-suivant'>{t_milieu}</span>", unsafe_allow_html=True)
-            st.markdown(f"<div class='ajust-hauteur-pc'>{gen_html(d_haut, 'table-class-robuste')}</div>", unsafe_allow_html=True)
+            st.markdown(f"<div class='ajust-hauteur-pc' style='overflow-y: auto; display: block;'>{gen_html(d_haut, 'table-class-robuste')}</div>", unsafe_allow_html=True)
         if t_bas:
             st.markdown(f"<span class='titre-classement espace-classement-suivant'>{t_bas}</span>", unsafe_allow_html=True)
+            
+            # APPLICATION BRIDAGE : Encapsulation dans le conteneur forcé à 114px pour la Division 4 en mode Essais
             st.markdown(f"<div class='div-scroll-local-div4'>{gen_html(d_milieu, 'table-class-robuste')}</div>", unsafe_allow_html=True)
 
-    # Fermeture propre du conteneur HTML
-    st.markdown("</div>", unsafe_allow_html=True)
 
 
+st.markdown(f"""
+<div class='signature-fin-page'>
+    <img src='{LIEN_DROPBOX_LOGO}' class='logo-signature'>
+    www.timechrono.be
+</div>
+""", unsafe_allow_html=True)
 
 # CODE ACTUEL
 for secondes_restantes in range(30, -1, -1):
