@@ -117,17 +117,22 @@ html, body, [data-testid="stAppViewContainer"], [data-testid="stMainBlockContain
     max-height: none !important;
 }}
 
-/* Nettoyage des marges pour éviter les blancs indésirables */
+/* Configuration des marges par défaut */
 .block-container {{ 
     padding-top: 5px !important; 
-    padding-bottom: 5px !important; 
     padding-left: 0.5rem !important; 
     padding-right: 0.5rem !important; 
 }}
 
+/* Gestion différenciée de l'espace du bas */
 @media (min-width: 769px) {{
     .block-container {{ 
         padding-bottom: 40px !important; 
+    }}
+}}
+@media (max-width: 768px) {{
+    .block-container {{ 
+        padding-bottom: 25px !important; /* Petit coussin de sécurité global pour contrer les barres mobiles */
     }}
 }}
 
@@ -297,12 +302,13 @@ tr.ligne-separation-classe td,
     .signature-fin-page {{ 
         font-size: 0.75rem !important; 
         padding-top: 4px !important; 
-        margin-bottom: 15px !important; /* Ajoute un léger coussin de sécurité sur mobile */
+        margin-bottom: 30px !important; /* Augmenté de 15px à 30px pour remonter la signature au-dessus des menus mobiles */
     }}
     .logo-signature {{ height: 32px !important; }}
 }}
 
 </style>
+
 
 
 """, unsafe_allow_html=True)
