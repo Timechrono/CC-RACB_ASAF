@@ -281,20 +281,44 @@ tr.ligne-separation-classe td,
 }}
 
 /* 6. SIGNATURE DE FIN DE PAGE ET AJUSTEMENT DU DESIGN */
-.signature-fin-page {{
-    display: flex !important;
-    justify-content: center !important;
-    align-items: center !important;
-    gap: 12px !important;
-    text-align: center !important;
-    color: #1E3A8A !important;
-    font-size: 0.92rem !important;
-    font-weight: bold !important;
-    padding-top: 4px !important;
-    margin-top: 8px !important;     /* Espace minimaliste au-dessus */
-    margin-bottom: 0px !important;    /* Bloqué au ras du sol */
-    border-top: 1px dashed #1E3A8A !important;
-    width: 100% !important;
+@media (min-width: 769px) {{
+    .signature-fin-page {{
+        position: fixed !important;
+        bottom: 0px !important;
+        left: 0.5rem !important;
+        right: 0.5rem !important;
+        width: calc(100% - 1rem) !important;
+        background-color: #FFFFFF !important; /* Crée un fond propre pour que les tableaux défilent derrière si besoin */
+        z-index: 9999 !important;
+        display: flex !important;
+        justify-content: center !important;
+        align-items: center !important;
+        gap: 12px !important;
+        text-align: center !important;
+        color: #1E3A8A !important;
+        font-size: 0.92rem !important;
+        font-weight: bold !important;
+        padding: 4px 0px !important;
+        margin: 0px !important;
+        border-top: 1px dashed #1E3A8A !important;
+    }}
+}}
+
+@media (max-width: 768px) {{
+    .signature-fin-page {{
+        display: flex !important;
+        justify-content: center !important;
+        align-items: center !important;
+        gap: 12px !important;
+        text-align: center !important;
+        color: #1E3A8A !important;
+        font-size: 0.75rem !important; 
+        padding-top: 4px !important; 
+        margin-top: 25px !important;
+        margin-bottom: 30px !important; /* Conserve la sécurité smartphone intacte */
+        border-top: 1px dashed #1E3A8A !important;
+        width: 100% !important;
+    }}
 }}
 
 .logo-signature {{
@@ -303,15 +327,10 @@ tr.ligne-separation-classe td,
     vertical-align: middle !important;
 }}
 
-
 @media (max-width: 768px) {{
-    .signature-fin-page {{ 
-        font-size: 0.75rem !important; 
-        padding-top: 4px !important; 
-        margin-bottom: 30px !important; /* Conserve la sécurité smartphone */
-    }}
     .logo-signature {{ height: 32px !important; }}
 }}
+
 
 </style>
 
