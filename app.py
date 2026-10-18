@@ -114,10 +114,13 @@ button:focus, div:focus, input:focus, select:focus {{
 
 /* 2. CONFIGURATION DE LA PAGE ET RECUPERATION DE L'ESPACE MAXIMUM SUR PC */
 html, body, [data-testid="stAppViewContainer"], [data-testid="stMainBlockContainer"] {{
-    overflow: hidden !important; /* CHANGÉ : Bloque tout scroll résiduel interne de Streamlit */
-    height: 100vh !important;    /* Force à coller à la hauteur stricte de la fenêtre */
+    overflow: hidden !important; 
+    height: 100vh !important;    
     max-height: 100vh !important;
+    padding-bottom: 0px !important; /* Force la suppression de toute marge Streamlit */
+    margin-bottom: 0px !important;
 }}
+
 
 /* Réduction des marges globales de Streamlit pour gagner de la place */
 .block-container {{ 
