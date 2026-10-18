@@ -200,14 +200,14 @@ div.stElementContainer {{
 
 @media (min-width: 769px) {{
     .div-scroll-local-historique {{
-        height: 480px !important; 
-        max-height: 480px !important;
+        height: 490px !important; 
+        max-height: 490px !important;
         overflow-y: auto !important;
         display: block !important;
     }}
     .div-scroll-local-div4 {{
-        height: 120px !important;
-        max-height: 120px !important;
+        height: 114px !important;
+        max-height: 114px !important;
         overflow-y: auto !important;
         width: 100% !important;
         display: block !important;
@@ -242,7 +242,7 @@ div.stElementContainer {{
     border-collapse: collapse !important; table-layout: auto !important;
 }}
 
-/* Règle par défaut pour le tableau direct */
+/* Règle par défaut pour le tableau en direct */
 .table-live tr {{ 
     height: 18px !important; 
 }}
@@ -255,8 +255,8 @@ div.stElementContainer {{
     .table-compacte:not(.table-live) th, 
     .table-compacte:not(.table-live) td {{ 
         height: 18px !important; 
-        padding: 1px 5px !important; 
-        line-height: 18px !important; 
+        padding: 1px 5px !important;
+        line-height: 18px !important;
     }}
 }}
 
@@ -453,22 +453,23 @@ with cg:
         st.markdown(f"<span class='titre-hist'>{t_his}</span>", unsafe_allow_html=True)
     st.markdown(gen_html(d_his, "table-hist"), unsafe_allow_html=True)
     
-# 1. DÉFINITION DU COMPORTEMENT SUR MOBILE UNIQUE
+# ==============================================================================
+# 🛠️ AJUSTEMENT GÉOMÉTRIQUE ET FLUIDE DE LA COLONNE DE DROITE (PC & MOBILE)
+# ==============================================================================
 h_mob = "380px"
 
-# 2. INJECTION DU SYSTÈME FLEX PC : Rend le remplissage des tableaux 100% automatique
 st.markdown(f"""
 <style>
   @media (min-width: 769px) {{
-    /* Force la colonne de droite à occuper toute la hauteur disponible sans déborder */
-    div[data-testid="stColumn"]:nth-of-type(2) {{
+    /* Conteneur personnalisé pour fixer la hauteur totale à droite sur PC */
+    .colonne-droite-pc {{
         display: flex !important;
         flex-direction: column !important;
-        height: 490px !important; /* Calé sur la même hauteur exacte que l'historique de gauche */
-        justify-content: flex-start !important;
+        height: 490px !important; /* Calé au millimètre sur l'historique de gauche */
+        overflow: hidden !important;
     }}
     
-    /* Chaque conteneur de tableau s'ajuste tout seul à l'espace restant */
+    /* Répartition automatique et fluide de l'espace entre vos tableaux */
     .ajust-hauteur-pc {{ 
         flex-grow: 1 !important;
         overflow-y: auto !important; 
@@ -482,6 +483,37 @@ st.markdown(f"""
   }}
 </style>
 """, unsafe_allow_html=True)
+
+with cd:
+    # Ouverture du conteneur géométrique sur PC
+    st.markdown("<div class='colonne-droite-pc'>", unsafe_allow_html=True)
+
+    if choix_course != "Essais":
+        # --- MODE DE COURSE ---
+        if t_haut:
+            st.markdown(f"<span class='titre-classement'>{t_haut}</span>", unsafe_allow_html=True)
+            st.markdown(f"<div class='ajust-hauteur-pc'>{gen_html(d_haut, 'table-class-robuste')}</div>", unsafe_allow_html=True)
+        if t_milieu:
+            st.markdown(f"<span class='titre-classement espace-classement-suivant'>{t_milieu}</span>", unsafe_allow_html=True)
+            st.markdown(f"<div class='ajust-hauteur-pc'>{gen_html(d_milieu, 'table-class-milieu')}</div>", unsafe_allow_html=True)
+        if t_bas:
+            st.markdown(f"<span class='titre-classement espace-classement-suivant'>{t_bas}</span>", unsafe_allow_html=True)
+            st.markdown(f"<div class='ajust-hauteur-pc'>{gen_html(d_bas, 'table-class-robuste')}</div>", unsafe_allow_html=True)
+    else:
+        # --- MODE ESSAIS ---
+        if t_haut:
+            st.markdown(f"<span class='titre-classement'>{t_haut}</span>", unsafe_allow_html=True)
+            st.markdown(f"<div class='ajust-hauteur-pc'>{gen_html(d_bas, 'table-class-robuste')}</div>", unsafe_allow_html=True)
+        if t_milieu:
+            st.markdown(f"<span class='titre-classement espace-classement-suivant'>{t_milieu}</span>", unsafe_allow_html=True)
+            st.markdown(f"<div class='ajust-hauteur-pc'>{gen_html(d_haut, 'table-class-robuste')}</div>", unsafe_allow_html=True)
+        if t_bas:
+            st.markdown(f"<span class='titre-classement espace-classement-suivant'>{t_bas}</span>", unsafe_allow_html=True)
+            st.markdown(f"<div class='div-scroll-local-div4'>{gen_html(d_milieu, 'table-class-robuste')}</div>", unsafe_allow_html=True)
+
+    # Fermeture propre du conteneur HTML
+    st.markdown("</div>", unsafe_allow_html=True)
+
 
 
 # CODE ACTUEL
