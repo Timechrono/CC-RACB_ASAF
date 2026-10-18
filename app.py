@@ -426,12 +426,7 @@ if t_haut and "TOP 20" in t_haut.upper():
     t_haut = "🏆 CLASSEMENT GENERAL OFFICIEUX RACB"
 
 # CORRECTION DU BLOCAGE ICI : FORCE STRICTEMENT LE BRIDAGE VISUEL À 10 LIGNES (215PX) POUR LES ESSAIS
-if "ESSAIS" in choix_course.upper():
-    h_pc = "215px"
-elif "COURSE 1" in choix_course.upper():
-    h_pc = "425px"
-else:
-    h_pc = "380px"
+h_pc = "auto"
 
 cg, cd = st.columns([1.3, 0.9])
 with cg:
@@ -441,6 +436,7 @@ with cg:
         st.markdown(f"<span class='titre-hist'>{t_his}</span>", unsafe_allow_html=True)
     st.markdown(gen_html(d_his, "table-hist"), unsafe_allow_html=True)
     
+# BLOC D'ORIGINE À REMPLACER
 with cd:
     h_mob = "380px"
 
@@ -451,6 +447,7 @@ with cd:
       @media (max-width: 768px) {{ .ajust-hauteur-pc {{ max-height: {h_mob} !important; }} }}
     </style>
     """, unsafe_allow_html=True)
+
 
     if choix_course != "Essais":
         # --- MODE DE COURSE ---
