@@ -68,6 +68,22 @@ st.set_page_config(page_title="Live", layout="wide")
 st.markdown(f"""
 <style>
 
+/* FORCE LA RÉDUCTION DE HAUTEUR AU STRICT MINIMUM DE TOUTES LES BARRES STREAMLIT */
+[data-testid="stStatusWidget"], 
+.stStatusWidget, 
+[data-testid="stFooterContainer"], 
+footer {{
+    height: 1px !important;
+    max-height: 1px !important;
+    min-height: 1px !important;
+    margin: 0px !important;
+    padding: 0px !important;
+    overflow: hidden !important;
+    line-height: 0 !important;
+    font-size: 0 !important;
+    opacity: 0.01 !important; /* Presque totalement transparente */
+}}
+
 /* Masque complètement les éléments de marque et les barres de statut Streamlit */
 footer {{ visibility: hidden !important; }}
 [data-testid="stDecoration"] {{ display: none !important; }}
