@@ -69,11 +69,6 @@ st.markdown(f"""
 
 <style>
 
-/* FORCE LE BLANC SUR TOUS LES CONTENEURS INTERNES DE STREAMLIT */
-.stApp, [data-testid="stAppViewContainer"], .main {{
-    background-color: #FFFFFF !important;
-}}
-
 /* 1. DISPARITION TOTALE ET RADICALE DES COMPOSANTS STREAMLIT (PC & MOBILE) */
 footer, 
 [data-testid="stFooterContainer"], 
@@ -94,12 +89,20 @@ footer,
     font-size: 0 !important;
 }}
 
-/* RE-SÉCURISATION DU FOOTER POUR ÉVITER QU'IL NE POUSSE LA PAGE */
+/* L'ASTUCE SUR PC : ON EXTRACT LE PIED DE PAGE HORS DE L'ESPACE DE CALCUL DU NAVIGATEUR */
 @media (min-width: 769px) {{
     footer, [data-testid="stFooterContainer"], [data-testid="stStatusWidget"], .stStatusWidget {{
-        position: absolute !important;
-        height: 0px !important;
-        bottom: 0px !important;
+        position: fixed !important;
+        bottom: -500px !important;
+        transform: translateY(500px) !important; /* Force le navigateur à ignorer cet espace dans la hauteur totale */
+    }}
+}}
+
+@media (max-width: 768px) {{
+    footer, [data-testid="stFooterContainer"], [data-testid="stStatusWidget"], .stStatusWidget {{
+        position: static !important;
+        bottom: auto !important;
+        transform: none !important;
     }}
 }}
 
@@ -107,31 +110,25 @@ button:focus, div:focus, input:focus, select:focus {{
     outline: none !important; border-color: transparent !important; box-shadow: none !important;
 }}
 
-/* 2. FORÇAGE ANATOMIQUE RADICAL DE TOUTE LA STRUCTURE STREAMLIT (ANTI-SCROLL BLANC PC) */
-html, body, #root, .stApp, 
-[data-testid="stAppViewContainer"], 
-[data-testid="stAppViewBlockContainer"], 
-[data-testid="stMainBlockContainer"],
-.main, .main .block-container {{
+/* 2. CONFIGURATION DE LA PAGE ET RECUPERATION DE L'ESPACE MAXIMUM SUR PC */
+html, body, [data-testid="stAppViewContainer"], [data-testid="stMainBlockContainer"] {{
+    overflow: auto !important;
+    overflow-y: auto !important;
     height: auto !important;
-    min-height: 0px !important;
     max-height: none !important;
-    overflow: visible !important; /* CHANGÉ EN VISIBLE POUR TRANSMETTRE LA HAUTEUR */
-    overflow-y: visible !important; /* CHANGÉ EN VISIBLE POUR TRANSMETTRE LA HAUTEUR */
 }}
 
-
-/* Réduction agressive des marges intérieures invisibles de Streamlit */
+/* Réduction des marges globales de Streamlit pour gagner de la place */
 .block-container {{ 
     padding-top: 5px !important; 
     padding-left: 0.5rem !important; 
     padding-right: 0.5rem !important; 
 }}
 
-/* Suppression totale de l'espace mort sous la signature sur PC */
+/* Libère l'espace du bas : plus aucun pixel perdu sur PC */
 @media (min-width: 769px) {{
     .block-container {{ 
-        padding-bottom: 0px !important; 
+        padding-bottom: 5px !important; /* Réduit au strict minimum sur PC pour supprimer le scroll inutile */
     }}
 }}
 @media (max-width: 768px) {{
@@ -200,14 +197,14 @@ div.stElementContainer {{
 
 @media (min-width: 769px) {{
     .div-scroll-local-historique {{
-        height: 656px !important;
-        max-height: 656px !important;
+        height: 456px !important;
+        max-height: 456px !important;
         overflow-y: auto !important;
         display: block !important;
     }}
     .div-scroll-local-div4 {{
-        height: 314px !important;
-        max-height: 314px !important;
+        height: 114px !important;
+        max-height: 114px !important;
         overflow-y: auto !important;
         width: 100% !important;
         display: block !important;
@@ -291,7 +288,7 @@ tr.ligne-separation-classe td,
     font-weight: bold !important;
     padding-top: 6px !important;
     margin-top: 25px !important;
-    margin-bottom: 5px !important;
+    margin-bottom: 5px !important; /* Marge minime sur PC pour coller au bas de page réel */
     border-top: 1px dashed #1E3A8A !important;
     width: 100% !important;
 }}
@@ -306,15 +303,17 @@ tr.ligne-separation-classe td,
     .signature-fin-page {{ 
         font-size: 0.75rem !important; 
         padding-top: 4px !important; 
-        margin-bottom: 30px !important; 
+        margin-bottom: 30px !important; /* Conserve la sécurité smartphone */
     }}
     .logo-signature {{ height: 32px !important; }}
 }}
 
 </style>
 
-""", unsafe_allow_html=True)
 
+
+
+""", unsafe_allow_html=True)
 
 def gen_html(df, cl):
     # Sécurisation préventive des variables de session ou d'URL
