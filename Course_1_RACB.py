@@ -139,14 +139,15 @@ def recuperer_donnees_course():
     df_racb = pd.DataFrame(columns=["Pos", "N°", "Nom_Prenom", "Groupe", "Cl", "Chrono"])
     df_divisions = pd.DataFrame(columns=["Pos", "N°", "Nom_Prenom", "Groupe", "Cl", "Chrono"])
 
-# --- TITRES DES BANDEAUX (Avec émojis de tri natifs) ---
-t_live = "🏎️ EN DIRECT / Derniers concurrents partis"
-t_his = "🕒 HISTORIQUE DES TEMPS / 1er COURSE / Concurrents RACB ↕️"
-t_haut = "🏆 CLASSEMENT GENERAL OFFICIEUX RACB ↕️"
-t_milieu = "📊 CLASSEMENT OFFICIEUX PAR Groupe / Classe (Top 3) ↕️"
-t_bas = ""
+    # --- TITRES DES BANDEAUX (4 espaces au début de chaque ligne) ---
+    t_live = "🏎️ EN DIRECT / Derniers concurrents partis"
+    t_his = "🕒 HISTORIQUE DES TEMPS / 1er COURSE / Concurrents RACB ↕️"
+    t_haut = "🏆 CLASSEMENT GENERAL OFFICIEUX RACB ↕️"
+    t_milieu = "📊 CLASSEMENT OFFICIEUX PAR Groupe / Classe (Top 3) ↕️"
+    t_bas = ""
 
     try:
+
         flux_eng = telecharger_excel(FILE_ENGAGES)
         flux_dep = telecharger_excel(FILE_DEPART)
         flux_arr = telecharger_excel(FILE_ARRIVEE)
