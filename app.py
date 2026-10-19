@@ -190,8 +190,8 @@ st.markdown(f"""
     border: 1px solid #CBD5E1 !important;
 }}
 
-/* RESTAURATION STRICTE : On retire .table-responsive-container d'ici pour lui permettre d'avoir un scroll */
-.div-scroll-local-general, .div-scroll-local-classes {{
+/* RETOUR CONFIGURATION ORIGINALE : .table-responsive-container conserve sa flexibilité brute */
+.div-scroll-local-general, .div-scroll-local-classes, .table-responsive-container {{
     height: auto !important;
     max-height: none !important;
     overflow-y: visible !important;
@@ -199,23 +199,11 @@ st.markdown(f"""
     border: none !important;
 }}
 
-/* ACTIVATION DU SCROLL DIRECTEMENT SUR LE CONTENEUR DES CLASSEMENTS */
-.table-responsive-container {{
-    width: 100% !important;
-    overflow-y: auto !important;
-    border: 1px solid #CBD5E1 !important;
-}}
-
 @media (min-width: 769px) {{
     .div-scroll-local-historique {{
         height: 456px !important;
         max-height: 456px !important;
         overflow-y: auto !important;
-        display: block !important;
-    }}
-    /* Les classements à droite s'ajustent à la hauteur calculée de la course */
-    .table-responsive-container {{
-        max-height: {h_pc if 'h_pc' in globals() else '380px'} !important;
         display: block !important;
     }}
     .div-scroll-local-div4 {{
@@ -237,11 +225,6 @@ st.markdown(f"""
         display: block !important;
         -webkit-overflow-scrolling: touch !important;
         border: 1px solid #CBD5E1 !important;
-    }}
-    .table-responsive-container {{
-        max-height: 380px !important;
-        display: block !important;
-        -webkit-overflow-scrolling: touch !important;
     }}
     .div-scroll-local-div4 {{
         height: auto !important;
@@ -306,7 +289,7 @@ tr.ligne-separation-classe td,
     font-weight: bold !important;
     padding-top: 6px !important;
     margin-top: 25px !important;
-    margin-bottom: 5px !important;
+    margin-bottom: 5px !important; /* Marge PC au strict minimum */
     border-top: 1px dashed #1E3A8A !important;
     width: 100% !important;
 }}
@@ -321,7 +304,7 @@ tr.ligne-separation-classe td,
     .signature-fin-page {{ 
         font-size: 0.75rem !important; 
         padding-top: 4px !important; 
-        margin-bottom: 30px !important;
+        margin-bottom: 30px !important; 
     }}
     .logo-signature {{ height: 32px !important; }}
 }}
@@ -343,12 +326,13 @@ def gen_html(df, cl):
     else:
         phrase_attente = "En attente du départ..."
 
-    # Respect STRICT de votre structure de conteneurs d'origine
     if cl == "table-live":
         style_conteneur = "style='width: 100%;'"
     elif cl == "table-hist":
         style_conteneur = "class='div-scroll-local-historique'"
     else:
+        # C'est la fonction elle-même qui récupère directement h_pc et h_mob de votre script Python
+        # Aucun bloc parent CSS global ne vient surcharger ou briser l'affichage
         style_conteneur = "class='table-responsive-container'"
 
     if isinstance(df, str):
@@ -428,11 +412,15 @@ with cg:
 with cd:
     h_mob = "380px"
 
-    # Injection CSS dynamique propre
+    # Injection CSS dynamique stricte pour cibler les conteneurs de droite avec vos dimensions d'origine
     st.markdown(f"""
     <style>
-      @media (min-width: 769px) {{ .table-class-robuste, .table-class-milieu {{ max-height: {h_pc} !important; }} }}
-      @media (max-width: 768px) {{ .table-class-robuste, .table-class-milieu {{ max-height: {h_mob} !important; }} }}
+      @media (min-width: 769px) {{ 
+          .ajust-hauteur-pc {{ max-height: {h_pc} !important; overflow-y: auto !important; display: block !important; border: 1px solid #CBD5E1 !important; }} 
+      }}
+      @media (max-width: 768px) {{ 
+          .ajust-hauteur-pc {{ max-height: {h_mob} !important; overflow-y: auto !important; display: block !important; border: 1px solid #CBD5E1 !important; -webkit-overflow-scrolling: touch !important; }} 
+      }}
     </style>
     """, unsafe_allow_html=True)
 
@@ -440,21 +428,23 @@ with cd:
         # --- MODE DE COURSE ---
         if t_haut:
             st.markdown(f"<span class='titre-classement'>{t_haut}</span>", unsafe_allow_html=True)
-            st.markdown(gen_html(d_haut, 'table-class-robuste'), unsafe_allow_html=True)
+            st.markdown(f"<div class='ajust-hauteur-pc'>{gen_html(d_haut, 'table-class-robuste')}</div>", unsafe_allow_html=True)
         if t_milieu:
             st.markdown(f"<span class='titre-classement espace-classement-suivant'>{t_milieu}</span>", unsafe_allow_html=True)
-            st.markdown(gen_html(d_milieu, 'table-class-milieu'), unsafe_allow_html=True)
+            st.markdown(f"<div class='ajust-hauteur-pc'>{gen_html(d_milieu, 'table-class-milieu')}</div>", unsafe_allow_html=True)
         if t_bas:
             st.markdown(f"<span class='titre-classement espace-classement-suivant'>{t_bas}</span>", unsafe_allow_html=True)
-            st.markdown(gen_html(d_bas, 'table-class-robuste'), unsafe_allow_html=True)
+            nb_lignes = len(d_bas) if hasattr(d_bas, '__len__') else 0
+            style_scroll = "class='ajust-hauteur-pc'" if nb_lignes > 10 else "style='height: auto; display: block;'"
+            st.markdown(f"<div {style_scroll}>{gen_html(d_bas, 'table-class-robuste')}</div>", unsafe_allow_html=True)
     else:
         # --- MODE ESSAIS ---
         if t_haut:
             st.markdown(f"<span class='titre-classement'>{t_haut}</span>", unsafe_allow_html=True)
-            st.markdown(gen_html(d_bas, 'table-class-robuste'), unsafe_allow_html=True)
+            st.markdown(f"<div class='ajust-hauteur-pc'>{gen_html(d_bas, 'table-class-robuste')}</div>", unsafe_allow_html=True)
         if t_milieu:
             st.markdown(f"<span class='titre-classement espace-classement-suivant'>{t_milieu}</span>", unsafe_allow_html=True)
-            st.markdown(gen_html(d_haut, 'table-class-robuste'), unsafe_allow_html=True)
+            st.markdown(f"<div class='ajust-hauteur-pc'>{gen_html(d_haut, 'table-class-robuste')}</div>", unsafe_allow_html=True)
         if t_bas:
             st.markdown(f"<span class='titre-classement espace-classement-suivant'>{t_bas}</span>", unsafe_allow_html=True)
             st.markdown(f"<div class='div-scroll-local-div4'>{gen_html(d_milieu, 'table-class-robuste')}</div>", unsafe_allow_html=True)
