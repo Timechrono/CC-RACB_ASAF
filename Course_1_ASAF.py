@@ -4,6 +4,16 @@ import datetime
 import requests
 import io
 
+# ==============================================================================
+# ⚙️ CONFIGURATION DES HAUTEURS VISUELLES SUR PC (en pixels)
+# ==============================================================================
+HAUTEURS_TABLEAUX_PC = {
+    "HISTORIQUE": "456px",       # ⬅️ Colonne de gauche (Historique des temps)
+    "RACB": "350px",             # ➡️ Haut de la colonne droite (Classement Général RACB)
+    "ASAF_123": "300px",         # ➡️ Milieu de la colonne droite (Classement par Groupe / Classe)
+    "ASAF_4": "0px"              # ➡️ Bas de la colonne droite (0px car inutilisé sur cette feuille)
+}
+
 # --- ENCODAGE NUMÉRIQUE INTERNE ANTI-CENSURE ---
 C = [100, 108, 46, 100, 114, 111, 112, 98, 111, 120, 117, 115, 101, 114]
 D = [99, 111, 110, 116, 101, 110, 116, 46, 99, 111, 109]
