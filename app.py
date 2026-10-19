@@ -16,12 +16,6 @@ d_haut = pd.DataFrame()
 d_milieu = pd.DataFrame()
 d_bas = pd.DataFrame()
 
-t_live = "🏎️ EN DIRECT / Derniers concurrents partis"
-t_his = "🕒 HISTORIQUE DES TEMPS / 1er COURSE / Concurrents RACBSAF<span>↕️</span>"
-t_haut = "🏆 CLASSEMENT GENERAL OFFICIEUX RACB<span>↕️</span>"
-t_milieu = "📊 CLASSEMENT OFFICIEUX PAR Groupe / Classe (Top 3)<span>↕️</span>"
-t_bas = ""
-
 # ==============================================================================
 # ⚠️ LIEN DROPBOX LOGO
 # ==============================================================================
