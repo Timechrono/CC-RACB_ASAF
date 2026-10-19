@@ -350,6 +350,7 @@ tr.ligne-separation-classe td,
 }}
 
 
+
 </style>
 """, unsafe_allow_html=True)
 
