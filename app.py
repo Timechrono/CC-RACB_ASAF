@@ -194,10 +194,11 @@ div.stElementContainer {{
 """, unsafe_allow_html=True)
 st.markdown(f"""
 <style>
-/* 4. BLOCS DE SCROLL INTERNES CLOISONNÉS */
+/* 4. BLOCS DE SCROLL INTERNES ET COUCHE TACTILE MOBILE (-webkit-overflow-scrolling) */
 .div-scroll-local-historique {{
     width: 100% !important;
     border: 1px solid #CBD5E1 !important;
+    -webkit-overflow-scrolling: touch !important;
 }}
 
 .div-scroll-local-general, .div-scroll-local-classes {{
@@ -212,18 +213,11 @@ st.markdown(f"""
     .block-container {{ padding-left: 2px !important; padding-right: 2px !important; }}
     
     .div-scroll-local-historique {{
-        height: 1025px !important;
-        max-height: 1025px !important;
+        height: 400px !important; /* Hauteur fixe sécurisée pour l'historique sur smartphone */
+        max-height: 400px !important;
         overflow-y: auto !important;
         display: block !important;
-        -webkit-overflow-scrolling: touch !important;
         border: 1px solid #CBD5E1 !important;
-    }}
-    .div-scroll-local-div4 {{
-        height: auto !important;
-        max-height: none !important;
-        overflow-y: visible !important;
-        display: block !important;
     }}
 }}
 
@@ -376,15 +370,15 @@ h_racb = hauteurs_config.get("RACB", "380px")
 h_asaf_123 = hauteurs_config.get("ASAF_123", "380px")
 h_asaf_4 = hauteurs_config.get("ASAF_4", "114px")
 
-# Injection CSS temps réel pour forcer les hauteurs paramétrées de la feuille active
+# Injection CSS unifiée (PC + Mobile) pour forcer le scroll sur l'ensemble des conteneurs
 st.markdown(f"""
 <style>
 @media (min-width: 769px) {{
     .div-scroll-local-historique {{ height: {h_historique} !important; max-height: {h_historique} !important; overflow-y: auto !important; }}
-    .div-scroll-local-div4 {{ height: {h_asaf_4} !important; max-height: {h_asaf_4} !important; overflow-y: auto !important; }}
-    .ajust-hauteur-racb {{ height: {h_racb} !important; max-height: {h_racb} !important; overflow-y: auto !important; display: block !important; }}
-    .ajust-hauteur-asaf123 {{ height: {h_asaf_123} !important; max-height: {h_asaf_123} !important; overflow-y: auto !important; display: block !important; }}
 }}
+.div-scroll-local-div4 {{ height: {h_asaf_4} !important; max-height: {h_asaf_4} !important; overflow-y: auto !important; -webkit-overflow-scrolling: touch !important; }}
+.ajust-hauteur-racb {{ height: {h_racb} !important; max-height: {h_racb} !important; overflow-y: auto !important; display: block !important; -webkit-overflow-scrolling: touch !important; }}
+.ajust-hauteur-asaf123 {{ height: {h_asaf_123} !important; max-height: {h_asaf_123} !important; overflow-y: auto !important; display: block !important; -webkit-overflow-scrolling: touch !important; }}
 </style>
 """, unsafe_allow_html=True)
 
@@ -438,7 +432,7 @@ with cd:
             st.markdown(f"<span class='titre-classement espace-classement-suivant'>{t_bas}</span>", unsafe_allow_html=True)
             st.markdown(f"<div class='div-scroll-local-div4'>{gen_html(d_milieu, 'table-class-robuste')}</div>", unsafe_allow_html=True)
 
-# INJECTION DE LA SIGNATURE UNIQUE SANS RE-SPLIT NI MIROIR
+# INJECTION DE LA SIGNATURE UNIQUE CONTRE LES DOUBLONS
 st.markdown(f"""
 <div class='signature-fin-page'>
     <img src='{LIEN_DROPBOX_LOGO}' class='logo-signature'>
