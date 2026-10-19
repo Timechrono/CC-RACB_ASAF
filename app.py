@@ -89,6 +89,16 @@ footer,
     font-size: 0 !important;
 }}
 
+/* NEUTRALISATION DU VOILE GRIS / EFFET MIROIR PENDANT LE ST.RERUN */
+[data-testid="stAppViewContainer"] {{
+    opacity: 1 !important;
+    filter: none !important;
+}}
+.stApp [data-testid="stRenderLoading"] {{
+    display: none !important;
+    visibility: hidden !important;
+}}
+
 /* L'ASTUCE SUR PC : ON EXTRACT LE PIED DE PAGE HORS DE L'ESPACE DE CALCUL DU NAVIGATEUR */
 @media (min-width: 769px) {{
     footer, [data-testid="stFooterContainer"], [data-testid="stStatusWidget"], .stStatusWidget {{
@@ -126,12 +136,12 @@ html, body, [data-testid="stAppViewContainer"], [data-testid="stMainBlockContain
 
 @media (min-width: 769px) {{
     .block-container {{ 
-        padding-bottom: 35px !important; /* Espace pour éviter la superposition avec la signature fixe */
+        padding-bottom: 45px !important; /* Marge de sécurité dynamique pour ne rien masquer sous la signature */
     }}
 }}
 @media (max-width: 768px) {{
     .block-container {{ 
-        padding-bottom: 50px !important; 
+        padding-bottom: 55px !important; 
     }}
 }}
 
@@ -178,8 +188,11 @@ div.stElementContainer {{
 .espace-classement-suivant {{
     margin-top: 15px !important;
 }}
-
-/* 4. BLOCS DE SCROLL INTERNES CLOISONNÉS */
+</style>
+""", unsafe_allow_html=True)
+st.markdown(f"""
+<style>
+/* 4. BLOCS DE SCROLL INTERNES ADAPTATIFS ACCORDÉS */
 .div-scroll-local-historique {{
     width: 100% !important;
     border: 1px solid #CBD5E1 !important;
@@ -274,13 +287,13 @@ tr.ligne-separation-classe td,
     box-shadow: inset 0 -3px 0 0 #1E3A8A !important; 
 }}
 
-/* 6. CORRECTION SIGNATURE : BANDAU BLANC FIXE QUI COUVRE L'ANCIENNE BARRE */
+/* 6. CORRECTION DE LA SIGNATURE UNIQUE ANTI-DUPLICATION */
 .signature-fin-page {{
     position: fixed !important;
     bottom: 0px !important;
     left: 0px !important;
     width: 100vw !important;
-    height: 30px !important;
+    height: 32px !important;
     background-color: #FFFFFF !important;
     display: flex !important;
     justify-content: center !important;
@@ -305,13 +318,13 @@ tr.ligne-separation-classe td,
 @media (max-width: 768px) {{
     .signature-fin-page {{ 
         font-size: 0.75rem !important; 
-        height: 35px !important;
+        height: 38px !important;
     }}
     .logo-signature {{ height: 24px !important; }}
 }}
-
 </style>
 """, unsafe_allow_html=True)
+
 def gen_html(df, cl):
     if cl == "table-hist":
         phrase_attente = "En attente d'arrivée..."
@@ -344,7 +357,6 @@ def gen_html(df, cl):
     
     html_table = df.to_html(index=False, classes=f"table-compacte {cl}", escape=False, border=0)
     return f"<div {style_conteneur}>{html_table}</div>"
-
 # --- LECTURE DU PARAMÈTRE DE COURSE DEPUIS L'URL ---
 query_params = st.query_params
 choix_course_url = query_params.get("course", "essais").lower()
@@ -385,6 +397,7 @@ except Exception as e:
     t_live = "⚠️ Liaison Dropbox ralentie ou instable — Tentative de reconnexon en cours..."
 
 st.markdown("<style>@media (min-width: 769px) { .table-hist th:nth-child(1), .table-hist td:nth-child(1) { width: 8% !important; } .table-hist th:nth-child(2), .table-hist td:nth-child(2) { width: 32% !important; } .table-hist th:nth-child(3), .table-hist td:nth-child(3) { width: 28% !important; } .table-hist th:nth-child(4), .table-hist td:nth-child(4) { width: 10% !important; } .table-hist th:nth-child(5), .table-hist td:nth-child(5) { width: 5% !important; } .table-hist th:nth-child(6), .table-hist td:nth-child(6) { width: 17% !important; } }</style>", unsafe_allow_html=True)
+
 if t_haut and "TOP 20" in t_haut.upper():
     t_haut = "🏆 CLASSEMENT GENERAL OFFICIEUX RACB"
 
@@ -436,7 +449,7 @@ with cd:
             st.markdown(f"<span class='titre-classement espace-classement-suivant'>{t_bas}</span>", unsafe_allow_html=True)
             st.markdown(f"<div class='div-scroll-local-div4'>{gen_html(d_milieu, 'table-class-robuste')}</div>", unsafe_allow_html=True)
 
-# INJECTION DU CONTENEUR HTML DE SIGNATURE APPLATIE ET FIXÉE
+# INJECTION DE LA SIGNATURE CONTRE LES DOUBLONS
 st.markdown(f"""
 <div class='signature-fin-page'>
     <img src='{LIEN_DROPBOX_LOGO}' class='logo-signature'>
