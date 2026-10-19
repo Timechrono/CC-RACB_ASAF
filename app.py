@@ -227,23 +227,30 @@ with cd:
     if choix_course != "Essais":
         if t_haut:
             st.markdown(f"<span class='titre-classement'>{t_haut}</span>", unsafe_allow_html=True)
-            st.markdown(f'<div class="div-mobile-fluid" style="max-height: {h_racb_pc}; height: {h_racb_pc}; overflow-y: auto; display: block; border: 1px solid #CBD5E1; margin-bottom: 2px;">{gen_html(d_haut, "table-class-robuste")}</div>', unsafe_allow_html=True)
+            rendu_haut = d_haut if isinstance(d_haut, str) else gen_html(d_haut, "table-class-robuste")
+            st.markdown(f'<div class="div-mobile-fluid" style="max-height: {h_racb_pc}; height: {h_racb_pc}; overflow-y: auto; display: block; border: 1px solid #CBD5E1; margin-bottom: 2px;">{rendu_haut}</div>', unsafe_allow_html=True)
         if t_milieu:
             st.markdown(f"<span class='titre-classement espace-classement-suivant'>{t_milieu}</span>", unsafe_allow_html=True)
-            st.markdown(f'<div class="div-mobile-fluid" style="max-height: {h_asaf123_pc}; height: {h_asaf123_pc}; overflow-y: auto; display: block; border: 1px solid #CBD5E1; margin-bottom: 2px;">{gen_html(d_milieu, "table-class-milieu")}</div>', unsafe_allow_html=True)
-        if t_bas:
+            # Gestion hybride String/DataFrame pour le milieu (Classement Groupe/Classe RACB)
+            rendu_milieu = d_milieu if isinstance(d_milieu, str) else gen_html(d_milieu, "table-class-milieu")
+            st.markdown(f'<div class="div-mobile-fluid" style="max-height: {h_asaf123_pc}; height: {h_asaf123_pc}; overflow-y: auto; display: block; border: 1px solid #CBD5E1; margin-bottom: 2px;">{rendu_milieu}</div>', unsafe_allow_html=True)
+        if t_bas and h_asaf4_pc != "0px":
             st.markdown(f"<span class='titre-classement espace-classement-suivant'>{t_bas}</span>", unsafe_allow_html=True)
-            st.markdown(f'<div class="div-mobile-fluid" style="max-height: {h_asaf4_pc}; height: {h_asaf4_pc}; overflow-y: auto; display: block; border: 1px solid #CBD5E1; margin-bottom: 2px;">{gen_html(d_bas, "table-class-robuste")}</div>', unsafe_allow_html=True)
+            rendu_bas = d_bas if isinstance(d_bas, str) else gen_html(d_bas, "table-class-robuste")
+            st.markdown(f'<div class="div-mobile-fluid" style="max-height: {h_asaf4_pc}; height: {h_asaf4_pc}; overflow-y: auto; display: block; border: 1px solid #CBD5E1; margin-bottom: 2px;">{rendu_bas}</div>', unsafe_allow_html=True)
     else:
         if t_haut:
             st.markdown(f"<span class='titre-classement'>{t_haut}</span>", unsafe_allow_html=True)
-            st.markdown(f'<div class="div-mobile-fluid" style="max-height: {h_racb_pc}; height: {h_racb_pc}; overflow-y: auto; display: block; border: 1px solid #CBD5E1; margin-bottom: 2px;">{gen_html(d_bas, "table-class-robuste")}</div>', unsafe_allow_html=True)
+            rendu_haut_essais = d_bas if isinstance(d_bas, str) else gen_html(d_bas, "table-class-robuste")
+            st.markdown(f'<div class="div-mobile-fluid" style="max-height: {h_racb_pc}; height: {h_racb_pc}; overflow-y: auto; display: block; border: 1px solid #CBD5E1; margin-bottom: 2px;">{rendu_haut_essais}</div>', unsafe_allow_html=True)
         if t_milieu:
             st.markdown(f"<span class='titre-classement espace-classement-suivant'>{t_milieu}</span>", unsafe_allow_html=True)
-            st.markdown(f'<div class="div-mobile-fluid" style="max-height: {h_asaf123_pc}; height: {h_asaf123_pc}; overflow-y: auto; display: block; border: 1px solid #CBD5E1; margin-bottom: 2px;">{gen_html(d_haut, "table-class-robuste")}</div>', unsafe_allow_html=True)
-        if t_bas:
+            rendu_milieu_essais = d_haut if isinstance(d_haut, str) else gen_html(d_haut, "table-class-robuste")
+            st.markdown(f'<div class="div-mobile-fluid" style="max-height: {h_asaf123_pc}; height: {h_asaf123_pc}; overflow-y: auto; display: block; border: 1px solid #CBD5E1; margin-bottom: 2px;">{rendu_milieu_essais}</div>', unsafe_allow_html=True)
+        if t_bas and h_asaf4_pc != "0px":
             st.markdown(f"<span class='titre-classement espace-classement-suivant'>{t_bas}</span>", unsafe_allow_html=True)
-            st.markdown(f'<div class="div-mobile-fluid" style="max-height: {h_asaf4_pc}; height: {h_asaf4_pc}; overflow-y: auto; display: block; border: 1px solid #CBD5E1; margin-bottom: 2px;">{gen_html(d_milieu, "table-class-robuste")}</div>', unsafe_allow_html=True)
+            rendu_bas_essais = d_milieu if isinstance(d_milieu, str) else gen_html(d_milieu, "table-class-robuste")
+            st.markdown(f'<div class="div-mobile-fluid" style="max-height: {h_asaf4_pc}; height: {h_asaf4_pc}; overflow-y: auto; display: block; border: 1px solid #CBD5E1; margin-bottom: 2px;">{rendu_bas_essais}</div>', unsafe_allow_html=True)
 
     st.markdown("""<style>@media (max-width: 768px) { .div-mobile-fluid, .div-mobile-fluid-gauche { max-height: none !important; height: auto !important; overflow-y: visible !important; border: none !important; } }</style>""", unsafe_allow_html=True)
 
