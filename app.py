@@ -1,8 +1,6 @@
 # https://www.dropbox.com/scl/fi/hi24fjo0vbal4oiiwt9jl/logo-TimeC.png?rlkey=xlw0oqk9gdnq6v5dgahi0klg0&st=y86yrn6y&dl=1
 # https://www.dropbox.com/scl/fi/hi24fjo0vbal4oiiwt9jl/logo-TimeC.png?rlkey=xlw0oqk9gdnq6v5dgahi0klg0&st=y86yrn6y&dl=1
-# https://www.dropbox.com/scl/fi/hi24fjo0vbal4oiiwt9jl/logo-TimeC.png?rlkey=xlw0oqk9gdnq6v5dgahi0klg0&st=y86yrn6y&dl=1
-# https://www.dropbox.com/scl/fi/hi24fjo0vbal4oiiwt9jl/logo-TimeC.png?rlkey=xlw0oqk9gdnq6v5dgahi0klg0&st=y86yrn6y&dl=1
-# https://dropbox.com
+
 
 import streamlit as st
 import pandas as pd
@@ -93,15 +91,25 @@ footer,
     font-size: 0 !important;
 }}
 
-/* NEUTRALISATION DU VOILE GRIS / EFFET MIROIR PENDANT LE ST.RERUN */
-[data-testid="stAppViewContainer"] {{
+/* NEUTRALISATION DE L'EFFET MIROIR ET DU VOILE GRIS DU RERUN */
+[data-testid="stAppViewBlockContainer"] {{
     opacity: 1 !important;
     filter: none !important;
 }}
-.stApp [data-testid="stRenderLoading"] {{
+
+/* Cache proprement l'ancien calque de chargement qui duplique la page */
+div[data-testid="stRenderLoading"] {{
     display: none !important;
     visibility: hidden !important;
+    height: 0px !important;
+    opacity: 0 !important;
 }}
+
+/* Évite la superposition fantôme spécifique aux nouvelles versions de Streamlit */
+.stAppDeployButton, [data-testid="stHeader"] {{
+    display: none !important;
+}}
+
 
 /* L'ASTUCE SUR PC : ON EXTRACT LE PIED DE PAGE HORS DE L'ESPACE DE CALCUL DU NAVIGATEUR */
 @media (min-width: 769px) {{
