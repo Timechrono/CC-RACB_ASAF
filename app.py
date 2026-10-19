@@ -142,7 +142,7 @@ html, body, [data-testid="stAppViewContainer"], [data-testid="stMainBlockContain
 }}
 @media (max-width: 768px) {{
     .block-container {{ 
-        padding-bottom: 55px !important; /* Marge inférieure de sécurité Smartphone */
+        padding-bottom: 60px !important; /* Augmenté pour laisser plus de respiration sur mobile */
     }}
 }}
 
@@ -266,49 +266,49 @@ tr.ligne-separation-classe td,
     box-shadow: inset 0 -3px 0 0 #1E3A8A !important; 
 }}
 
-/* 6. PIED DE PAGE ANTI-ÉCRASEMENT UNIQUE */
+/* 6. PIED DE PAGE ISOLÉ AVEC AUTOSCALE POUR TOUS LES SMARTPHONES */
 .signature-fin-page {{
     position: fixed !important;
     bottom: 0px !important;
     left: 0px !important;
     width: 100% !important;
     box-sizing: border-box !important;
-    height: 34px !important;
+    height: 40px !important; /* Augmentation pour donner de l'air aux logos avec marges internes */
     background-color: #FFFFFF !important;
     display: flex !important;
     flex-direction: row !important;
-    flex-wrap: nowrap !important; /* Interdit le retour à la ligne ou le masquage */
+    flex-wrap: nowrap !important;
     justify-content: center !important;
     align-items: center !important;
-    gap: 10px !important;
+    gap: 15px !important;
     text-align: center !important;
     color: #1E3A8A !important;
-    font-size: 0.95rem !important;
+    font-size: 1.05rem !important;
     font-weight: bold !important;
     border-top: 1px dashed #1E3A8A !important;
     z-index: 999999 !important;
-    padding: 0px 5px !important;
+    padding: 0px 10px !important;
     margin: 0px !important;
 }}
 
 .logo-signature {{
-    height: 22px !important;
+    height: 30px !important; /* Augmentation de la zone de calcul de l'image */
     width: auto !important;
-    max-height: 22px !important;
-    object-fit: contain !important; /* Force le respect des proportions */
+    max-height: 30px !important;
+    object-fit: contain !important; /* Empêche l'écrasement ou la coupe */
     display: inline-block !important;
 }}
 
 @media (max-width: 768px) {{
     .signature-fin-page {{ 
-        font-size: 0.85rem !important;
-        height: 34px !important;
-        gap: 6px !important;
+        font-size: 0.82rem !important; /* Adaptation pour écrans compacts */
+        height: 38px !important;
+        gap: 8px !important;
+        padding: 0px 6px !important;
     }}
     .logo-signature {{ 
-        height: 18px !important; /* Réduction pour empêcher la coupure sur petit écran */
-        max-height: 18px !important;
-        width: auto !important;
+        height: 26px !important; /* Contrainte mobile équilibrée */
+        max-height: 26px !important;
     }}
 }}
 </style>
@@ -440,7 +440,7 @@ with cd:
             st.markdown(f"<span class='titre-classement espace-classement-suivant'>{t_bas}</span>", unsafe_allow_html=True)
             st.markdown(f"<div class='div-scroll-local-div4'>{gen_html(d_milieu, 'table-class-robuste')}</div>", unsafe_allow_html=True)
 
-# INJECTION DE LA SIGNATURE ULTRA RE-PROPORTIONNÉE SANS RETOUR À LA LIGNE
+# INJECTION DU PIED DE PAGE ROBUSTE REHAUSSÉ POUR MOBILE
 st.markdown(f"""
 <div class='signature-fin-page'>
     <img src='{LIEN_DROPBOX_LOGO}' class='logo-signature' alt='Logo'>
