@@ -443,8 +443,11 @@ with cg:
     
 with cd:
     h_mob = "380px"
+    
+    # LA SEULE LIGNE NÉCESSAIRE : Si h_pc n'a pas été calculé plus haut, on lui donne une valeur par défaut
+    if 'h_pc' not in locals() and 'h_pc' not in globals(): h_pc = "380px"
 
-    # Injection CSS dynamique (Utilise h_pc calculé plus haut dans app.py)
+    # Injection CSS dynamique
     st.markdown(f"""
     <style>
       @media (min-width: 769px) {{ .ajust-hauteur-pc {{ max-height: {h_pc} !important; }} }}
@@ -465,6 +468,7 @@ with cd:
             nb_lignes = len(d_bas) if hasattr(d_bas, '__len__') else 0
             style_scroll = "class='ajust-hauteur-pc' style='overflow-y: auto; display: block;'" if nb_lignes > 10 else "style='height: auto; display: block;'"
             st.markdown(f"<div {style_scroll}>{gen_html(d_bas, 'table-class-robuste')}</div>", unsafe_allow_html=True)
+
 
     else:
         # --- MODE ESSAIS ---
