@@ -65,7 +65,7 @@ st.set_page_config(page_title="Live", layout="wide")
 
 st.markdown(f"""
 <style>
-/* 1. DISPARITION PROPRE DES COMPOSANTS ENROBAGES DE STREAMLIT */
+/* 1. DISPARITION DES COMPOSANTS ENROBAGES DE STREAMLIT */
 footer, [data-testid="stFooterContainer"], [data-testid="stStatusWidget"], .stStatusWidget, [data-testid="stHeader"], [data-testid="stDecoration"] {{
     display: none !important;
     visibility: hidden !important;
@@ -77,7 +77,7 @@ button:focus, div:focus, input:focus, select:focus {{
     outline: none !important; border-color: transparent !important; box-shadow: none !important;
 }}
 
-/* 2. CONFIGURATION DE LA PAGE - CORRECTION FINALE DU SCROLL MOBILE */
+/* 2. CONFIGURATION DE LA PAGE ET SCROLL */
 @media (min-width: 769px) {{
     html, body, [data-testid="stAppViewContainer"], [data-testid="stMainBlockContainer"] {{
         overflow: auto !important; 
@@ -88,19 +88,13 @@ button:focus, div:focus, input:focus, select:focus {{
 }}
 
 @media (max-width: 768px) {{
-    /* Sur smartphone, on laisse Streamlit gérer sa hauteur et on force le scroll global */
-    html, body {{
+    /* Libération complète de la hauteur et du tactile mobile */
+    html, body, [data-testid="stAppViewContainer"], [data-testid="stMainBlockContainer"], .main {{
         overflow: auto !important;
         overflow-y: auto !important;
         height: auto !important;
-    }}
-    [data-testid="stAppViewContainer"] {{
-        height: max-content !important; /* Force le conteneur à suivre la longueur des tableaux */
-        overflow: visible !important;
-    }}
-    [data-testid="stMainBlockContainer"] {{
-        height: auto !important;
-        overflow: visible !important;
+        min-height: auto !important;
+        max-height: none !important;
     }}
 }}
 
@@ -111,7 +105,7 @@ button:focus, div:focus, input:focus, select:focus {{
 div[data-testid="stVerticalBlock"] {{ gap: 0rem !important; padding-top: 0px !important; margin-top: 0px !important; }}
 div.stElementContainer {{ margin-top: 0px !important; margin-bottom: 0px !important; padding-top: 0px !important; padding-bottom: 0px !important; }}
 
-/* 3. APPEARENCE DES BANDEAUX DE TITRES GRAPHIQUES */
+/* 3. APPEARENCE DES BANDEAUX DE TITRES GRAPHQUES */
 .titre-live, .titre-hist, .titre-classement {{
     color: #FFFFFF !important; font-size: 1.02rem !important; font-weight: bold !important;
     height: 26px !important; max-height: 26px !important; padding: 0px 8px !important; border-radius: 3px !important;
@@ -131,6 +125,7 @@ div.stElementContainer {{ margin-top: 0px !important; margin-bottom: 0px !import
 .espace-classement-suivant {{ margin-top: 15px !important; }}
 </style>
 """, unsafe_allow_html=True)
+
 
 st.markdown(f"""
 <style>
