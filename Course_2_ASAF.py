@@ -126,10 +126,10 @@ def recuperer_donnees_course():
     df_divisions = html_hist
 
     t_live = "🏎️ EN DIRECT / Derniers Concurrents partis"
-    t_his = "🕒 HISTORIQUE DES TEMPS / ASAF"
-    t_haut = "🏆 CLASSEMENT GENERAL OFFICIEUX Division 123 (Top 25)"
-    t_milieu = "🏆 CLASSEMENT GENERAL OFFICIEUX Division 4 (Top 10)"
-    t_bas = "📊 CLASSEMENT OFFICIEUX par Division / Classe (Top 3)"
+    t_his = "🕒 HISTORIQUE DES TEMPS / ASAF</span> <span>↕️</span>"
+    t_haut = "🏆 CLASSEMENT GENERAL OFFICIEUX Division 123 (Top 25)</span> <span>↕️</span>"
+    t_milieu = "🏆 CLASSEMENT GENERAL OFFICIEUX Division 4 (Top 10)</span> <span>↕️</span>"
+    t_bas = "📊 CLASSEMENT OFFICIEUX par Division / Classe (Top 3)</span> <span>↕️</span>"
 
     try:
         flux_eng = telecharger_excel(FILE_ENGAGES)
