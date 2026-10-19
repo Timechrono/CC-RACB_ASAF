@@ -196,7 +196,7 @@ def recuperer_donnees_course():
 
     except Exception: pass
 
-     # --- INJECTION DYNAMIQUE TOTALEMENT VERROUILLÉE DES HAUTEURS SUR PC ---
+    # --- INJECTION DYNAMIQUE TOTALEMENT VERROUILLÉE DES HAUTEURS SUR PC ---
     h_hist = HAUTEURS_TABLEAUX_PC.get("HISTORIQUE", "456px")
     h_racb = HAUTEURS_TABLEAUX_PC.get("RACB", "215px")
     h_asaf123 = HAUTEURS_TABLEAUX_PC.get("ASAF_123", "215px")
@@ -214,51 +214,53 @@ def recuperer_donnees_course():
           display: block !important;
         }}
         
-        /* 2. Blocs de Droite : Verrouillage des enveloppes de app.py */
+        /* 2. Neutralisation de l'enveloppe parente de app.py */
         .ajust-hauteur-pc {{
           height: auto !important;
           max-height: none !important;
           overflow: visible !important;
-        }}
-        
-        /* 3. Ciblage chirurgical des conteneurs de tableaux HTML réels générés par gen_html() */
-        /* Cela empêche l'étirement des données et force l'apparition de la barre de défilement */
-        .ajust-hauteur-pc .table-responsive-container {{
           display: block !important;
-          width: 100% !important;
-          overflow-y: auto !important;
         }}
         
-        /* Attribution individuelle des hauteurs sur les tableaux de droite */
-        .ajust-hauteur-pc .table-class-robuste {{
+        /* 3. Ciblage de la DIV enveloppe générée par gen_html() contenant le classement RACB (d_bas en mode essais) */
+        .ajust-hauteur-pc .table-responsive-container:has(.table-class-robuste) {{
           max-height: {h_racb} !important;
           height: {h_racb} !important;
+          overflow-y: auto !important;
+          display: block !important;
+          border: 1px solid #CBD5E1 !important;
         }}
         
-        .ajust-hauteur-pc .table-class-milieu {{
+        /* 4. Ciblage de la DIV enveloppe générée par gen_html() contenant le classement ASAF 123 (d_haut en mode essais) */
+        .ajust-hauteur-pc .table-responsive-container:has(.table-class-milieu) {{
           max-height: {h_asaf123} !important;
           height: {h_asaf123} !important;
+          overflow-y: auto !important;
+          display: block !important;
+          border: 1px solid #CBD5E1 !important;
         }}
         
-        /* 4. Cas de la Division 4 (Mode Essais) */
+        /* 5. Cas de la Division 4 (Mode Essais) */
         .div-scroll-local-div4 {{
           height: {h_asaf4} !important;
           max-height: {h_asaf4} !important;
           overflow-y: auto !important;
           display: block !important;
+          border: 1px solid #CBD5E1 !important;
         }}
         
-        .div-scroll-local-div4 .table-responsive-container,
-        .div-scroll-local-div4 .table-class-robuste {{
+        .div-scroll-local-div4 .table-responsive-container {{
           max-height: {h_asaf4} !important;
           height: {h_asaf4} !important;
           overflow-y: auto !important;
+          display: block !important;
         }}
         
       }}
     </style>
     """
     st.markdown(css_exclusif_pc, unsafe_allow_html=True)
+
 
 
 
