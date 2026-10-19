@@ -158,8 +158,15 @@ div.stElementContainer {{ margin-top: 0px !important; margin-bottom: 0px !import
 
 .espace-classement-suivant {{ margin-top: 15px !important; }}
 /* 4. BLOCS DE SCROLL INTERNES CLOISONNÉS */
-.div-scroll-local-historique, .div-scroll-local-general, .div-scroll-local-classes, .table-responsive-container {{
-    width: 100% !important; border: 1px solid #CBD5E1 !important; overflow-x: auto !important;
+.div-scroll-local-historique {{
+    width: 100% !important;
+    border: 1px solid #CBD5E1 !important;
+}}
+
+.div-scroll-local-general, .div-scroll-local-classes, .table-responsive-container {{
+    width: 100% !important; 
+    border: 1px solid #CBD5E1 !important; 
+    overflow-x: auto !important;
 }}
 
 @media (min-width: 769px) {{
@@ -220,7 +227,6 @@ def gen_html(df, cl):
     else:
         phrase_attente = "En attente du départ..."
 
-    # RESTAURATION DE LA NORME DU TABLEAU LIVE (Pas de hauteur fixe ni conteneur responsive pour table-live)
     if cl == "table-live":
         style_conteneur = "style='width: 100%;'"
     elif cl == "table-hist":
