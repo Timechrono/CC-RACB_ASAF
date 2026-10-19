@@ -1,5 +1,7 @@
 # https://www.dropbox.com/scl/fi/hi24fjo0vbal4oiiwt9jl/logo-TimeC.png?rlkey=xlw0oqk9gdnq6v5dgahi0klg0&st=y86yrn6y&dl=1
 # https://www.dropbox.com/scl/fi/hi24fjo0vbal4oiiwt9jl/logo-TimeC.png?rlkey=xlw0oqk9gdnq6v5dgahi0klg0&st=y86yrn6y&dl=1
+# https://www.dropbox.com/scl/fi/hi24fjo0vbal4oiiwt9jl/logo-TimeC.png?rlkey=xlw0oqk9gdnq6v5dgahi0klg0&st=y86yrn6y&dl=1
+# https://www.dropbox.com/scl/fi/hi24fjo0vbal4oiiwt9jl/logo-TimeC.png?rlkey=xlw0oqk9gdnq6v5dgahi0klg0&st=y86yrn6y&dl=1
 
 
 import streamlit as st
@@ -442,75 +444,28 @@ with cg:
     st.markdown(gen_html(d_his, "table-hist"), unsafe_allow_html=True)
     
 with cd:
-    h_mob = "380px"
-    
-    # --- EXTRACTION SÉCURISÉE DES HAUTEURS DEPUIS LE FICHIER DE COURSE ACTIF ---
-    import sys
-    # On initialise des valeurs par défaut au cas où
-    h_racb, h_asaf123, h_asaf4 = "350px", "300px", "100px"
-    
-    # On cherche quel module de course est chargé en mémoire pour extraire son dictionnaire
-    nom_module_actif = None
-    if choix_course == "Course 1 ASAF": nom_module_actif = "Course_1_ASAF"
-    elif choix_course == "Course 1 RACB": nom_module_actif = "Course_1_RACB"
-    elif choix_course == "Course 2 ASAF": nom_module_actif = "Course_2_ASAF"
-    elif choix_course == "Course 2 RACB": nom_module_actif = "Course_2_RACB"
-    elif choix_course == "Course 3 ASAF": nom_module_actif = "Course_3_ASAF"
-    elif choix_course == "Course 3 RACB": nom_module_actif = "Course_3_RACB"
-    elif choix_course == "Essais": nom_module_actif = "Essais"
-
-    if nom_module_actif and nom_module_actif in sys.modules:
-        module = sys.modules[nom_module_actif]
-        # On extrait le dictionnaire directement depuis l'espace global du module de course
-        dict_hauteurs = getattr(module, "HAUTEURS_TABLEAUX_PC", {})
-        if dict_hauteurs:
-            h_racb = dict_hauteurs.get("RACB", "350px")
-            h_asaf123 = dict_hauteurs.get("ASAF_123", "300px")
-            h_asaf4 = dict_hauteurs.get("ASAF_4", "100px")
-
-    # Injection CSS dynamique avec les vraies hauteurs lues en direct
-    st.markdown(f"""
-    <style>
-      @media (min-width: 769px) {{ 
-        .ajust-h-racb {{ max-height: {h_racb} !important; }} 
-        .ajust-h-asaf123 {{ max-height: {h_asaf123} !important; }} 
-        .ajust-h-asaf4 {{ max-height: {h_asaf4} !important; }} 
-      }}
-      @media (max-width: 768px) {{ 
-        .ajust-h-racb, .ajust-h-asaf123, .ajust-h-asaf4 {{ max-height: {h_mob} !important; }} 
-      }}
-    </style>
-    """, unsafe_allow_html=True)
-
     if choix_course != "Essais":
-        # ==============================================================================
-        # --- MODE DE COURSE ---
-        # ==============================================================================
         if t_haut:
             st.markdown(f"<span class='titre-classement'>{t_haut}</span>", unsafe_allow_html=True)
-            st.markdown(f"<div class='ajust-h-racb' style='overflow-y: auto; display: block;'>{gen_html(d_haut, 'table-class-robuste')}</div>", unsafe_allow_html=True)
+            st.markdown(f"<div class='ajust-hauteur-racb'>{gen_html(d_haut, 'table-class-robuste')}</div>", unsafe_allow_html=True)
         if t_milieu:
             st.markdown(f"<span class='titre-classement espace-classement-suivant'>{t_milieu}</span>", unsafe_allow_html=True)
-            st.markdown(f"<div class='ajust-h-asaf123' style='overflow-y: auto; display: block;'>{gen_html(d_milieu, 'table-class-milieu')}</div>", unsafe_allow_html=True)
+            st.markdown(f"<div class='ajust-hauteur-asaf123'>{gen_html(d_milieu, 'table-class-milieu')}</div>", unsafe_allow_html=True)
         if t_bas:
             st.markdown(f"<span class='titre-classement espace-classement-suivant'>{t_bas}</span>", unsafe_allow_html=True)
-            st.markdown(f"<div class='ajust-h-asaf4' style='overflow-y: auto; display: block;'>{gen_html(d_bas, 'table-class-robuste')}</div>", unsafe_allow_html=True)
+            nb_lignes = len(d_bas) if hasattr(d_bas, '__len__') else 0
+            style_scroll = "class='ajust-hauteur-asaf123'" if nb_lignes > 10 else "style='height: auto; display: block;'"
+            st.markdown(f"<div {style_scroll}>{gen_html(d_bas, 'table-class-robuste')}</div>", unsafe_allow_html=True)
     else:
-        # ==============================================================================
-        # --- MODE ESSAIS ---
-        # ==============================================================================
         if t_haut:
             st.markdown(f"<span class='titre-classement'>{t_haut}</span>", unsafe_allow_html=True)
-            st.markdown(f"<div class='ajust-h-racb' style='overflow-y: auto; display: block;'>{gen_html(d_bas, 'table-class-robuste')}</div>", unsafe_allow_html=True)
+            st.markdown(f"<div class='ajust-hauteur-racb'>{gen_html(d_bas, 'table-class-robuste')}</div>", unsafe_allow_html=True)
         if t_milieu:
             st.markdown(f"<span class='titre-classement espace-classement-suivant'>{t_milieu}</span>", unsafe_allow_html=True)
-            st.markdown(f"<div class='ajust-h-asaf123' style='overflow-y: auto; display: block;'>{gen_html(d_haut, 'table-class-robuste')}</div>", unsafe_allow_html=True)
+            st.markdown(f"<div class='ajust-hauteur-asaf123'>{gen_html(d_haut, 'table-class-robuste')}</div>", unsafe_allow_html=True)
         if t_bas:
             st.markdown(f"<span class='titre-classement espace-classement-suivant'>{t_bas}</span>", unsafe_allow_html=True)
-            st.markdown(f"<div class='ajust-h-asaf4' style='overflow-y: auto; display: block;'>{gen_html(d_milieu, 'table-class-robuste')}</div>", unsafe_allow_html=True)
-
-
-
+            st.markdown(f"<div class='div-scroll-local-div4'>{gen_html(d_milieu, 'table-class-robuste')}</div>", unsafe_allow_html=True)
 
 # INJECTION DE LA SIGNATURE UNIQUE CONTRE LES DOUBLONS
 st.markdown(f"""
