@@ -1,6 +1,8 @@
 # https://www.dropbox.com/scl/fi/hi24fjo0vbal4oiiwt9jl/logo-TimeC.png?rlkey=xlw0oqk9gdnq6v5dgahi0klg0&st=y86yrn6y&dl=1
 # https://www.dropbox.com/scl/fi/hi24fjo0vbal4oiiwt9jl/logo-TimeC.png?rlkey=xlw0oqk9gdnq6v5dgahi0klg0&st=y86yrn6y&dl=1
 
+# https://dropbox.com
+
 import streamlit as st
 import pandas as pd
 import time
@@ -218,7 +220,13 @@ def gen_html(df, cl):
     else:
         phrase_attente = "En attente du départ..."
 
-    style_conteneur = "class='div-scroll-local-historique'" if cl == "table-hist" else "class='table-responsive-container'"
+    # RESTAURATION DE LA NORME DU TABLEAU LIVE (Pas de hauteur fixe ni conteneur responsive pour table-live)
+    if cl == "table-live":
+        style_conteneur = "style='width: 100%;'"
+    elif cl == "table-hist":
+        style_conteneur = "class='div-scroll-local-historique'"
+    else:
+        style_conteneur = "class='table-responsive-container'"
 
     if isinstance(df, str):
         if "<TABLE" in df.upper() and "</TABLE>" in df.upper():
