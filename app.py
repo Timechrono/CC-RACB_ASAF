@@ -137,15 +137,13 @@ html, body, [data-testid="stAppViewContainer"], [data-testid="stMainBlockContain
 
 @media (min-width: 769px) {{
     .block-container {{ 
-        padding-bottom: 45px !important; /* Marge inférieure de sécurité PC */
+        padding-bottom: 45px !important; 
     }}
 }}
 @media (max-width: 768px) {{
-    /* FORCE LE NETTOYAGE DES ESPACES SUR SMARTPHONE */
     .block-container {{ 
-        padding-bottom: 45px !important; 
+        padding-bottom: 50px !important; 
     }}
-    /* Neutralise la zone d'exclusion que certains navigateurs mobiles imposent */
     [data-testid="stAppViewContainer"] > section {{
         padding-bottom: 0px !important;
     }}
@@ -217,7 +215,7 @@ st.markdown(f"""
     .block-container {{ padding-left: 2px !important; padding-right: 2px !important; }}
     
     .div-scroll-local-historique {{
-        height: 400px !important; /* Hauteur fixe compacte et scrollable pour mobile */
+        height: 400px !important; 
         max-height: 400px !important;
         overflow-y: auto !important;
         display: block !important;
@@ -271,21 +269,21 @@ tr.ligne-separation-classe td,
     box-shadow: inset 0 -3px 0 0 #1E3A8A !important; 
 }}
 
-/* 6. PIED DE PAGE AVEC POSITION FIXE ABSOLUE ET REMBOURRAGE CONTRE LES ENCOCHES SMARTPHONE */
+/* 6. VERROUILLAGE LARGEUR ET RATIO POUR LE SMARTPHONE */
 .signature-fin-page {{
     position: fixed !important;
     bottom: 0px !important;
     left: 0px !important;
     width: 100% !important;
     box-sizing: border-box !important;
-    height: 42px !important;
+    height: 40px !important;
     background-color: #FFFFFF !important;
     display: flex !important;
     flex-direction: row !important;
     flex-wrap: nowrap !important;
     justify-content: center !important;
     align-items: center !important;
-    gap: 12px !important;
+    gap: 15px !important;
     text-align: center !important;
     color: #1E3A8A !important;
     font-size: 1.02rem !important;
@@ -297,24 +295,22 @@ tr.ligne-separation-classe td,
 }}
 
 .logo-signature {{
-    height: 26px !important; /* Hauteur confortable */
-    width: auto !important;
-    max-height: 26px !important;
+    width: 140px !important; /* Largeur fixe sur PC */
+    height: auto !important;  /* Laisse la hauteur s'adapter proportionnellement */
     display: inline-block !important;
 }}
 
 @media (max-width: 768px) {{
     .signature-fin-page {{ 
         font-size: 0.88rem !important;
-        /* Ajoute une protection en bas au cas où le navigateur mobile possède une barre virtuelle */
         height: 42px !important; 
         padding-bottom: env(safe-area-inset-bottom, 2px) !important; 
-        gap: 8px !important;
+        gap: 10px !important;
     }}
     .logo-signature {{ 
-        height: 24px !important; /* Fixé de manière stable pour ne plus bouger */
-        max-height: 24px !important;
-        width: auto !important;
+        width: 110px !important; /* Largeur fixe plus petite pour smartphone */
+        height: auto !important;  /* Empêche mathématiquement la coupe au centre */
+        display: inline-block !important;
     }}
 }}
 </style>
@@ -446,11 +442,11 @@ with cd:
             st.markdown(f"<span class='titre-classement espace-classement-suivant'>{t_bas}</span>", unsafe_allow_html=True)
             st.markdown(f"<div class='div-scroll-local-div4'>{gen_html(d_milieu, 'table-class-robuste')}</div>", unsafe_allow_html=True)
 
-# INJECTION DU PIED DE PAGE IMMUNISÉ CONTRE LES BUGS DE ROGNAGE MOBILE
+# INJECTION DU PIED DE PAGE SÉCURISÉ PAR RATIO DE LARGEUR EN LIGNE
 st.markdown(f"""
 <div class='signature-fin-page'>
-    <img src='{LIEN_DROPBOX_LOGO}' class='logo-signature' alt='Logo TimeChrono'>
-    <span style='white-space: nowrap !important;'>www.timechrono.be</span>
+    <img src='{LIEN_DROPBOX_LOGO}' class='logo-signature' alt='TimeChrono'>
+    <span style='white-space: nowrap !important; display: inline-block !important;'>www.timechrono.be</span>
 </div>
 """, unsafe_allow_html=True)
 
