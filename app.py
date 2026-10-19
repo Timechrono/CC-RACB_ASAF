@@ -327,12 +327,17 @@ tr.ligne-separation-classe td,
     vertical-align: middle !important;
 }}
 
+/* AJUSTEMENTS SPECIFIQUES POUR SMARTPHONE */
 @media (max-width: 768px) {{
     .signature-fin-page {{ 
         font-size: 0.75rem !important; 
         height: 38px !important;
+        gap: 0px !important; /* Supprime l'espace inutile lié au logo absent */
     }}
-    .logo-signature {{ height: 24px !important; }}
+    /* MASQUE LE LOGO UNIQUEMENT SUR MOBILE */
+    .logo-signature {{ 
+        display: none !important; 
+    }}
 }}
 
 </style>
