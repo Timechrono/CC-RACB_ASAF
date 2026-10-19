@@ -167,6 +167,7 @@ div.stElementContainer {{ margin-top: 0px !important; margin-bottom: 0px !import
 }}
 </style>
 """, unsafe_allow_html=True)
+
 def gen_html(df, cl):
     if cl == "table-hist":
         phrase_attente = "En attente d'arrivée..."
@@ -177,7 +178,6 @@ def gen_html(df, cl):
         else: phrase_attente = "En attente du premier classé..."
     else: phrase_attente = "En attente du départ..."
 
-    # Le style est maintenant injecté de manière dynamique, on garde une classe générique
     style_conteneur = "class='div-scroll-local-historique'" if cl == "table-hist" else "class='table-responsive-container'"
 
     if isinstance(df, str):
@@ -254,11 +254,20 @@ if module_actif and hasattr(module_actif, 'HAUTEURS_TABLEAUX_PC'):
     h_asaf123_pc = str(module_actif.HAUTEURS_TABLEAUX_PC.get("ASAF_123", "215px")).strip()
     h_asaf4_pc = str(module_actif.HAUTEURS_TABLEAUX_PC.get("ASAF_4", "114px")).strip()
 
+# Désactivation dynamique des hauteurs CSS parentes pour suivre le style inline
+st.markdown(f"""
+<style>
+  @media (min-width: 769px) {{
+    .div-scroll-local-historique {{ height: 100% !important; max-height: 100% !important; overflow: visible !important; }}
+  }}
+</style>
+""", unsafe_allow_html=True)
+
 with cg:
     conteneur_titre_live = st.empty()
     st.markdown(gen_html(d_liv, "table-live"), unsafe_allow_html=True)
     if t_his: st.markdown(f"<span class='titre-hist'>{t_his}</span>", unsafe_allow_html=True)
-    # Injection Forcée de la hauteur de l'Historique en ligne (style inline) pour contourner le cache parent
+    # Rendu final verrouillé de l'historique avec propagation de la hauteur sur le tableau interne
     st.markdown(f'<div class="div-mobile-fluid-gauche" style="max-height: {h_hist_pc}; height: {h_hist_pc}; overflow-y: auto; display: block; border: 1px solid #CBD5E1;">{gen_html(d_his, "table-hist")}</div>', unsafe_allow_html=True)
     
 with cd:
@@ -283,7 +292,6 @@ with cd:
             st.markdown(f"<span class='titre-classement espace-classement-suivant'>{t_bas}</span>", unsafe_allow_html=True)
             st.markdown(f'<div class="div-mobile-fluid" style="max-height: {h_asaf4_pc}; height: {h_asaf4_pc}; overflow-y: auto; display: block; border: 1px solid #CBD5E1; margin-bottom: 2px;">{gen_html(d_milieu, "table-class-robuste")}</div>', unsafe_allow_html=True)
 
-    # Neutralisation sur smartphone pour garder le défilement tactile fluide
     st.markdown("""<style>@media (max-width: 768px) { .div-mobile-fluid, .div-mobile-fluid-gauche { max-height: none !important; height: auto !important; overflow-y: visible !important; border: none !important; } }</style>""", unsafe_allow_html=True)
 
 # Déclaration sécurisée locale
@@ -297,3 +305,4 @@ for secondes_restantes in range(30, -1, -1):
     if secondes_restantes > 0: time.sleep(1)
 
 st.rerun()
+
