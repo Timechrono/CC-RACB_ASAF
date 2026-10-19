@@ -416,13 +416,36 @@ with cg:
 with cd:
     h_mob = "380px"
 
-        # Injection CSS dynamique - REMPLACER CETTE PARTIE :
-    st.markdown(f"""
-    <style>
-      @media (min-width: 769px) {{ .ajust-hauteur-pc {{ max-height: {h_pc} !important; }} }}
-      @media (max-width: 768px) {{ .ajust-hauteur-pc {{ max-height: none !important; }} }} /* Changement ici : passsé de h_mob à none */
-    </style>
-    """, unsafe_allow_html=True)
+    #  NOUVEAU CODE INTELLIGENT DANS app.py
+    # On récupère le module en cours d'exécution pour voir s'il a configuré des hauteurs
+    module_actif = None
+    if choix_course == "Course 1 ASAF": import Course_1_ASAF; module_actif = Course_1_ASAF
+    elif choix_course == "Course 1 RACB": import Course_1_RACB; module_actif = Course_1_RACB
+    elif choix_course == "Course 2 ASAF": import Course_2_ASAF; module_actif = Course_2_ASAF
+    elif choix_course == "Course 2 RACB": import Course_2_RACB; module_actif = Course_2_RACB
+    elif choix_course == "Course 3 ASAF": import Course_3_ASAF; module_actif = Course_3_ASAF
+    elif choix_course == "Course 3 RACB": import Course_3_RACB; module_actif = Course_3_RACB
+    else: import Essais; module_actif = Essais
+
+    # Si le fichier de course a le dictionnaire, on désactive le bridage global de app.py pour le laisser gérer
+    if hasattr(module_actif, 'HAUTEURS_TABLEAUX_PC'):
+        st.markdown(f"""
+        <style>
+          @media (min-width: 769px) {{ 
+            .ajust-hauteur-pc {{ max-height: none !important; height: auto !important; }} 
+          }}
+          @media (max-width: 768px) {{ .ajust-hauteur-pc {{ max-height: none !important; }} }}
+        </style>
+        """, unsafe_allow_html=True)
+    else:
+        # Sinon, on garde le comportement historique par défaut de app.py
+        st.markdown(f"""
+        <style>
+          @media (min-width: 769px) {{ .ajust-hauteur-pc {{ max-height: {h_pc} !important; }} }}
+          @media (max-width: 768px) {{ .ajust-hauteur-pc {{ max-height: none !important; }} }}
+        </style>
+        """, unsafe_allow_html=True)
+
 
 
     if choix_course != "Essais":
