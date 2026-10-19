@@ -112,19 +112,24 @@ button:focus, div:focus, input:focus, select:focus {{
     outline: none !important; border-color: transparent !important; box-shadow: none !important;
 }}
 
-/* 2. CONFIGURATION DE LA PAGE - CORRIGÉE POUR MOBILE */
-html, body, [data-testid="stAppViewContainer"], [data-testid="stMainBlockContainer"] {{
-    overflow: auto !important;
-    overflow-y: auto !important;
-    height: 100% !important; /* Rétablit la hauteur pour un défilement propre */
+/* 2. CONFIGURATION DE LA PAGE - CORRIGÉE PC ET MOBILE */
+@media (min-width: 769px) {{
+    html, body, [data-testid="stAppViewContainer"], [data-testid="stMainBlockContainer"] {{
+        overflow: auto !important;
+        overflow-y: auto !important;
+        height: auto !important; /* Libère la hauteur sur PC pour récupérer tout l'espace des tableaux */
+        max-height: none !important;
+    }}
 }}
 
-/* Réduction des marges globales de Streamlit pour gagner de la place */
-.block-container {{ 
-    padding-top: 5px !important; 
-    padding-left: 0.5rem !important; 
-    padding-right: 0.5rem !important; 
+@media (max-width: 768px) {{
+    html, body, [data-testid="stAppViewContainer"], [data-testid="stMainBlockContainer"] {{
+        overflow: auto !important;
+        overflow-y: auto !important;
+        height: 100% !important; /* Conserve le défilement fluide propre aux smartphones */
+    }}
 }}
+
 
 /* Libère l'espace du bas : plus aucun pixel perdu sur PC */
 @media (min-width: 769px) {{
