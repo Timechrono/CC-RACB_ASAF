@@ -334,16 +334,18 @@ tr.ligne-separation-classe td,
     vertical-align: middle !important;
 }}
 
-/* AJUSTEMENTS SPECIFIQUES POUR SMARTPHONE - EMPECHE L'ECRASEMENT */
+/* 7. AJUSTEMENTS SPECIFIQUES POUR SMARTPHONE - EMPECHE L'ECRASEMENT */
 @media (max-width: 768px) {{
     .signature-fin-page {{ 
-        font-size: 0.85rem !important; /* Taille de texte légèrement augmentée pour lisibilité */
-        height: 40px !important;       /* Hauteur totale du bandeau adaptée */
-        line-height: 40px !important;  /* Aligne verticalement le texte au centre sans l'écraser */
+        font-size: 0.85rem !important; 
+        height: 35px !important;
+        line-height: 35px !important;
         gap: 0px !important;
-        display: block !important;     /* Désactive le flexbox mobile qui causait la compression */
+        display: block !important;
+        /* CORRECTIF : Remonte la signature de 35px sur mobile pour survoler l'iframe */
+        position: fixed !important;
+        bottom: 35px !important; 
     }}
-    /* MASQUE LE LOGO UNIQUEMENT SUR MOBILE */
     .logo-signature {{ 
         display: none !important; 
     }}
