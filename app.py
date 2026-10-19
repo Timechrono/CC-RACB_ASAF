@@ -10,7 +10,7 @@ import importlib
 import Essais
 
 # --- SÉCURISATION ET INITIALISATION ABSOLUE DES VARIABLES GLOBALES ---
-LIEN_DROPBOX_LOGO = "https://www.dropbox.com/scl/fi/hi24fjo0vbal4oiiwt9jl/logo-TimeC.png?rlkey=xlw0oqk9gdnq6v5dgahi0klg0&st=y86yrn6y&dl=11"
+LIEN_DROPBOX_LOGO = "https://www.dropbox.com/scl/fi/hi24fjo0vbal4oiiwt9jl/logo-TimeC.png?rlkey=xlw0oqk9gdnq6v5dgahi0klg0&st=y86yrn6y&dl=1"
 
 d_liv = pd.DataFrame()
 d_his = pd.DataFrame()
@@ -67,14 +67,24 @@ st.set_page_config(page_title="Live", layout="wide")
 # --- CONCEPTION GRAPHIQUE GÉOMÉTRIQUE UNIFIÉE ---
 st.markdown(f"""
 <style>
-/* 1. DISPARITION TOTALE DES COMPOSANTS STREAMLIT */
-footer, [data-testid="stFooterContainer"], [data-testid="stStatusWidget"], .stStatusWidget,
-[data-testid="stHeader"], [data-testid="stDecoration"], header {{
-    display: none !important; visibility: hidden !important; height: 0px !important;
-    max-height: 0px !important; min-height: 0px !important; margin: 0px !important;
-    padding: 0px !important; overflow: hidden !important; opacity: 0 !important;
-    line-height: 0 !important; font-size: 0 !important; position: absolute !important;
-    top: -9999px !important; left: -9999px !important;
+/* 1. DISPARITION TOTALE DES COMPOSANTS STREAMLIT TECHNIQUES (SANS TOUCHER AU LOGO) */
+footer, 
+[data-testid="stFooterContainer"], 
+[data-testid="stStatusWidget"], 
+.stStatusWidget,
+[data-testid="stHeader"], 
+[data-testid="stDecoration"] {{
+    display: none !important;
+    visibility: hidden !important;
+    height: 0px !important;
+    max-height: 0px !important;
+    min-height: 0px !important;
+    margin: 0px !important;
+    padding: 0px !important;
+    overflow: hidden !important;
+    opacity: 0 !important;
+    line-height: 0 !important;
+    font-size: 0 !important;
 }}
 
 button:focus, div:focus, input:focus, select:focus {{
@@ -160,13 +170,14 @@ div.stElementContainer {{ margin-top: 0px !important; margin-bottom: 0px !import
     text-align: center !important; color: #1E3A8A !important; font-size: 0.92rem !important; font-weight: bold !important;
     padding-top: 6px !important; margin-top: 45px !important; margin-bottom: 5px !important; border-top: 1px dashed #1E3A8A !important; width: 100% !important; clear: both !important;
 }}
-.logo-signature {{ height: 24px !important; width: auto !important; vertical-align: middle !important; }}
+.logo-signature {{ height: 24px !important; width: auto !important; vertical-align: middle !important; display: inline-block !important; visibility: visible !important; }}
 @media (max-width: 768px) {{
     .signature-fin-page {{ font-size: 0.75rem !important; padding-top: 4px !important; margin-bottom: 30px !important; }}
     .logo-signature {{ height: 32px !important; }}
 }}
 </style>
 """, unsafe_allow_html=True)
+
 
 def gen_html(df, cl):
     if cl == "table-hist":
