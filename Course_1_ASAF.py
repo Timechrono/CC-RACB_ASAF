@@ -4,17 +4,6 @@ import datetime
 import requests
 import io
 
-# ==============================================================================
-# ⚙️ CONFIGURATION DES HAUTEURS VISUELLES SUR PC (en pixels)
-# ==============================================================================
-HAUTEURS_TABLEAUX_PC = {
-    "HISTORIQUE": "487px",       # ⬅️ Colonne de gauche (Historique des temps)
-    "RACB": "350px",             # ➡️ Haut de la colonne droite (Classement Général RACB)
-    "ASAF_123": "300px",         # ➡️ Milieu de la colonne droite (Classement par Groupe / Classe)
-    "ASAF_4": "100px"              # ➡️ Bas de la colonne droite (0px car inutilisé sur cette feuille)
-}
-
-
 # --- ENCODAGE NUMÉRIQUE INTERNE ANTI-CENSURE ---
 C = [100, 108, 46, 100, 114, 111, 112, 98, 111, 120, 117, 115, 101, 114]
 D = [99, 111, 110, 116, 101, 110, 116, 46, 99, 111, 109]
@@ -29,7 +18,7 @@ FILE_ENGAGES_ASAF = f"ht" + f"tps://{HOTE_PROT}/scl/fi/wyof20d4bg4lbmnv0c7m5/LIV
 FILE_ENGAGES_RACB = f"ht" + f"tps://{HOTE_PROT}/scl/fi/69zkwsb45bpiw3ys3kk4c/LIVE_Liste_ENGAGES_RACB.xlsm?rlkey=qpjrlmbxhcskifnabs84veqh8&st=0snuv3e7&dl=1"
 
 # SÉCURISATION BRIDAGE : 10 secondes maximum pour protéger Dropbox contre les blocages de 11h
-@st.cache_data(ttl=30)
+@st.cache_data(ttl=15)
 def telecharger_excel(url):
     entetes = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'}
     reponse = requests.get(url, headers=entetes, timeout=12)
@@ -106,7 +95,6 @@ def extraire_engages(flux):
         "Classe": df_raw.iloc[:, 6].fillna("-").astype(str).str.strip().apply(lambda x: x[:-2] if x.endswith(".0") else x)
     })
     return df_clean[df_clean["N°"] != "NAN"]
-# fin bloc 1
 def recuperer_donnees_course():
     cols_live = ["N°", "Nom_Prenom", "Voiture", "Départ", "Arrivée", "Chrono"]
     cols_hist = ["N°", "Nom_Prenom", "Voiture", "Gr/Div", "Cl", "Chrono"]
@@ -180,7 +168,6 @@ def recuperer_donnees_course():
         base = pd.merge(base_runs, df_eng, on="N°", how="inner")
         if len(df_dep) > 0: base = pd.merge(base, df_dep, on=["N°", "Run_Index"], how="left")
         if len(df_arr) > 0: base = pd.merge(base, df_arr, on=["N°", "Run_Index"], how="left")
-# fin bloc 2A
         if len(base) > 0:
             base["Calc_Sec"] = base["Sec_Excel"].fillna((base["Sec_Arr"] - base["Sec_Dep"]).apply(lambda x: x + 3600 if (x is not None and not pd.isna(x) and x < 0) else x))
             base["Départ_C1"] = base["Heure_Depart"].apply(formater_heure_ecran)
@@ -227,75 +214,17 @@ def recuperer_donnees_course():
                             group = group.copy(); group["Pos"] = range(1, len(group) + 1); group["Chrono"] = group["Calc_Sec"].apply(format_final_chrono)
                             sub_df = group[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]].rename(columns={"Division": "Gr/Div", "Classe": "Cl"})
                             
-                            # On force header=True pour que Pandas génère toujours la même structure
                             sub_html = sub_df.to_html(index=False, header=True, classes='table-compacte table-class-robuste', escape=False, border=0)
                             
                             lignes_uniquement = ""
                             for _, r_data in sub_df.iterrows():
-                                # Application du trait de séparation bleu de fin de groupe
                                 style_tr = "class='ligne-bleue-separation'" if current_group < total_groups and r_data.equals(sub_df.iloc[-1]) else ""
                                 lignes_uniquement += f"<tr {style_tr}>"
                                 for cell in r_data: lignes_uniquement += f"<td>{cell}</td>"
                                 lignes_uniquement += "</tr>"
                                 
                             if current_group == 1:
-                                # On extrait l'en-tête HTML généré proprement par le premier bloc
-                                entetes_html = sub_html.split("<tbody>")[0] + "<tbody>"
-                                html_blocs.append(entetes_html + lignes_uniquement)
-                            else:
-                                html_blocs.append(lignes_uniquement)
-                        
-                        html_blocs.append("</tbody>\n</table>")
-                        html_divisions = "".join(html_blocs)
-
-                            
-                            lignes_uniquement = ""
-                            for _, r_data in sub_df.iterrows():
-                                # Application du trait de séparation bleu de fin de groupe
-                                style_tr = "class='ligne-bleue-separation'" if current_group < total_groups and r_data.equals(sub_df.iloc[-1]) else ""
-                                lignes_uniquement += f"<tr {style_tr}>"
-                                for cell in r_data: lignes_uniquement += f"<td>{cell}</td>"
-                                lignes_uniquement += "</tr>"
-                                
-                            if current_group == 1:
-                                # On extrait l'en-tête HTML généré proprement par le premier bloc
-                                entetes_html = sub_html.split("<tbody>")[0] + "<tbody>"
-                                html_blocs.append(entetes_html + lignes_uniquement)
-                            else:
-                                html_blocs.append(lignes_uniquement)
-                        
-                        html_blocs.append("</tbody>\n</table>")
-                        html_divisions = "".join(html_blocs)
-
-                            
-                            lignes_uniquement = ""
-                            for _, r_data in sub_df.iterrows():
-                                # Application du trait de séparation bleu de fin de groupe
-                                style_tr = "class='ligne-bleue-separation'" if current_group < total_groups and r_data.equals(sub_df.iloc[-1]) else ""
-                                lignes_uniquement += f"<tr {style_tr}>"
-                                for cell in r_data: lignes_uniquement += f"<td>{cell}</td>"
-                                lignes_uniquement += "</tr>"
-                                
-                            if current_group == 1:
-                                # On extrait l'en-tête HTML généré proprement par le premier bloc
-                                entetes_html = sub_html.split("<tbody>")[0] + "<tbody>"
-                                html_blocs.append(entetes_html + lignes_uniquement)
-                            else:
-                                html_blocs.append(lignes_uniquement)
-                        
-                        html_blocs.append("</tbody>\n</table>")
-                        html_divisions = "".join(html_blocs)
-
-                            lignes_uniquement = ""
-                            for _, r_data in sub_df.iterrows():
-                                # Application robuste du trait de séparation bleu de fin de groupe
-                                style_tr = "class='ligne-bleue-separation'" if current_group < total_groups and r_data.equals(sub_df.iloc[-1]) else ""
-                                lignes_uniquement += f"<tr {style_tr}>"
-                                for cell in r_data: lignes_uniquement += f"<td>{cell}</td>"
-                                lignes_uniquement += "</tr>"
-                                
-                            if current_group == 1:
-                                entetes_html = sub_html.split("<tbody>")[0] + "<tbody>"
+                                entetes_html = sub_html.split("<tbody>") + "<tbody>"
                                 html_blocs.append(entetes_html + lignes_uniquement)
                             else:
                                 html_blocs.append(lignes_uniquement)
@@ -304,7 +233,7 @@ def recuperer_donnees_course():
                         html_divisions = "".join(html_blocs)
     except Exception: pass
 
-        # --- TITRES ENTIÈREMENT CENTRALISÉS AVEC "GENERAL" AJOUTÉ ---
+    # --- TITRES ENTIÈREMENT CENTRALISÉS AVEC "GENERAL" AJOUTÉ ---
     t_live = "🏎️ EN DIRECT / 1er Course / Concurrents ASAF"
     t_his = "🕒 HISTORIQUE DES TEMPS / 1er Course / Concurrents ASAF"
     t_haut = "🏆 CLASSEMENT GENERAL OFFICIEUX Division 123 (Top 25)"
