@@ -444,8 +444,9 @@ with cg:
 with cd:
     h_mob = "380px"
     
-    # LA SEULE LIGNE NÉCESSAIRE : Si h_pc n'a pas été calculé plus haut, on lui donne une valeur par défaut
-    if 'h_pc' not in locals() and 'h_pc' not in globals(): h_pc = "380px"
+    # Sécurité pour la hauteur de page si elle n'a pas été calculée
+    if 'h_pc' not in locals() and 'h_pc' not in globals(): 
+        h_pc = "380px"
 
     # Injection CSS dynamique
     st.markdown(f"""
@@ -456,13 +457,13 @@ with cd:
     """, unsafe_allow_html=True)
 
     if choix_course != "Essais":
+        # ==============================================================================
         # --- MODE DE COURSE ---
+        # ==============================================================================
         if t_haut:
-            # CORRECTION ICI : Remplacement de t_haut_clean par t_haut
             st.markdown(f"<span class='titre-classement'>{t_haut}</span>", unsafe_allow_html=True)
             st.markdown(f"<div class='ajust-hauteur-pc' style='overflow-y: auto; display: block;'>{gen_html(d_haut, 'table-class-robuste')}</div>", unsafe_allow_html=True)
         if t_milieu:
-            # CORRECTION ICI : Remplacement de t_milieu_clean par t_milieu
             st.markdown(f"<span class='titre-classement espace-classement-suivant'>{t_milieu}</span>", unsafe_allow_html=True)
             st.markdown(f"<div style='height: auto; display: block;'>{gen_html(d_milieu, 'table-class-milieu')}</div>", unsafe_allow_html=True)
         if t_bas:
@@ -470,19 +471,20 @@ with cd:
             nb_lignes = len(d_bas) if hasattr(d_bas, '__len__') else 0
             style_scroll = "class='ajust-hauteur-pc' style='overflow-y: auto; display: block;'" if nb_lignes > 10 else "style='height: auto; display: block;'"
             st.markdown(f"<div {style_scroll}>{gen_html(d_bas, 'table-class-robuste')}</div>", unsafe_allow_html=True)
-
-
-
     else:
-        # --- MODE ESSAIS ---
+        # ==============================================================================
+        # --- MODE ESSAIS (Correction des variables ici) ---
+        # ==============================================================================
         if t_haut:
-            st.markdown(f"<span class='titre-classement'>{t_haut_clean}</span>", unsafe_allow_html=True)
+            # CORRIGÉ : t_haut_clean remplacé par t_haut
+            st.markdown(f"<span class='titre-classement'>{t_haut}</span>", unsafe_allow_html=True)
             st.markdown(f"<div class='ajust-hauteur-pc' style='overflow-y: auto; display: block;'>{gen_html(d_bas, 'table-class-robuste')}</div>", unsafe_allow_html=True)
         if t_milieu:
-            st.markdown(f"<span class='titre-classement espace-classement-suivant'>{t_milieu_clean}</span>", unsafe_allow_html=True)
+            # CORRIGÉ : t_milieu_clean remplacé par t_milieu
+            st.markdown(f"<span class='titre-classement espace-classement-suivant'>{t_milieu}</span>", unsafe_allow_html=True)
             st.markdown(f"<div class='ajust-hauteur-pc' style='overflow-y: auto; display: block;'>{gen_html(d_haut, 'table-class-robuste')}</div>", unsafe_allow_html=True)
         if t_bas:
-            st.markdown(f"<span class='titre-classement espace-classement-suivant'>{t_bas_clean}</span>", unsafe_allow_html=True)
+            st.markdown(f"<span class='titre-classement espace-classement-suivant'>{t_bas}</span>", unsafe_allow_html=True)
             st.markdown(f"<div class='div-scroll-local-div4'>{gen_html(d_milieu, 'table-class-robuste')}</div>", unsafe_allow_html=True)
 
 
