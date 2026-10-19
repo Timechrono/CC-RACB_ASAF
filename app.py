@@ -220,6 +220,7 @@ div.stElementContainer {{
 """, unsafe_allow_html=True)
 st.markdown(f"""
 <style>
+
 /* 4. BLOCS DE SCROLL INTERNES ET COUCHE TACTILE MOBILE (-webkit-overflow-scrolling) */
 .div-scroll-local-historique {{
     width: 100% !important;
@@ -263,6 +264,11 @@ st.markdown(f"""
 }}
 .table-compacte td {{ border-bottom: 1px solid #E0E0E0 !important; background-color: #FFFFFF !important; }}
 .table-compacte th {{ font-weight: bold !important; background-color: #F5F5F5 !important; border-bottom: 2px solid #CCCCCC !important; text-align: left !important; }}
+
+/* COULEUR JAUNE PALE EXCLUSIVE POUR LES LIGNES DU TABLEAU EN DIRECT */
+.table-live td {{ 
+    background-color: #FEF9C3 !important; /* Jaune pâle soft (Tailwind yellow-100) */
+}}
 
 .table-live td:last-child, .table-class-robuste td:last-child, .table-hist td:last-child {{ 
     font-weight: bold !important; font-size: 0.94rem !important; color: #0F172A !important; 
@@ -328,6 +334,7 @@ tr.ligne-separation-classe td,
     }}
     .logo-signature {{ height: 24px !important; }}
 }}
+
 </style>
 """, unsafe_allow_html=True)
 
