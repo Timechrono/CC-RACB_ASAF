@@ -196,7 +196,7 @@ def recuperer_donnees_course():
 
     except Exception: pass
 
-    # --- INJECTION DYNAMIQUE DES CONFIGURATIONS DE HAUTEUR SUR PC ---
+        # --- INJECTION DYNAMIQUE DES CONFIGURATIONS DE HAUTEUR SUR PC ---
     h_hist = HAUTEURS_TABLEAUX_PC.get("HISTORIQUE", "456px")
     h_racb = HAUTEURS_TABLEAUX_PC.get("RACB", "215px")
     h_asaf123 = HAUTEURS_TABLEAUX_PC.get("ASAF_123", "215px")
@@ -205,33 +205,40 @@ def recuperer_donnees_course():
     css_exclusif_pc = f"""
     <style>
       @media (min-width: 769px) {{
-        /* Force la hauteur du tableau Historique */
+        /* 1. Force la hauteur du tableau Historique (Colonne Gauche) */
         .div-scroll-local-historique {{
           height: {h_hist} !important;
           max-height: {h_hist} !important;
+          overflow-y: auto !important;
         }}
-        /* Gestion dynamique de la Division 4 et des autres blocs de droite */
+        
+        /* 2. Force le bridage et le scroll sur les blocs enveloppes de app.py (Colonne Droite) */
+        .ajust-hauteur-pc {{
+          height: {h_racb} !important;
+          max-height: {h_racb} !important;
+          overflow-y: auto !important;
+          display: block !important;
+        }}
+        
+        /* 3. Spécificité pour la Division 4 (si elle utilise un conteneur dédié) */
         .div-scroll-local-div4 {{
           height: {h_asaf4} !important;
           max-height: {h_asaf4} !important;
           overflow-y: auto !important;
           display: block !important;
         }}
-        /* Redimensionnement à la volée pour les blocs de droite */
-        .div-scroll-local-general {{
-          height: {h_racb} !important;
-          max-height: {h_racb} !important;
-          overflow-y: auto !important;
-        }}
-        .div-scroll-local-classes {{
-          height: {h_asaf123} !important;
-          max-height: {h_asaf123} !important;
-          overflow-y: auto !important;
+        
+        /* 4. Sécurité pour les sous-conteneurs de tableaux */
+        .div-scroll-local-general, .table-responsive-container {{
+          height: 100% !important;
+          max-height: 100% !important;
+          overflow-y: visible !important;
         }}
       }}
     </style>
     """
     st.markdown(css_exclusif_pc, unsafe_allow_html=True)
+
 
     t_live = "<span>🏎️ EN DIRECT / Derniers concurrents partis</span>"
     t_hist = "<span>🕒 HISTORIQUE DES TEMPS / ENTRAINEMENTS ASAF & RACB</span> <span>↕️</span>"
