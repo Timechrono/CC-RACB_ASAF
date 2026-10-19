@@ -1,7 +1,6 @@
 # https://www.dropbox.com/scl/fi/hi24fjo0vbal4oiiwt9jl/logo-TimeC.png?rlkey=xlw0oqk9gdnq6v5dgahi0klg0&st=y86yrn6y&dl=1
 # https://www.dropbox.com/scl/fi/hi24fjo0vbal4oiiwt9jl/logo-TimeC.png?rlkey=xlw0oqk9gdnq6v5dgahi0klg0&st=y86yrn6y&dl=1
 
-# https://dropbox.com
 
 import streamlit as st
 import pandas as pd
@@ -96,7 +95,7 @@ footer,
     footer, [data-testid="stFooterContainer"], [data-testid="stStatusWidget"], .stStatusWidget {{
         position: fixed !important;
         bottom: -500px !important;
-        transform: translateY(500px) !important;
+        transform: translateY(500px) !important; /* Force le navigateur à ignorer cet espace dans la hauteur totale */
     }}
 }}
 
@@ -120,21 +119,35 @@ html, body, [data-testid="stAppViewContainer"], [data-testid="stMainBlockContain
     max-height: none !important;
 }}
 
+/* Réduction des marges globales de Streamlit pour gagner de la place */
 .block-container {{ 
     padding-top: 5px !important; 
     padding-left: 0.5rem !important; 
     padding-right: 0.5rem !important; 
 }}
 
+/* Libère l'espace du bas : plus aucun pixel perdu sur PC */
 @media (min-width: 769px) {{
-    .block-container {{ padding-bottom: 5px !important; }}
+    .block-container {{ 
+        padding-bottom: 5px !important; /* Réduit au strict minimum sur PC pour supprimer le scroll inutile */
+    }}
 }}
 @media (max-width: 768px) {{
-    .block-container {{ padding-bottom: 25px !important; }}
+    .block-container {{ 
+        padding-bottom: 25px !important; 
+    }}
 }}
 
-div[data-testid="stVerticalBlock"] {{ gap: 0rem !important; padding-top: 0px !important; }}
-div.stElementContainer {{ margin-top: 0px !important; margin-bottom: 0px !important; padding-top: 0px !important; padding-bottom: 0px !important; }}
+div[data-testid="stVerticalBlock"] {{
+    gap: 0rem !important;
+    padding-top: 0px !important;
+}}
+div.stElementContainer {{
+    margin-top: 0px !important;
+    margin-bottom: 0px !important;
+    padding-top: 0px !important;
+    padding-bottom: 0px !important;
+}}
 
 /* 3. STRUCTURATION DES BANDEAUX DE TITRES GRAPHIQUES */
 .titre-live, .titre-hist, .titre-classement {{
@@ -142,7 +155,9 @@ div.stElementContainer {{ margin-top: 0px !important; margin-bottom: 0px !import
     height: 26px !important; max-height: 26px !important;
     padding: 0px 8px !important; border-radius: 3px !important;
     width: 100% !important; clear: both !important;
-    display: flex !important; justify-content: space-between !important; align-items: center !important;
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
 }}
 
 .titre-live {{ background-color: #15803D !important; margin-top: 0px !important; margin-bottom: 6px !important; }}
@@ -150,65 +165,146 @@ div.stElementContainer {{ margin-top: 0px !important; margin-bottom: 0px !import
 .titre-classement {{ background-color: #1E3A8A !important; margin-top: 0px !important; margin-bottom: 6px !important; }}
 
 .refresh-bleu-clair-historique {{
-    color: #064E3B !important; background-color: #DCF2E8 !important; border: 1px solid #3B8F44 !important;
-    font-weight: bold !important; font-size: 13px !important; padding: 1px 6px !important;
-    line-height: 16px !important; border-radius: 4px !important; display: inline-block !important;
-    margin-left: 4px !important; vertical-align: middle !important;
+    color: #064E3B !important;
+    background-color: #DCF2E8 !important;
+    border: 1px solid #3B8F44 !important;
+    font-weight: bold !important;
+    font-size: 13px !important;
+    padding: 1px 6px !important;
+    line-height: 16px !important;
+    border-radius: 4px !important;
+    display: inline-block !important;
+    margin-left: 4px !important;
+    vertical-align: middle !important;
 }}
 
-.espace-classement-suivant {{ margin-top: 15px !important; }}
+.espace-classement-suivant {{
+    margin-top: 15px !important;
+}}
 /* 4. BLOCS DE SCROLL INTERNES CLOISONNÉS */
 .div-scroll-local-historique {{
     width: 100% !important;
     border: 1px solid #CBD5E1 !important;
 }}
 
-.div-scroll-local-general, .div-scroll-local-classes, .table-responsive-container {{
-    width: 100% !important; 
-    border: 1px solid #CBD5E1 !important; 
-    overflow-x: auto !important;
+.div-scroll-local-general, .div-scroll-local-classes {{
+    height: auto !important;
+    max-height: none !important;
+    overflow-y: visible !important;
+    width: 100% !important;
+    border: none !important;
 }}
 
 @media (min-width: 769px) {{
-    .div-scroll-local-historique {{ height: 456px !important; max-height: 456px !important; overflow-y: auto !important; display: block !important; }}
-    .table-responsive-container {{ height: 250px !important; max-height: 250px !important; overflow-y: auto !important; display: block !important; }}
-    .div-scroll-local-div4 {{ height: 114px !important; max-height: 114px !important; overflow-y: auto !important; width: 100% !important; display: block !important; }}
+    .div-scroll-local-historique {{
+        height: 456px !important;
+        max-height: 456px !important;
+        overflow-y: auto !important;
+        display: block !important;
+    }}
+    .div-scroll-local-div4 {{
+        height: 114px !important;
+        max-height: 114px !important;
+        overflow-y: auto !important;
+        width: 100% !important;
+        display: block !important;
+    }}
 }}
 
 @media (max-width: 768px) {{
     .block-container {{ padding-left: 2px !important; padding-right: 2px !important; }}
-    .div-scroll-local-historique {{ height: 1025px !important; max-height: 1025px !important; overflow-y: auto !important; display: block !important; -webkit-overflow-scrolling: touch !important; }}
-    .table-responsive-container {{ height: 380px !important; max-height: 380px !important; overflow-y: auto !important; display: block !important; -webkit-overflow-scrolling: touch !important; }}
-    .div-scroll-local-div4 {{ height: auto !important; max-height: none !important; overflow-y: visible !important; display: block !important; }}
+    
+    .div-scroll-local-historique {{
+        height: 1025px !important;
+        max-height: 1025px !important;
+        overflow-y: auto !important;
+        display: block !important;
+        -webkit-overflow-scrolling: touch !important;
+        border: 1px solid #CBD5E1 !important;
+    }}
+    .div-scroll-local-div4 {{
+        height: auto !important;
+        max-height: none !important;
+        overflow-y: visible !important;
+        display: block !important;
+    }}
 }}
 
 /* 5. DESIGN ET RENDU COMPACT DES TABLEAUX */
-.table-responsive-container {{ width: 100% !important; }}
-.table-compacte {{ width: 100% !important; margin-bottom: 0px !important; border-collapse: collapse !important; table-layout: auto !important; }}
+.table-responsive-container {{
+    width: 100% !important;
+}}
+.table-compacte {{
+    width: 100% !important; margin-bottom: 0px !important;
+    border-collapse: collapse !important; table-layout: auto !important;
+}}
 .table-compacte tr {{ height: 18px !important; }}
-.table-compacte th, .table-compacte td {{ height: 18px !important; padding: 1px 5px !important; line-height: 1.1 !important; font-size: 0.85rem !important; color: #000000 !important; vertical-align: middle !important; white-space: nowrap !important; }}
+.table-compacte th, .table-compacte td {{ 
+    height: 18px !important; padding: 1px 5px !important; line-height: 1.1 !important; 
+    font-size: 0.85rem !important; color: #000000 !important; vertical-align: middle !important; 
+    white-space: nowrap !important; 
+}}
 .table-compacte td {{ border-bottom: 1px solid #E0E0E0 !important; background-color: #FFFFFF !important; }}
 .table-compacte th {{ font-weight: bold !important; background-color: #F5F5F5 !important; border-bottom: 2px solid #CCCCCC !important; text-align: left !important; }}
 
-.table-live td:last-child, .table-class-robuste td:last-child, .table-hist td:last-child {{ font-weight: bold !important; font-size: 0.94rem !important; color: #0F172A !important; }}
+.table-live td:last-child, .table-class-robuste td:last-child, .table-hist td:last-child {{ 
+    font-weight: bold !important; font-size: 0.94rem !important; color: #0F172A !important; 
+}}
 .table-hist tr:nth-child(odd) td {{ background-color: #E0F2FE !important; }}
 
 @media (max-width: 768px) {{
-    .table-compacte th, .table-compacte td {{ font-size: 0.65rem !important; padding: 1px 2px !important; height: 25px !important; }}
+    .table-compacte th, .table-compacte td {{ 
+        font-size: 0.65rem !important; 
+        padding: 1px 2px !important; 
+        height: 25px !important; 
+    }}
     .table-hist td:nth-child(4) {{ max-width: 32px !important; overflow: hidden !important; text-overflow: clip !important; white-space: nowrap !important; }}
     .table-compacte td:nth-child(3), table td:nth-child(3) {{ max-width: 60px !important; overflow: hidden !important; text-overflow: ellipsis !important; white-space: nowrap !important; }}
     .table-live td:last-child, .table-class-robuste td:last-child {{ font-size: 0.70rem !important; }}
-    .titre-live, .titre-hist, .titre-classement {{ height: auto !important; max-height: none !important; line-height: 1.3 !important; padding: 4px 8px !important; }}
+    
+    .titre-live, .titre-hist, .titre-classement {{
+        height: auto !important;
+        max-height: none !important;
+        line-height: 1.3 !important;
+        padding: 4px 8px !important;
+    }}
 }}
 
-.table-class-robuste tr.ligne-bleue-separation td, tr.ligne-separation-classe td, .table-compacte tr.ligne-separation-classe td {{ box-shadow: inset 0 -3px 0 0 #1E3A8A !important; }}
+.table-class-robuste tr.ligne-bleue-separation td,
+tr.ligne-separation-classe td, 
+.table-compacte tr.ligne-separation-classe td {{ 
+    box-shadow: inset 0 -3px 0 0 #1E3A8A !important; 
+}}
 
 /* 6. SIGNATURE DE FIN DE PAGE ET AJUSTEMENT DU DESIGN */
-.signature-fin-page {{ display: flex !important; justify-content: center !important; align-items: center !important; gap: 12px !important; text-align: center !important; color: #1E3A8A !important; font-size: 0.92rem !important; font-weight: bold !important; padding-top: 6px !important; margin-top: 25px !important; margin-bottom: 5px !important; border-top: 1px dashed #1E3A8A !important; width: 100% !important; }}
-.logo-signature {{ height: 24px !important; width: auto !important; vertical-align: middle !important; }}
+.signature-fin-page {{
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+    gap: 12px !important;
+    text-align: center !important;
+    color: #1E3A8A !important;
+    font-size: 0.92rem !important;
+    font-weight: bold !important;
+    padding-top: 6px !important;
+    margin-top: 25px !important;
+    margin-bottom: 5px !important; /* Marge minime sur PC pour coller au bas de page réel */
+    border-top: 1px dashed #1E3A8A !important;
+    width: 100% !important;
+}}
+
+.logo-signature {{
+    height: 24px !important;
+    width: auto !important;
+    vertical-align: middle !important;
+}}
 
 @media (max-width: 768px) {{
-    .signature-fin-page {{ font-size: 0.75rem !important; padding-top: 4px !important; margin-bottom: 30px !important; }}
+    .signature-fin-page {{ 
+        font-size: 0.75rem !important; 
+        padding-top: 4px !important; 
+        margin-bottom: 30px !important; /* Conserve la sécurité smartphone */
+    }}
     .logo-signature {{ height: 32px !important; }}
 }}
 
@@ -221,18 +317,17 @@ def gen_html(df, cl):
         phrase_attente = "En attente d'arrivée..."
     elif cl in ["table-class-robuste", "table-class-groupes", "table-class-milieu"]:
         nom_course = choix_course.upper() if 'choix_course' in globals() else ""
-        if "RACB" in nom_course: phrase_attente = "En attente du premier classé RACB..."
-        elif "ASAF" in nom_course: phrase_attente = "En attente du premier classé ASAF..."
-        else: phrase_attente = "En attente du premier classé..."
+        if "RACB" in nom_course:
+            phrase_attente = "En attente du premier classé RACB..."
+        elif "ASAF" in nom_course:
+            phrase_attente = "En attente du premier classé ASAF..."
+        else:
+            phrase_attente = "En attente du premier classé..."
     else:
         phrase_attente = "En attente du départ..."
 
-    if cl == "table-live":
-        style_conteneur = "style='width: 100%;'"
-    elif cl == "table-hist":
-        style_conteneur = "class='div-scroll-local-historique'"
-    else:
-        style_conteneur = "class='table-responsive-container'"
+    # Respect strict du conteneur d'origine
+    style_conteneur = "class='div-scroll-local-historique'" if cl == "table-hist" else "class='table-responsive-container'"
 
     if isinstance(df, str):
         if "<TABLE" in df.upper() and "</TABLE>" in df.upper():
@@ -240,6 +335,7 @@ def gen_html(df, cl):
             fin = df.upper().find("</TABLE>") + 8
             tableau_propre = df[debut:fin]
             return f"<div {style_conteneur}>{tableau_propre}</div>"
+                
         tableau_vide = f"<table class='table-compacte {cl}'><tr><td style='text-align: center; padding: 10px; font-style: italic; color: #64748B;'>{phrase_attente}</td></tr></table>"
         return f"<div {style_conteneur}>{tableau_vide}</div>"
 
@@ -318,6 +414,7 @@ with cd:
     """, unsafe_allow_html=True)
 
     if choix_course != "Essais":
+        # --- MODE DE COURSE ---
         if t_haut:
             st.markdown(f"<span class='titre-classement'>{t_haut}</span>", unsafe_allow_html=True)
             st.markdown(f"<div class='ajust-hauteur-pc' style='overflow-y: auto; display: block;'>{gen_html(d_haut, 'table-class-robuste')}</div>", unsafe_allow_html=True)
@@ -330,6 +427,7 @@ with cd:
             style_scroll = "class='ajust-hauteur-pc' style='overflow-y: auto; display: block;'" if nb_lignes > 10 else "style='height: auto; display: block;'"
             st.markdown(f"<div {style_scroll}>{gen_html(d_bas, 'table-class-robuste')}</div>", unsafe_allow_html=True)
     else:
+        # --- MODE ESSAIS ---
         if t_haut:
             st.markdown(f"<span class='titre-classement'>{t_haut}</span>", unsafe_allow_html=True)
             st.markdown(f"<div class='ajust-hauteur-pc' style='overflow-y: auto; display: block;'>{gen_html(d_bas, 'table-class-robuste')}</div>", unsafe_allow_html=True)
@@ -338,6 +436,8 @@ with cd:
             st.markdown(f"<div class='ajust-hauteur-pc' style='overflow-y: auto; display: block;'>{gen_html(d_haut, 'table-class-robuste')}</div>", unsafe_allow_html=True)
         if t_bas:
             st.markdown(f"<span class='titre-classement espace-classement-suivant'>{t_bas}</span>", unsafe_allow_html=True)
+            
+            # APPLICATION BRIDAGE D'ORIGINE COMPLET
             st.markdown(f"<div class='div-scroll-local-div4'>{gen_html(d_milieu, 'table-class-robuste')}</div>", unsafe_allow_html=True)
 
 st.markdown(f"""
