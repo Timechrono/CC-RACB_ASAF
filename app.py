@@ -292,11 +292,13 @@ tr.ligne-separation-classe td,
     font-size: 0.92rem !important;
     font-weight: bold !important;
     padding-top: 6px !important;
-    margin-top: 25px !important;
-    margin-bottom: 5px !important; /* Marge minime sur PC pour coller au bas de page réel */
+    margin-top: 40px !important; /* Augmenté pour donner de l'air sous les tableaux sur PC */
+    margin-bottom: 5px !important;
     border-top: 1px dashed #1E3A8A !important;
     width: 100% !important;
+    clear: both !important; /* Force la signature à se mettre sous les deux colonnes */
 }}
+
 
 .logo-signature {{
     height: 24px !important;
