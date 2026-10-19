@@ -247,26 +247,26 @@ with cd:
             rendu_bas_essais = d_milieu if isinstance(d_milieu, str) else gen_html(d_milieu, "table-class-robuste")
             st.markdown(f'<div class="div-mobile-fluid" style="max-height: {h_asaf4_pc}; height: {h_asaf4_pc}; overflow-y: auto; display: block; border: 1px solid #CBD5E1; margin-bottom: 2px;">{rendu_bas_essais}</div>', unsafe_allow_html=True)
 
-    # --- NETTOYAGE ET LIBÉRATION MOBILES ABSOLUES ET SANS FAILLE ---
+    # --- NETTOYAGE ET SÉCURISATION MOBILE SAINE ---
     st.markdown("""
     <style>
         @media (max-width: 768px) {
-            /* 1. Libère toutes les enveloppes internes */
-            .div-mobile-fluid, .div-mobile-fluid-gauche, .div-scroll-local-historique, table, tbody, tr, td {
+            /* On restaure immédiatement le comportement de tableau standard pour corriger les colonnes */
+            .div-mobile-fluid, .div-mobile-fluid-gauche, .div-scroll-local-historique {
                 max-height: none !important;
                 height: auto !important;
                 overflow: visible !important;
                 overflow-y: visible !important;
                 border: none !important;
                 display: block !important;
-                /* REPRISE TECHNIQUE MOBILE : Force le défilement natif de la page si le doigt touche le tableau */
-                pointer-events: auto !important; 
-                touch-action: auto !important;
             }
-            /* 2. Redimensionnement propre des cellules de tableaux pour éviter les sauts de ligne */
-            td {
-                display: table-cell !important;
-            }
+            /* Restauration de la structure saine des tableaux */
+            table { display: table !important; width: 100% !important; }
+            tbody { display: table-row-group !important; }
+            tr { display: table-row !important; height: auto !important; }
+            td, th { display: table-cell !important; padding: 4px 5px !important; }
+            
+            /* Titres extensibles validés */
             .titre-live, .titre-hist, .titre-classement {
                 height: auto !important;
                 max-height: none !important;
