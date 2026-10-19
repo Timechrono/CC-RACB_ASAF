@@ -9,7 +9,7 @@ import io
 import importlib
 import Essais
 
-# --- INITIALISATION ET LOGO ---
+# --- INITIALISATION ET CONFIGURATION DU LOGO ---
 LIEN_DROPBOX_LOGO = "https://www.dropbox.com/scl/fi/hi24fjo0vbal4oiiwt9jl/logo-TimeC.png?rlkey=xlw0oqk9gdnq6v5dgahi0klg0&st=y86yrn6y&dl=1"
 
 d_liv = pd.DataFrame()
@@ -65,7 +65,7 @@ st.set_page_config(page_title="Live", layout="wide")
 
 st.markdown(f"""
 <style>
-/* 1. DISPARITION UNIQUEMENT DES ÉLÉMENTS STREAMLIT (SANS TOUCHER AUX IMAGES) */
+/* 1. NETTOYAGE ABSOLU DES COMPOSANTS STREAMLIT */
 footer, [data-testid="stFooterContainer"], [data-testid="stStatusWidget"], .stStatusWidget, [data-testid="stHeader"], [data-testid="stDecoration"] {{
     display: none !important;
     visibility: hidden !important;
@@ -77,7 +77,7 @@ button:focus, div:focus, input:focus, select:focus {{
     outline: none !important; border-color: transparent !important; box-shadow: none !important;
 }}
 
-/* 2. CONFIGURATION HAUTEUR ET ESPACES */
+/* 2. CONFIGURATION UNIFIÉE DES ÉCRANS PC ET SMARTPHONES */
 @media (min-width: 769px) {{
     html, body, [data-testid="stAppViewContainer"], [data-testid="stMainBlockContainer"] {{
         overflow: auto !important; overflow-y: auto !important; height: auto !important; max-height: none !important;
@@ -85,7 +85,10 @@ button:focus, div:focus, input:focus, select:focus {{
 }}
 @media (max-width: 768px) {{
     html, body, [data-testid="stAppViewContainer"], [data-testid="stMainBlockContainer"] {{
-        overflow: auto !important; overflow-y: auto !important; height: 100% !important;
+        overflow: auto !important;
+        overflow-y: auto !important;
+        height: auto !important; /* Modifié pour permettre au smartphone de s'étirer */
+        max-height: none !important;
     }}
 }}
 
@@ -96,7 +99,7 @@ button:focus, div:focus, input:focus, select:focus {{
 div[data-testid="stVerticalBlock"] {{ gap: 0rem !important; padding-top: 0px !important; margin-top: 0px !important; }}
 div.stElementContainer {{ margin-top: 0px !important; margin-bottom: 0px !important; padding-top: 0px !important; padding-bottom: 0px !important; }}
 
-/* 3. BANDEAUX DE TITRES */
+/* 3. STRUCTURE APPARENCE DES TITRES PC */
 .titre-live, .titre-hist, .titre-classement {{
     color: #FFFFFF !important; font-size: 1.02rem !important; font-weight: bold !important;
     height: 26px !important; max-height: 26px !important; padding: 0px 8px !important; border-radius: 3px !important;
@@ -118,7 +121,7 @@ div.stElementContainer {{ margin-top: 0px !important; margin-bottom: 0px !import
 """, unsafe_allow_html=True)
 st.markdown(f"""
 <style>
-/* 4. DESIGN DES TABLEAUX ET DU SCROLL */
+/* 4. DESIGN TECHNIQUE COMPACT DES TABLEAUX */
 .table-responsive-container {{ width: 100% !important; }}
 .table-compacte {{ width: 100% !important; margin-bottom: 0px !important; border-collapse: collapse !important; table-layout: auto !important; }}
 .table-compacte tr {{ height: 18px !important; }}
@@ -138,7 +141,7 @@ st.markdown(f"""
 
 .table-class-robuste tr.ligne-bleue-separation td, tr.ligne-separation-classe td, .table-compacte tr.ligne-separation-classe td {{ box-shadow: inset 0 -3px 0 0 #1E3A8A !important; }}
 
-/* 5. DESIGN DE LA SIGNATURE ET DU LOGO (CLEAN ET FORCE) */
+/* 5. DESIGN DE LA SIGNATURE DE FIN */
 .signature-fin-page {{
     display: flex !important; justify-content: center !important; align-items: center !important; gap: 12px !important;
     text-align: center !important; color: #1E3A8A !important; font-size: 0.92rem !important; font-weight: bold !important;
@@ -251,19 +254,18 @@ with cd:
             rendu_bas_essais = d_milieu if isinstance(d_milieu, str) else gen_html(d_milieu, "table-class-robuste")
             st.markdown(f'<div class="div-mobile-fluid" style="max-height: {h_asaf4_pc}; height: {h_asaf4_pc}; overflow-y: auto; display: block; border: 1px solid #CBD5E1; margin-bottom: 2px;">{rendu_bas_essais}</div>', unsafe_allow_html=True)
 
-    # --- SÉCURISATION MOBILE RADICALE ET ABSOLUE ---
+    # --- NETTOYAGE ET LIBÉRATION MOBILES TOTALES ---
     st.markdown("""
     <style>
         @media (max-width: 768px) {
-            /* Libération totale du scroll sur mobile */
-            .div-mobile-fluid, .div-mobile-fluid-gauche {
+            .div-mobile-fluid, .div-mobile-fluid-gauche, .div-scroll-local-historique {
                 max-height: none !important;
                 height: auto !important;
                 overflow: visible !important;
                 overflow-y: visible !important;
                 border: none !important;
+                display: block !important;
             }
-            /* Autorise les bandeaux de titres à s'étendre verticalement sur plusieurs lignes */
             .titre-live, .titre-hist, .titre-classement {
                 height: auto !important;
                 max-height: none !important;
