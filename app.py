@@ -234,6 +234,14 @@ st.markdown(f"""
     }}
 }}
 
+/* CIBLE CHIRURGICALE UNIQUE POUR AJOUTER LE SCROLL UNIQUEMENT AUX CLASSEMENTS À DROITE */
+/* N'affecte pas .table-live à gauche, respecte le flux natif pour bloquer l'espace blanc */
+.table-class-robuste, .table-class-milieu {{
+    display: block !important;
+    overflow-y: auto !important;
+    border: 1px solid #CBD5E1 !important;
+}}
+
 /* 5. DESIGN ET RENDU COMPACT DES TABLEAUX */
 .table-responsive-container {{
     width: 100% !important;
@@ -311,6 +319,7 @@ tr.ligne-separation-classe td,
     }}
     .logo-signature {{ height: 32px !important; }}
 }}
+
 </style>
 """, unsafe_allow_html=True)
 
@@ -319,30 +328,30 @@ def gen_html(df, cl):
         phrase_attente = "En attente d'arrivée..."
     elif cl in ["table-class-robuste", "table-class-groupes", "table-class-milieu"]:
         nom_course = choix_course.upper() if 'choix_course' in globals() else ""
-        if "RACB" in nom_course: phrase_attente = "En attente du premier classé RACB..."
-        elif "ASAF" in nom_course: phrase_attente = "En attente du premier classé ASAF..."
-        else: phrase_attente = "En attente du premier classé..."
+        if "RACB" in nom_course:
+            phrase_attente = "En attente du premier classé RACB..."
+        elif "ASAF" in nom_course:
+            phrase_attente = "En attente du premier classé ASAF..."
+        else:
+            phrase_attente = "En attente du premier classé..."
     else:
         phrase_attente = "En attente du départ..."
 
-    if cl == "table-hist":
-        style_conteneur = "class='div-scroll-local-historique'"
-    elif cl == "table-live":
-        style_conteneur = "style='width: 100%;'"
-    else:
-        # Injection discrète du scroll vertical dans l'enveloppe HTML du tableau généré
-        hauteur_cible = h_pc if 'h_pc' in globals() else "380px"
-        style_conteneur = f"class='table-responsive-container' style='max-height: {hauteur_cible}; overflow-y: auto; border: 1px solid #CBD5E1;'"
+    style_conteneur = "class='div-scroll-local-historique'" if cl == "table-hist" else "class='table-responsive-container'"
 
     if isinstance(df, str):
         if "<TABLE" in df.upper() and "</TABLE>" in df.upper():
             debut = df.upper().find("<TABLE")
             fin = df.upper().find("</TABLE>") + 8
-            return f"<div {style_conteneur}>{df[debut:fin]}</div>"
-        return f"<div {style_conteneur}><table class='table-compacte {cl}'><tr><td style='text-align: center; padding: 10px; font-style: italic; color: #64748B;'>{phrase_attente}</td></tr></table></div>"
+            tableau_propre = df[debut:fin]
+            return f"<div {style_conteneur}>{tableau_propre}</div>"
+                
+        tableau_vide = f"<table class='table-compacte {cl}'><tr><td style='text-align: center; padding: 10px; font-style: italic; color: #64748B;'>{phrase_attente}</td></tr></table>"
+        return f"<div {style_conteneur}>{tableau_vide}</div>"
 
     if df is None or (isinstance(df, pd.DataFrame) and df.empty): 
-        return f"<div {style_conteneur}><table class='table-compacte {cl}'><tr><td style='text-align: center; padding: 10px; font-style: italic; color: #64748B;'>{phrase_attente}</td></tr></table></div>"
+        tableau_vide = f"<table class='table-compacte {cl}'><tr><td style='text-align: center; padding: 10px; font-style: italic; color: #64748B;'>{phrase_attente}</td></tr></table>"
+        return f"<div {style_conteneur}>{tableau_vide}</div>"
     
     html_table = df.to_html(index=False, classes=f"table-compacte {cl}", escape=False, border=0)
     return f"<div {style_conteneur}>{html_table}</div>"
@@ -405,6 +414,16 @@ with cg:
     st.markdown(gen_html(d_his, "table-hist"), unsafe_allow_html=True)
     
 with cd:
+    h_mob = "380px"
+
+    # Injection CSS dynamique propre
+    st.markdown(f"""
+    <style>
+      @media (min-width: 769px) {{ .table-class-robuste, .table-class-milieu {{ max-height: {h_pc} !important; }} }}
+      @media (max-width: 768px) {{ .table-class-robuste, .table-class-milieu {{ max-height: {h_mob} !important; }} }}
+    </style>
+    """, unsafe_allow_html=True)
+
     if choix_course != "Essais":
         # --- MODE DE COURSE ---
         if t_haut:
