@@ -458,9 +458,11 @@ with cd:
     if choix_course != "Essais":
         # --- MODE DE COURSE ---
         if t_haut:
+            # CORRECTION ICI : Remplacement de t_haut_clean par t_haut
             st.markdown(f"<span class='titre-classement'>{t_haut}</span>", unsafe_allow_html=True)
             st.markdown(f"<div class='ajust-hauteur-pc' style='overflow-y: auto; display: block;'>{gen_html(d_haut, 'table-class-robuste')}</div>", unsafe_allow_html=True)
         if t_milieu:
+            # CORRECTION ICI : Remplacement de t_milieu_clean par t_milieu
             st.markdown(f"<span class='titre-classement espace-classement-suivant'>{t_milieu}</span>", unsafe_allow_html=True)
             st.markdown(f"<div style='height: auto; display: block;'>{gen_html(d_milieu, 'table-class-milieu')}</div>", unsafe_allow_html=True)
         if t_bas:
@@ -468,6 +470,7 @@ with cd:
             nb_lignes = len(d_bas) if hasattr(d_bas, '__len__') else 0
             style_scroll = "class='ajust-hauteur-pc' style='overflow-y: auto; display: block;'" if nb_lignes > 10 else "style='height: auto; display: block;'"
             st.markdown(f"<div {style_scroll}>{gen_html(d_bas, 'table-class-robuste')}</div>", unsafe_allow_html=True)
+
 
 
     else:
