@@ -251,13 +251,21 @@ with cd:
     st.markdown("""
     <style>
         @media (max-width: 768px) {
-            .div-mobile-fluid, .div-mobile-fluid-gauche, .div-scroll-local-historique {
+            /* 1. Libère toutes les enveloppes internes */
+            .div-mobile-fluid, .div-mobile-fluid-gauche, .div-scroll-local-historique, table, tbody, tr, td {
                 max-height: none !important;
                 height: auto !important;
                 overflow: visible !important;
                 overflow-y: visible !important;
                 border: none !important;
                 display: block !important;
+                /* REPRISE TECHNIQUE MOBILE : Force le défilement natif de la page si le doigt touche le tableau */
+                pointer-events: auto !important; 
+                touch-action: auto !important;
+            }
+            /* 2. Redimensionnement propre des cellules de tableaux pour éviter les sauts de ligne */
+            td {
+                display: table-cell !important;
             }
             .titre-live, .titre-hist, .titre-classement {
                 height: auto !important;
