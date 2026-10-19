@@ -248,6 +248,25 @@ def recuperer_donnees_course():
                         html_blocs.append("</tbody>\n</table>")
                         html_divisions = "".join(html_blocs)
 
+                            
+                            lignes_uniquement = ""
+                            for _, r_data in sub_df.iterrows():
+                                # Application du trait de séparation bleu de fin de groupe
+                                style_tr = "class='ligne-bleue-separation'" if current_group < total_groups and r_data.equals(sub_df.iloc[-1]) else ""
+                                lignes_uniquement += f"<tr {style_tr}>"
+                                for cell in r_data: lignes_uniquement += f"<td>{cell}</td>"
+                                lignes_uniquement += "</tr>"
+                                
+                            if current_group == 1:
+                                # On extrait l'en-tête HTML généré proprement par le premier bloc
+                                entetes_html = sub_html.split("<tbody>")[0] + "<tbody>"
+                                html_blocs.append(entetes_html + lignes_uniquement)
+                            else:
+                                html_blocs.append(lignes_uniquement)
+                        
+                        html_blocs.append("</tbody>\n</table>")
+                        html_divisions = "".join(html_blocs)
+
                             lignes_uniquement = ""
                             for _, r_data in sub_df.iterrows():
                                 # Application robuste du trait de séparation bleu de fin de groupe
