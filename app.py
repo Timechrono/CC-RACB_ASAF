@@ -401,43 +401,49 @@ with cg:
         st.markdown(f"<span class='titre-hist'>{t_his}</span>", unsafe_allow_html=True)
     st.markdown(gen_html(d_his, "table-hist"), unsafe_allow_html=True)
 with cd:
-    # --- LIEN INTELLIGENT AVEC LES VARIABLES DE CONFIGURATION ---
+    # --- LIEN DIRECT ET FORCE AVEC LES CONFIGURATIONS DE HAUTEUR SUR PC ---
     h_racb_pc = "215px"
     h_asaf123_pc = "215px"
     h_asaf4_pc = "114px"
     
+    # Extraction directe depuis le module actif importé
     if module_actif and hasattr(module_actif, 'HAUTEURS_TABLEAUX_PC'):
-        h_racb_pc = module_actif.HAUTEURS_TABLEAUX_PC.get("RACB", "215px")
-        h_asaf123_pc = module_actif.HAUTEURS_TABLEAUX_PC.get("ASAF_123", "215px")
-        h_asaf4_pc = module_actif.HAUTEURS_TABLEAUX_PC.get("ASAF_4", "114px")
+        h_racb_pc = str(module_actif.HAUTEURS_TABLEAUX_PC.get("RACB", "215px"))
+        h_asaf123_pc = str(module_actif.HAUTEURS_TABLEAUX_PC.get("ASAF_123", "215px"))
+        h_asaf4_pc = str(module_actif.HAUTEURS_TABLEAUX_PC.get("ASAF_4", "114px"))
+
+    # Injection immédiate d'un style CSS global pour écraser tout bridage persistant sur PC
+    st.markdown(f"""
+    <style>
+      @media (min-width: 769px) {{
+        .div-pc-scroll-racb {{ max-height: {h_racb_pc} !important; height: {h_racb_pc} !important; overflow-y: auto !important; }}
+        .div-pc-scroll-asaf123 {{ max-height: {h_asaf123_pc} !important; height: {h_asaf123_pc} !important; overflow-y: auto !important; }}
+        .div-pc-scroll-asaf4 {{ max-height: {h_asaf4_pc} !important; height: {h_asaf4_pc} !important; overflow-y: auto !important; }}
+      }}
+    </style>
+    """, unsafe_allow_html=True)
 
     if choix_course != "Essais":
         # --- MODE DE COURSE ---
         if t_haut:
             st.markdown(f"<span class='titre-classement'>{t_haut}</span>", unsafe_allow_html=True)
             st.markdown(f"""
-                <div class='ajust-hauteur-pc' style='overflow-y: auto; display: block;'>
-                    <div style="max-height: {h_racb_pc}; overflow-y: auto; border: 1px solid #CBD5E1;" class="div-pc-scroll">
-                        {gen_html(d_haut, 'table-class-robuste')}
-                    </div>
+                <div class="div-pc-scroll-racb" style="border: 1px solid #CBD5E1;">
+                    {gen_html(d_haut, 'table-class-robuste')}
                 </div>
             """, unsafe_allow_html=True)
         if t_milieu:
             st.markdown(f"<span class='titre-classement espace-classement-suivant'>{t_milieu}</span>", unsafe_allow_html=True)
             st.markdown(f"""
-                <div class='ajust-hauteur-pc' style='overflow-y: auto; display: block;'>
-                    <div style="max-height: {h_asaf123_pc}; overflow-y: auto; border: 1px solid #CBD5E1;" class="div-pc-scroll">
-                        {gen_html(d_milieu, 'table-class-milieu')}
-                    </div>
+                <div class="div-pc-scroll-asaf123" style="border: 1px solid #CBD5E1;">
+                    {gen_html(d_milieu, 'table-class-milieu')}
                 </div>
             """, unsafe_allow_html=True)
         if t_bas:
             st.markdown(f"<span class='titre-classement espace-classement-suivant'>{t_bas}</span>", unsafe_allow_html=True)
             st.markdown(f"""
-                <div style='overflow-y: auto; display: block;'>
-                    <div style="max-height: {h_asaf4_pc}; overflow-y: auto; border: 1px solid #CBD5E1;" class="div-pc-scroll">
-                        {gen_html(d_bas, 'table-class-robuste')}
-                    </div>
+                <div class="div-pc-scroll-asaf4" style="border: 1px solid #CBD5E1;">
+                    {gen_html(d_bas, 'table-class-robuste')}
                 </div>
             """, unsafe_allow_html=True)
     else:
@@ -445,37 +451,32 @@ with cd:
         if t_haut:
             st.markdown(f"<span class='titre-classement'>{t_haut}</span>", unsafe_allow_html=True)
             st.markdown(f"""
-                <div class='ajust-hauteur-pc' style='overflow-y: auto; display: block;'>
-                    <div style="max-height: {h_racb_pc}; overflow-y: auto; border: 1px solid #CBD5E1;" class="div-pc-scroll">
-                        {gen_html(d_bas, 'table-class-robuste')}
-                    </div>
+                <div class="div-pc-scroll-racb" style="border: 1px solid #CBD5E1;">
+                    {gen_html(d_bas, 'table-class-robuste')}
                 </div>
             """, unsafe_allow_html=True)
         if t_milieu:
             st.markdown(f"<span class='titre-classement espace-classement-suivant'>{t_milieu}</span>", unsafe_allow_html=True)
             st.markdown(f"""
-                <div class='ajust-hauteur-pc' style='overflow-y: auto; display: block;'>
-                    <div style="max-height: {h_asaf123_pc}; overflow-y: auto; border: 1px solid #CBD5E1;" class="div-pc-scroll">
-                        {gen_html(d_haut, 'table-class-robuste')}
-                    </div>
+                <div class="div-pc-scroll-asaf123" style="border: 1px solid #CBD5E1;">
+                    {gen_html(d_haut, 'table-class-robuste')}
                 </div>
             """, unsafe_allow_html=True)
         if t_bas:
             st.markdown(f"<span class='titre-classement espace-classement-suivant'>{t_bas}</span>", unsafe_allow_html=True)
             st.markdown(f"""
-                <div class='div-scroll-local-div4'>
-                    <div style="max-height: {h_asaf4_pc}; overflow-y: auto; border: 1px solid #CBD5E1;" class="div-pc-scroll">
-                        {gen_html(d_milieu, 'table-class-robuste')}
-                    </div>
+                <div class="div-pc-scroll-asaf4" style="border: 1px solid #CBD5E1;">
+                    {gen_html(d_milieu, 'table-class-robuste')}
                 </div>
             """, unsafe_allow_html=True)
 
-    # Petit hack CSS pour s'assurer que sur mobile ces boîtes perdent leur max-height
+    # Petit hack CSS pour s'assurer que sur mobile ces boîtes reprennent un comportement fluide
     st.markdown("""
     <style>
         @media (max-width: 768px) {
-            .div-pc-scroll {
+            .div-pc-scroll-racb, .div-pc-scroll-asaf123, .div-pc-scroll-asaf4 {
                 max-height: none !important;
+                height: auto !important;
                 overflow-y: visible !important;
                 border: none !important;
             }
