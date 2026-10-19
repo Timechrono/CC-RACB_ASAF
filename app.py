@@ -1,6 +1,5 @@
 # https://www.dropbox.com/scl/fi/hi24fjo0vbal4oiiwt9jl/logo-TimeC.png?rlkey=xlw0oqk9gdnq6v5dgahi0klg0&st=y86yrn6y&dl=1
 # https://www.dropbox.com/scl/fi/hi24fjo0vbal4oiiwt9jl/logo-TimeC.png?rlkey=xlw0oqk9gdnq6v5dgahi0klg0&st=y86yrn6y&dl=1
-
 # https://dropbox.com
 
 import streamlit as st
@@ -191,6 +190,7 @@ st.markdown(f"""
     border: 1px solid #CBD5E1 !important;
 }}
 
+/* RESTAURATION STRICTE : On retire .table-responsive-container d'ici pour lui permettre d'avoir un scroll */
 .div-scroll-local-general, .div-scroll-local-classes {{
     height: auto !important;
     max-height: none !important;
@@ -199,11 +199,23 @@ st.markdown(f"""
     border: none !important;
 }}
 
+/* ACTIVATION DU SCROLL DIRECTEMENT SUR LE CONTENEUR DES CLASSEMENTS */
+.table-responsive-container {{
+    width: 100% !important;
+    overflow-y: auto !important;
+    border: 1px solid #CBD5E1 !important;
+}}
+
 @media (min-width: 769px) {{
     .div-scroll-local-historique {{
         height: 456px !important;
         max-height: 456px !important;
         overflow-y: auto !important;
+        display: block !important;
+    }}
+    /* Les classements à droite s'ajustent à la hauteur calculée de la course */
+    .table-responsive-container {{
+        max-height: {h_pc if 'h_pc' in globals() else '380px'} !important;
         display: block !important;
     }}
     .div-scroll-local-div4 {{
@@ -226,6 +238,11 @@ st.markdown(f"""
         -webkit-overflow-scrolling: touch !important;
         border: 1px solid #CBD5E1 !important;
     }}
+    .table-responsive-container {{
+        max-height: 380px !important;
+        display: block !important;
+        -webkit-overflow-scrolling: touch !important;
+    }}
     .div-scroll-local-div4 {{
         height: auto !important;
         max-height: none !important;
@@ -234,18 +251,7 @@ st.markdown(f"""
     }}
 }}
 
-/* CIBLE CHIRURGICALE UNIQUE POUR AJOUTER LE SCROLL UNIQUEMENT AUX CLASSEMENTS À DROITE */
-/* N'affecte pas .table-live à gauche, respecte le flux natif pour bloquer l'espace blanc */
-.table-class-robuste, .table-class-milieu {{
-    display: block !important;
-    overflow-y: auto !important;
-    border: 1px solid #CBD5E1 !important;
-}}
-
 /* 5. DESIGN ET RENDU COMPACT DES TABLEAUX */
-.table-responsive-container {{
-    width: 100% !important;
-}}
 .table-compacte {{
     width: 100% !important; margin-bottom: 0px !important;
     border-collapse: collapse !important; table-layout: auto !important;
@@ -300,7 +306,7 @@ tr.ligne-separation-classe td,
     font-weight: bold !important;
     padding-top: 6px !important;
     margin-top: 25px !important;
-    margin-bottom: 5px !important; /* Marge minime sur PC pour coller au bas de page réel */
+    margin-bottom: 5px !important;
     border-top: 1px dashed #1E3A8A !important;
     width: 100% !important;
 }}
@@ -315,7 +321,7 @@ tr.ligne-separation-classe td,
     .signature-fin-page {{ 
         font-size: 0.75rem !important; 
         padding-top: 4px !important; 
-        margin-bottom: 30px !important; /* Conserve la sécurité smartphone */
+        margin-bottom: 30px !important;
     }}
     .logo-signature {{ height: 32px !important; }}
 }}
@@ -337,7 +343,13 @@ def gen_html(df, cl):
     else:
         phrase_attente = "En attente du départ..."
 
-    style_conteneur = "class='div-scroll-local-historique'" if cl == "table-hist" else "class='table-responsive-container'"
+    # Respect STRICT de votre structure de conteneurs d'origine
+    if cl == "table-live":
+        style_conteneur = "style='width: 100%;'"
+    elif cl == "table-hist":
+        style_conteneur = "class='div-scroll-local-historique'"
+    else:
+        style_conteneur = "class='table-responsive-container'"
 
     if isinstance(df, str):
         if "<TABLE" in df.upper() and "</TABLE>" in df.upper():
