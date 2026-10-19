@@ -220,9 +220,9 @@ div.stElementContainer {{
     .block-container {{ padding-left: 2px !important; padding-right: 2px !important; }}
     
     .div-scroll-local-historique {{
-        height: 1025px !important;
-        max-height: 1025px !important;
-        overflow-y: auto !important;
+        height: auto !important;          /* Laisse le tableau s'adapter sur mobile */
+        max-height: 400px !important;     /* Évite qu'il ne prenne tout l'écran */
+        overflow-y: auto !important;      /* Permet de défiler à l'intérieur si trop long */
         display: block !important;
         -webkit-overflow-scrolling: touch !important;
         border: 1px solid #CBD5E1 !important;
@@ -234,6 +234,7 @@ div.stElementContainer {{
         display: block !important;
     }}
 }}
+
 
 /* 5. DESIGN ET RENDU COMPACT DES TABLEAUX */
 .table-responsive-container {{
