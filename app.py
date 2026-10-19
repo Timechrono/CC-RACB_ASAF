@@ -9,7 +9,9 @@ import io
 import importlib
 import Essais
 
-# Initialisation globale stricte de toutes les variables de données et de détection
+# --- SÉCURISATION ET INITIALISATION ABSOLUE DES VARIABLES GLOBALES ---
+LIEN_DROPBOX_LOGO = "https://www.dropbox.com/scl/fi/hi24fjo0vbal4oiiwt9jl/logo-TimeC.png?rlkey=xlw0oqk9gdnq6v5dgahi0klg0&st=y86yrn6y&dl=1"
+
 d_liv = pd.DataFrame()
 d_his = pd.DataFrame()
 d_haut = pd.DataFrame()
@@ -29,7 +31,7 @@ course1_racb_disponible = False
 course2_racb_disponible = False
 course3_racb_disponible = False
 
-# --- DÉTECTION SÉCURISÉE DES SCRIPTS DE COURSE DISPONIBLES ---
+# --- DÉTECTION SÉCURISÉE DES SCRIPTS DE COURSE ---
 try:
     import Course_1_ASAF
     course1_disponible = True
@@ -79,7 +81,7 @@ button:focus, div:focus, input:focus, select:focus {{
     outline: none !important; border-color: transparent !important; box-shadow: none !important;
 }}
 
-/* 2. CONFIGURATION DE LA PAGE - NETTOYAGE DES ESPACES INUTILES */
+/* 2. CONFIGURATION DE LA PAGE */
 @media (min-width: 769px) {{
     html, body, [data-testid="stAppViewContainer"], [data-testid="stMainBlockContainer"] {{
         overflow: auto !important; overflow-y: auto !important; height: auto !important; max-height: none !important;
@@ -201,7 +203,7 @@ elif choix_course_url == "c3asaf" and course3_disponible: choix_course = "Course
 elif choix_course_url == "c3racb" and course3_racb_disponible: choix_course = "Course 3 RACB"
 else: choix_course = "Essais"
 
-# Récupération dynamique et FORÇAGE de la relecture physique du module actif
+# Forçage de la relecture physique du module actif pour rafraîchir le dictionnaire de hauteurs
 module_actif = None
 if choix_course == "Course 1 ASAF": 
     import Course_1_ASAF; module_actif = importlib.reload(Course_1_ASAF)
@@ -249,19 +251,20 @@ with cg:
     st.markdown(gen_html(d_his, "table-hist"), unsafe_allow_html=True)
     
 with cd:
-    # --- CHARGEMENT DYNAMIQUE DES VARIABLES DE HAUTEUR SUR PC ---
+    # --- CHARGEMENT DES VARIABLES DE HAUTEUR SUR PC DES MODULES ACTIFS ---
     h_racb_pc, h_asaf123_pc, h_asaf4_pc = "215px", "215px", "114px"
     if module_actif and hasattr(module_actif, 'HAUTEURS_TABLEAUX_PC'):
         h_racb_pc = str(module_actif.HAUTEURS_TABLEAUX_PC.get("RACB", "215px"))
         h_asaf123_pc = str(module_actif.HAUTEURS_TABLEAUX_PC.get("ASAF_123", "215px"))
         h_asaf4_pc = str(module_actif.HAUTEURS_TABLEAUX_PC.get("ASAF_4", "114px"))
 
+    # Forçage en cascade de l'application de la hauteur sur les identifiants de colonnes
     st.markdown(f"""
     <style>
       @media (min-width: 769px) {{
-        .div-pc-scroll-racb {{ max-height: {h_racb_pc} !important; height: {h_racb_pc} !important; overflow-y: auto !important; }}
-        .div-pc-scroll-asaf123 {{ max-height: {h_asaf123_pc} !important; height: {h_asaf123_pc} !important; overflow-y: auto !important; }}
-        .div-pc-scroll-asaf4 {{ max-height: {h_asaf4_pc} !important; height: {h_asaf4_pc} !important; overflow-y: auto !important; }}
+        .div-pc-scroll-racb {{ max-height: {h_racb_pc} !important; height: {h_racb_pc} !important; overflow-y: auto !important; display: block !important; }}
+        .div-pc-scroll-asaf123 {{ max-height: {h_asaf123_pc} !important; height: {h_asaf123_pc} !important; overflow-y: auto !important; display: block !important; }}
+        .div-pc-scroll-asaf4 {{ max-height: {h_asaf4_pc} !important; height: {h_asaf4_pc} !important; overflow-y: auto !important; display: block !important; }}
       }}
     </style>
     """, unsafe_allow_html=True)
@@ -289,7 +292,9 @@ with cd:
 
     st.markdown("""<style>@media (max-width: 768px) { .div-pc-scroll-racb, .div-pc-scroll-asaf123, .div-pc-scroll-asaf4 { max-height: none !important; height: auto !important; overflow-y: visible !important; border: none !important; } }</style>""", unsafe_allow_html=True)
 
-st.markdown(f"<div class='signature-fin-page'><img src='{LIEN_DROPBOX_LOGO}' class='logo-signature'>www.timechrono.be</div>", unsafe_allow_html=True)
+# Déclaration sécurisée locale pour empêcher le NameError en cas de vidage de pile
+LIEN_LOGO_SECURE = "https://dropbox.com"
+st.markdown(f"<div class='signature-fin-page'><img src='{LIEN_LOGO_SECURE}' class='logo-signature'>www.timechrono.be</div>", unsafe_allow_html=True)
 
 for secondes_restantes in range(30, -1, -1):
     if "Derniers concurrents" in t_live or "DIRECT" in t_live.upper():
