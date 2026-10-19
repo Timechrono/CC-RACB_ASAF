@@ -198,15 +198,11 @@ def recuperer_donnees_course():
 
     # --- INJECTION DYNAMIQUE TOTALEMENT VERROUILLÉE DES HAUTEURS SUR PC ---
     h_hist = HAUTEURS_TABLEAUX_PC.get("HISTORIQUE", "456px")
-    h_racb = HAUTEURS_TABLEAUX_PC.get("RACB", "215px")
-    h_asaf123 = HAUTEURS_TABLEAUX_PC.get("ASAF_123", "215px")
-    h_asaf4 = HAUTEURS_TABLEAUX_PC.get("ASAF_4", "114px")
 
     css_exclusif_pc = f"""
     <style>
       @media (min-width: 769px) {{
-        
-        /* 1. Bloc de Gauche : Historique */
+        /* Bloc de Gauche : Historique */
         .div-scroll-local-historique {{
           height: {h_hist} !important;
           max-height: {h_hist} !important;
@@ -214,52 +210,18 @@ def recuperer_donnees_course():
           display: block !important;
         }}
         
-        /* 2. Neutralisation de l'enveloppe parente de app.py */
+        /* Neutralisation complète du bloc de bridage de app.py */
         .ajust-hauteur-pc {{
           height: auto !important;
           max-height: none !important;
           overflow: visible !important;
           display: block !important;
         }}
-        
-        /* 3. Ciblage de la DIV enveloppe générée par gen_html() contenant le classement RACB (d_bas en mode essais) */
-        .ajust-hauteur-pc .table-responsive-container:has(.table-class-robuste) {{
-          max-height: {h_racb} !important;
-          height: {h_racb} !important;
-          overflow-y: auto !important;
-          display: block !important;
-          border: 1px solid #CBD5E1 !important;
-        }}
-        
-        /* 4. Ciblage de la DIV enveloppe générée par gen_html() contenant le classement ASAF 123 (d_haut en mode essais) */
-        .ajust-hauteur-pc .table-responsive-container:has(.table-class-milieu) {{
-          max-height: {h_asaf123} !important;
-          height: {h_asaf123} !important;
-          overflow-y: auto !important;
-          display: block !important;
-          border: 1px solid #CBD5E1 !important;
-        }}
-        
-        /* 5. Cas de la Division 4 (Mode Essais) */
-        .div-scroll-local-div4 {{
-          height: {h_asaf4} !important;
-          max-height: {h_asaf4} !important;
-          overflow-y: auto !important;
-          display: block !important;
-          border: 1px solid #CBD5E1 !important;
-        }}
-        
-        .div-scroll-local-div4 .table-responsive-container {{
-          max-height: {h_asaf4} !important;
-          height: {h_asaf4} !important;
-          overflow-y: auto !important;
-          display: block !important;
-        }}
-        
       }}
     </style>
     """
     st.markdown(css_exclusif_pc, unsafe_allow_html=True)
+
 
 
 
