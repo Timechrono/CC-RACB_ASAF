@@ -48,7 +48,6 @@ def convertir_en_secondes(valeur):
     minutes = num // 10000
     if minutes >= 60: minutes = minutes % 60
     return (minutes * 60) + secondes + (centiemes / 100)
-
 def nettoyer_numero(valeur):
     if pd.isna(valeur): return "nan"
     s = str(valeur).strip().upper()
@@ -71,7 +70,7 @@ def formater_heure_ecran(val):
     return f"{s[0:2]}:{s[2:4]}.{s[4:6]}" if len(s) == 6 else str(val)
 
 def calculer_statut_chrono(row, est_dans_le_live=True):
-    if "Calc_Sec" in row and pd.notna(row["Calc_Sec"]) and row["Calc_Sec"] > 0:
+    if "Calc_Sec" in row and pd.notna(row["ANALOG_Sec" if "ANALOG_Sec" in row else "Calc_Sec"]) and row["Calc_Sec"] > 0:
         temps_formate = format_final_chrono(row["Calc_Sec"])
         if est_dans_le_live:
             if row["Calc_Sec"] > 240:
@@ -205,6 +204,10 @@ def recuperer_donnees_course():
                     
                     if len(df_grouped) > 0:
                         html_blocs = []
+                        html_blocs.append("<table class='table-compacte table-class-robuste'>")
+                        html_blocs.append("<thead><tr><th>Pos</th><th>N°</th><th>Nom_Prenom</th><th>Gr/Div</th><th>Cl</th><th>Chrono</th></tr></thead>")
+                        html_blocs.append("<tbody>")
+                        
                         grouped_objs = df_grouped.groupby(["Division_Clean", "Classe_Num"])
                         total_groups = len(grouped_objs)
                         current_group = 0
@@ -214,20 +217,12 @@ def recuperer_donnees_course():
                             group = group.copy(); group["Pos"] = range(1, len(group) + 1); group["Chrono"] = group["Calc_Sec"].apply(format_final_chrono)
                             sub_df = group[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]].rename(columns={"Division": "Gr/Div", "Classe": "Cl"})
                             
-                            sub_html = sub_df.to_html(index=False, header=True, classes='table-compacte table-class-robuste', escape=False, border=0)
-                            
-                            lignes_uniquement = ""
                             for _, r_data in sub_df.iterrows():
                                 style_tr = "class='ligne-bleue-separation'" if current_group < total_groups and r_data.equals(sub_df.iloc[-1]) else ""
-                                lignes_uniquement += f"<tr {style_tr}>"
-                                for cell in r_data: lignes_uniquement += f"<td>{cell}</td>"
-                                lignes_uniquement += "</tr>"
-                                
-                            if current_group == 1:
-                                entetes_html = sub_html.split("<tbody>") + "<tbody>"
-                                html_blocs.append(entetes_html + lignes_uniquement)
-                            else:
-                                html_blocs.append(lignes_uniquement)
+                                html_blocs.append(f"<tr {style_tr}>")
+                                for cell in r_data: 
+                                    html_blocs.append(f"<td>{cell}</td>")
+                                html_blocs.append("</tr>")
                         
                         html_blocs.append("</tbody>\n</table>")
                         html_divisions = "".join(html_blocs)
