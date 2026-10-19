@@ -339,9 +339,11 @@ def gen_html(df, cl):
     html_table = df.to_html(index=False, classes=f"table-compacte {cl}", escape=False, border=0)
     return f"<div {style_conteneur}>{html_table}</div>"
 
+import importlib
+
 # --- LECTURE DU PARAMÈTRE DE COURSE DEPUIS L'URL ---
 query_params = st.query_params
-choix_course_url = query_params.get("course", "essais").lower()
+
 
 if choix_course_url == "c1asaf" and course1_disponible:
     choix_course = "Course 1 ASAF"
@@ -358,15 +360,23 @@ elif choix_course_url == "c3racb" and course3_racb_disponible:
 else:
     choix_course = "Essais"
 
-# Récupération dynamique du module actif pour les variables de hauteur
+# Récupération dynamique et FORÇAGE de la relecture du module actif
 module_actif = None
-if choix_course == "Course 1 ASAF": import Course_1_ASAF; module_actif = Course_1_ASAF
-elif choix_course == "Course 1 RACB": import Course_1_RACB; module_actif = Course_1_RACB
-elif choix_course == "Course 2 ASAF": import Course_2_ASAF; module_actif = Course_2_ASAF
-elif choix_course == "Course 2 RACB": import Course_2_RACB; module_actif = Course_2_RACB
-elif choix_course == "Course 3 ASAF": import Course_3_ASAF; module_actif = Course_3_ASAF
-elif choix_course == "Course 3 RACB": import Course_3_RACB; module_actif = Course_3_RACB
-else: import Essais; module_actif = Essais
+if choix_course == "Course 1 ASAF": 
+    import Course_1_ASAF; module_actif = importlib.reload(Course_1_ASAF)
+elif choix_course == "Course 1 RACB": 
+    import Course_1_RACB; module_actif = importlib.reload(Course_1_RACB)
+elif choix_course == "Course 2 ASAF": 
+    import Course_2_ASAF; module_actif = importlib.reload(Course_2_ASAF)
+elif choix_course == "Course 2 RACB": 
+    import Course_2_RACB; module_actif = importlib.reload(Course_2_RACB)
+elif choix_course == "Course 3 ASAF": 
+    import Course_3_ASAF; module_actif = importlib.reload(Course_3_ASAF)
+elif choix_course == "Course 3 RACB": 
+    import Course_3_RACB; module_actif = importlib.reload(Course_3_RACB)
+else: 
+    import Essais; module_actif = importlib.reload(Essais)
+
 
 try:
     from concurrent.futures import ThreadPoolExecutor
