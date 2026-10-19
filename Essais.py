@@ -9,7 +9,7 @@ import io
 # Modifiez ces valeurs pour chacun de vos 7 fichiers selon vos besoins.
 # ==============================================================================
 HAUTEURS_TABLEAUX_PC = {
-    "HISTORIQUE": "480px",       # Tableau Historique (Colonne Gauche)
+    "HISTORIQUE": "485px",       # Tableau Historique (Colonne Gauche)
     "RACB": "125px",             # Tableau Classement RACB (Colonne Droite)
     "ASAF_123": "115px",         # Tableau Classement ASAF Division 1, 2, 3 (Colonne Droite)
     "ASAF_4": "114px"            # Tableau Classement ASAF Division 4 (Colonne Droite)
