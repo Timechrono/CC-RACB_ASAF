@@ -444,20 +444,27 @@ with cg:
 with cd:
     h_mob = "380px"
     
-    # ==============================================================================
-    # SÉCURITÉ ANTI-NAMEERROR : Valeur par défaut obligatoire pour h_pc
-    # ==============================================================================
+    # 1. Sécurité anti-NameError pour la hauteur de page
     if 'h_pc' not in locals() and 'h_pc' not in globals():
         h_pc = "380px"
 
-    # Injection CSS dynamique (Votre bloc actuel)
+    # 2. Sécurité anti-NameError pour les titres nettoyés (au cas où ils n'existent pas)
+    t_haut_clean = t_haut.replace("<span>↕️</span>", "").replace("↕️", "").strip() if 't_haut' in globals() and t_haut else "CLASSEMENT GENERAL"
+    t_milieu_clean = t_milieu.replace("<span>↕️</span>", "").replace("↕️", "").strip() if 't_milieu' in globals() and t_milieu else "CLASSEMENT PAR GROUPE"
+    t_bas_clean = t_bas.replace("<span>↕️</span>", "").replace("↕️", "").strip() if 't_bas' in globals() and t_bas else ""
+
+    # 3. Ré-injection propre des balises pour forcer l'alignement à droite sur PC & Mobile
+    if not t_haut_clean.endswith("<span>↕️</span>"): t_haut_clean = f"{t_haut_clean} <span>↕️</span>"
+    if not t_milieu_clean.endswith("<span>↕️</span>"): t_milieu_clean = f"{t_milieu_clean} <span>↕️</span>"
+    if t_bas_clean and not t_bas_clean.endswith("<span>↕️</span>"): t_bas_clean = f"{t_bas_clean} <span>↕️</span>"
+
+    # Injection CSS dynamique
     st.markdown(f"""
     <style>
       @media (min-width: 769px) {{ .ajust-hauteur-pc {{ max-height: {h_pc} !important; }} }}
       @media (max-width: 768px) {{ .ajust-hauteur-pc {{ max-height: {h_mob} !important; }} }}
     </style>
     """, unsafe_allow_html=True)
-
 
     if choix_course != "Essais":
         # --- MODE DE COURSE ---
@@ -466,25 +473,24 @@ with cd:
             st.markdown(f"<div class='ajust-hauteur-pc' style='overflow-y: auto; display: block;'>{gen_html(d_haut, 'table-class-robuste')}</div>", unsafe_allow_html=True)
         if t_milieu:
             st.markdown(f"<span class='titre-classement espace-classement-suivant'>{t_milieu_clean}</span>", unsafe_allow_html=True)
-            # MODIFICATION ICI : On enlève la classe 'ajust-hauteur-pc' pour ce 2ème tableau (Division 4)
-            # Cela permet au 3ème tableau de venir se coller directement en dessous sans trou blanc.
             st.markdown(f"<div style='height: auto; display: block;'>{gen_html(d_milieu, 'table-class-milieu')}</div>", unsafe_allow_html=True)
         if t_bas:
             st.markdown(f"<span class='titre-classement espace-classement-suivant'>{t_bas_clean}</span>", unsafe_allow_html=True)
             nb_lignes = len(d_bas) if hasattr(d_bas, '__len__') else 0
             style_scroll = "class='ajust-hauteur-pc' style='overflow-y: auto; display: block;'" if nb_lignes > 10 else "style='height: auto; display: block;'"
             st.markdown(f"<div {style_scroll}>{gen_html(d_bas, 'table-class-robuste')}</div>", unsafe_allow_html=True)
-
     else:
+        # --- MODE ESSAIS ---
         if t_haut:
-            st.markdown(f"<span class='titre-classement'>{t_haut}</span>", unsafe_allow_html=True)
-            st.markdown(f"<div class='ajust-hauteur-racb'>{gen_html(d_bas, 'table-class-robuste')}</div>", unsafe_allow_html=True)
+            st.markdown(f"<span class='titre-classement'>{t_haut_clean}</span>", unsafe_allow_html=True)
+            st.markdown(f"<div class='ajust-hauteur-pc' style='overflow-y: auto; display: block;'>{gen_html(d_bas, 'table-class-robuste')}</div>", unsafe_allow_html=True)
         if t_milieu:
-            st.markdown(f"<span class='titre-classement espace-classement-suivant'>{t_milieu}</span>", unsafe_allow_html=True)
-            st.markdown(f"<div class='ajust-hauteur-asaf123'>{gen_html(d_haut, 'table-class-robuste')}</div>", unsafe_allow_html=True)
+            st.markdown(f"<span class='titre-classement espace-classement-suivant'>{t_milieu_clean}</span>", unsafe_allow_html=True)
+            st.markdown(f"<div class='ajust-hauteur-pc' style='overflow-y: auto; display: block;'>{gen_html(d_haut, 'table-class-robuste')}</div>", unsafe_allow_html=True)
         if t_bas:
-            st.markdown(f"<span class='titre-classement espace-classement-suivant'>{t_bas}</span>", unsafe_allow_html=True)
+            st.markdown(f"<span class='titre-classement espace-classement-suivant'>{t_bas_clean}</span>", unsafe_allow_html=True)
             st.markdown(f"<div class='div-scroll-local-div4'>{gen_html(d_milieu, 'table-class-robuste')}</div>", unsafe_allow_html=True)
+
 
 # INJECTION DE LA SIGNATURE UNIQUE CONTRE LES DOUBLONS
 st.markdown(f"""
