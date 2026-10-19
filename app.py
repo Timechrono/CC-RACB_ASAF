@@ -189,7 +189,7 @@ def gen_html(df, cl):
     if df is None or (isinstance(df, pd.DataFrame) and df.empty): 
         return f"<div {style_conteneur}><table class='table-compacte {cl}'><tr><td style='text-align: center; padding: 10px; font-style: italic; color: #64748B;'>{phrase_attente}</td></tr></table></div>"
     
-    return f"<div {style_conteneur}>{df.to_html(index=False, classes=f"table-compacte {cl}", escape=False, border=0)}</div>"
+    return f"<div {style_conteneur}>{df.to_html(index=False, classes=f'table-compacte {cl}', escape=False, border=0)}</div>"
 
 # --- LECTURE DU PARAMÈTRE DE COURSE DEPUIS L'URL ---
 query_params = st.query_params
@@ -251,48 +251,39 @@ with cg:
     st.markdown(gen_html(d_his, "table-hist"), unsafe_allow_html=True)
     
 with cd:
-    # --- CHARGEMENT DES VARIABLES DE HAUTEUR SUR PC DES MODULES ACTIFS ---
+    # --- CHARGEMENT UNIQUE ET NETTOYAGE DES CHAÎNES DE CARACTÈRES ---
     h_racb_pc, h_asaf123_pc, h_asaf4_pc = "215px", "215px", "114px"
     if module_actif and hasattr(module_actif, 'HAUTEURS_TABLEAUX_PC'):
-        h_racb_pc = str(module_actif.HAUTEURS_TABLEAUX_PC.get("RACB", "215px"))
-        h_asaf123_pc = str(module_actif.HAUTEURS_TABLEAUX_PC.get("ASAF_123", "215px"))
-        h_asaf4_pc = str(module_actif.HAUTEURS_TABLEAUX_PC.get("ASAF_4", "114px"))
+        h_racb_pc = str(module_actif.HAUTEURS_TABLEAUX_PC.get("RACB", "215px")).strip()
+        h_asaf123_pc = str(module_actif.HAUTEURS_TABLEAUX_PC.get("ASAF_123", "215px")).strip()
+        h_asaf4_pc = str(module_actif.HAUTEURS_TABLEAUX_PC.get("ASAF_4", "114px")).strip()
 
-    # Forçage en cascade de l'application de la hauteur sur les identifiants de colonnes
-    st.markdown(f"""
-    <style>
-      @media (min-width: 769px) {{
-        .div-pc-scroll-racb {{ max-height: {h_racb_pc} !important; height: {h_racb_pc} !important; overflow-y: auto !important; display: block !important; }}
-        .div-pc-scroll-asaf123 {{ max-height: {h_asaf123_pc} !important; height: {h_asaf123_pc} !important; overflow-y: auto !important; display: block !important; }}
-        .div-pc-scroll-asaf4 {{ max-height: {h_asaf4_pc} !important; height: {h_asaf4_pc} !important; overflow-y: auto !important; display: block !important; }}
-      }}
-    </style>
-    """, unsafe_allow_html=True)
-
+    # Injection forcée en ligne (style inline) pour contourner le cache CSS navigateur
     if choix_course != "Essais":
         if t_haut:
             st.markdown(f"<span class='titre-classement'>{t_haut}</span>", unsafe_allow_html=True)
-            st.markdown(f'<div class="div-pc-scroll-racb" style="border: 1px solid #CBD5E1;">{gen_html(d_haut, "table-class-robuste")}</div>', unsafe_allow_html=True)
+            st.markdown(f'<div class="div-mobile-fluid" style="max-height: {h_racb_pc}; height: {h_racb_pc}; overflow-y: auto; display: block; border: 1px solid #CBD5E1; margin-bottom: 2px;">{gen_html(d_haut, "table-class-robuste")}</div>', unsafe_allow_html=True)
         if t_milieu:
             st.markdown(f"<span class='titre-classement espace-classement-suivant'>{t_milieu}</span>", unsafe_allow_html=True)
-            st.markdown(f'<div class="div-pc-scroll-asaf123" style="border: 1px solid #CBD5E1;">{gen_html(d_milieu, "table-class-milieu")}</div>', unsafe_allow_html=True)
+            st.markdown(f'<div class="div-mobile-fluid" style="max-height: {h_asaf123_pc}; height: {h_asaf123_pc}; overflow-y: auto; display: block; border: 1px solid #CBD5E1; margin-bottom: 2px;">{gen_html(d_milieu, "table-class-milieu")}</div>', unsafe_allow_html=True)
         if t_bas:
             st.markdown(f"<span class='titre-classement espace-classement-suivant'>{t_bas}</span>", unsafe_allow_html=True)
-            st.markdown(f'<div class="div-pc-scroll-asaf4" style="border: 1px solid #CBD5E1;">{gen_html(d_bas, "table-class-robuste")}</div>', unsafe_allow_html=True)
+            st.markdown(f'<div class="div-mobile-fluid" style="max-height: {h_asaf4_pc}; height: {h_asaf4_pc}; overflow-y: auto; display: block; border: 1px solid #CBD5E1; margin-bottom: 2px;">{gen_html(d_bas, "table-class-robuste")}</div>', unsafe_allow_html=True)
     else:
         if t_haut:
             st.markdown(f"<span class='titre-classement'>{t_haut}</span>", unsafe_allow_html=True)
-            st.markdown(f'<div class="div-pc-scroll-racb" style="border: 1px solid #CBD5E1;">{gen_html(d_bas, "table-class-robuste")}</div>', unsafe_allow_html=True)
+            st.markdown(f'<div class="div-mobile-fluid" style="max-height: {h_racb_pc}; height: {h_racb_pc}; overflow-y: auto; display: block; border: 1px solid #CBD5E1; margin-bottom: 2px;">{gen_html(d_bas, "table-class-robuste")}</div>', unsafe_allow_html=True)
         if t_milieu:
             st.markdown(f"<span class='titre-classement espace-classement-suivant'>{t_milieu}</span>", unsafe_allow_html=True)
-            st.markdown(f'<div class="div-pc-scroll-asaf123" style="border: 1px solid #CBD5E1;">{gen_html(d_haut, "table-class-robuste")}</div>', unsafe_allow_html=True)
+            st.markdown(f'<div class="div-mobile-fluid" style="max-height: {h_asaf123_pc}; height: {h_asaf123_pc}; overflow-y: auto; display: block; border: 1px solid #CBD5E1; margin-bottom: 2px;">{gen_html(d_haut, "table-class-robuste")}</div>', unsafe_allow_html=True)
         if t_bas:
             st.markdown(f"<span class='titre-classement espace-classement-suivant'>{t_bas}</span>", unsafe_allow_html=True)
-            st.markdown(f'<div class="div-pc-scroll-asaf4" style="border: 1px solid #CBD5E1;">{gen_html(d_milieu, "table-class-robuste")}</div>', unsafe_allow_html=True)
+            st.markdown(f'<div class="div-mobile-fluid" style="max-height: {h_asaf4_pc}; height: {h_asaf4_pc}; overflow-y: auto; display: block; border: 1px solid #CBD5E1; margin-bottom: 2px;">{gen_html(d_milieu, "table-class-robuste")}</div>', unsafe_allow_html=True)
 
-    st.markdown("""<style>@media (max-width: 768px) { .div-pc-scroll-racb, .div-pc-scroll-asaf123, .div-pc-scroll-asaf4 { max-height: none !important; height: auto !important; overflow-y: visible !important; border: none !important; } }</style>""", unsafe_allow_html=True)
+    # Neutralisation stricte du bridage sur smartphone pour garder le scroll tactile global fluide
+    st.markdown("""<style>@media (max-width: 768px) { .div-mobile-fluid { max-height: none !important; height: auto !important; overflow-y: visible !important; border: none !important; } }</style>""", unsafe_allow_html=True)
 
-# Déclaration sécurisée locale pour empêcher le NameError en cas de vidage de pile
+# Déclaration sécurisée locale
 LIEN_LOGO_SECURE = "https://dropbox.com"
 st.markdown(f"<div class='signature-fin-page'><img src='{LIEN_LOGO_SECURE}' class='logo-signature'>www.timechrono.be</div>", unsafe_allow_html=True)
 
@@ -301,5 +292,7 @@ for secondes_restantes in range(30, -1, -1):
         conteneur_titre_live.markdown(f"<span class='titre-live'>🏎️ EN DIRECT / Derniers concurrents partis / <span class='refresh-bleu-clair-historique'>Refresh {secondes_restantes} Sec.</span></span>", unsafe_allow_html=True)
     else: conteneur_titre_live.markdown(f"<span class='titre-live'>{t_live}</span>", unsafe_allow_html=True)
     if secondes_restantes > 0: time.sleep(1)
+
+st.rerun()
 
 st.rerun()
