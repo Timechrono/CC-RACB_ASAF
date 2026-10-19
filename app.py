@@ -25,7 +25,7 @@ t_bas = ""
 # ==============================================================================
 # ⚠️ LIEN DROPBOX LOGO
 # ==============================================================================
-LIEN_DROPBOX_LOGO = "https://www.dropbox.com/scl/fi/hi24fjo0vbal4oiiwt9jl/logo-TimeC.png?rlkey=xlw0oqk9gdnq6v5dgahi0klg0&st=y86yrn6y&dl=1"
+LIEN_DROPBOX_LOGO = "https://dropbox.com"
 
 # --- DÉTECTION DES SCRIPTS DE COURSE DISPONIBLES ---
 try:
@@ -94,7 +94,7 @@ footer,
     footer, [data-testid="stFooterContainer"], [data-testid="stStatusWidget"], .stStatusWidget {{
         position: fixed !important;
         bottom: -500px !important;
-        transform: translateY(500px) !important;
+        transform: translateY(500px) !important; /* Force le navigateur à ignorer cet espace dans la hauteur totale */
     }}
 }}
 
@@ -108,12 +108,6 @@ footer,
 
 button:focus, div:focus, input:focus, select:focus {{
     outline: none !important; border-color: transparent !important; box-shadow: none !important;
-}}
-
-/* NEUTRALISATION DU VOILE GRIS / EFFET MIROIR PENDANT LE ST.RERUN */
-[data-testid="stAppViewContainer"] {{
-    opacity: 1 !important;
-    filter: none !important;
 }}
 
 /* 2. CONFIGURATION DE LA PAGE ET RECUPERATION DE L'ESPACE MAXIMUM SUR PC */
@@ -132,7 +126,7 @@ html, body, [data-testid="stAppViewContainer"], [data-testid="stMainBlockContain
 
 @media (min-width: 769px) {{
     .block-container {{ 
-        padding-bottom: 35px !important; /* Laisse de la place pour ne rien masquer sous la signature */
+        padding-bottom: 35px !important; /* Marge nécessaire pour que les hauteurs de vos 7 fichiers respirent */
     }}
 }}
 @media (max-width: 768px) {{
@@ -283,40 +277,42 @@ tr.ligne-separation-classe td,
     box-shadow: inset 0 -3px 0 0 #1E3A8A !important; 
 }}
 
-/* 6. COUVERTURE FIXE DE LA BANDE BLANCHE SANS DUPLICATION */
-.signature-fin-page {{
+/* ==============================================================================
+   🛠️ COUVERTURE FIXE INDÉPENDANTE EN PIED DE PAGE (SANS TOUCHER AUX TABLEAUX)
+   ============================================================================== */
+.signature-fixe-timechrono {{
     position: fixed !important;
     bottom: 0px !important;
     left: 0px !important;
     width: 100vw !important;
-    height: 30px !important;
-    background-color: #FFFFFF !important; /* Cache proprement la zone blanche Streamlit */
+    height: 35px !important;
+    background-color: #FFFFFF !important; /* Remplace de façon opaque l'ancienne zone blanche */
     display: flex !important;
     justify-content: center !important;
     align-items: center !important;
-    gap: 12px !important;
+    gap: 15px !important;
     text-align: center !important;
     color: #1E3A8A !important;
-    font-size: 0.92rem !important;
+    font-size: 0.95rem !important;
     font-weight: bold !important;
     border-top: 1px dashed #1E3A8A !important;
-    z-index: 999999 !important;
+    z-index: 999999 !important; /* Force la signature au premier plan complet */
     padding: 0px !important;
     margin: 0px !important;
 }}
 
-.logo-signature {{
-    height: 20px !important;
+.logo-signature-timechrono {{
+    height: 22px !important;
     width: auto !important;
     vertical-align: middle !important;
 }}
 
 @media (max-width: 768px) {{
-    .signature-fin-page {{ 
-        font-size: 0.75rem !important; 
-        height: 35px !important;
+    .signature-fixe-timechrono {{ 
+        font-size: 0.80rem !important; 
+        height: 38px !important;
     }}
-    .logo-signature {{ height: 24px !important; }}
+    .logo-signature-timechrono {{ height: 20px !important; }}
 }}
 </style>
 """, unsafe_allow_html=True)
@@ -445,10 +441,10 @@ with cd:
             st.markdown(f"<span class='titre-classement espace-classement-suivant'>{t_bas}</span>", unsafe_allow_html=True)
             st.markdown(f"<div class='div-scroll-local-div4'>{gen_html(d_milieu, 'table-class-robuste')}</div>", unsafe_allow_html=True)
 
-# INJECTION DU CONTENEUR FIXE DE SIGNATURE COUVRANTE
+# --- INJECTION DU BANDEAU DE COUVERTURE INDÉPENDANT SANS TOUCHER À VOS CODES ---
 st.markdown(f"""
-<div class='signature-fin-page'>
-    <img src='{LIEN_DROPBOX_LOGO}' class='logo-signature'>
+<div class='signature-fixe-timechrono'>
+    <img src='{LIEN_DROPBOX_LOGO}' class='logo-signature-timechrono' alt='TimeChrono'>
     <span>www.timechrono.be</span>
 </div>
 """, unsafe_allow_html=True)
