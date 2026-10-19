@@ -159,14 +159,13 @@ html, body, [data-testid="stAppViewContainer"], [data-testid="stMainBlockContain
 
 @media (min-width: 769px) {{
     .block-container {{ 
-        padding-bottom: 45px !important; /* Marge de sécurité pour laisser place à la signature fixe */
+        padding-bottom: 50px !important; /* Marge de sécurité pour laisser place à la signature fixe sur PC */
     }}
 }}
 
-/* MODIFICATION OPTIMALE SUR SMARTPHONE */
 @media (max-width: 768px) {{
     .block-container {{ 
-        padding-bottom: 85px !important; /* Augmenté à 85px pour créer l'espace d'air parfait sous le dernier tableau */
+        padding-bottom: 20px !important; /* Réduit sur mobile car la signature ne flotte plus */
     }}
 }}
 
@@ -233,7 +232,7 @@ div.stElementContainer {{
     .block-container {{ padding-left: 2px !important; padding-right: 2px !important; }}
     
     .div-scroll-local-historique {{
-        height: 380px !important; /* Légèrement réduit pour maximiser l'espace vertical disponible */
+        height: 380px !important;
         max-height: 380px !important;
         overflow-y: auto !important;
         display: block !important;
@@ -290,7 +289,7 @@ tr.ligne-separation-classe td,
     box-shadow: inset 0 -3px 0 0 #1E3A8A !important; 
 }}
 
-/* 6. PIED DE PAGE FIXE POUR RECOUVRIR LA BARRE COMPLETEMENT */
+/* 6. PIED DE PAGE TECHNIQUE UNIQUE (GESTION PC VS MOBILE) */
 .signature-fin-page {{
     position: fixed !important;
     bottom: 0px !important;
@@ -318,18 +317,21 @@ tr.ligne-separation-classe td,
     vertical-align: middle !important;
 }}
 
-/* 7. AJUSTEMENTS ULTRA-COMPACTS SMARTPHONE */
+/* CORRECTION MOBILE RADICALE : PLUS DE BLOCAGE, PLUS DE RECOUVREMENT */
 @media (max-width: 768px) {{
     .signature-fin-page {{ 
-        font-size: 0.78rem !important; /* Signature un peu plus petite et discrète */
-        height: 28px !important;       /* Hauteur verticale réduite */
-        line-height: 26px !important;
-        gap: 0px !important;
-        display: block !important;
-        position: fixed !important;
-        bottom: 55px !important;       /* Remonté à 55px pour flotter au-dessus de la zone invisible de l'iframe */
+        position: relative !important;   /* Devient un élément fluide normal du document */
+        bottom: auto !important;
+        left: auto !important;
+        width: 100% !important;
+        height: 40px !important;         /* Légère hauteur propre */
+        line-height: 40px !important;
+        margin-top: 25px !important;     /* S'écarte proprement après le dernier tableau */
+        margin-bottom: 10px !important;
         border-top: 1px solid #CBD5E1 !important;
-        background-color: rgba(255, 255, 255, 0.95) !important; /* Léger effet de transparence propre */
+        background-color: transparent !important;
+        display: block !important;
+        font-size: 0.82rem !important;
     }}
     .logo-signature {{ 
         display: none !important; 
@@ -338,6 +340,7 @@ tr.ligne-separation-classe td,
 
 </style>
 """, unsafe_allow_html=True)
+
 
 # [Conservez le reste de votre fichier Streamlit strictement identique]
 
