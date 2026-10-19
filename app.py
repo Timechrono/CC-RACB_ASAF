@@ -231,7 +231,6 @@ with cd:
             st.markdown(f'<div class="div-mobile-fluid" style="max-height: {h_racb_pc}; height: {h_racb_pc}; overflow-y: auto; display: block; border: 1px solid #CBD5E1; margin-bottom: 2px;">{rendu_haut}</div>', unsafe_allow_html=True)
         if t_milieu:
             st.markdown(f"<span class='titre-classement espace-classement-suivant'>{t_milieu}</span>", unsafe_allow_html=True)
-            # Gestion hybride String/DataFrame pour le milieu (Classement Groupe/Classe RACB)
             rendu_milieu = d_milieu if isinstance(d_milieu, str) else gen_html(d_milieu, "table-class-milieu")
             st.markdown(f'<div class="div-mobile-fluid" style="max-height: {h_asaf123_pc}; height: {h_asaf123_pc}; overflow-y: auto; display: block; border: 1px solid #CBD5E1; margin-bottom: 2px;">{rendu_milieu}</div>', unsafe_allow_html=True)
         if t_bas and h_asaf4_pc != "0px":
@@ -252,7 +251,29 @@ with cd:
             rendu_bas_essais = d_milieu if isinstance(d_milieu, str) else gen_html(d_milieu, "table-class-robuste")
             st.markdown(f'<div class="div-mobile-fluid" style="max-height: {h_asaf4_pc}; height: {h_asaf4_pc}; overflow-y: auto; display: block; border: 1px solid #CBD5E1; margin-bottom: 2px;">{rendu_bas_essais}</div>', unsafe_allow_html=True)
 
-    st.markdown("""<style>@media (max-width: 768px) { .div-mobile-fluid, .div-mobile-fluid-gauche { max-height: none !important; height: auto !important; overflow-y: visible !important; border: none !important; } }</style>""", unsafe_allow_html=True)
+    # --- SÉCURISATION MOBILE RADICALE ET ABSOLUE ---
+    st.markdown("""
+    <style>
+        @media (max-width: 768px) {
+            /* Libération totale du scroll sur mobile */
+            .div-mobile-fluid, .div-mobile-fluid-gauche {
+                max-height: none !important;
+                height: auto !important;
+                overflow: visible !important;
+                overflow-y: visible !important;
+                border: none !important;
+            }
+            /* Autorise les bandeaux de titres à s'étendre verticalement sur plusieurs lignes */
+            .titre-live, .titre-hist, .titre-classement {
+                height: auto !important;
+                max-height: none !important;
+                min-height: 26px !important;
+                padding: 4px 8px !important;
+                line-height: 1.3 !important;
+            }
+        }
+    </style>
+    """, unsafe_allow_html=True)
 
 st.markdown(f"""
 <div class='signature-fin-page'>
