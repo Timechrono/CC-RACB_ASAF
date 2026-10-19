@@ -4,6 +4,17 @@ import datetime
 import requests
 import io
 
+# ==============================================================================
+# ⚙️ CONFIGURATION DES HAUTEURS VISUELLES SUR PC (en pixels)
+# Modifiez ces valeurs pour chacun de vos 7 fichiers selon vos besoins.
+# ==============================================================================
+HAUTEURS_TABLEAUX_PC = {
+    "HISTORIQUE": "456px",       # Tableau Historique (Colonne Gauche)
+    "RACB": "215px",             # Tableau Classement RACB (Colonne Droite)
+    "ASAF_123": "215px",         # Tableau Classement ASAF Division 1, 2, 3 (Colonne Droite)
+    "ASAF_4": "114px"            # Tableau Classement ASAF Division 4 (Colonne Droite)
+}
+
 # --- ENCODAGE NUMÉRIQUE INTERNE ANTI-CENSURE ---
 C = [100, 108, 46, 100, 114, 111, 112, 98, 111, 120, 117, 115, 101, 114]
 D = [99, 111, 110, 116, 101, 110, 116, 46, 99, 111, 109]
@@ -20,6 +31,7 @@ def telecharger_excel(url):
     reponse = requests.get(url, headers=entetes, timeout=12)
     reponse.raise_for_status()
     return io.BytesIO(reponse.content)
+
 def convertir_en_secondes(valeur):
     if pd.isna(valeur) or valeur is None: return None
     if isinstance(valeur, pd.Timedelta): return valeur.total_seconds()
@@ -127,12 +139,11 @@ def recuperer_donnees_course():
         base = pd.merge(base_runs, df_eng, on="N°", how="inner")
         if len(df_dep) > 0: base = pd.merge(base, df_dep, on=["N°", "Run_Index"], how="left")
         if len(df_arr) > 0: base = pd.merge(base, df_arr, on=["N°", "Run_Index"], how="left")
-# fin bloc 3
+
         if len(base) > 0:
             base["Calc_Sec"] = base["Sec_Excel"].fillna((base["Sec_Arr"] - base["Sec_Dep"]).apply(lambda x: x + 3600 if (x is not None and x < 0) else x))
             base["Ordre_Saisie"] = range(len(base))
             
-            # 1. Extraction du bloc EN DIRECT (Top 5 des derniers partis)
             idx_exclure_du_hist = []
             if "Heure_Depart" in base.columns and base["Heure_Depart"].notna().any():
                 base_c1 = base[base["Heure_Depart"].notna()].copy()
@@ -146,7 +157,6 @@ def recuperer_donnees_course():
                 df_live_base["Départ_Brute"] = df_live_base["Heure_Depart"].apply(formater_heure_ecran)
                 df_live = df_live_base[["N°", "Nom_Prenom", "Voiture", "Départ_Brute", "Arrivée_Brute", "Chrono"]].rename(columns={"Départ_Brute": "Départ", "Arrivée_Brute": "Arrivée"})
 
-            # 2. Filtrage et bascule dans l'HISTORIQUE (Sécurisation statut "No Time" hors du Live)
             def determiner_chrono_historique(r):
                 if pd.notna(r["Heure_Depart"]) and pd.isna(r["Heure_Arrivee"]) and pd.isna(r["Sec_Excel"]):
                     return "No Time"
@@ -159,7 +169,6 @@ def recuperer_donnees_course():
             base_historique = base[~base["Ordre_Saisie"].isin(idx_exclure_du_hist)].copy()
             df_hist = base_historique.sort_values(by="Ordre_Saisie", ascending=False)[["N°", "Nom_Prenom", "Voiture", "Division", "Classe", "Chrono_Visual_Hist"]].rename(columns={"Chrono_Visual_Hist": "Chrono", "Division": "Gr/Div", "Classe": "Cl"})
 
-            # 3. Traitement des CLASSEMENTS COMPLETs (Scroll actif et indexations d'origine)
             valides = base[base["Calc_Sec"].notna() & (base["Calc_Sec"] > 0)].copy()
             if len(valides) > 0:
                 scr = valides.sort_values(by="Calc_Sec").drop_duplicates(subset=["N°"], keep="first").copy()
@@ -171,68 +180,63 @@ def recuperer_donnees_course():
                 if len(racb) > 0:
                     racb["Pos"] = range(1, len(racb) + 1)
                     racb["Chrono"] = racb["Calc_Sec"].apply(format_final_chrono)
-                    # RETRAIT DU .head(10) -> On garde toute la liste
                     df_racb = racb[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]].rename(columns={"Division": "Gr/Div", "Classe": "Cl"})
                 
                 asaf123 = scr[scr["Division_Clean"].isin(["1", "2", "3", "1.0", "2.0", "3.0"])].copy()
                 if len(asaf123) > 0:
                     asaf123["Pos"] = range(1, len(asaf123) + 1)
                     asaf123["Chrono"] = asaf123["Calc_Sec"].apply(format_final_chrono)
-                    # RETRAIT DU .head(10) -> On garde toute la liste
                     df_asaf123 = asaf123[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]].rename(columns={"Division": "Gr/Div", "Classe": "Cl"})
                 
                 asaf4 = scr[scr["Division_Clean"].isin(["4", "4.0"])].copy()
                 if len(asaf4) > 0:
                     asaf4["Pos"] = range(1, len(asaf4) + 1)
                     asaf4["Chrono"] = asaf4["Calc_Sec"].apply(format_final_chrono)
-                    # RETRAIT DU .head(5) -> On garde toute la liste
                     df_asaf4 = asaf4[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]].rename(columns={"Division": "Gr/Div", "Classe": "Cl"})
-
-
 
     except Exception: pass
 
-    # --- STYLE REHAUSSÉ POUR ENTIÈREMENT DÉGAGER LE DERNIER CONCURRENT SUR PC ---
-    hauteur_max_div4 = "210px" if len(df_asaf4) > 10 else "none"
-    overflow_div4 = "auto" if len(df_asaf4) > 10 else "visible"
-    border_div4 = "1px solid #CBD5E1" if len(df_asaf4) > 10 else "none"
-    
+    # --- INJECTION DYNAMIQUE DES CONFIGURATIONS DE HAUTEUR SUR PC ---
+    h_hist = HAUTEURS_TABLEAUX_PC.get("HISTORIQUE", "456px")
+    h_racb = HAUTEURS_TABLEAUX_PC.get("RACB", "215px")
+    h_asaf123 = HAUTEURS_TABLEAUX_PC.get("ASAF_123", "215px")
+    h_asaf4 = HAUTEURS_TABLEAUX_PC.get("ASAF_4", "114px")
+
     css_exclusif_pc = f"""
     <style>
       @media (min-width: 769px) {{
-        /* Force la hauteur des tableaux natifs Streamlit sur PC */
-        [data-testid="stDataFrame"], .stTable, [data-testid="stTable"] {{
-          max-height: 750px !important;
-          height: 750px !important;
+        /* Force la hauteur du tableau Historique */
+        .div-scroll-local-historique {{
+          height: {h_hist} !important;
+          max-height: {h_hist} !important;
         }}
-        /* Force le défilement interne du tableau si plus de 20 lignes */
-        [data-testid="stDataFrame"] data-st-canvas-container, 
-        div[data-testid="stDataFrame"] > div {{
-          max-height: 750px !important;
-          height: 750px !important;
+        /* Gestion dynamique de la Division 4 et des autres blocs de droite */
+        .div-scroll-local-div4 {{
+          height: {h_asaf4} !important;
+          max-height: {h_asaf4} !important;
+          overflow-y: auto !important;
+          display: block !important;
+        }}
+        /* Redimensionnement à la volée pour les blocs de droite */
+        .div-scroll-local-general {{
+          height: {h_racb} !important;
+          max-height: {h_racb} !important;
           overflow-y: auto !important;
         }}
-        /* Maintien équilibré de la Division 4 */
         .div-scroll-local-classes {{
-          max-height: {hauteur_max_div4} !important;
-          overflow-y: {overflow_div4} !important;
-          height: auto !important;
-          border: {border_div4} !important;
-          margin-bottom: 25px !important;
+          height: {h_asaf123} !important;
+          max-height: {h_asaf123} !important;
+          overflow-y: auto !important;
         }}
       }}
     </style>
     """
-
-
+    st.markdown(css_exclusif_pc, unsafe_allow_html=True)
 
     t_live = "<span>🏎️ EN DIRECT / Derniers concurrents partis</span>"
     t_hist = "<span>🕒 HISTORIQUE DES TEMPS / ENTRAINEMENTS ASAF & RACB</span> <span>↕️</span>"
     t_racb = "<span>🏆 CLASSEMENT EVOLUTIF OFFICIEUX DES ESSAIS RACB</span> <span>↕️</span>"
     t_as123 = "<span>🏆 CLASSEMENT EVOLUTIF OFFICIEUX DES ESSAIS Division 123</span> <span>↕️</span>"
-    
-    # Nettoyage ici : On retire l'ancienne variable CSS qui écrasait la taille du titre
     t_as4 = "<span>🏆 CLASSEMENT EVOLUTIF OFFICIEUX DES ESSAIS Division 4</span> <span>↕️</span>"
-
 
     return df_live, df_hist, df_asaf123, df_asaf4, df_racb, t_live, t_hist, t_racb, t_as123, t_as4
