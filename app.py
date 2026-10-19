@@ -92,9 +92,11 @@ footer,
 }}
 
 /* 1. EMPECHE LA DUPLICATION FANTÔME ET L'EFFET MIROIR DU RECHARGEMENT */
-[data-testid="stRenderLoading"], 
-[data-testid="stRenderLoading"] *, 
-.stApp [data-testid="stRenderLoading"] {{
+/* 1. EMPECHE LE CLONE ET LA DUPLICATION "STALE" DE STREAMLIT AU RERUN */
+div[data-stale="true"], 
+div[data-stale="true"] *,
+[data-testid="stRenderLoading"],
+[data-testid="stRenderLoading"] * {{
     display: none !important;
     visibility: hidden !important;
     height: 0px !important;
@@ -104,13 +106,21 @@ footer,
     overflow: hidden !important;
 }}
 
-/* 2. FORCE LA PAGE PRINCIPALE A RESTER STATIQUE ET NETTE SANS BLANC/GRIS */
+/* 2. FORCE L'APPLICATION ACTUELLE ET LE TEXTE EN COURS A RESTER NETS ET VISIBLES */
+div[data-stale="false"],
 [data-testid="stAppViewContainer"], 
-[data-testid="stAppViewBlockContainer"], 
+[data-testid="stAppViewBlockContainer"],
 [data-testid="stVerticalBlock"] {{
     opacity: 1 !important;
     filter: none !important;
 }}
+
+/* 3. COUPE LE SQUELETTE DE CHARGEMENT DE PRE-RENDU */
+[data-testid="stSkeleton"] {{
+    display: none !important;
+    height: 0px !important;
+}}
+
 
 /* 3. DESACTIVE LE SQUELETTE DE CHARGEMENT SOUVENT RESPONSABLE DU SOUCI */
 [data-testid="stSkeleton"] {{
