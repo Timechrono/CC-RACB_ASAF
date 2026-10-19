@@ -71,13 +71,14 @@ st.markdown(f"""
 
 <style>
 
-/* 1. DISPARITION TOTALE ET RADICALE DES COMPOSANTS STREAMLIT (PC & MOBILE) */
+/* 1. DISPARITION TOTALE, RADICALE ET PROPRE DES COMPOSANTS STREAMLIT (PC & MOBILE) */
 footer, 
 [data-testid="stFooterContainer"], 
 [data-testid="stStatusWidget"], 
 .stStatusWidget,
 [data-testid="stHeader"], 
-[data-testid="stDecoration"] {{
+[data-testid="stDecoration"],
+header {{
     display: none !important;
     visibility: hidden !important;
     height: 0px !important;
@@ -89,35 +90,21 @@ footer,
     opacity: 0 !important;
     line-height: 0 !important;
     font-size: 0 !important;
-}}
-
-/* L'ASTUCE SUR PC : ON EXTRACT LE PIED DE PAGE HORS DE L'ESPACE DE CALCUL DU NAVIGATEUR */
-@media (min-width: 769px) {{
-    footer, [data-testid="stFooterContainer"], [data-testid="stStatusWidget"], .stStatusWidget {{
-        position: fixed !important;
-        bottom: -500px !important;
-        transform: translateY(500px) !important; /* Force le navigateur à ignorer cet espace dans la hauteur totale */
-    }}
-}}
-
-@media (max-width: 768px) {{
-    footer, [data-testid="stFooterContainer"], [data-testid="stStatusWidget"], .stStatusWidget {{
-        position: static !important;
-        bottom: auto !important;
-        transform: none !important;
-    }}
+    position: absolute !important; /* Sort complètement les éléments du flux pour éviter les zones blanches/grisées */
+    top: -9999px !important;
+    left: -9999px !important;
 }}
 
 button:focus, div:focus, input:focus, select:focus {{
     outline: none !important; border-color: transparent !important; box-shadow: none !important;
 }}
 
-/* 2. CONFIGURATION DE LA PAGE - CORRIGÉE PC ET MOBILE */
+/* 2. CONFIGURATION DE LA PAGE - NETTOYAGE DES ESPACES INUTILES */
 @media (min-width: 769px) {{
     html, body, [data-testid="stAppViewContainer"], [data-testid="stMainBlockContainer"] {{
         overflow: auto !important;
         overflow-y: auto !important;
-        height: auto !important; /* Libère la hauteur sur PC pour récupérer tout l'espace des tableaux */
+        height: auto !important;
         max-height: none !important;
     }}
 }}
@@ -126,26 +113,33 @@ button:focus, div:focus, input:focus, select:focus {{
     html, body, [data-testid="stAppViewContainer"], [data-testid="stMainBlockContainer"] {{
         overflow: auto !important;
         overflow-y: auto !important;
-        height: 100% !important; /* Conserve le défilement fluide propre aux smartphones */
+        height: 100% !important;
     }}
 }}
 
+/* Réduction stricte des marges de Streamlit pour coller le titre en haut de l'écran */
+.block-container {{ 
+    padding-top: 0px !important; /* Forcé à 0px pour supprimer l'espace blanc du haut */
+    margin-top: 0px !important;
+    padding-left: 0.5rem !important; 
+    padding-right: 0.5rem !important; 
+}}
 
-/* Libère l'espace du bas : plus aucun pixel perdu sur PC */
 @media (min-width: 769px) {{
     .block-container {{ 
-        padding-bottom: 5px !important; /* Réduit au strict minimum sur PC pour supprimer le scroll inutile */
+        padding-bottom: 5px !important; 
     }}
 }}
 @media (max-width: 768px) {{
     .block-container {{ 
-        padding-bottom: 40px !important; /* Augmenté pour laisser respirer le bas sur mobile */
+        padding-bottom: 40px !important; 
     }}
 }}
 
 div[data-testid="stVerticalBlock"] {{
     gap: 0rem !important;
     padding-top: 0px !important;
+    margin-top: 0px !important;
 }}
 div.stElementContainer {{
     margin-top: 0px !important;
@@ -187,7 +181,7 @@ div.stElementContainer {{
     margin-top: 15px !important;
 }}
 
-/* 4. BLOCS DE SCROLL INTERNES CLOISONNÉS - CORRIGÉS FORCES MOBILES */
+/* 4. BLOCS DE SCROLL INTERNES CLOISONNÉS */
 .div-scroll-local-historique {{
     width: 100% !important;
     border: 1px solid #CBD5E1 !important;
@@ -221,9 +215,9 @@ div.stElementContainer {{
     .block-container {{ padding-left: 2px !important; padding-right: 2px !important; }}
     
     .div-scroll-local-historique {{
-        height: auto !important;               /* S'adapte au contenu sur mobile */
-        max-height: none !important;           /* Plus de blocage de hauteur */
-        overflow-y: visible !important;        /* Désactive le scroll de boîte interne */
+        height: auto !important;
+        max-height: none !important;
+        overflow-y: visible !important;
         display: block !important;
         border: 1px solid #CBD5E1 !important;
     }}
@@ -292,13 +286,12 @@ tr.ligne-separation-classe td,
     font-size: 0.92rem !important;
     font-weight: bold !important;
     padding-top: 6px !important;
-    margin-top: 40px !important; /* Augmenté pour donner de l'air sous les tableaux sur PC */
+    margin-top: 45px !important;
     margin-bottom: 5px !important;
     border-top: 1px dashed #1E3A8A !important;
     width: 100% !important;
-    clear: both !important; /* Force la signature à se mettre sous les deux colonnes */
+    clear: both !important;
 }}
-
 
 .logo-signature {{
     height: 24px !important;
@@ -310,7 +303,7 @@ tr.ligne-separation-classe td,
     .signature-fin-page {{ 
         font-size: 0.75rem !important; 
         padding-top: 4px !important; 
-        margin-bottom: 30px !important; /* Conserve la sécurité smartphone */
+        margin-bottom: 30px !important;
     }}
     .logo-signature {{ height: 32px !important; }}
 }}
@@ -318,6 +311,7 @@ tr.ligne-separation-classe td,
 </style>
 
 """, unsafe_allow_html=True)
+
 
 def gen_html(df, cl):
     # Sécurisation préventive des variables de session ou d'URL
