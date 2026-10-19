@@ -77,12 +77,31 @@ button:focus, div:focus, input:focus, select:focus {{
     outline: none !important; border-color: transparent !important; box-shadow: none !important;
 }}
 
-/* 2. CONFIGURATION DE LA PAGE - LIBÉRATION TOTALE MOBILE */
-html, body, [data-testid="stAppViewContainer"], [data-testid="stMainBlockContainer"] {{
-    overflow: auto !important; 
-    overflow-y: auto !important; 
-    height: auto !important; /* Forcé à auto pour PC et Mobile pour débloquer le scroll */
-    max-height: none !important;
+/* 2. CONFIGURATION DE LA PAGE - CORRECTION FINALE DU SCROLL MOBILE */
+@media (min-width: 769px) {{
+    html, body, [data-testid="stAppViewContainer"], [data-testid="stMainBlockContainer"] {{
+        overflow: auto !important; 
+        overflow-y: auto !important; 
+        height: auto !important; 
+        max-height: none !important;
+    }}
+}}
+
+@media (max-width: 768px) {{
+    /* Sur smartphone, on laisse Streamlit gérer sa hauteur et on force le scroll global */
+    html, body {{
+        overflow: auto !important;
+        overflow-y: auto !important;
+        height: auto !important;
+    }}
+    [data-testid="stAppViewContainer"] {{
+        height: max-content !important; /* Force le conteneur à suivre la longueur des tableaux */
+        overflow: visible !important;
+    }}
+    [data-testid="stMainBlockContainer"] {{
+        height: auto !important;
+        overflow: visible !important;
+    }}
 }}
 
 .block-container {{ padding-top: 0px !important; margin-top: 0px !important; padding-left: 0.5rem !important; padding-right: 0.5rem !important; }}
@@ -92,7 +111,7 @@ html, body, [data-testid="stAppViewContainer"], [data-testid="stMainBlockContain
 div[data-testid="stVerticalBlock"] {{ gap: 0rem !important; padding-top: 0px !important; margin-top: 0px !important; }}
 div.stElementContainer {{ margin-top: 0px !important; margin-bottom: 0px !important; padding-top: 0px !important; padding-bottom: 0px !important; }}
 
-/* 3. APPEARENCE DES BANDEAUX DE TITRES GRAPHQUES */
+/* 3. APPEARENCE DES BANDEAUX DE TITRES GRAPHIQUES */
 .titre-live, .titre-hist, .titre-classement {{
     color: #FFFFFF !important; font-size: 1.02rem !important; font-weight: bold !important;
     height: 26px !important; max-height: 26px !important; padding: 0px 8px !important; border-radius: 3px !important;
@@ -112,6 +131,7 @@ div.stElementContainer {{ margin-top: 0px !important; margin-bottom: 0px !import
 .espace-classement-suivant {{ margin-top: 15px !important; }}
 </style>
 """, unsafe_allow_html=True)
+
 st.markdown(f"""
 <style>
 /* 4. RENDU COMPACT DES TABLEAUX */
