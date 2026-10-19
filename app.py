@@ -65,7 +65,7 @@ st.set_page_config(page_title="Live", layout="wide")
 
 st.markdown(f"""
 <style>
-/* 1. NETTOYAGE ABSOLU DES COMPOSANTS STREAMLIT */
+/* 1. DISPARITION PROPRE DES COMPOSANTS ENROBAGES DE STREAMLIT */
 footer, [data-testid="stFooterContainer"], [data-testid="stStatusWidget"], .stStatusWidget, [data-testid="stHeader"], [data-testid="stDecoration"] {{
     display: none !important;
     visibility: hidden !important;
@@ -77,19 +77,12 @@ button:focus, div:focus, input:focus, select:focus {{
     outline: none !important; border-color: transparent !important; box-shadow: none !important;
 }}
 
-/* 2. CONFIGURATION UNIFIÉE DES ÉCRANS PC ET SMARTPHONES */
-@media (min-width: 769px) {{
-    html, body, [data-testid="stAppViewContainer"], [data-testid="stMainBlockContainer"] {{
-        overflow: auto !important; overflow-y: auto !important; height: auto !important; max-height: none !important;
-    }}
-}}
-@media (max-width: 768px) {{
-    html, body, [data-testid="stAppViewContainer"], [data-testid="stMainBlockContainer"] {{
-        overflow: auto !important;
-        overflow-y: auto !important;
-        height: auto !important; /* Modifié pour permettre au smartphone de s'étirer */
-        max-height: none !important;
-    }}
+/* 2. CONFIGURATION DE LA PAGE - LIBÉRATION TOTALE MOBILE */
+html, body, [data-testid="stAppViewContainer"], [data-testid="stMainBlockContainer"] {{
+    overflow: auto !important; 
+    overflow-y: auto !important; 
+    height: auto !important; /* Forcé à auto pour PC et Mobile pour débloquer le scroll */
+    max-height: none !important;
 }}
 
 .block-container {{ padding-top: 0px !important; margin-top: 0px !important; padding-left: 0.5rem !important; padding-right: 0.5rem !important; }}
@@ -99,7 +92,7 @@ button:focus, div:focus, input:focus, select:focus {{
 div[data-testid="stVerticalBlock"] {{ gap: 0rem !important; padding-top: 0px !important; margin-top: 0px !important; }}
 div.stElementContainer {{ margin-top: 0px !important; margin-bottom: 0px !important; padding-top: 0px !important; padding-bottom: 0px !important; }}
 
-/* 3. STRUCTURE APPARENCE DES TITRES PC */
+/* 3. APPEARENCE DES BANDEAUX DE TITRES GRAPHQUES */
 .titre-live, .titre-hist, .titre-classement {{
     color: #FFFFFF !important; font-size: 1.02rem !important; font-weight: bold !important;
     height: 26px !important; max-height: 26px !important; padding: 0px 8px !important; border-radius: 3px !important;
@@ -121,7 +114,7 @@ div.stElementContainer {{ margin-top: 0px !important; margin-bottom: 0px !import
 """, unsafe_allow_html=True)
 st.markdown(f"""
 <style>
-/* 4. DESIGN TECHNIQUE COMPACT DES TABLEAUX */
+/* 4. RENDU COMPACT DES TABLEAUX */
 .table-responsive-container {{ width: 100% !important; }}
 .table-compacte {{ width: 100% !important; margin-bottom: 0px !important; border-collapse: collapse !important; table-layout: auto !important; }}
 .table-compacte tr {{ height: 18px !important; }}
@@ -254,7 +247,7 @@ with cd:
             rendu_bas_essais = d_milieu if isinstance(d_milieu, str) else gen_html(d_milieu, "table-class-robuste")
             st.markdown(f'<div class="div-mobile-fluid" style="max-height: {h_asaf4_pc}; height: {h_asaf4_pc}; overflow-y: auto; display: block; border: 1px solid #CBD5E1; margin-bottom: 2px;">{rendu_bas_essais}</div>', unsafe_allow_html=True)
 
-    # --- NETTOYAGE ET LIBÉRATION MOBILES TOTALES ---
+    # --- NETTOYAGE ET LIBÉRATION MOBILES ABSOLUES ET SANS FAILLE ---
     st.markdown("""
     <style>
         @media (max-width: 768px) {
