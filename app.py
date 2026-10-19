@@ -269,38 +269,39 @@ tr.ligne-separation-classe td,
 
 /* 6. PIED DE PAGE FIXE POUR RECOUVRIR LA BARRE COMPLETEMENT */
 .signature-fin-page {{
-    position: fixed !important;
-    bottom: 0px !important;
-    left: 0px !important;
-    width: 100vw !important;
-    height: 32px !important;
-    background-color: #FFFFFF !important;
     display: flex !important;
     justify-content: center !important;
     align-items: center !important;
+    flex-wrap: wrap !important;
     gap: 12px !important;
     text-align: center !important;
     color: #1E3A8A !important;
     font-size: 0.92rem !important;
     font-weight: bold !important;
+    padding-top: 6px !important;
+    margin-top: 25px !important;
+    margin-bottom: 5px !important;
     border-top: 1px dashed #1E3A8A !important;
-    z-index: 999999 !important;
-    padding: 0px !important;
-    margin: 0px !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
 }}
 
 .logo-signature {{
-    height: 20px !important;
+    height: 24px !important;
     width: auto !important;
     vertical-align: middle !important;
 }}
 
 @media (max-width: 768px) {{
     .signature-fin-page {{ 
-        font-size: 0.75rem !important; 
-        height: 38px !important;
+        font-size: 0.80rem !important; 
+        padding-top: 8px !important; 
+        margin-top: 35px !important;
+        margin-bottom: 40px !important;
     }}
-    .logo-signature {{ height: 24px !important; }}
+    .logo-signature {{ 
+        height: 24px !important; 
+    }} 
 }}
 </style>
 """, unsafe_allow_html=True)
