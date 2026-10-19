@@ -27,7 +27,6 @@ t_bas = ""
 # ==============================================================================
 LIEN_DROPBOX_LOGO = "https://www.dropbox.com/scl/fi/hi24fjo0vbal4oiiwt9jl/logo-TimeC.png?rlkey=xlw0oqk9gdnq6v5dgahi0klg0&st=y86yrn6y&dl=1"
 
-
 # --- DÉTECTION DES SCRIPTS DE COURSE DISPONIBLES ---
 module_actif = Essais # Par défaut
 
@@ -267,46 +266,49 @@ tr.ligne-separation-classe td,
     box-shadow: inset 0 -3px 0 0 #1E3A8A !important; 
 }}
 
-/* 6. PIED DE PAGE FIXE FLUIDE POUR SMARTPHONE SANS COUPE */
+/* 6. PIED DE PAGE ANTI-ÉCRASEMENT UNIQUE */
 .signature-fin-page {{
     position: fixed !important;
     bottom: 0px !important;
     left: 0px !important;
     width: 100% !important;
     box-sizing: border-box !important;
-    height: 32px !important;
+    height: 34px !important;
     background-color: #FFFFFF !important;
     display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: nowrap !important; /* Interdit le retour à la ligne ou le masquage */
     justify-content: center !important;
     align-items: center !important;
-    gap: 8px !important;
+    gap: 10px !important;
     text-align: center !important;
     color: #1E3A8A !important;
-    font-size: 0.90rem !important;
+    font-size: 0.95rem !important;
     font-weight: bold !important;
     border-top: 1px dashed #1E3A8A !important;
     z-index: 999999 !important;
-    padding: 0px 10px !important;
+    padding: 0px 5px !important;
     margin: 0px !important;
 }}
 
 .logo-signature {{
-    height: 20px !important;
+    height: 22px !important;
     width: auto !important;
-    max-width: 120px !important;
-    object-fit: contain !important;
-    vertical-align: middle !important;
+    max-height: 22px !important;
+    object-fit: contain !important; /* Force le respect des proportions */
+    display: inline-block !important;
 }}
 
 @media (max-width: 768px) {{
     .signature-fin-page {{ 
-        font-size: 0.80rem !important;
-        height: 36px !important;
+        font-size: 0.85rem !important;
+        height: 34px !important;
         gap: 6px !important;
     }}
     .logo-signature {{ 
-        height: 22px !important;
-        max-width: 90px !important;
+        height: 18px !important; /* Réduction pour empêcher la coupure sur petit écran */
+        max-height: 18px !important;
+        width: auto !important;
     }}
 }}
 </style>
@@ -438,11 +440,11 @@ with cd:
             st.markdown(f"<span class='titre-classement espace-classement-suivant'>{t_bas}</span>", unsafe_allow_html=True)
             st.markdown(f"<div class='div-scroll-local-div4'>{gen_html(d_milieu, 'table-class-robuste')}</div>", unsafe_allow_html=True)
 
-# INJECTION DE LA SIGNATURE ADAPTATIVE FLUIDE
+# INJECTION DE LA SIGNATURE ULTRA RE-PROPORTIONNÉE SANS RETOUR À LA LIGNE
 st.markdown(f"""
 <div class='signature-fin-page'>
     <img src='{LIEN_DROPBOX_LOGO}' class='logo-signature' alt='Logo'>
-    <span style='white-space: nowrap;'>www.timechrono.be</span>
+    <span style='white-space: nowrap !important; display: inline-block !important;'>www.timechrono.be</span>
 </div>
 """, unsafe_allow_html=True)
 
