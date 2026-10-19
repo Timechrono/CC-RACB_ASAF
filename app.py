@@ -416,35 +416,89 @@ with cg:
 with cd:
     h_mob = "380px"
 
-    #  NOUVEAU CODE INTELLIGENT DANS app.py
-    # On récupère le module en cours d'exécution pour voir s'il a configuré des hauteurs
-    module_actif = None
-    if choix_course == "Course 1 ASAF": import Course_1_ASAF; module_actif = Course_1_ASAF
-    elif choix_course == "Course 1 RACB": import Course_1_RACB; module_actif = Course_1_RACB
-    elif choix_course == "Course 2 ASAF": import Course_2_ASAF; module_actif = Course_2_ASAF
-    elif choix_course == "Course 2 RACB": import Course_2_RACB; module_actif = Course_2_RACB
-    elif choix_course == "Course 3 ASAF": import Course_3_ASAF; module_actif = Course_3_ASAF
-    elif choix_course == "Course 3 RACB": import Course_3_RACB; module_actif = Course_3_RACB
-    else: import Essais; module_actif = Essais
+    # --- LIEN INTELLIGENT AVEC LES VARIABLES DE CONFIGURATION ---
+    h_racb_pc = "215px"
+    h_asaf123_pc = "215px"
+    h_asaf4_pc = "114px"
+    
+    if 'module_actif' in globals() and hasattr(module_actif, 'HAUTEURS_TABLEAUX_PC'):
+        h_racb_pc = module_actif.HAUTEURS_TABLEAUX_PC.get("RACB", "215px")
+        h_asaf123_pc = module_actif.HAUTEURS_TABLEAUX_PC.get("ASAF_123", "215px")
+        h_asaf4_pc = module_actif.HAUTEURS_TABLEAUX_PC.get("ASAF_4", "114px")
 
-    # Si le fichier de course a le dictionnaire, on désactive le bridage global de app.py pour le laisser gérer
-    if hasattr(module_actif, 'HAUTEURS_TABLEAUX_PC'):
-        st.markdown(f"""
-        <style>
-          @media (min-width: 769px) {{ 
-            .ajust-hauteur-pc {{ max-height: none !important; height: auto !important; }} 
-          }}
-          @media (max-width: 768px) {{ .ajust-hauteur-pc {{ max-height: none !important; }} }}
-        </style>
-        """, unsafe_allow_html=True)
+    if choix_course != "Essais":
+        # --- MODE DE COURSE ---
+        if t_haut:
+            st.markdown(f"<span class='titre-classement'>{t_haut}</span>", unsafe_allow_html=True)
+            # Forçage du style en ligne au moment du rendu HTML
+            st.markdown(f"""
+                <div class='ajust-hauteur-pc' style='overflow-y: auto; display: block;'>
+                    <div style="max-height: {h_racb_pc}; overflow-y: auto; border: 1px solid #CBD5E1;" class="div-pc-scroll">
+                        {gen_html(d_haut, 'table-class-robuste')}
+                    </div>
+                </div>
+            """, unsafe_allow_html=True)
+        if t_milieu:
+            st.markdown(f"<span class='titre-classement espace-classement-suivant'>{t_milieu}</span>", unsafe_allow_html=True)
+            st.markdown(f"""
+                <div class='ajust-hauteur-pc' style='overflow-y: auto; display: block;'>
+                    <div style="max-height: {h_asaf123_pc}; overflow-y: auto; border: 1px solid #CBD5E1;" class="div-pc-scroll">
+                        {gen_html(d_milieu, 'table-class-milieu')}
+                    </div>
+                </div>
+            """, unsafe_allow_html=True)
+        if t_bas:
+            st.markdown(f"<span class='titre-classement espace-classement-suivant'>{t_bas}</span>", unsafe_allow_html=True)
+            nb_lignes = len(d_bas) if hasattr(d_bas, '__len__') else 0
+            st.markdown(f"""
+                <div style='overflow-y: auto; display: block;'>
+                    <div style="max-height: {h_asaf4_pc}; overflow-y: auto; border: 1px solid #CBD5E1;" class="div-pc-scroll">
+                        {gen_html(d_bas, 'table-class-robuste')}
+                    </div>
+                </div>
+            """, unsafe_allow_html=True)
     else:
-        # Sinon, on garde le comportement historique par défaut de app.py
-        st.markdown(f"""
-        <style>
-          @media (min-width: 769px) {{ .ajust-hauteur-pc {{ max-height: {h_pc} !important; }} }}
-          @media (max-width: 768px) {{ .ajust-hauteur-pc {{ max-height: none !important; }} }}
-        </style>
-        """, unsafe_allow_html=True)
+        # --- MODE ESSAIS ---
+        if t_haut:
+            st.markdown(f"<span class='titre-classement'>{t_haut}</span>", unsafe_allow_html=True)
+            st.markdown(f"""
+                <div class='ajust-hauteur-pc' style='overflow-y: auto; display: block;'>
+                    <div style="max-height: {h_racb_pc}; overflow-y: auto; border: 1px solid #CBD5E1;" class="div-pc-scroll">
+                        {gen_html(d_bas, 'table-class-robuste')}
+                    </div>
+                </div>
+            """, unsafe_allow_html=True)
+        if t_milieu:
+            st.markdown(f"<span class='titre-classement espace-classement-suivant'>{t_milieu}</span>", unsafe_allow_html=True)
+            st.markdown(f"""
+                <div class='ajust-hauteur-pc' style='overflow-y: auto; display: block;'>
+                    <div style="max-height: {h_asaf123_pc}; overflow-y: auto; border: 1px solid #CBD5E1;" class="div-pc-scroll">
+                        {gen_html(d_haut, 'table-class-robuste')}
+                    </div>
+                </div>
+            """, unsafe_allow_html=True)
+        if t_bas:
+            st.markdown(f"<span class='titre-classement espace-classement-suivant'>{t_bas}</span>", unsafe_allow_html=True)
+            st.markdown(f"""
+                <div class='div-scroll-local-div4'>
+                    <div style="max-height: {h_asaf4_pc}; overflow-y: auto; border: 1px solid #CBD5E1;" class="div-pc-scroll">
+                        {gen_html(d_milieu, 'table-class-robuste')}
+                    </div>
+                </div>
+            """, unsafe_allow_html=True)
+
+    # Petit hack CSS pour s'assurer que sur mobile ces boîtes perdent leur max-height et ne bloquent pas le scroll tactile
+    st.markdown("""
+    <style>
+        @media (max-width: 768px) {
+            .div-pc-scroll {
+                max-height: none !important;
+                overflow-y: visible !important;
+                border: none !important;
+            }
+        }
+    </style>
+    """, unsafe_allow_html=True)
 
 
 
