@@ -91,25 +91,31 @@ footer,
     font-size: 0 !important;
 }}
 
-/* NEUTRALISATION DE L'EFFET MIROIR ET DU VOILE GRIS DU RERUN */
-[data-testid="stAppViewBlockContainer"] {{
+/* 1. EMPECHE LA DUPLICATION FANTÔME ET L'EFFET MIROIR DU RECHARGEMENT */
+[data-testid="stRenderLoading"], 
+[data-testid="stRenderLoading"] *, 
+.stApp [data-testid="stRenderLoading"] {{
+    display: none !important;
+    visibility: hidden !important;
+    height: 0px !important;
+    max-height: 0px !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+    overflow: hidden !important;
+}}
+
+/* 2. FORCE LA PAGE PRINCIPALE A RESTER STATIQUE ET NETTE SANS BLANC/GRIS */
+[data-testid="stAppViewContainer"], 
+[data-testid="stAppViewBlockContainer"], 
+[data-testid="stVerticalBlock"] {{
     opacity: 1 !important;
     filter: none !important;
 }}
 
-/* Cache proprement l'ancien calque de chargement qui duplique la page */
-div[data-testid="stRenderLoading"] {{
-    display: none !important;
-    visibility: hidden !important;
-    height: 0px !important;
-    opacity: 0 !important;
-}}
-
-/* Évite la superposition fantôme spécifique aux nouvelles versions de Streamlit */
-.stAppDeployButton, [data-testid="stHeader"] {{
+/* 3. DESACTIVE LE SQUELETTE DE CHARGEMENT SOUVENT RESPONSABLE DU SOUCI */
+[data-testid="stSkeleton"] {{
     display: none !important;
 }}
-
 
 /* L'ASTUCE SUR PC : ON EXTRACT LE PIED DE PAGE HORS DE L'ESPACE DE CALCUL DU NAVIGATEUR */
 @media (min-width: 769px) {{
