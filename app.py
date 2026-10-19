@@ -169,9 +169,10 @@ html, body, [data-testid="stAppViewContainer"], [data-testid="stMainBlockContain
 }}
 @media (max-width: 768px) {{
     .block-container {{ 
-        padding-bottom: 55px !important; 
+        padding-bottom: 75px !important; /* Augmenté de 55px à 75px pour donner de l'air au tableau sur mobile */
     }}
 }}
+
 
 div[data-testid="stVerticalBlock"] {{
     gap: 0rem !important;
@@ -333,18 +334,21 @@ tr.ligne-separation-classe td,
     vertical-align: middle !important;
 }}
 
-/* AJUSTEMENTS SPECIFIQUES POUR SMARTPHONE */
+/* AJUSTEMENTS SPECIFIQUES POUR SMARTPHONE - EMPECHE L'ECRASEMENT */
 @media (max-width: 768px) {{
     .signature-fin-page {{ 
-        font-size: 0.75rem !important; 
-        height: 38px !important;
-        gap: 0px !important; /* Supprime l'espace inutile lié au logo absent */
+        font-size: 0.85rem !important; /* Taille de texte légèrement augmentée pour lisibilité */
+        height: 40px !important;       /* Hauteur totale du bandeau adaptée */
+        line-height: 40px !important;  /* Aligne verticalement le texte au centre sans l'écraser */
+        gap: 0px !important;
+        display: block !important;     /* Désactive le flexbox mobile qui causait la compression */
     }}
     /* MASQUE LE LOGO UNIQUEMENT SUR MOBILE */
     .logo-signature {{ 
         display: none !important; 
     }}
 }}
+
 
 </style>
 """, unsafe_allow_html=True)
