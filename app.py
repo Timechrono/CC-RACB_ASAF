@@ -66,6 +66,8 @@ try:
 except ModuleNotFoundError:
     course3_racb_disponible = False
 
+# [Conservez tout le début de votre fichier inchangé jusqu'à la configuration CSS]
+
 st.set_page_config(page_title="Live", layout="wide")
 # --- CONCEPTION GRAPHIQUE GÉOMÉTRIQUE UNIFIÉE ---
 st.markdown(f"""
@@ -92,7 +94,6 @@ footer,
 }}
 
 /* 1. EMPECHE LA DUPLICATION FANTÔME ET L'EFFET MIROIR DU RECHARGEMENT */
-/* 1. EMPECHE LE CLONE ET LA DUPLICATION "STALE" DE STREAMLIT AU RERUN */
 div[data-stale="true"], 
 div[data-stale="true"] *,
 [data-testid="stRenderLoading"],
@@ -115,16 +116,10 @@ div[data-stale="false"],
     filter: none !important;
 }}
 
-/* 3. COUPE LE SQUELETTE DE CHARGEMENT DE PRE-RENDU */
-[data-testid="stSkeleton"] {{
-    display: none !important;
-    height: 0px !important;
-}}
-
-
 /* 3. DESACTIVE LE SQUELETTE DE CHARGEMENT SOUVENT RESPONSABLE DU SOUCI */
 [data-testid="stSkeleton"] {{
     display: none !important;
+    height: 0px !important;
 }}
 
 /* L'ASTUCE SUR PC : ON EXTRACT LE PIED DE PAGE HORS DE L'ESPACE DE CALCUL DU NAVIGATEUR */
@@ -167,12 +162,13 @@ html, body, [data-testid="stAppViewContainer"], [data-testid="stMainBlockContain
         padding-bottom: 45px !important; /* Marge de sécurité pour laisser place à la signature fixe */
     }}
 }}
+
+/* MODIFICATION OPTIMALE SUR SMARTPHONE */
 @media (max-width: 768px) {{
     .block-container {{ 
-        padding-bottom: 75px !important; /* Augmenté de 55px à 75px pour donner de l'air au tableau sur mobile */
+        padding-bottom: 85px !important; /* Augmenté à 85px pour créer l'espace d'air parfait sous le dernier tableau */
     }}
 }}
-
 
 div[data-testid="stVerticalBlock"] {{
     gap: 0rem !important;
@@ -217,12 +213,8 @@ div.stElementContainer {{
 .espace-classement-suivant {{
     margin-top: 15px !important;
 }}
-</style>
-""", unsafe_allow_html=True)
-st.markdown(f"""
-<style>
 
-/* 4. BLOCS DE SCROLL INTERNES ET COUCHE TACTILE MOBILE (-webkit-overflow-scrolling) */
+/* 4. BLOCS DE SCROLL INTERNES COUCHE TACTILE MOBILE */
 .div-scroll-local-historique {{
     width: 100% !important;
     border: 1px solid #CBD5E1 !important;
@@ -241,8 +233,8 @@ st.markdown(f"""
     .block-container {{ padding-left: 2px !important; padding-right: 2px !important; }}
     
     .div-scroll-local-historique {{
-        height: 400px !important; /* Hauteur fixe sécurisée pour l'historique sur smartphone */
-        max-height: 400px !important;
+        height: 380px !important; /* Légèrement réduit pour maximiser l'espace vertical disponible */
+        max-height: 380px !important;
         overflow-y: auto !important;
         display: block !important;
         border: 1px solid #CBD5E1 !important;
@@ -266,16 +258,8 @@ st.markdown(f"""
 .table-compacte td {{ border-bottom: 1px solid #E0E0E0 !important; background-color: #FFFFFF !important; }}
 .table-compacte th {{ font-weight: bold !important; background-color: #F5F5F5 !important; border-bottom: 2px solid #CCCCCC !important; text-align: left !important; }}
 
-/* COULEUR DE BASE (LIGNES IMPAIRES) : JAUNE ACTUEL */
-.table-live tr td {{ 
-    background-color: #FEF9C3 !important; 
-}}
-
-/* ALTERNANCE (LIGNES PAIRES) : JAUNE ENCORE PLUS CLAIR */
-.table-live tr:nth-child(even) td {{ 
-    background-color: #FEFCE8 !important; /* Jaune ultra-léger (Tailwind yellow-50) */
-}}
-
+.table-live tr td {{ background-color: #FEF9C3 !important; }}
+.table-live tr:nth-child(even) td {{ background-color: #FEFCE8 !important; }}
 
 .table-live td:last-child, .table-class-robuste td:last-child, .table-hist td:last-child {{ 
     font-weight: bold !important; font-size: 0.94rem !important; color: #0F172A !important; 
@@ -334,27 +318,28 @@ tr.ligne-separation-classe td,
     vertical-align: middle !important;
 }}
 
-/* 7. AJUSTEMENTS SPECIFIQUES POUR SMARTPHONE - EMPECHE L'ECRASEMENT */
+/* 7. AJUSTEMENTS ULTRA-COMPACTS SMARTPHONE */
 @media (max-width: 768px) {{
     .signature-fin-page {{ 
-        font-size: 0.85rem !important; 
-        height: 35px !important;
-        line-height: 35px !important;
+        font-size: 0.78rem !important; /* Signature un peu plus petite et discrète */
+        height: 28px !important;       /* Hauteur verticale réduite */
+        line-height: 26px !important;
         gap: 0px !important;
         display: block !important;
-        /* CORRECTIF : Remonte la signature de 35px sur mobile pour survoler l'iframe */
         position: fixed !important;
-        bottom: 35px !important; 
+        bottom: 55px !important;       /* Remonté à 55px pour flotter au-dessus de la zone invisible de l'iframe */
+        border-top: 1px solid #CBD5E1 !important;
+        background-color: rgba(255, 255, 255, 0.95) !important; /* Léger effet de transparence propre */
     }}
     .logo-signature {{ 
         display: none !important; 
     }}
 }}
 
-
-
 </style>
 """, unsafe_allow_html=True)
+
+# [Conservez le reste de votre fichier Streamlit strictement identique]
 
 def gen_html(df, cl):
     if cl == "table-hist":
