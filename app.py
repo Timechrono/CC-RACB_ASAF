@@ -265,10 +265,16 @@ st.markdown(f"""
 .table-compacte td {{ border-bottom: 1px solid #E0E0E0 !important; background-color: #FFFFFF !important; }}
 .table-compacte th {{ font-weight: bold !important; background-color: #F5F5F5 !important; border-bottom: 2px solid #CCCCCC !important; text-align: left !important; }}
 
-/* COULEUR JAUNE PALE EXCLUSIVE POUR LES LIGNES DU TABLEAU EN DIRECT */
-.table-live td {{ 
-    background-color: #FEF9C3 !important; /* Jaune pâle soft (Tailwind yellow-100) */
+/* COULEUR DE BASE (LIGNES IMPAIRES) : JAUNE ACTUEL */
+.table-live tr td {{ 
+    background-color: #FEF9C3 !important; 
 }}
+
+/* ALTERNANCE (LIGNES PAIRES) : JAUNE ENCORE PLUS CLAIR */
+.table-live tr:nth-child(even) td {{ 
+    background-color: #FEFCE8 !important; /* Jaune ultra-léger (Tailwind yellow-50) */
+}}
+
 
 .table-live td:last-child, .table-class-robuste td:last-child, .table-hist td:last-child {{ 
     font-weight: bold !important; font-size: 0.94rem !important; color: #0F172A !important; 
