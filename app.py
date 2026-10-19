@@ -91,13 +91,12 @@ footer,
     font-size: 0 !important;
 }}
 
-/* L'ASTUCE RADICALE POUR SUPPRIMER TOUT ESPACE ET LE FOOTER HORS DE L'ÉCRAN SUR PC */
+/* L'ASTUCE SUR PC : ON EXTRACT LE PIED DE PAGE HORS DE L'ESPACE DE CALCUL DU NAVIGATEUR */
 @media (min-width: 769px) {{
     footer, [data-testid="stFooterContainer"], [data-testid="stStatusWidget"], .stStatusWidget {{
         position: fixed !important;
-        bottom: -1000px !important; /* Poussé encore plus loin pour libérer l'iframe */
-        z-index: -9999 !important;
-        height: 0px !important;
+        bottom: -500px !important;
+        transform: translateY(500px) !important; /* Force le navigateur à ignorer cet espace dans la hauteur totale */
     }}
 }}
 
@@ -113,15 +112,12 @@ button:focus, div:focus, input:focus, select:focus {{
     outline: none !important; border-color: transparent !important; box-shadow: none !important;
 }}
 
-/* 2. CONFIGURATION DE LA PAGE ET RECUPERATION DE L'ESPACE MAXIMUM SUR PC */
+/* 2. CONFIGURATION DE LA PAGE - CORRIGÉE POUR MOBILE */
 html, body, [data-testid="stAppViewContainer"], [data-testid="stMainBlockContainer"] {{
-    overflow: hidden !important; 
-    height: 100vh !important;    
-    max-height: 100vh !important;
-    padding-bottom: 0px !important; /* Force la suppression de toute marge Streamlit */
-    margin-bottom: 0px !important;
+    overflow: auto !important;
+    overflow-y: auto !important;
+    height: 100% !important; /* Rétablit la hauteur pour un défilement propre */
 }}
-
 
 /* Réduction des marges globales de Streamlit pour gagner de la place */
 .block-container {{ 
@@ -133,12 +129,12 @@ html, body, [data-testid="stAppViewContainer"], [data-testid="stMainBlockContain
 /* Libère l'espace du bas : plus aucun pixel perdu sur PC */
 @media (min-width: 769px) {{
     .block-container {{ 
-        padding-bottom: 0px !important; /* Réduit à 0 pour empêcher de pousser l'iframe parent */
+        padding-bottom: 5px !important; /* Réduit au strict minimum sur PC pour supprimer le scroll inutile */
     }}
 }}
 @media (max-width: 768px) {{
     .block-container {{ 
-        padding-bottom: 25px !important; 
+        padding-bottom: 40px !important; /* Augmenté pour laisser respirer le bas sur mobile */
     }}
 }}
 
@@ -186,7 +182,7 @@ div.stElementContainer {{
     margin-top: 15px !important;
 }}
 
-/* 4. BLOCS DE SCROLL INTERNES CLOISONNÉS */
+/* 4. BLOCS DE SCROLL INTERNES CLOISONNÉS - CORRIGÉS FORCES MOBILES */
 .div-scroll-local-historique {{
     width: 100% !important;
     border: 1px solid #CBD5E1 !important;
@@ -202,8 +198,8 @@ div.stElementContainer {{
 
 @media (min-width: 769px) {{
     .div-scroll-local-historique {{
-        height: 490px !important;
-        max-height: 490px !important;
+        height: 456px !important;
+        max-height: 456px !important;
         overflow-y: auto !important;
         display: block !important;
     }}
@@ -220,11 +216,10 @@ div.stElementContainer {{
     .block-container {{ padding-left: 2px !important; padding-right: 2px !important; }}
     
     .div-scroll-local-historique {{
-        height: auto !important;          /* Laisse le tableau s'adapter sur mobile */
-        max-height: 400px !important;     /* Évite qu'il ne prenne tout l'écran */
-        overflow-y: auto !important;      /* Permet de défiler à l'intérieur si trop long */
+        height: auto !important;               /* S'adapte au contenu sur mobile */
+        max-height: none !important;           /* Plus de blocage de hauteur */
+        overflow-y: visible !important;        /* Désactive le scroll de boîte interne */
         display: block !important;
-        -webkit-overflow-scrolling: touch !important;
         border: 1px solid #CBD5E1 !important;
     }}
     .div-scroll-local-div4 {{
@@ -234,7 +229,6 @@ div.stElementContainer {{
         display: block !important;
     }}
 }}
-
 
 /* 5. DESIGN ET RENDU COMPACT DES TABLEAUX */
 .table-responsive-container {{
@@ -283,44 +277,20 @@ tr.ligne-separation-classe td,
 }}
 
 /* 6. SIGNATURE DE FIN DE PAGE ET AJUSTEMENT DU DESIGN */
-@media (min-width: 769px) {{
-    .signature-fin-page {{
-        position: fixed !important;
-        bottom: 0px !important;
-        left: 0.5rem !important;
-        right: 0.5rem !important;
-        width: calc(100% - 1rem) !important;
-        background-color: #FFFFFF !important; /* Crée un fond propre pour que les tableaux défilent derrière si besoin */
-        z-index: 9999 !important;
-        display: flex !important;
-        justify-content: center !important;
-        align-items: center !important;
-        gap: 12px !important;
-        text-align: center !important;
-        color: #1E3A8A !important;
-        font-size: 0.92rem !important;
-        font-weight: bold !important;
-        padding: 4px 0px !important;
-        margin: 0px !important;
-        border-top: 1px dashed #1E3A8A !important;
-    }}
-}}
-
-@media (max-width: 768px) {{
-    .signature-fin-page {{
-        display: flex !important;
-        justify-content: center !important;
-        align-items: center !important;
-        gap: 12px !important;
-        text-align: center !important;
-        color: #1E3A8A !important;
-        font-size: 0.75rem !important; 
-        padding-top: 4px !important; 
-        margin-top: 25px !important;
-        margin-bottom: 30px !important; /* Conserve la sécurité smartphone intacte */
-        border-top: 1px dashed #1E3A8A !important;
-        width: 100% !important;
-    }}
+.signature-fin-page {{
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+    gap: 12px !important;
+    text-align: center !important;
+    color: #1E3A8A !important;
+    font-size: 0.92rem !important;
+    font-weight: bold !important;
+    padding-top: 6px !important;
+    margin-top: 25px !important;
+    margin-bottom: 5px !important; /* Marge minime sur PC pour coller au bas de page réel */
+    border-top: 1px dashed #1E3A8A !important;
+    width: 100% !important;
 }}
 
 .logo-signature {{
@@ -330,15 +300,15 @@ tr.ligne-separation-classe td,
 }}
 
 @media (max-width: 768px) {{
+    .signature-fin-page {{ 
+        font-size: 0.75rem !important; 
+        padding-top: 4px !important; 
+        margin-bottom: 30px !important; /* Conserve la sécurité smartphone */
+    }}
     .logo-signature {{ height: 32px !important; }}
 }}
 
-
 </style>
-
-
-
-
 
 """, unsafe_allow_html=True)
 
@@ -445,13 +415,14 @@ with cg:
 with cd:
     h_mob = "380px"
 
-    # Injection CSS dynamique
+        # Injection CSS dynamique - REMPLACER CETTE PARTIE :
     st.markdown(f"""
     <style>
       @media (min-width: 769px) {{ .ajust-hauteur-pc {{ max-height: {h_pc} !important; }} }}
-      @media (max-width: 768px) {{ .ajust-hauteur-pc {{ max-height: {h_mob} !important; }} }}
+      @media (max-width: 768px) {{ .ajust-hauteur-pc {{ max-height: none !important; }} }} /* Changement ici : passsé de h_mob à none */
     </style>
     """, unsafe_allow_html=True)
+
 
     if choix_course != "Essais":
         # --- MODE DE COURSE ---
