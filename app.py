@@ -67,7 +67,6 @@ except ModuleNotFoundError:
 st.set_page_config(page_title="Live", layout="wide")
 # --- CONCEPTION GRAPHIQUE GÉOMÉTRIQUE UNIFIÉE ---
 st.markdown(f"""
-
 <style>
 
 /* 1. DISPARITION TOTALE ET RADICALE DES COMPOSANTS STREAMLIT (PC & MOBILE) */
@@ -95,7 +94,7 @@ footer,
     footer, [data-testid="stFooterContainer"], [data-testid="stStatusWidget"], .stStatusWidget {{
         position: fixed !important;
         bottom: -500px !important;
-        transform: translateY(500px) !important; /* Force le navigateur à ignorer cet espace dans la hauteur totale */
+        transform: translateY(500px) !important;
     }}
 }}
 
@@ -119,22 +118,20 @@ html, body, [data-testid="stAppViewContainer"], [data-testid="stMainBlockContain
     max-height: none !important;
 }}
 
-/* Réduction des marges globales de Streamlit pour gagner de la place */
 .block-container {{ 
     padding-top: 5px !important; 
     padding-left: 0.5rem !important; 
     padding-right: 0.5rem !important; 
 }}
 
-/* Libère l'espace du bas : plus aucun pixel perdu sur PC */
 @media (min-width: 769px) {{
     .block-container {{ 
-        padding-bottom: 5px !important; /* Réduit au strict minimum sur PC pour supprimer le scroll inutile */
+        padding-bottom: 35px !important; /* Espace pour éviter la superposition avec la signature fixe */
     }}
 }}
 @media (max-width: 768px) {{
     .block-container {{ 
-        padding-bottom: 25px !important; 
+        padding-bottom: 50px !important; 
     }}
 }}
 
@@ -181,17 +178,14 @@ div.stElementContainer {{
 .espace-classement-suivant {{
     margin-top: 15px !important;
 }}
-""", unsafe_allow_html=True)
-st.markdown(f"""
-<style>
+
 /* 4. BLOCS DE SCROLL INTERNES CLOISONNÉS */
 .div-scroll-local-historique {{
     width: 100% !important;
     border: 1px solid #CBD5E1 !important;
 }}
 
-/* RETOUR CONFIGURATION ORIGINALE : .table-responsive-container conserve sa flexibilité brute */
-.div-scroll-local-general, .div-scroll-local-classes, .table-responsive-container {{
+.div-scroll-local-general, .div-scroll-local-classes {{
     height: auto !important;
     max-height: none !important;
     overflow-y: visible !important;
@@ -235,6 +229,9 @@ st.markdown(f"""
 }}
 
 /* 5. DESIGN ET RENDU COMPACT DES TABLEAUX */
+.table-responsive-container {{
+    width: 100% !important;
+}}
 .table-compacte {{
     width: 100% !important; margin-bottom: 0px !important;
     border-collapse: collapse !important; table-layout: auto !important;
@@ -277,8 +274,14 @@ tr.ligne-separation-classe td,
     box-shadow: inset 0 -3px 0 0 #1E3A8A !important; 
 }}
 
-/* 6. SIGNATURE DE FIN DE PAGE ET AJUSTEMENT DU DESIGN */
+/* 6. CORRECTION SIGNATURE : BANDAU BLANC FIXE QUI COUVRE L'ANCIENNE BARRE */
 .signature-fin-page {{
+    position: fixed !important;
+    bottom: 0px !important;
+    left: 0px !important;
+    width: 100vw !important;
+    height: 30px !important;
+    background-color: #FFFFFF !important;
     display: flex !important;
     justify-content: center !important;
     align-items: center !important;
@@ -287,15 +290,14 @@ tr.ligne-separation-classe td,
     color: #1E3A8A !important;
     font-size: 0.92rem !important;
     font-weight: bold !important;
-    padding-top: 6px !important;
-    margin-top: 25px !important;
-    margin-bottom: 5px !important; /* Marge PC au strict minimum */
     border-top: 1px dashed #1E3A8A !important;
-    width: 100% !important;
+    z-index: 999999 !important;
+    padding: 0px !important;
+    margin: 0px !important;
 }}
 
 .logo-signature {{
-    height: 24px !important;
+    height: 20px !important;
     width: auto !important;
     vertical-align: middle !important;
 }}
@@ -303,15 +305,13 @@ tr.ligne-separation-classe td,
 @media (max-width: 768px) {{
     .signature-fin-page {{ 
         font-size: 0.75rem !important; 
-        padding-top: 4px !important; 
-        margin-bottom: 30px !important; 
+        height: 35px !important;
     }}
-    .logo-signature {{ height: 32px !important; }}
+    .logo-signature {{ height: 24px !important; }}
 }}
 
 </style>
 """, unsafe_allow_html=True)
-
 def gen_html(df, cl):
     if cl == "table-hist":
         phrase_attente = "En attente d'arrivée..."
@@ -326,14 +326,7 @@ def gen_html(df, cl):
     else:
         phrase_attente = "En attente du départ..."
 
-    if cl == "table-live":
-        style_conteneur = "style='width: 100%;'"
-    elif cl == "table-hist":
-        style_conteneur = "class='div-scroll-local-historique'"
-    else:
-        # C'est la fonction elle-même qui récupère directement h_pc et h_mob de votre script Python
-        # Aucun bloc parent CSS global ne vient surcharger ou briser l'affichage
-        style_conteneur = "class='table-responsive-container'"
+    style_conteneur = "class='div-scroll-local-historique'" if cl == "table-hist" else "class='table-responsive-container'"
 
     if isinstance(df, str):
         if "<TABLE" in df.upper() and "</TABLE>" in df.upper():
@@ -351,6 +344,7 @@ def gen_html(df, cl):
     
     html_table = df.to_html(index=False, classes=f"table-compacte {cl}", escape=False, border=0)
     return f"<div {style_conteneur}>{html_table}</div>"
+
 # --- LECTURE DU PARAMÈTRE DE COURSE DEPUIS L'URL ---
 query_params = st.query_params
 choix_course_url = query_params.get("course", "essais").lower()
@@ -391,7 +385,6 @@ except Exception as e:
     t_live = "⚠️ Liaison Dropbox ralentie ou instable — Tentative de reconnexon en cours..."
 
 st.markdown("<style>@media (min-width: 769px) { .table-hist th:nth-child(1), .table-hist td:nth-child(1) { width: 8% !important; } .table-hist th:nth-child(2), .table-hist td:nth-child(2) { width: 32% !important; } .table-hist th:nth-child(3), .table-hist td:nth-child(3) { width: 28% !important; } .table-hist th:nth-child(4), .table-hist td:nth-child(4) { width: 10% !important; } .table-hist th:nth-child(5), .table-hist td:nth-child(5) { width: 5% !important; } .table-hist th:nth-child(6), .table-hist td:nth-child(6) { width: 17% !important; } }</style>", unsafe_allow_html=True)
-
 if t_haut and "TOP 20" in t_haut.upper():
     t_haut = "🏆 CLASSEMENT GENERAL OFFICIEUX RACB"
 
@@ -401,6 +394,7 @@ elif "COURSE 1" in choix_course.upper():
     h_pc = "425px"
 else:
     h_pc = "380px"
+
 cg, cd = st.columns([1.3, 0.9])
 with cg:
     conteneur_titre_live = st.empty()
@@ -412,50 +406,45 @@ with cg:
 with cd:
     h_mob = "380px"
 
-    # Injection CSS dynamique stricte pour cibler les conteneurs de droite avec vos dimensions d'origine
     st.markdown(f"""
     <style>
-      @media (min-width: 769px) {{ 
-          .ajust-hauteur-pc {{ max-height: {h_pc} !important; overflow-y: auto !important; display: block !important; border: 1px solid #CBD5E1 !important; }} 
-      }}
-      @media (max-width: 768px) {{ 
-          .ajust-hauteur-pc {{ max-height: {h_mob} !important; overflow-y: auto !important; display: block !important; border: 1px solid #CBD5E1 !important; -webkit-overflow-scrolling: touch !important; }} 
-      }}
+      @media (min-width: 769px) {{ .ajust-hauteur-pc {{ max-height: {h_pc} !important; }} }}
+      @media (max-width: 768px) {{ .ajust-hauteur-pc {{ max-height: {h_mob} !important; }} }}
     </style>
     """, unsafe_allow_html=True)
 
     if choix_course != "Essais":
-        # --- MODE DE COURSE ---
         if t_haut:
             st.markdown(f"<span class='titre-classement'>{t_haut}</span>", unsafe_allow_html=True)
-            st.markdown(f"<div class='ajust-hauteur-pc'>{gen_html(d_haut, 'table-class-robuste')}</div>", unsafe_allow_html=True)
+            st.markdown(f"<div class='ajust-hauteur-pc' style='overflow-y: auto; display: block;'>{gen_html(d_haut, 'table-class-robuste')}</div>", unsafe_allow_html=True)
         if t_milieu:
             st.markdown(f"<span class='titre-classement espace-classement-suivant'>{t_milieu}</span>", unsafe_allow_html=True)
-            st.markdown(f"<div class='ajust-hauteur-pc'>{gen_html(d_milieu, 'table-class-milieu')}</div>", unsafe_allow_html=True)
+            st.markdown(f"<div class='ajust-hauteur-pc' style='overflow-y: auto; display: block;'>{gen_html(d_milieu, 'table-class-milieu')}</div>", unsafe_allow_html=True)
         if t_bas:
             st.markdown(f"<span class='titre-classement espace-classement-suivant'>{t_bas}</span>", unsafe_allow_html=True)
             nb_lignes = len(d_bas) if hasattr(d_bas, '__len__') else 0
-            style_scroll = "class='ajust-hauteur-pc'" if nb_lignes > 10 else "style='height: auto; display: block;'"
+            style_scroll = "class='ajust-hauteur-pc' style='overflow-y: auto; display: block;'" if nb_lignes > 10 else "style='height: auto; display: block;'"
             st.markdown(f"<div {style_scroll}>{gen_html(d_bas, 'table-class-robuste')}</div>", unsafe_allow_html=True)
     else:
-        # --- MODE ESSAIS ---
         if t_haut:
             st.markdown(f"<span class='titre-classement'>{t_haut}</span>", unsafe_allow_html=True)
-            st.markdown(f"<div class='ajust-hauteur-pc'>{gen_html(d_bas, 'table-class-robuste')}</div>", unsafe_allow_html=True)
+            st.markdown(f"<div class='ajust-hauteur-pc' style='overflow-y: auto; display: block;'>{gen_html(d_bas, 'table-class-robuste')}</div>", unsafe_allow_html=True)
         if t_milieu:
             st.markdown(f"<span class='titre-classement espace-classement-suivant'>{t_milieu}</span>", unsafe_allow_html=True)
-            st.markdown(f"<div class='ajust-hauteur-pc'>{gen_html(d_haut, 'table-class-robuste')}</div>", unsafe_allow_html=True)
+            st.markdown(f"<div class='ajust-hauteur-pc' style='overflow-y: auto; display: block;'>{gen_html(d_haut, 'table-class-robuste')}</div>", unsafe_allow_html=True)
         if t_bas:
             st.markdown(f"<span class='titre-classement espace-classement-suivant'>{t_bas}</span>", unsafe_allow_html=True)
             st.markdown(f"<div class='div-scroll-local-div4'>{gen_html(d_milieu, 'table-class-robuste')}</div>", unsafe_allow_html=True)
 
+# INJECTION DU CONTENEUR HTML DE SIGNATURE APPLATIE ET FIXÉE
 st.markdown(f"""
 <div class='signature-fin-page'>
     <img src='{LIEN_DROPBOX_LOGO}' class='logo-signature'>
-    www.timechrono.be
+    <span>www.timechrono.be</span>
 </div>
 """, unsafe_allow_html=True)
 
+# GESTION DES SECONDES ET DU RAFRAÎCHISSEMENT DU LIVE
 for secondes_restantes in range(30, -1, -1):
     if "Derniers concurrents" in t_live or "DIRECT" in t_live.upper():
         conteneur_titre_live.markdown(f"<span class='titre-live'>🏎️ EN DIRECT / Derniers concurrents partis / <span class='refresh-bleu-clair-historique'>Refresh {secondes_restantes} Sec.</span></span>", unsafe_allow_html=True)
