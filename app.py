@@ -125,8 +125,6 @@ div.stElementContainer {{ margin-top: 0px !important; margin-bottom: 0px !import
 .espace-classement-suivant {{ margin-top: 15px !important; }}
 </style>
 """, unsafe_allow_html=True)
-
-
 st.markdown(f"""
 <style>
 /* 4. RENDU COMPACT DES TABLEAUX */
@@ -262,11 +260,11 @@ with cd:
             rendu_bas_essais = d_milieu if isinstance(d_milieu, str) else gen_html(d_milieu, "table-class-robuste")
             st.markdown(f'<div class="div-mobile-fluid" style="max-height: {h_asaf4_pc}; height: {h_asaf4_pc}; overflow-y: auto; display: block; border: 1px solid #CBD5E1; margin-bottom: 2px;">{rendu_bas_essais}</div>', unsafe_allow_html=True)
 
-    # --- NETTOYAGE ET SÉCURISATION MOBILE SAINE ---
+    # --- NETTOYAGE ET LIBÉRATION MOBILES ABSOLUES ---
     st.markdown("""
     <style>
         @media (max-width: 768px) {
-            /* On restaure immédiatement le comportement de tableau standard pour corriger les colonnes */
+            /* Libération saine du conteneur parent */
             .div-mobile-fluid, .div-mobile-fluid-gauche, .div-scroll-local-historique {
                 max-height: none !important;
                 height: auto !important;
@@ -275,13 +273,12 @@ with cd:
                 border: none !important;
                 display: block !important;
             }
-            /* Restauration de la structure saine des tableaux */
+            /* Respect strict de la structure native pour restaurer le glissement et l'alignement */
             table { display: table !important; width: 100% !important; }
             tbody { display: table-row-group !important; }
             tr { display: table-row !important; height: auto !important; }
-            td, th { display: table-cell !important; padding: 4px 5px !important; }
+            td, th { display: table-cell !important; }
             
-            /* Titres extensibles validés */
             .titre-live, .titre-hist, .titre-classement {
                 height: auto !important;
                 max-height: none !important;
