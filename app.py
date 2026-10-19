@@ -10,7 +10,7 @@ import importlib
 import Essais
 
 # --- SÉCURISATION ET INITIALISATION ABSOLUE DES VARIABLES GLOBALES ---
-LIEN_DROPBOX_LOGO = "https://www.dropbox.com/scl/fi/hi24fjo0vbal4oiiwt9jl/logo-TimeC.png?rlkey=xlw0oqk9gdnq6v5dgahi0klg0&st=y86yrn6y&dl=1"
+LIEN_DROPBOX_LOGO = "https://dropbox.com"
 
 d_liv = pd.DataFrame()
 d_his = pd.DataFrame()
@@ -67,7 +67,7 @@ st.set_page_config(page_title="Live", layout="wide")
 # --- CONCEPTION GRAPHIQUE GÉOMÉTRIQUE UNIFIÉE ---
 st.markdown(f"""
 <style>
-/* 1. DISPARITION TOTALE DES COMPOSANTS STREAMLIT TECHNIQUES (SANS TOUCHER AU LOGO) */
+/* 1. DISPARITION DES COMPOSANTS ENROBAGES TECHNIQUES DE STREAMLIT */
 footer, 
 [data-testid="stFooterContainer"], 
 [data-testid="stStatusWidget"], 
@@ -83,8 +83,6 @@ footer,
     padding: 0px !important;
     overflow: hidden !important;
     opacity: 0 !important;
-    line-height: 0 !important;
-    font-size: 0 !important;
 }}
 
 button:focus, div:focus, input:focus, select:focus {{
@@ -164,16 +162,25 @@ div.stElementContainer {{ margin-top: 0px !important; margin-bottom: 0px !import
 
 .table-class-robuste tr.ligne-bleue-separation td, tr.ligne-separation-classe td, .table-compacte tr.ligne-separation-classe td {{ box-shadow: inset 0 -3px 0 0 #1E3A8A !important; }}
 
-/* 6. SIGNATURE DE FIN DE PAGE */
+/* 6. SIGNATURE DE FIN DE PAGE ET BLINDAGE DE RENDU LOGO */
 .signature-fin-page {{
     display: flex !important; justify-content: center !important; align-items: center !important; gap: 12px !important;
     text-align: center !important; color: #1E3A8A !important; font-size: 0.92rem !important; font-weight: bold !important;
     padding-top: 6px !important; margin-top: 45px !important; margin-bottom: 5px !important; border-top: 1px dashed #1E3A8A !important; width: 100% !important; clear: both !important;
 }}
-.logo-signature {{ height: 24px !important; width: auto !important; vertical-align: middle !important; display: inline-block !important; visibility: visible !important; }}
+.logo-signature-force {{
+    display: inline-block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    height: 24px !important;
+    min-height: 24px !important;
+    width: auto !important;
+    max-width: 200px !important;
+    vertical-align: middle !important;
+}}
 @media (max-width: 768px) {{
     .signature-fin-page {{ font-size: 0.75rem !important; padding-top: 4px !important; margin-bottom: 30px !important; }}
-    .logo-signature {{ height: 32px !important; }}
+    .logo-signature-force {{ height: 32px !important; min-height: 32px !important; }}
 }}
 </style>
 """, unsafe_allow_html=True)
@@ -306,8 +313,13 @@ with cd:
     st.markdown("""<style>@media (max-width: 768px) { .div-mobile-fluid, .div-mobile-fluid-gauche { max-height: none !important; height: auto !important; overflow-y: visible !important; border: none !important; } }</style>""", unsafe_allow_html=True)
 
 # Déclaration sécurisée locale
-LIEN_LOGO_SECURE = "https://dropbox.com"
-st.markdown(f"<div class='signature-fin-page'><img src='{LIEN_LOGO_SECURE}' class='logo-signature'>www.timechrono.be</div>", unsafe_allow_html=True)
+st.markdown(f"""
+<div class='signature-fin-page'>
+    <img src='https://dropbox.com' class='logo-signature-force'>
+    www.timechrono.be
+</div>
+""", unsafe_allow_html=True)
+
 
 for secondes_restantes in range(30, -1, -1):
     if "Derniers concurrents" in t_live or "DIRECT" in t_live.upper():
