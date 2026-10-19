@@ -444,16 +444,31 @@ with cg:
 with cd:
     h_mob = "380px"
     
-    # --- RÉCUPÉRATION DYNAMIQUE DES HAUTEURS DE CHAQUE FICHIER DE COURSE ---
-    # Si le dictionnaire n'existe pas (secours), on applique des valeurs standards
-    if 'HAUTEURS_TABLEAUX_PC' not in locals() and 'HAUTEURS_TABLEAUX_PC' not in globals():
-        HAUTEURS_TABLEAUX_PC = {"RACB": "350px", "ASAF_123": "300px", "ASAF_4": "100px"}
-        
-    h_racb = HAUTEURS_TABLEAUX_PC.get("RACB", "350px")
-    h_asaf123 = HAUTEURS_TABLEAUX_PC.get("ASAF_123", "300px")
-    h_asaf4 = HAUTEURS_TABLEAUX_PC.get("ASAF_4", "100px")
+    # --- EXTRACTION SÉCURISÉE DES HAUTEURS DEPUIS LE FICHIER DE COURSE ACTIF ---
+    import sys
+    # On initialise des valeurs par défaut au cas où
+    h_racb, h_asaf123, h_asaf4 = "350px", "300px", "100px"
+    
+    # On cherche quel module de course est chargé en mémoire pour extraire son dictionnaire
+    nom_module_actif = None
+    if choix_course == "Course 1 ASAF": nom_module_actif = "Course_1_ASAF"
+    elif choix_course == "Course 1 RACB": nom_module_actif = "Course_1_RACB"
+    elif choix_course == "Course 2 ASAF": nom_module_actif = "Course_2_ASAF"
+    elif choix_course == "Course 2 RACB": nom_module_actif = "Course_2_RACB"
+    elif choix_course == "Course 3 ASAF": nom_module_actif = "Course_3_ASAF"
+    elif choix_course == "Course 3 RACB": nom_module_actif = "Course_3_RACB"
+    elif choix_course == "Essais": nom_module_actif = "Essais"
 
-    # Injection CSS dynamique avec vos hauteurs propres par tableau
+    if nom_module_actif and nom_module_actif in sys.modules:
+        module = sys.modules[nom_module_actif]
+        # On extrait le dictionnaire directement depuis l'espace global du module de course
+        dict_hauteurs = getattr(module, "HAUTEURS_TABLEAUX_PC", {})
+        if dict_hauteurs:
+            h_racb = dict_hauteurs.get("RACB", "350px")
+            h_asaf123 = dict_hauteurs.get("ASAF_123", "300px")
+            h_asaf4 = dict_hauteurs.get("ASAF_4", "100px")
+
+    # Injection CSS dynamique avec les vraies hauteurs lues en direct
     st.markdown(f"""
     <style>
       @media (min-width: 769px) {{ 
@@ -493,6 +508,7 @@ with cd:
         if t_bas:
             st.markdown(f"<span class='titre-classement espace-classement-suivant'>{t_bas}</span>", unsafe_allow_html=True)
             st.markdown(f"<div class='ajust-h-asaf4' style='overflow-y: auto; display: block;'>{gen_html(d_milieu, 'table-class-robuste')}</div>", unsafe_allow_html=True)
+
 
 
 
