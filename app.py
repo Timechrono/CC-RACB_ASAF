@@ -28,6 +28,8 @@ t_bas = ""
 LIEN_DROPBOX_LOGO = "https://www.dropbox.com/scl/fi/hi24fjo0vbal4oiiwt9jl/logo-TimeC.png?rlkey=xlw0oqk9gdnq6v5dgahi0klg0&st=y86yrn6y&dl=1"
 
 # --- DÉTECTION DES SCRIPTS DE COURSE DISPONIBLES ---
+module_actif = Essais # Par défaut
+
 try:
     import Course_1_ASAF
     course1_disponible = True
@@ -89,6 +91,16 @@ footer,
     font-size: 0 !important;
 }}
 
+/* NEUTRALISATION DU VOILE GRIS / EFFET MIROIR PENDANT LE ST.RERUN */
+[data-testid="stAppViewContainer"] {{
+    opacity: 1 !important;
+    filter: none !important;
+}}
+.stApp [data-testid="stRenderLoading"] {{
+    display: none !important;
+    visibility: hidden !important;
+}}
+
 /* L'ASTUCE SUR PC : ON EXTRACT LE PIED DE PAGE HORS DE L'ESPACE DE CALCUL DU NAVIGATEUR */
 @media (min-width: 769px) {{
     footer, [data-testid="stFooterContainer"], [data-testid="stStatusWidget"], .stStatusWidget {{
@@ -126,12 +138,12 @@ html, body, [data-testid="stAppViewContainer"], [data-testid="stMainBlockContain
 
 @media (min-width: 769px) {{
     .block-container {{ 
-        padding-bottom: 40px !important; /* Laisse l'espace exact pour la signature fixe */
+        padding-bottom: 45px !important; /* Marge de sécurité pour laisser place à la signature fixe */
     }}
 }}
 @media (max-width: 768px) {{
     .block-container {{ 
-        padding-bottom: 50px !important; 
+        padding-bottom: 55px !important; 
     }}
 }}
 
@@ -182,10 +194,11 @@ div.stElementContainer {{
 """, unsafe_allow_html=True)
 st.markdown(f"""
 <style>
-/* 4. BLOCS DE SCROLL INTERNES CLOISONNÉS (VOTRE CONFIGURATION RESTAURÉE) */
+/* 4. BLOCS DE SCROLL INTERNES ET COUCHE TACTILE MOBILE (-webkit-overflow-scrolling) */
 .div-scroll-local-historique {{
     width: 100% !important;
     border: 1px solid #CBD5E1 !important;
+    -webkit-overflow-scrolling: touch !important;
 }}
 
 .div-scroll-local-general, .div-scroll-local-classes {{
@@ -196,38 +209,15 @@ st.markdown(f"""
     border: none !important;
 }}
 
-@media (min-width: 769px) {{
-    .div-scroll-local-historique {{
-        height: 456px !important;
-        max-height: 456px !important;
-        overflow-y: auto !important;
-        display: block !important;
-    }}
-    .div-scroll-local-div4 {{
-        height: 114px !important;
-        max-height: 114px !important;
-        overflow-y: auto !important;
-        width: 100% !important;
-        display: block !important;
-    }}
-}}
-
 @media (max-width: 768px) {{
     .block-container {{ padding-left: 2px !important; padding-right: 2px !important; }}
     
     .div-scroll-local-historique {{
-        height: 1025px !important;
-        max-height: 1025px !important;
+        height: 400px !important; /* Hauteur fixe sécurisée pour l'historique sur smartphone */
+        max-height: 400px !important;
         overflow-y: auto !important;
         display: block !important;
-        -webkit-overflow-scrolling: touch !important;
         border: 1px solid #CBD5E1 !important;
-    }}
-    .div-scroll-local-div4 {{
-        height: auto !important;
-        max-height: none !important;
-        overflow-y: visible !important;
-        display: block !important;
     }}
 }}
 
@@ -277,35 +267,40 @@ tr.ligne-separation-classe td,
     box-shadow: inset 0 -3px 0 0 #1E3A8A !important; 
 }}
 
-/* ==============================================================================
-   ⚠️ STRUCTURE ISOLE ET DEPORTEE POUR VOTRE SIGNATURE (SANS TOUCHER AUX TABLEAUX)
-   ============================================================================== */
-.zone-pied-page-timechrono {{
+/* 6. PIED DE PAGE FIXE POUR RECOUVRIR LA BARRE COMPLETEMENT */
+.signature-fin-page {{
     position: fixed !important;
     bottom: 0px !important;
     left: 0px !important;
-    width: 100% !important;
-    height: 35px !important;
-    background-color: #FFFFFF !important; /* Recouvre de blanc la barre transparente streamlit */
+    width: 100vw !important;
+    height: 32px !important;
+    background-color: #FFFFFF !important;
     display: flex !important;
     justify-content: center !important;
     align-items: center !important;
-    gap: 15px !important;
+    gap: 12px !important;
     text-align: center !important;
     color: #1E3A8A !important;
-    font-size: 0.95rem !important;
+    font-size: 0.92rem !important;
     font-weight: bold !important;
     border-top: 1px dashed #1E3A8A !important;
-    z-index: 999999 !important; /* Passe obligatoirement au-dessus de tout le reste */
+    z-index: 999999 !important;
     padding: 0px !important;
     margin: 0px !important;
 }}
 
-.image-logo-timechrono {{
-    height: 24px !important;
+.logo-signature {{
+    height: 20px !important;
     width: auto !important;
-    display: inline-block !important;
     vertical-align: middle !important;
+}}
+
+@media (max-width: 768px) {{
+    .signature-fin-page {{ 
+        font-size: 0.75rem !important; 
+        height: 38px !important;
+    }}
+    .logo-signature {{ height: 24px !important; }}
 }}
 </style>
 """, unsafe_allow_html=True)
@@ -348,30 +343,49 @@ choix_course_url = query_params.get("course", "essais").lower()
 
 if choix_course_url == "c1asaf" and course1_disponible:
     choix_course = "Course 1 ASAF"
+    module_actif = Course_1_ASAF
 elif choix_course_url == "c1racb" and course1_racb_disponible:
     choix_course = "Course 1 RACB"
+    module_actif = Course_1_RACB
 elif choix_course_url == "c2asaf" and course2_disponible:
     choix_course = "Course 2 ASAF"
+    module_actif = Course_2_ASAF
 elif choix_course_url == "c2racb" and course2_racb_disponible:
     choix_course = "Course 2 RACB"
+    module_actif = Course_2_RACB
 elif choix_course_url == "c3asaf" and course3_disponible:
     choix_course = "Course 3 ASAF"
+    module_actif = Course_3_ASAF
 elif choix_course_url == "c3racb" and course3_racb_disponible:
     choix_course = "Course 3 RACB"
+    module_actif = Course_3_RACB
 else:
     choix_course = "Essais"
+    module_actif = Essais
+
+# --- EXTRACTION VISUELLE ET DYNAMIQUE DES HAUTEURS DEPUIS LE FICHIER ASSOCIE ---
+hauteurs_config = getattr(module_actif, "HAUTEURS_TABLEAUX_PC", {})
+h_historique = hauteurs_config.get("HISTORIQUE", "456px")
+h_racb = hauteurs_config.get("RACB", "380px")
+h_asaf_123 = hauteurs_config.get("ASAF_123", "380px")
+h_asaf_4 = hauteurs_config.get("ASAF_4", "114px")
+
+# Injection CSS unifiée (PC + Mobile) pour forcer le scroll sur l'ensemble des conteneurs
+st.markdown(f"""
+<style>
+@media (min-width: 769px) {{
+    .div-scroll-local-historique {{ height: {h_historique} !important; max-height: {h_historique} !important; overflow-y: auto !important; }}
+}}
+.div-scroll-local-div4 {{ height: {h_asaf_4} !important; max-height: {h_asaf_4} !important; overflow-y: auto !important; -webkit-overflow-scrolling: touch !important; }}
+.ajust-hauteur-racb {{ height: {h_racb} !important; max-height: {h_racb} !important; overflow-y: auto !important; display: block !important; -webkit-overflow-scrolling: touch !important; }}
+.ajust-hauteur-asaf123 {{ height: {h_asaf_123} !important; max-height: {h_asaf_123} !important; overflow-y: auto !important; display: block !important; -webkit-overflow-scrolling: touch !important; }}
+</style>
+""", unsafe_allow_html=True)
 
 try:
     from concurrent.futures import ThreadPoolExecutor
-
     def recuperer_avec_timeout():
-        if choix_course == "Course 1 ASAF": return Course_1_ASAF.recuperer_donnees_course()
-        elif choix_course == "Course 1 RACB": return Course_1_RACB.recuperer_donnees_course()
-        elif choix_course == "Course 2 ASAF": return Course_2_ASAF.recuperer_donnees_course()
-        elif choix_course == "Course 2 RACB": return Course_2_RACB.recuperer_donnees_course()
-        elif choix_course == "Course 3 ASAF": return Course_3_ASAF.recuperer_donnees_course()
-        elif choix_course == "Course 3 RACB": return Course_3_RACB.recuperer_donnees_course()
-        else: return Essais.recuperer_donnees_course()
+        return module_actif.recuperer_donnees_course()
 
     with ThreadPoolExecutor(max_workers=1) as executor:
         future = executor.submit(recuperer_avec_timeout)
@@ -386,13 +400,6 @@ st.markdown("<style>@media (min-width: 769px) { .table-hist th:nth-child(1), .ta
 if t_haut and "TOP 20" in t_haut.upper():
     t_haut = "🏆 CLASSEMENT GENERAL OFFICIEUX RACB"
 
-if "ESSAIS" in choix_course.upper():
-    h_pc = "215px"
-elif "COURSE 1" in choix_course.upper():
-    h_pc = "425px"
-else:
-    h_pc = "380px"
-
 cg, cd = st.columns([1.3, 0.9])
 with cg:
     conteneur_titre_live = st.empty()
@@ -402,42 +409,33 @@ with cg:
     st.markdown(gen_html(d_his, "table-hist"), unsafe_allow_html=True)
     
 with cd:
-    h_mob = "380px"
-
-    st.markdown(f"""
-    <style>
-      @media (min-width: 769px) {{ .ajust-hauteur-pc {{ max-height: {h_pc} !important; }} }}
-      @media (max-width: 768px) {{ .ajust-hauteur-pc {{ max-height: {h_mob} !important; }} }}
-    </style>
-    """, unsafe_allow_html=True)
-
     if choix_course != "Essais":
         if t_haut:
             st.markdown(f"<span class='titre-classement'>{t_haut}</span>", unsafe_allow_html=True)
-            st.markdown(f"<div class='ajust-hauteur-pc' style='overflow-y: auto; display: block;'>{gen_html(d_haut, 'table-class-robuste')}</div>", unsafe_allow_html=True)
+            st.markdown(f"<div class='ajust-hauteur-racb'>{gen_html(d_haut, 'table-class-robuste')}</div>", unsafe_allow_html=True)
         if t_milieu:
             st.markdown(f"<span class='titre-classement espace-classement-suivant'>{t_milieu}</span>", unsafe_allow_html=True)
-            st.markdown(f"<div class='ajust-hauteur-pc' style='overflow-y: auto; display: block;'>{gen_html(d_milieu, 'table-class-milieu')}</div>", unsafe_allow_html=True)
+            st.markdown(f"<div class='ajust-hauteur-asaf123'>{gen_html(d_milieu, 'table-class-milieu')}</div>", unsafe_allow_html=True)
         if t_bas:
             st.markdown(f"<span class='titre-classement espace-classement-suivant'>{t_bas}</span>", unsafe_allow_html=True)
             nb_lignes = len(d_bas) if hasattr(d_bas, '__len__') else 0
-            style_scroll = "class='ajust-hauteur-pc' style='overflow-y: auto; display: block;'" if nb_lignes > 10 else "style='height: auto; display: block;'"
+            style_scroll = "class='ajust-hauteur-asaf123'" if nb_lignes > 10 else "style='height: auto; display: block;'"
             st.markdown(f"<div {style_scroll}>{gen_html(d_bas, 'table-class-robuste')}</div>", unsafe_allow_html=True)
     else:
         if t_haut:
             st.markdown(f"<span class='titre-classement'>{t_haut}</span>", unsafe_allow_html=True)
-            st.markdown(f"<div class='ajust-hauteur-pc' style='overflow-y: auto; display: block;'>{gen_html(d_bas, 'table-class-robuste')}</div>", unsafe_allow_html=True)
+            st.markdown(f"<div class='ajust-hauteur-racb'>{gen_html(d_bas, 'table-class-robuste')}</div>", unsafe_allow_html=True)
         if t_milieu:
             st.markdown(f"<span class='titre-classement espace-classement-suivant'>{t_milieu}</span>", unsafe_allow_html=True)
-            st.markdown(f"<div class='ajust-hauteur-pc' style='overflow-y: auto; display: block;'>{gen_html(d_haut, 'table-class-robuste')}</div>", unsafe_allow_html=True)
+            st.markdown(f"<div class='ajust-hauteur-asaf123'>{gen_html(d_haut, 'table-class-robuste')}</div>", unsafe_allow_html=True)
         if t_bas:
             st.markdown(f"<span class='titre-classement espace-classement-suivant'>{t_bas}</span>", unsafe_allow_html=True)
             st.markdown(f"<div class='div-scroll-local-div4'>{gen_html(d_milieu, 'table-class-robuste')}</div>", unsafe_allow_html=True)
 
-# --- INJECTION DU PIED DE PAGE AUTONOME RECOUVRANT LA BANDE BLANCHE ---
+# INJECTION DE LA SIGNATURE UNIQUE CONTRE LES DOUBLONS
 st.markdown(f"""
-<div class='zone-pied-page-timechrono'>
-    <img src='{LIEN_DROPBOX_LOGO}' class='image-logo-timechrono' alt='TimeChrono'>
+<div class='signature-fin-page'>
+    <img src='{LIEN_DROPBOX_LOGO}' class='logo-signature'>
     <span>www.timechrono.be</span>
 </div>
 """, unsafe_allow_html=True)
