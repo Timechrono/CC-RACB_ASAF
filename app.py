@@ -91,7 +91,7 @@ footer,
     font-size: 0 !important;
 }}
 
-/* NEUTRALISATION TOTAL DU VOILE GRIS ET EFFET MIROIR CLIGNOTANT PENDANT LE REFRESH */
+/* NEUTRALISATION TOTAL DU VOILE GRIS PENDANT LE REFRESH */
 [data-testid="stAppViewContainer"] {{
     opacity: 1 !important;
     filter: none !important;
@@ -101,27 +101,11 @@ footer,
     visibility: hidden !important;
 }}
 
-/* EXTRACT DE LA ZONE INFÉRIEURE STREAMLIT PAR TRANSLATION HORS DE L'ÉCRAN */
-@media (min-width: 769px) {{
-    footer, [data-testid="stFooterContainer"], [data-testid="stStatusWidget"], .stStatusWidget {{
-        position: fixed !important;
-        bottom: -500px !important;
-        transform: translateY(500px) !important;
-    }}
-}}
-@media (max-width: 768px) {{
-    footer, [data-testid="stFooterContainer"], [data-testid="stStatusWidget"], .stStatusWidget {{
-        position: static !important;
-        bottom: auto !important;
-        transform: none !important;
-    }}
-}}
-
 button:focus, div:focus, input:focus, select:focus {{
     outline: none !important; border-color: transparent !important; box-shadow: none !important;
 }}
 
-/* 2. CONFIGURATION DE LA PAGE ET REPRISE DE LA BANDE BLANCHE */
+/* 2. CONFIGURATION DE LA PAGE */
 html, body, [data-testid="stAppViewContainer"], [data-testid="stMainBlockContainer"] {{
     overflow: auto !important;
     overflow-y: auto !important;
@@ -133,20 +117,7 @@ html, body, [data-testid="stAppViewContainer"], [data-testid="stMainBlockContain
     padding-top: 5px !important; 
     padding-left: 0.5rem !important; 
     padding-right: 0.5rem !important; 
-}}
-
-@media (min-width: 769px) {{
-    .block-container {{ 
-        padding-bottom: 45px !important; 
-    }}
-}}
-@media (max-width: 768px) {{
-    .block-container {{ 
-        padding-bottom: 50px !important; 
-    }}
-    [data-testid="stAppViewContainer"] > section {{
-        padding-bottom: 0px !important;
-    }}
+    padding-bottom: 20px !important;
 }}
 
 div[data-testid="stVerticalBlock"] {{
@@ -267,61 +238,6 @@ st.markdown(f"""
 tr.ligne-separation-classe td, 
 .table-compacte tr.ligne-separation-classe td {{ 
     box-shadow: inset 0 -3px 0 0 #1E3A8A !important; 
-}}
-
-/* 6. CONTEXTE DE SIGNATURE IMMUNISÉ SANS IMAGE CRITIQUE SUR SMARTPHONE */
-.signature-fin-page {{
-    position: fixed !important;
-    bottom: 0px !important;
-    left: 0px !important;
-    width: 100% !important;
-    box-sizing: border-box !important;
-    height: 40px !important;
-    background-color: #FFFFFF !important;
-    display: flex !important;
-    flex-direction: row !important;
-    flex-wrap: nowrap !important;
-    justify-content: center !important;
-    align-items: center !important;
-    gap: 15px !important;
-    text-align: center !important;
-    border-top: 1px dashed #1E3A8A !important;
-    z-index: 999999 !important;
-    padding: 0px 10px !important;
-    margin: 0px !important;
-}}
-
-/* Gestion adaptative de l'affichage */
-.version-pc-logo {{ display: inline-block !important; }}
-.version-mobile-text-uniquement {{ display: none !important; }}
-
-.logo-signature {{
-    width: 140px !important;
-    height: auto !important;
-    display: inline-block !important;
-}}
-
-@media (max-width: 768px) {{
-    .signature-fin-page {{ 
-        height: 38px !important; 
-        padding-bottom: env(safe-area-inset-bottom, 1px) !important; 
-        gap: 6px !important;
-    }}
-    /* On masque le fichier image déformé sur mobile et on active la version typographique pure */
-    .version-pc-logo {{ display: none !important; }}
-    .version-mobile-text-uniquement {{ 
-        display: inline-block !important; 
-        color: #1E3A8A !important;
-        font-family: Arial, sans-serif !important;
-        font-weight: 900 !important;
-        font-size: 0.90rem !important;
-        letter-spacing: 0.5px !important;
-    }}
-    .lien-site-web-mobile {{
-        color: #1E3A8A !important;
-        font-size: 0.88rem !important;
-        font-weight: bold !important;
-    }}
 }}
 </style>
 """, unsafe_allow_html=True)
@@ -452,18 +368,15 @@ with cd:
             st.markdown(f"<span class='titre-classement espace-classement-suivant'>{t_bas}</span>", unsafe_allow_html=True)
             st.markdown(f"<div class='div-scroll-local-div4'>{gen_html(d_milieu, 'table-class-robuste')}</div>", unsafe_allow_html=True)
 
-# INJECTION DU PIED DE PAGE HYBRIDE (LOGO PC / TEXTE PARFAIT SUR MOBILE)
-st.markdown(f"""
-<div class='signature-fin-page'>
-    <div class='version-pc-logo'>
-        <img src='{LIEN_DROPBOX_LOGO}' class='logo-signature' alt='TimeChrono'>
-    </div>
-    <div class='version-mobile-text-uniquement'>
-        🏎️ TIMING CHRONO
-    </div>
-    <span class='lien-site-web-mobile' style='white-space: nowrap !important;'>www.timechrono.be</span>
-</div>
-""", unsafe_allow_html=True)
+# ------------------------------------------------------------------------------
+# 🏆 SIGNATURE NATIVE ET PARFAITE (PC & MOBILE) - SANS AUCUN CSS FIXE COMPRESSANT
+# ------------------------------------------------------------------------------
+st.write("---") # Ligne fine de séparation esthétique
+col_logo, col_texte = st.columns([1, 4])
+with col_logo:
+    st.image(LIEN_DROPBOX_LOGO, width=130)
+with col_texte:
+    st.markdown("<p style='color: #1E3A8A; font-weight: bold; margin-top: 5px; font-size: 1.1rem;'>www.timechrono.be</p>", unsafe_allow_html=True)
 
 # GESTION DES SECONDES ET DU RAFRAÎCHISSEMENT DU LIVE
 for secondes_restantes in range(30, -1, -1):
