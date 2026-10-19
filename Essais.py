@@ -196,7 +196,7 @@ def recuperer_donnees_course():
 
     except Exception: pass
 
-        # --- INJECTION DYNAMIQUE DES CONFIGURATIONS DE HAUTEUR SUR PC ---
+     # --- INJECTION DYNAMIQUE TOTALEMENT VERROUILLÉE DES HAUTEURS SUR PC ---
     h_hist = HAUTEURS_TABLEAUX_PC.get("HISTORIQUE", "456px")
     h_racb = HAUTEURS_TABLEAUX_PC.get("RACB", "215px")
     h_asaf123 = HAUTEURS_TABLEAUX_PC.get("ASAF_123", "215px")
@@ -205,22 +205,42 @@ def recuperer_donnees_course():
     css_exclusif_pc = f"""
     <style>
       @media (min-width: 769px) {{
-        /* 1. Force la hauteur du tableau Historique (Colonne Gauche) */
+        
+        /* 1. Bloc de Gauche : Historique */
         .div-scroll-local-historique {{
           height: {h_hist} !important;
           max-height: {h_hist} !important;
           overflow-y: auto !important;
-        }}
-        
-        /* 2. Force le bridage et le scroll sur les blocs enveloppes de app.py (Colonne Droite) */
-        .ajust-hauteur-pc {{
-          height: {h_racb} !important;
-          max-height: {h_racb} !important;
-          overflow-y: auto !important;
           display: block !important;
         }}
         
-        /* 3. Spécificité pour la Division 4 (si elle utilise un conteneur dédié) */
+        /* 2. Blocs de Droite : Verrouillage des enveloppes de app.py */
+        .ajust-hauteur-pc {{
+          height: auto !important;
+          max-height: none !important;
+          overflow: visible !important;
+        }}
+        
+        /* 3. Ciblage chirurgical des conteneurs de tableaux HTML réels générés par gen_html() */
+        /* Cela empêche l'étirement des données et force l'apparition de la barre de défilement */
+        .ajust-hauteur-pc .table-responsive-container {{
+          display: block !important;
+          width: 100% !important;
+          overflow-y: auto !important;
+        }}
+        
+        /* Attribution individuelle des hauteurs sur les tableaux de droite */
+        .ajust-hauteur-pc .table-class-robuste {{
+          max-height: {h_racb} !important;
+          height: {h_racb} !important;
+        }}
+        
+        .ajust-hauteur-pc .table-class-milieu {{
+          max-height: {h_asaf123} !important;
+          height: {h_asaf123} !important;
+        }}
+        
+        /* 4. Cas de la Division 4 (Mode Essais) */
         .div-scroll-local-div4 {{
           height: {h_asaf4} !important;
           max-height: {h_asaf4} !important;
@@ -228,16 +248,18 @@ def recuperer_donnees_course():
           display: block !important;
         }}
         
-        /* 4. Sécurité pour les sous-conteneurs de tableaux */
-        .div-scroll-local-general, .table-responsive-container {{
-          height: 100% !important;
-          max-height: 100% !important;
-          overflow-y: visible !important;
+        .div-scroll-local-div4 .table-responsive-container,
+        .div-scroll-local-div4 .table-class-robuste {{
+          max-height: {h_asaf4} !important;
+          height: {h_asaf4} !important;
+          overflow-y: auto !important;
         }}
+        
       }}
     </style>
     """
     st.markdown(css_exclusif_pc, unsafe_allow_html=True)
+
 
 
     t_live = "<span>🏎️ EN DIRECT / Derniers concurrents partis</span>"
