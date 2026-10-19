@@ -269,7 +269,7 @@ tr.ligne-separation-classe td,
     box-shadow: inset 0 -3px 0 0 #1E3A8A !important; 
 }}
 
-/* 6. VERROUILLAGE LARGEUR ET RATIO POUR LE SMARTPHONE */
+/* 6. CONTEXTE DE SIGNATURE IMMUNISÉ SANS IMAGE CRITIQUE SUR SMARTPHONE */
 .signature-fin-page {{
     position: fixed !important;
     bottom: 0px !important;
@@ -285,32 +285,42 @@ tr.ligne-separation-classe td,
     align-items: center !important;
     gap: 15px !important;
     text-align: center !important;
-    color: #1E3A8A !important;
-    font-size: 1.02rem !important;
-    font-weight: bold !important;
     border-top: 1px dashed #1E3A8A !important;
     z-index: 999999 !important;
     padding: 0px 10px !important;
     margin: 0px !important;
 }}
 
+/* Gestion adaptative de l'affichage */
+.version-pc-logo {{ display: inline-block !important; }}
+.version-mobile-text-uniquement {{ display: none !important; }}
+
 .logo-signature {{
-    width: 140px !important; /* Largeur fixe sur PC */
-    height: auto !important;  /* Laisse la hauteur s'adapter proportionnellement */
+    width: 140px !important;
+    height: auto !important;
     display: inline-block !important;
 }}
 
 @media (max-width: 768px) {{
     .signature-fin-page {{ 
-        font-size: 0.88rem !important;
-        height: 42px !important; 
-        padding-bottom: env(safe-area-inset-bottom, 2px) !important; 
-        gap: 10px !important;
+        height: 38px !important; 
+        padding-bottom: env(safe-area-inset-bottom, 1px) !important; 
+        gap: 6px !important;
     }}
-    .logo-signature {{ 
-        width: 110px !important; /* Largeur fixe plus petite pour smartphone */
-        height: auto !important;  /* Empêche mathématiquement la coupe au centre */
-        display: inline-block !important;
+    /* On masque le fichier image déformé sur mobile et on active la version typographique pure */
+    .version-pc-logo {{ display: none !important; }}
+    .version-mobile-text-uniquement {{ 
+        display: inline-block !important; 
+        color: #1E3A8A !important;
+        font-family: Arial, sans-serif !important;
+        font-weight: 900 !important;
+        font-size: 0.90rem !important;
+        letter-spacing: 0.5px !important;
+    }}
+    .lien-site-web-mobile {{
+        color: #1E3A8A !important;
+        font-size: 0.88rem !important;
+        font-weight: bold !important;
     }}
 }}
 </style>
@@ -442,11 +452,16 @@ with cd:
             st.markdown(f"<span class='titre-classement espace-classement-suivant'>{t_bas}</span>", unsafe_allow_html=True)
             st.markdown(f"<div class='div-scroll-local-div4'>{gen_html(d_milieu, 'table-class-robuste')}</div>", unsafe_allow_html=True)
 
-# INJECTION DU PIED DE PAGE SÉCURISÉ PAR RATIO DE LARGEUR EN LIGNE
+# INJECTION DU PIED DE PAGE HYBRIDE (LOGO PC / TEXTE PARFAIT SUR MOBILE)
 st.markdown(f"""
 <div class='signature-fin-page'>
-    <img src='{LIEN_DROPBOX_LOGO}' class='logo-signature' alt='TimeChrono'>
-    <span style='white-space: nowrap !important; display: inline-block !important;'>www.timechrono.be</span>
+    <div class='version-pc-logo'>
+        <img src='{LIEN_DROPBOX_LOGO}' class='logo-signature' alt='TimeChrono'>
+    </div>
+    <div class='version-mobile-text-uniquement'>
+        🏎️ TIMING CHRONO
+    </div>
+    <span class='lien-site-web-mobile' style='white-space: nowrap !important;'>www.timechrono.be</span>
 </div>
 """, unsafe_allow_html=True)
 
