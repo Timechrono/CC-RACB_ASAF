@@ -64,13 +64,10 @@ except ModuleNotFoundError:
     course3_racb_disponible = False
 
 st.set_page_config(page_title="Live", layout="wide")
-st.set_page_config(menu_items=None) 
 
 # --- CONCEPTION GRAPHIQUE GÉOMÉTRIQUE UNIFIÉE ---
 st.markdown(f"""
-
 <style>
-
 /* 1. DISPARITION TOTALE, RADICALE ET PROPRE DES COMPOSANTS STREAMLIT (PC & MOBILE) */
 footer, 
 [data-testid="stFooterContainer"], 
@@ -90,7 +87,7 @@ header {{
     opacity: 0 !important;
     line-height: 0 !important;
     font-size: 0 !important;
-    position: absolute !important; /* Sort complètement les éléments du flux pour éviter les zones blanches/grisées */
+    position: absolute !important;
     top: -9999px !important;
     left: -9999px !important;
 }}
@@ -119,7 +116,7 @@ button:focus, div:focus, input:focus, select:focus {{
 
 /* Réduction stricte des marges de Streamlit pour coller le titre en haut de l'écran */
 .block-container {{ 
-    padding-top: 0px !important; /* Forcé à 0px pour supprimer l'espace blanc du haut */
+    padding-top: 0px !important;
     margin-top: 0px !important;
     padding-left: 0.5rem !important; 
     padding-right: 0.5rem !important; 
@@ -307,14 +304,9 @@ tr.ligne-separation-classe td,
     }}
     .logo-signature {{ height: 32px !important; }}
 }}
-
 </style>
-
 """, unsafe_allow_html=True)
-
-
 def gen_html(df, cl):
-    # Sécurisation préventive des variables de session ou d'URL
     if cl == "table-hist":
         phrase_attente = "En attente d'arrivée..."
     elif cl in ["table-class-robuste", "table-class-groupes", "table-class-milieu"]:
@@ -328,7 +320,6 @@ def gen_html(df, cl):
     else:
         phrase_attente = "En attente du départ..."
 
-    # Définition propre du conteneur
     style_conteneur = "class='div-scroll-local-historique'" if cl == "table-hist" else "class='table-responsive-container'"
 
     if isinstance(df, str):
@@ -348,11 +339,6 @@ def gen_html(df, cl):
     html_table = df.to_html(index=False, classes=f"table-compacte {cl}", escape=False, border=0)
     return f"<div {style_conteneur}>{html_table}</div>"
 
-
-
-
-# fin bloc 2
-
 # --- LECTURE DU PARAMÈTRE DE COURSE DEPUIS L'URL ---
 query_params = st.query_params
 choix_course_url = query_params.get("course", "essais").lower()
@@ -371,6 +357,16 @@ elif choix_course_url == "c3racb" and course3_racb_disponible:
     choix_course = "Course 3 RACB"
 else:
     choix_course = "Essais"
+
+# Récupération dynamique du module actif pour les variables de hauteur
+module_actif = None
+if choix_course == "Course 1 ASAF": import Course_1_ASAF; module_actif = Course_1_ASAF
+elif choix_course == "Course 1 RACB": import Course_1_RACB; module_actif = Course_1_RACB
+elif choix_course == "Course 2 ASAF": import Course_2_ASAF; module_actif = Course_2_ASAF
+elif choix_course == "Course 2 RACB": import Course_2_RACB; module_actif = Course_2_RACB
+elif choix_course == "Course 3 ASAF": import Course_3_ASAF; module_actif = Course_3_ASAF
+elif choix_course == "Course 3 RACB": import Course_3_RACB; module_actif = Course_3_RACB
+else: import Essais; module_actif = Essais
 
 try:
     from concurrent.futures import ThreadPoolExecutor
@@ -397,14 +393,6 @@ st.markdown("<style>@media (min-width: 769px) { .table-hist th:nth-child(1), .ta
 if t_haut and "TOP 20" in t_haut.upper():
     t_haut = "🏆 CLASSEMENT GENERAL OFFICIEUX RACB"
 
-# CORRECTION DU BLOCAGE ICI : FORCE STRICTEMENT LE BRIDAGE VISUEL À 10 LIGNES (215PX) POUR LES ESSAIS
-if "ESSAIS" in choix_course.upper():
-    h_pc = "215px"
-elif "COURSE 1" in choix_course.upper():
-    h_pc = "425px"
-else:
-    h_pc = "380px"
-
 cg, cd = st.columns([1.3, 0.9])
 with cg:
     conteneur_titre_live = st.empty()
@@ -412,16 +400,13 @@ with cg:
     if t_his: 
         st.markdown(f"<span class='titre-hist'>{t_his}</span>", unsafe_allow_html=True)
     st.markdown(gen_html(d_his, "table-hist"), unsafe_allow_html=True)
-    
 with cd:
-    h_mob = "380px"
-
     # --- LIEN INTELLIGENT AVEC LES VARIABLES DE CONFIGURATION ---
     h_racb_pc = "215px"
     h_asaf123_pc = "215px"
     h_asaf4_pc = "114px"
     
-    if 'module_actif' in globals() and hasattr(module_actif, 'HAUTEURS_TABLEAUX_PC'):
+    if module_actif and hasattr(module_actif, 'HAUTEURS_TABLEAUX_PC'):
         h_racb_pc = module_actif.HAUTEURS_TABLEAUX_PC.get("RACB", "215px")
         h_asaf123_pc = module_actif.HAUTEURS_TABLEAUX_PC.get("ASAF_123", "215px")
         h_asaf4_pc = module_actif.HAUTEURS_TABLEAUX_PC.get("ASAF_4", "114px")
@@ -485,7 +470,7 @@ with cd:
                 </div>
             """, unsafe_allow_html=True)
 
-    # Petit hack CSS pour s'assurer que sur mobile ces boîtes perdent leur max-height et ne bloquent pas le scroll tactile
+    # Petit hack CSS pour s'assurer que sur mobile ces boîtes perdent leur max-height
     st.markdown("""
     <style>
         @media (max-width: 768px) {
@@ -497,51 +482,6 @@ with cd:
         }
     </style>
     """, unsafe_allow_html=True)
-
-
-    # Petit hack CSS pour s'assurer que sur mobile ces boîtes perdent leur max-height et ne bloquent pas le scroll tactile
-    st.markdown("""
-    <style>
-        @media (max-width: 768px) {
-            .div-pc-scroll {
-                max-height: none !important;
-                overflow-y: visible !important;
-                border: none !important;
-            }
-        }
-    </style>
-    """, unsafe_allow_html=True)
-
-
-
-    if choix_course != "Essais":
-        # --- MODE DE COURSE ---
-        if t_haut:
-            st.markdown(f"<span class='titre-classement'>{t_haut}</span>", unsafe_allow_html=True)
-            st.markdown(f"<div class='ajust-hauteur-pc' style='overflow-y: auto; display: block;'>{gen_html(d_haut, 'table-class-robuste')}</div>", unsafe_allow_html=True)
-        if t_milieu:
-            st.markdown(f"<span class='titre-classement espace-classement-suivant'>{t_milieu}</span>", unsafe_allow_html=True)
-            st.markdown(f"<div class='ajust-hauteur-pc' style='overflow-y: auto; display: block;'>{gen_html(d_milieu, 'table-class-milieu')}</div>", unsafe_allow_html=True)
-        if t_bas:
-            st.markdown(f"<span class='titre-classement espace-classement-suivant'>{t_bas}</span>", unsafe_allow_html=True)
-            nb_lignes = len(d_bas) if hasattr(d_bas, '__len__') else 0
-            style_scroll = "class='ajust-hauteur-pc' style='overflow-y: auto; display: block;'" if nb_lignes > 10 else "style='height: auto; display: block;'"
-            st.markdown(f"<div {style_scroll}>{gen_html(d_bas, 'table-class-robuste')}</div>", unsafe_allow_html=True)
-    else:
-        # --- MODE ESSAIS ---
-        if t_haut:
-            st.markdown(f"<span class='titre-classement'>{t_haut}</span>", unsafe_allow_html=True)
-            st.markdown(f"<div class='ajust-hauteur-pc' style='overflow-y: auto; display: block;'>{gen_html(d_bas, 'table-class-robuste')}</div>", unsafe_allow_html=True)
-        if t_milieu:
-            st.markdown(f"<span class='titre-classement espace-classement-suivant'>{t_milieu}</span>", unsafe_allow_html=True)
-            st.markdown(f"<div class='ajust-hauteur-pc' style='overflow-y: auto; display: block;'>{gen_html(d_haut, 'table-class-robuste')}</div>", unsafe_allow_html=True)
-        if t_bas:
-            st.markdown(f"<span class='titre-classement espace-classement-suivant'>{t_bas}</span>", unsafe_allow_html=True)
-            
-            # APPLICATION BRIDAGE : Encapsulation dans le conteneur forcé à 114px pour la Division 4 en mode Essais
-            st.markdown(f"<div class='div-scroll-local-div4'>{gen_html(d_milieu, 'table-class-robuste')}</div>", unsafe_allow_html=True)
-
-
 
 st.markdown(f"""
 <div class='signature-fin-page'>
@@ -550,7 +490,7 @@ st.markdown(f"""
 </div>
 """, unsafe_allow_html=True)
 
-# CODE ACTUEL
+# CODE REFRESH AUTOMATIQUE
 for secondes_restantes in range(30, -1, -1):
     if "Derniers concurrents" in t_live or "DIRECT" in t_live.upper():
         conteneur_titre_live.markdown(f"<span class='titre-live'>🏎️ EN DIRECT / Derniers concurrents partis / <span class='refresh-bleu-clair-historique'>Refresh {secondes_restantes} Sec.</span></span>", unsafe_allow_html=True)
