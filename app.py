@@ -27,6 +27,7 @@ t_bas = ""
 # ==============================================================================
 LIEN_DROPBOX_LOGO = "https://www.dropbox.com/scl/fi/hi24fjo0vbal4oiiwt9jl/logo-TimeC.png?rlkey=xlw0oqk9gdnq6v5dgahi0klg0&st=y86yrn6y&dl=1"
 
+
 # --- DÉTECTION DES SCRIPTS DE COURSE DISPONIBLES ---
 module_actif = Essais # Par défaut
 
@@ -91,7 +92,7 @@ footer,
     font-size: 0 !important;
 }}
 
-/* NEUTRALISATION DU VOILE GRIS / EFFET MIROIR PENDANT LE ST.RERUN */
+/* NEUTRALISATION TOTAL DU VOILE GRIS ET EFFET MIROIR CLIGNOTANT PENDANT LE REFRESH */
 [data-testid="stAppViewContainer"] {{
     opacity: 1 !important;
     filter: none !important;
@@ -101,7 +102,7 @@ footer,
     visibility: hidden !important;
 }}
 
-/* L'ASTUCE SUR PC : ON EXTRACT LE PIED DE PAGE HORS DE L'ESPACE DE CALCUL DU NAVIGATEUR */
+/* EXTRACT DE LA ZONE INFÉRIEURE STREAMLIT PAR TRANSLATION HORS DE L'ÉCRAN */
 @media (min-width: 769px) {{
     footer, [data-testid="stFooterContainer"], [data-testid="stStatusWidget"], .stStatusWidget {{
         position: fixed !important;
@@ -109,7 +110,6 @@ footer,
         transform: translateY(500px) !important;
     }}
 }}
-
 @media (max-width: 768px) {{
     footer, [data-testid="stFooterContainer"], [data-testid="stStatusWidget"], .stStatusWidget {{
         position: static !important;
@@ -122,7 +122,7 @@ button:focus, div:focus, input:focus, select:focus {{
     outline: none !important; border-color: transparent !important; box-shadow: none !important;
 }}
 
-/* 2. CONFIGURATION DE LA PAGE ET RECUPERATION DE L'ESPACE MAXIMUM SUR PC */
+/* 2. CONFIGURATION DE LA PAGE ET REPRISE DE LA BANDE BLANCHE */
 html, body, [data-testid="stAppViewContainer"], [data-testid="stMainBlockContainer"] {{
     overflow: auto !important;
     overflow-y: auto !important;
@@ -138,12 +138,12 @@ html, body, [data-testid="stAppViewContainer"], [data-testid="stMainBlockContain
 
 @media (min-width: 769px) {{
     .block-container {{ 
-        padding-bottom: 45px !important; /* Marge de sécurité pour laisser place à la signature fixe */
+        padding-bottom: 45px !important; /* Marge inférieure de sécurité PC */
     }}
 }}
 @media (max-width: 768px) {{
     .block-container {{ 
-        padding-bottom: 55px !important; 
+        padding-bottom: 55px !important; /* Marge inférieure de sécurité Smartphone */
     }}
 }}
 
@@ -194,7 +194,7 @@ div.stElementContainer {{
 """, unsafe_allow_html=True)
 st.markdown(f"""
 <style>
-/* 4. BLOCS DE SCROLL INTERNES ET COUCHE TACTILE MOBILE (-webkit-overflow-scrolling) */
+/* 4. BLOCS DE SCROLL INTERNES CLOISONNÉS TACTILES */
 .div-scroll-local-historique {{
     width: 100% !important;
     border: 1px solid #CBD5E1 !important;
@@ -213,7 +213,7 @@ st.markdown(f"""
     .block-container {{ padding-left: 2px !important; padding-right: 2px !important; }}
     
     .div-scroll-local-historique {{
-        height: 400px !important; /* Hauteur fixe sécurisée pour l'historique sur smartphone */
+        height: 400px !important; /* Hauteur fixe compacte et scrollable pour mobile */
         max-height: 400px !important;
         overflow-y: auto !important;
         display: block !important;
@@ -221,7 +221,7 @@ st.markdown(f"""
     }}
 }}
 
-/* 5. DESIGN ET RENDU COMPACT DES TABLEAUX */
+/* 5. DESIGN ET RENDU COMPACT DES TABLEAUX MATRICIELS */
 .table-responsive-container {{
     width: 100% !important;
 }}
@@ -267,40 +267,47 @@ tr.ligne-separation-classe td,
     box-shadow: inset 0 -3px 0 0 #1E3A8A !important; 
 }}
 
-/* 6. PIED DE PAGE FIXE POUR RECOUVRIR LA BARRE COMPLETEMENT */
+/* 6. PIED DE PAGE FIXE FLUIDE POUR SMARTPHONE SANS COUPE */
 .signature-fin-page {{
     position: fixed !important;
     bottom: 0px !important;
     left: 0px !important;
-    width: 100vw !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
     height: 32px !important;
     background-color: #FFFFFF !important;
     display: flex !important;
     justify-content: center !important;
     align-items: center !important;
-    gap: 12px !important;
+    gap: 8px !important;
     text-align: center !important;
     color: #1E3A8A !important;
-    font-size: 0.92rem !important;
+    font-size: 0.90rem !important;
     font-weight: bold !important;
     border-top: 1px dashed #1E3A8A !important;
     z-index: 999999 !important;
-    padding: 0px !important;
+    padding: 0px 10px !important;
     margin: 0px !important;
 }}
 
 .logo-signature {{
     height: 20px !important;
     width: auto !important;
+    max-width: 120px !important;
+    object-fit: contain !important;
     vertical-align: middle !important;
 }}
 
 @media (max-width: 768px) {{
     .signature-fin-page {{ 
-        font-size: 0.75rem !important; 
-        height: 38px !important;
+        font-size: 0.80rem !important;
+        height: 36px !important;
+        gap: 6px !important;
     }}
-    .logo-signature {{ height: 24px !important; }}
+    .logo-signature {{ 
+        height: 22px !important;
+        max-width: 90px !important;
+    }}
 }}
 </style>
 """, unsafe_allow_html=True)
@@ -363,14 +370,13 @@ else:
     choix_course = "Essais"
     module_actif = Essais
 
-# --- EXTRACTION VISUELLE ET DYNAMIQUE DES HAUTEURS DEPUIS LE FICHIER ASSOCIE ---
+# --- INJECTION CONFIGURABLE DES HAUTEURS DE COMPOSANTS ---
 hauteurs_config = getattr(module_actif, "HAUTEURS_TABLEAUX_PC", {})
 h_historique = hauteurs_config.get("HISTORIQUE", "456px")
 h_racb = hauteurs_config.get("RACB", "380px")
 h_asaf_123 = hauteurs_config.get("ASAF_123", "380px")
 h_asaf_4 = hauteurs_config.get("ASAF_4", "114px")
 
-# Injection CSS unifiée (PC + Mobile) pour forcer le scroll sur l'ensemble des conteneurs
 st.markdown(f"""
 <style>
 @media (min-width: 769px) {{
@@ -432,11 +438,11 @@ with cd:
             st.markdown(f"<span class='titre-classement espace-classement-suivant'>{t_bas}</span>", unsafe_allow_html=True)
             st.markdown(f"<div class='div-scroll-local-div4'>{gen_html(d_milieu, 'table-class-robuste')}</div>", unsafe_allow_html=True)
 
-# INJECTION DE LA SIGNATURE UNIQUE CONTRE LES DOUBLONS
+# INJECTION DE LA SIGNATURE ADAPTATIVE FLUIDE
 st.markdown(f"""
 <div class='signature-fin-page'>
-    <img src='{LIEN_DROPBOX_LOGO}' class='logo-signature'>
-    <span>www.timechrono.be</span>
+    <img src='{LIEN_DROPBOX_LOGO}' class='logo-signature' alt='Logo'>
+    <span style='white-space: nowrap;'>www.timechrono.be</span>
 </div>
 """, unsafe_allow_html=True)
 
