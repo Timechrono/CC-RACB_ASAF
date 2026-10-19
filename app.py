@@ -442,18 +442,32 @@ with cg:
     st.markdown(gen_html(d_his, "table-hist"), unsafe_allow_html=True)
     
 with cd:
+    h_mob = "380px"
+
+    # Injection CSS dynamique
+    st.markdown(f"""
+    <style>
+      @media (min-width: 769px) {{ .ajust-hauteur-pc {{ max-height: {h_pc} !important; }} }}
+      @media (max-width: 768px) {{ .ajust-hauteur-pc {{ max-height: {h_mob} !important; }} }}
+    </style>
+    """, unsafe_allow_html=True)
+
     if choix_course != "Essais":
+        # --- MODE DE COURSE ---
         if t_haut:
-            st.markdown(f"<span class='titre-classement'>{t_haut}</span>", unsafe_allow_html=True)
-            st.markdown(f"<div class='ajust-hauteur-racb'>{gen_html(d_haut, 'table-class-robuste')}</div>", unsafe_allow_html=True)
+            st.markdown(f"<span class='titre-classement'>{t_haut_clean}</span>", unsafe_allow_html=True)
+            st.markdown(f"<div class='ajust-hauteur-pc' style='overflow-y: auto; display: block;'>{gen_html(d_haut, 'table-class-robuste')}</div>", unsafe_allow_html=True)
         if t_milieu:
-            st.markdown(f"<span class='titre-classement espace-classement-suivant'>{t_milieu}</span>", unsafe_allow_html=True)
-            st.markdown(f"<div class='ajust-hauteur-asaf123'>{gen_html(d_milieu, 'table-class-milieu')}</div>", unsafe_allow_html=True)
+            st.markdown(f"<span class='titre-classement espace-classement-suivant'>{t_milieu_clean}</span>", unsafe_allow_html=True)
+            # MODIFICATION ICI : On enlève la classe 'ajust-hauteur-pc' pour ce 2ème tableau (Division 4)
+            # Cela permet au 3ème tableau de venir se coller directement en dessous sans trou blanc.
+            st.markdown(f"<div style='height: auto; display: block;'>{gen_html(d_milieu, 'table-class-milieu')}</div>", unsafe_allow_html=True)
         if t_bas:
-            st.markdown(f"<span class='titre-classement espace-classement-suivant'>{t_bas}</span>", unsafe_allow_html=True)
+            st.markdown(f"<span class='titre-classement espace-classement-suivant'>{t_bas_clean}</span>", unsafe_allow_html=True)
             nb_lignes = len(d_bas) if hasattr(d_bas, '__len__') else 0
-            style_scroll = "class='ajust-hauteur-asaf123'" if nb_lignes > 10 else "style='height: auto; display: block;'"
+            style_scroll = "class='ajust-hauteur-pc' style='overflow-y: auto; display: block;'" if nb_lignes > 10 else "style='height: auto; display: block;'"
             st.markdown(f"<div {style_scroll}>{gen_html(d_bas, 'table-class-robuste')}</div>", unsafe_allow_html=True)
+
     else:
         if t_haut:
             st.markdown(f"<span class='titre-classement'>{t_haut}</span>", unsafe_allow_html=True)
