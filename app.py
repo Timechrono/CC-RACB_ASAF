@@ -177,6 +177,7 @@ def gen_html(df, cl):
         else: phrase_attente = "En attente du premier classé..."
     else: phrase_attente = "En attente du départ..."
 
+    # Le style est maintenant injecté de manière dynamique, on garde une classe générique
     style_conteneur = "class='div-scroll-local-historique'" if cl == "table-hist" else "class='table-responsive-container'"
 
     if isinstance(df, str):
@@ -244,21 +245,23 @@ st.markdown("<style>@media (min-width: 769px) { .table-hist th:nth-child(1), .ta
 if t_haut and "TOP 20" in t_haut.upper(): t_haut = "🏆 CLASSEMENT GENERAL OFFICIEUX RACB"
 
 cg, cd = st.columns([1.3, 0.9])
+
+# --- CONFIGURATION UNIQUE ET NETTOYAGE DES CHAÎNES DE CARACTÈRES ---
+h_hist_pc, h_racb_pc, h_asaf123_pc, h_asaf4_pc = "456px", "215px", "215px", "114px"
+if module_actif and hasattr(module_actif, 'HAUTEURS_TABLEAUX_PC'):
+    h_hist_pc = str(module_actif.HAUTEURS_TABLEAUX_PC.get("HISTORIQUE", "456px")).strip()
+    h_racb_pc = str(module_actif.HAUTEURS_TABLEAUX_PC.get("RACB", "215px")).strip()
+    h_asaf123_pc = str(module_actif.HAUTEURS_TABLEAUX_PC.get("ASAF_123", "215px")).strip()
+    h_asaf4_pc = str(module_actif.HAUTEURS_TABLEAUX_PC.get("ASAF_4", "114px")).strip()
+
 with cg:
     conteneur_titre_live = st.empty()
     st.markdown(gen_html(d_liv, "table-live"), unsafe_allow_html=True)
     if t_his: st.markdown(f"<span class='titre-hist'>{t_his}</span>", unsafe_allow_html=True)
-    st.markdown(gen_html(d_his, "table-hist"), unsafe_allow_html=True)
+    # Injection Forcée de la hauteur de l'Historique en ligne (style inline) pour contourner le cache parent
+    st.markdown(f'<div class="div-mobile-fluid-gauche" style="max-height: {h_hist_pc}; height: {h_hist_pc}; overflow-y: auto; display: block; border: 1px solid #CBD5E1;">{gen_html(d_his, "table-hist")}</div>', unsafe_allow_html=True)
     
 with cd:
-    # --- CHARGEMENT UNIQUE ET NETTOYAGE DES CHAÎNES DE CARACTÈRES ---
-    h_racb_pc, h_asaf123_pc, h_asaf4_pc = "215px", "215px", "114px"
-    if module_actif and hasattr(module_actif, 'HAUTEURS_TABLEAUX_PC'):
-        h_racb_pc = str(module_actif.HAUTEURS_TABLEAUX_PC.get("RACB", "215px")).strip()
-        h_asaf123_pc = str(module_actif.HAUTEURS_TABLEAUX_PC.get("ASAF_123", "215px")).strip()
-        h_asaf4_pc = str(module_actif.HAUTEURS_TABLEAUX_PC.get("ASAF_4", "114px")).strip()
-
-    # Injection forcée en ligne (style inline) pour contourner le cache CSS navigateur
     if choix_course != "Essais":
         if t_haut:
             st.markdown(f"<span class='titre-classement'>{t_haut}</span>", unsafe_allow_html=True)
@@ -280,8 +283,8 @@ with cd:
             st.markdown(f"<span class='titre-classement espace-classement-suivant'>{t_bas}</span>", unsafe_allow_html=True)
             st.markdown(f'<div class="div-mobile-fluid" style="max-height: {h_asaf4_pc}; height: {h_asaf4_pc}; overflow-y: auto; display: block; border: 1px solid #CBD5E1; margin-bottom: 2px;">{gen_html(d_milieu, "table-class-robuste")}</div>', unsafe_allow_html=True)
 
-    # Neutralisation stricte du bridage sur smartphone pour garder le scroll tactile global fluide
-    st.markdown("""<style>@media (max-width: 768px) { .div-mobile-fluid { max-height: none !important; height: auto !important; overflow-y: visible !important; border: none !important; } }</style>""", unsafe_allow_html=True)
+    # Neutralisation sur smartphone pour garder le défilement tactile fluide
+    st.markdown("""<style>@media (max-width: 768px) { .div-mobile-fluid, .div-mobile-fluid-gauche { max-height: none !important; height: auto !important; overflow-y: visible !important; border: none !important; } }</style>""", unsafe_allow_html=True)
 
 # Déclaration sécurisée locale
 LIEN_LOGO_SECURE = "https://dropbox.com"
@@ -292,7 +295,5 @@ for secondes_restantes in range(30, -1, -1):
         conteneur_titre_live.markdown(f"<span class='titre-live'>🏎️ EN DIRECT / Derniers concurrents partis / <span class='refresh-bleu-clair-historique'>Refresh {secondes_restantes} Sec.</span></span>", unsafe_allow_html=True)
     else: conteneur_titre_live.markdown(f"<span class='titre-live'>{t_live}</span>", unsafe_allow_html=True)
     if secondes_restantes > 0: time.sleep(1)
-
-st.rerun()
 
 st.rerun()
