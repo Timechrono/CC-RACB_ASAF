@@ -25,7 +25,7 @@ t_bas = ""
 # ==============================================================================
 # ⚠️ LIEN DROPBOX LOGO
 # ==============================================================================
-LIEN_DROPBOX_LOGO = "https://dropbox.com"
+LIEN_DROPBOX_LOGO = "https://www.dropbox.com/scl/fi/hi24fjo0vbal4oiiwt9jl/logo-TimeC.png?rlkey=xlw0oqk9gdnq6v5dgahi0klg0&st=y86yrn6y&dl=1"
 
 # --- DÉTECTION DES SCRIPTS DE COURSE DISPONIBLES ---
 try:
@@ -94,7 +94,7 @@ footer,
     footer, [data-testid="stFooterContainer"], [data-testid="stStatusWidget"], .stStatusWidget {{
         position: fixed !important;
         bottom: -500px !important;
-        transform: translateY(500px) !important; /* Force le navigateur à ignorer cet espace dans la hauteur totale */
+        transform: translateY(500px) !important;
     }}
 }}
 
@@ -126,7 +126,7 @@ html, body, [data-testid="stAppViewContainer"], [data-testid="stMainBlockContain
 
 @media (min-width: 769px) {{
     .block-container {{ 
-        padding-bottom: 35px !important; /* Marge nécessaire pour que les hauteurs de vos 7 fichiers respirent */
+        padding-bottom: 40px !important; /* Laisse l'espace exact pour la signature fixe */
     }}
 }}
 @media (max-width: 768px) {{
@@ -182,7 +182,7 @@ div.stElementContainer {{
 """, unsafe_allow_html=True)
 st.markdown(f"""
 <style>
-/* 4. BLOCS DE SCROLL INTERNES CLOISONNÉS */
+/* 4. BLOCS DE SCROLL INTERNES CLOISONNÉS (VOTRE CONFIGURATION RESTAURÉE) */
 .div-scroll-local-historique {{
     width: 100% !important;
     border: 1px solid #CBD5E1 !important;
@@ -278,15 +278,15 @@ tr.ligne-separation-classe td,
 }}
 
 /* ==============================================================================
-   🛠️ COUVERTURE FIXE INDÉPENDANTE EN PIED DE PAGE (SANS TOUCHER AUX TABLEAUX)
+   ⚠️ STRUCTURE ISOLE ET DEPORTEE POUR VOTRE SIGNATURE (SANS TOUCHER AUX TABLEAUX)
    ============================================================================== */
-.signature-fixe-timechrono {{
+.zone-pied-page-timechrono {{
     position: fixed !important;
     bottom: 0px !important;
     left: 0px !important;
-    width: 100vw !important;
+    width: 100% !important;
     height: 35px !important;
-    background-color: #FFFFFF !important; /* Remplace de façon opaque l'ancienne zone blanche */
+    background-color: #FFFFFF !important; /* Recouvre de blanc la barre transparente streamlit */
     display: flex !important;
     justify-content: center !important;
     align-items: center !important;
@@ -296,23 +296,16 @@ tr.ligne-separation-classe td,
     font-size: 0.95rem !important;
     font-weight: bold !important;
     border-top: 1px dashed #1E3A8A !important;
-    z-index: 999999 !important; /* Force la signature au premier plan complet */
+    z-index: 999999 !important; /* Passe obligatoirement au-dessus de tout le reste */
     padding: 0px !important;
     margin: 0px !important;
 }}
 
-.logo-signature-timechrono {{
-    height: 22px !important;
+.image-logo-timechrono {{
+    height: 24px !important;
     width: auto !important;
+    display: inline-block !important;
     vertical-align: middle !important;
-}}
-
-@media (max-width: 768px) {{
-    .signature-fixe-timechrono {{ 
-        font-size: 0.80rem !important; 
-        height: 38px !important;
-    }}
-    .logo-signature-timechrono {{ height: 20px !important; }}
 }}
 </style>
 """, unsafe_allow_html=True)
@@ -441,10 +434,10 @@ with cd:
             st.markdown(f"<span class='titre-classement espace-classement-suivant'>{t_bas}</span>", unsafe_allow_html=True)
             st.markdown(f"<div class='div-scroll-local-div4'>{gen_html(d_milieu, 'table-class-robuste')}</div>", unsafe_allow_html=True)
 
-# --- INJECTION DU BANDEAU DE COUVERTURE INDÉPENDANT SANS TOUCHER À VOS CODES ---
+# --- INJECTION DU PIED DE PAGE AUTONOME RECOUVRANT LA BANDE BLANCHE ---
 st.markdown(f"""
-<div class='signature-fixe-timechrono'>
-    <img src='{LIEN_DROPBOX_LOGO}' class='logo-signature-timechrono' alt='TimeChrono'>
+<div class='zone-pied-page-timechrono'>
+    <img src='{LIEN_DROPBOX_LOGO}' class='image-logo-timechrono' alt='TimeChrono'>
     <span>www.timechrono.be</span>
 </div>
 """, unsafe_allow_html=True)
