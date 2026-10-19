@@ -268,6 +268,22 @@ tr.ligne-separation-classe td,
 }}
 
 /* 6. PIED DE PAGE FIXE POUR RECOUVRIR LA BARRE COMPLETEMENT */
+/* Dans la section 2. CONFIGURATION DE LA PAGE */
+@media (min-width: 769px) {{
+    .block-container {{ 
+        padding-bottom: 5px !important; 
+    }}
+}}
+/* CORRECTION : On remet une marge minimale sur le bloc principal pour éviter le grand espace vide */
+@media (max-width: 768px) {{
+    .block-container {{ 
+        padding-bottom: 5px !important; 
+    }}
+}}
+
+/* ============================================================================== */
+
+/* Dans la section 6. SIGNATURE DE FIN DE PAGE */
 .signature-fin-page {{
     display: flex !important;
     justify-content: center !important;
@@ -296,13 +312,15 @@ tr.ligne-separation-classe td,
     .signature-fin-page {{ 
         font-size: 0.80rem !important; 
         padding-top: 8px !important; 
-        margin-top: 35px !important;
-        margin-bottom: 40px !important;
+        margin-top: 20px !important;
+        /* CORRECTION : C'est ici qu'on applique la marge de sécurité (35px) pour le bas de l'écran du smartphone */
+        margin-bottom: 35px !important; 
     }}
     .logo-signature {{ 
         height: 24px !important; 
     }} 
 }}
+
 </style>
 """, unsafe_allow_html=True)
 
