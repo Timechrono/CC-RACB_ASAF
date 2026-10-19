@@ -141,8 +141,13 @@ html, body, [data-testid="stAppViewContainer"], [data-testid="stMainBlockContain
     }}
 }}
 @media (max-width: 768px) {{
+    /* FORCE LE NETTOYAGE DES ESPACES SUR SMARTPHONE */
     .block-container {{ 
-        padding-bottom: 60px !important; /* Augmenté pour laisser plus de respiration sur mobile */
+        padding-bottom: 45px !important; 
+    }}
+    /* Neutralise la zone d'exclusion que certains navigateurs mobiles imposent */
+    [data-testid="stAppViewContainer"] > section {{
+        padding-bottom: 0px !important;
     }}
 }}
 
@@ -266,24 +271,24 @@ tr.ligne-separation-classe td,
     box-shadow: inset 0 -3px 0 0 #1E3A8A !important; 
 }}
 
-/* 6. PIED DE PAGE ISOLÉ AVEC AUTOSCALE POUR TOUS LES SMARTPHONES */
+/* 6. PIED DE PAGE AVEC POSITION FIXE ABSOLUE ET REMBOURRAGE CONTRE LES ENCOCHES SMARTPHONE */
 .signature-fin-page {{
     position: fixed !important;
     bottom: 0px !important;
     left: 0px !important;
     width: 100% !important;
     box-sizing: border-box !important;
-    height: 40px !important; /* Augmentation pour donner de l'air aux logos avec marges internes */
+    height: 42px !important;
     background-color: #FFFFFF !important;
     display: flex !important;
     flex-direction: row !important;
     flex-wrap: nowrap !important;
     justify-content: center !important;
     align-items: center !important;
-    gap: 15px !important;
+    gap: 12px !important;
     text-align: center !important;
     color: #1E3A8A !important;
-    font-size: 1.05rem !important;
+    font-size: 1.02rem !important;
     font-weight: bold !important;
     border-top: 1px dashed #1E3A8A !important;
     z-index: 999999 !important;
@@ -292,23 +297,24 @@ tr.ligne-separation-classe td,
 }}
 
 .logo-signature {{
-    height: 30px !important; /* Augmentation de la zone de calcul de l'image */
+    height: 26px !important; /* Hauteur confortable */
     width: auto !important;
-    max-height: 30px !important;
-    object-fit: contain !important; /* Empêche l'écrasement ou la coupe */
+    max-height: 26px !important;
     display: inline-block !important;
 }}
 
 @media (max-width: 768px) {{
     .signature-fin-page {{ 
-        font-size: 0.82rem !important; /* Adaptation pour écrans compacts */
-        height: 38px !important;
+        font-size: 0.88rem !important;
+        /* Ajoute une protection en bas au cas où le navigateur mobile possède une barre virtuelle */
+        height: 42px !important; 
+        padding-bottom: env(safe-area-inset-bottom, 2px) !important; 
         gap: 8px !important;
-        padding: 0px 6px !important;
     }}
     .logo-signature {{ 
-        height: 26px !important; /* Contrainte mobile équilibrée */
-        max-height: 26px !important;
+        height: 24px !important; /* Fixé de manière stable pour ne plus bouger */
+        max-height: 24px !important;
+        width: auto !important;
     }}
 }}
 </style>
@@ -440,11 +446,11 @@ with cd:
             st.markdown(f"<span class='titre-classement espace-classement-suivant'>{t_bas}</span>", unsafe_allow_html=True)
             st.markdown(f"<div class='div-scroll-local-div4'>{gen_html(d_milieu, 'table-class-robuste')}</div>", unsafe_allow_html=True)
 
-# INJECTION DU PIED DE PAGE ROBUSTE REHAUSSÉ POUR MOBILE
+# INJECTION DU PIED DE PAGE IMMUNISÉ CONTRE LES BUGS DE ROGNAGE MOBILE
 st.markdown(f"""
 <div class='signature-fin-page'>
-    <img src='{LIEN_DROPBOX_LOGO}' class='logo-signature' alt='Logo'>
-    <span style='white-space: nowrap !important; display: inline-block !important;'>www.timechrono.be</span>
+    <img src='{LIEN_DROPBOX_LOGO}' class='logo-signature' alt='Logo TimeChrono'>
+    <span style='white-space: nowrap !important;'>www.timechrono.be</span>
 </div>
 """, unsafe_allow_html=True)
 
