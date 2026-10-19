@@ -430,7 +430,6 @@ with cd:
         # --- MODE DE COURSE ---
         if t_haut:
             st.markdown(f"<span class='titre-classement'>{t_haut}</span>", unsafe_allow_html=True)
-            # Forçage du style en ligne au moment du rendu HTML
             st.markdown(f"""
                 <div class='ajust-hauteur-pc' style='overflow-y: auto; display: block;'>
                     <div style="max-height: {h_racb_pc}; overflow-y: auto; border: 1px solid #CBD5E1;" class="div-pc-scroll">
@@ -449,7 +448,6 @@ with cd:
             """, unsafe_allow_html=True)
         if t_bas:
             st.markdown(f"<span class='titre-classement espace-classement-suivant'>{t_bas}</span>", unsafe_allow_html=True)
-            nb_lignes = len(d_bas) if hasattr(d_bas, '__len__') else 0
             st.markdown(f"""
                 <div style='overflow-y: auto; display: block;'>
                     <div style="max-height: {h_asaf4_pc}; overflow-y: auto; border: 1px solid #CBD5E1;" class="div-pc-scroll">
@@ -486,6 +484,20 @@ with cd:
                     </div>
                 </div>
             """, unsafe_allow_html=True)
+
+    # Petit hack CSS pour s'assurer que sur mobile ces boîtes perdent leur max-height et ne bloquent pas le scroll tactile
+    st.markdown("""
+    <style>
+        @media (max-width: 768px) {
+            .div-pc-scroll {
+                max-height: none !important;
+                overflow-y: visible !important;
+                border: none !important;
+            }
+        }
+    </style>
+    """, unsafe_allow_html=True)
+
 
     # Petit hack CSS pour s'assurer que sur mobile ces boîtes perdent leur max-height et ne bloquent pas le scroll tactile
     st.markdown("""
