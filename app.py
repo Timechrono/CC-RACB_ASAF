@@ -443,14 +443,21 @@ with cg:
     
 with cd:
     h_mob = "380px"
+    
+    # ==============================================================================
+    # SÉCURITÉ ANTI-NAMEERROR : Valeur par défaut obligatoire pour h_pc
+    # ==============================================================================
+    if 'h_pc' not in locals() and 'h_pc' not in globals():
+        h_pc = "380px"
 
-    # Injection CSS dynamique
+    # Injection CSS dynamique (Votre bloc actuel)
     st.markdown(f"""
     <style>
       @media (min-width: 769px) {{ .ajust-hauteur-pc {{ max-height: {h_pc} !important; }} }}
       @media (max-width: 768px) {{ .ajust-hauteur-pc {{ max-height: {h_mob} !important; }} }}
     </style>
     """, unsafe_allow_html=True)
+
 
     if choix_course != "Essais":
         # --- MODE DE COURSE ---
