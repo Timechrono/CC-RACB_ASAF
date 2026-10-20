@@ -403,12 +403,19 @@ h_racb = hauteurs_config.get("RACB", "380px")
 h_asaf_123 = hauteurs_config.get("ASAF_123", "380px")
 h_asaf_4 = hauteurs_config.get("ASAF_4", "114px")
 
-# Injection CSS unifiée (PC + Mobile) pour forcer le scroll sur l'ensemble des conteneurs
+# Injection CSS unifiée (PC + Mobile) mise à jour pour coller les tableaux
 st.markdown(f"""
 <style>
 @media (min-width: 769px) {{
     .div-scroll-local-historique {{ height: {h_historique} !important; max-height: {h_historique} !important; overflow-y: auto !important; }}
 }}
+/* Remplacement de height par max-height avec height: auto pour éliminer le vide invisible */
+.div-scroll-local-div4 {{ height: auto !important; max-height: {h_asaf_4} !important; overflow-y: auto !important; -webkit-overflow-scrolling: touch !important; }}
+.ajust-hauteur-racb {{ height: auto !important; max-height: {h_racb} !important; overflow-y: auto !important; display: block !important; -webkit-overflow-scrolling: touch !important; }}
+.ajust-hauteur-asaf123 {{ height: auto !important; max-height: {h_asaf_123} !important; overflow-y: auto !important; display: block !important; -webkit-overflow-scrolling: touch !important; }}
+</style>
+""", unsafe_allow_html=True)
+
 .div-scroll-local-div4 {{ height: {h_asaf_4} !important; max-height: {h_asaf_4} !important; overflow-y: auto !important; -webkit-overflow-scrolling: touch !important; }}
 .ajust-hauteur-racb {{ height: {h_racb} !important; max-height: {h_racb} !important; overflow-y: auto !important; display: block !important; -webkit-overflow-scrolling: touch !important; }}
 .ajust-hauteur-asaf123 {{ height: {h_asaf_123} !important; max-height: {h_asaf_123} !important; overflow-y: auto !important; display: block !important; -webkit-overflow-scrolling: touch !important; }}
@@ -451,8 +458,7 @@ with cd:
             st.markdown(f"<div class='ajust-hauteur-asaf123'>{gen_html(d_milieu, 'table-class-milieu')}</div>", unsafe_allow_html=True)
         if t_bas:
             st.markdown(f"<span class='titre-classement espace-classement-suivant'>{t_bas}</span>", unsafe_allow_html=True)
-            # CORRECTION ICI : On utilise 'div-scroll-local-div4' (qui correspond à ASAF_4 / 100px)
-            # au lieu de 'ajust-hauteur-asaf123' (qui bloquait à 300px et créait le vide)
+            # On applique la classe div4 liée à h_asaf_4 pour le bas
             st.markdown(f"<div class='div-scroll-local-div4'>{gen_html(d_bas, 'table-class-robuste')}</div>", unsafe_allow_html=True)
     else:
         if t_haut:
