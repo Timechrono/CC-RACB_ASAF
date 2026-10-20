@@ -10,7 +10,7 @@ import io
 HAUTEURS_TABLEAUX_PC = {
     "HISTORIQUE": "487px",       # ⬅️ Colonne de gauche (Historique des temps)
     "RACB": "213px",             # ➡️ Haut de la colonne droite (Classement Général RACB)
-    "ASAF_123": "142px",         # ➡️ Milieu de la colonne droite (Classement par Groupe / Classe)
+    "ASAF_123": "145px",         # ➡️ Milieu de la colonne droite (Classement par Groupe / Classe)
     "ASAF_4": "114px"              # ➡️ Bas de la colonne droite (0px car inutilisé sur cette feuille)
 }
 
