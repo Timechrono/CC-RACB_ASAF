@@ -496,7 +496,24 @@ st.markdown(f"""
 """, unsafe_allow_html=True)
 
 
-# GESTION DES SECONDES ET DU RAFRAÎCHISSEMENT DU LIVE
+# --- REFRESH FLUIDE SANS PAGE BLANCHE ET CONSERVATION DU SCROLL ---
+
+# 1. Injection d'un script pour mémoriser et restaurer instantanément la position du scroll
+st.components.v1.html("""
+    <script>
+        // Sauvegarder la position du scroll avant le rechargement
+        window.parent.addEventListener('beforeunload', function() {
+            window.parent.sessionStorage.setItem('scrollPosition', window.parent.scrollY);
+        });
+        // Restaurer la position dès que la page se recharge
+        var scrollPosition = window.parent.sessionStorage.getItem('scrollPosition');
+        if (scrollPosition) {
+            window.parent.scrollTo(0, parseInt(scrollPosition));
+        }
+    </script>
+""", height=0, width=0)
+
+# 2. Votre boucle de décompte d'origine optimisée pour la fluidité
 for secondes_restantes in range(30, -1, -1):
     if "Derniers concurrents" in t_live or "DIRECT" in t_live.upper():
         conteneur_titre_live.markdown(f"<span class='titre-live'>🏎️ EN DIRECT / Derniers concurrents partis / <span class='refresh-bleu-clair-historique'>Refresh {secondes_restantes} Sec.</span></span>", unsafe_allow_html=True)
@@ -505,4 +522,6 @@ for secondes_restantes in range(30, -1, -1):
     if secondes_restantes > 0:
         time.sleep(1)
 
+# Relance la page proprement
 st.rerun()
+
