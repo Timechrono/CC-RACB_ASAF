@@ -410,10 +410,10 @@ st.markdown(f"""
 <style>
 @media (min-width: 769px) {{
     .div-scroll-local-historique {{ height: {h_historique} !important; max-height: {h_historique} !important; overflow-y: auto !important; }}
+    .ajust-hauteur-racb {{ height: {h_racb} !important; max-height: {h_racb} !important; overflow-y: auto !important; display: block !important; -webkit-overflow-scrolling: touch !important; }}
+    .ajust-hauteur-asaf123 {{ height: {h_asaf_123} !important; max-height: {h_asaf_123} !important; overflow-y: auto !important; display: block !important; -webkit-overflow-scrolling: touch !important; }}
+    .div-scroll-local-div4 {{ height: {h_asaf_4} !important; max-height: {h_asaf_4} !important; overflow-y: auto !important; -webkit-overflow-scrolling: touch !important; }}
 }}
-.div-scroll-local-div4 {{ height: {h_asaf_4} !important; max-height: {h_asaf_4} !important; overflow-y: auto !important; -webkit-overflow-scrolling: touch !important; }}
-.ajust-hauteur-racb {{ height: {h_racb} !important; max-height: {h_racb} !important; overflow-y: auto !important; display: block !important; -webkit-overflow-scrolling: touch !important; }}
-.ajust-hauteur-asaf123 {{ height: {h_asaf_123} !important; max-height: {h_asaf_123} !important; overflow-y: auto !important; display: block !important; -webkit-overflow-scrolling: touch !important; }}
 </style>
 """, unsafe_allow_html=True)
 
