@@ -514,22 +514,24 @@ st.components.v1.html("""
 """, height=0, width=0)
 
 # ==============================================================================
-# 🎭 TRANSITION EFFET "FLASH-IN" (FONDU DOUX À L'APPARITION)
+# 🎭 TRANSITION EFFET "FLASH-IN" (FONDU DOUX ACCENTUÉ ET VISIBLE)
 # ==============================================================================
 
-# 1. Animation CSS d'apparition : la page passe de translucide (0.2) à opaque (1) en 0.4 seconde
+# 1. Animation CSS d'apparition : la page part de l'invisibilité totale (0.0) 
+# et prend près d'une seconde (0.9s) pour apparaître complètement.
 st.markdown("""
 <style>
     @keyframes effetFlashIn {
-        from { opacity: 0.2 !important; }
+        from { opacity: 0.0 !important; }
         to { opacity: 1 !important; }
     }
     
     [data-testid="stAppViewContainer"] {
-        animation: effetFlashIn 0.4s ease-out !important;
+        animation: effetFlashIn 0.9s ease-out !important;
     }
 </style>
 """, unsafe_allow_html=True)
+
 
 # 2. Stabilisateur JavaScript pour figer la position du scroll au pixel près
 st.components.v1.html("""
