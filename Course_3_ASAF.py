@@ -12,7 +12,7 @@ import requests
 # ==============================================================================
 HAUTEURS_TABLEAUX_PC = {
     "HISTORIQUE": "487px",       # ⬅️ Colonne de gauche (Historique des temps)
-    "RACB": "350px",             # ➡️ Haut de la colonne droite (Classement Général RACB)
+    "RACB": "205px",             # ➡️ Haut de la colonne droite (Classement Général RACB)
     "ASAF_123": "300px",         # ➡️ Milieu de la colonne droite (Classement par Groupe / Classe)
     "ASAF_4": "200px"              # ➡️ Bas de la colonne droite (0px car inutilisé sur cette feuille)
 }
