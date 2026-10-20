@@ -1,5 +1,7 @@
 # https://www.dropbox.com/scl/fi/hi24fjo0vbal4oiiwt9jl/logo-TimeC.png?rlkey=xlw0oqk9gdnq6v5dgahi0klg0&st=y86yrn6y&dl=1
 # https://www.dropbox.com/scl/fi/hi24fjo0vbal4oiiwt9jl/logo-TimeC.png?rlkey=xlw0oqk9gdnq6v5dgahi0klg0&st=y86yrn6y&dl=1
+# https://www.dropbox.com/scl/fi/hi24fjo0vbal4oiiwt9jl/logo-TimeC.png?rlkey=xlw0oqk9gdnq6v5dgahi0klg0&st=y86yrn6y&dl=1
+# https://www.dropbox.com/scl/fi/hi24fjo0vbal4oiiwt9jl/logo-TimeC.png?rlkey=xlw0oqk9gdnq6v5dgahi0klg0&st=y86yrn6y&dl=1
 
 
 import streamlit as st
@@ -403,19 +405,12 @@ h_racb = hauteurs_config.get("RACB", "380px")
 h_asaf_123 = hauteurs_config.get("ASAF_123", "380px")
 h_asaf_4 = hauteurs_config.get("ASAF_4", "114px")
 
-# Injection CSS unifiée sécurisée sans triple guillemet pour éviter les SyntaxError
-css_hauteurs = (
-    "<style>\n"
-    f"@media (min-width: 769px) {{ .div-scroll-local-historique {{ height: {h_historique} !important; max-height: {h_historique} !important; overflow-y: auto !important; }} }}\n"
-    f".div-scroll-local-div4 {{ height: auto !important; max-height: {h_asaf_4} !important; overflow-y: auto !important; -webkit-overflow-scrolling: touch !important; }}\n"
-    f".ajust-hauteur-racb {{ height: auto !important; max-height: {h_racb} !important; overflow-y: auto !important; display: block !important; -webkit-overflow-scrolling: touch !important; }}\n"
-    f".ajust-hauteur-asaf123 {{ height: auto !important; max-height: {h_asaf_123} !important; overflow-y: auto !important; display: block !important; -webkit-overflow-scrolling: touch !important; }}\n"
-    "</style>"
-)
-st.markdown(css_hauteurs, unsafe_allow_html=True)
-
-
-
+# Injection CSS unifiée (PC + Mobile) pour forcer le scroll sur l'ensemble des conteneurs
+st.markdown(f"""
+<style>
+@media (min-width: 769px) {{
+    .div-scroll-local-historique {{ height: {h_historique} !important; max-height: {h_historique} !important; overflow-y: auto !important; }}
+}}
 .div-scroll-local-div4 {{ height: {h_asaf_4} !important; max-height: {h_asaf_4} !important; overflow-y: auto !important; -webkit-overflow-scrolling: touch !important; }}
 .ajust-hauteur-racb {{ height: {h_racb} !important; max-height: {h_racb} !important; overflow-y: auto !important; display: block !important; -webkit-overflow-scrolling: touch !important; }}
 .ajust-hauteur-asaf123 {{ height: {h_asaf_123} !important; max-height: {h_asaf_123} !important; overflow-y: auto !important; display: block !important; -webkit-overflow-scrolling: touch !important; }}
@@ -455,11 +450,14 @@ with cd:
             st.markdown(f"<div class='ajust-hauteur-racb'>{gen_html(d_haut, 'table-class-robuste')}</div>", unsafe_allow_html=True)
         if t_milieu:
             st.markdown(f"<span class='titre-classement espace-classement-suivant'>{t_milieu}</span>", unsafe_allow_html=True)
-            st.markdown(f"<div class='ajust-hauteur-asaf123'>{gen_html(d_milieu, 'table-class-milieu')}</div>", unsafe_allow_html=True)
+            # Correction ici : Si le tableau a moins de 10 lignes, on ne force pas la hauteur de 380px
+            nb_lignes_milieu = len(d_milieu) if hasattr(d_milieu, '__len__') else 0
+            style_scroll_milieu = "class='ajust-hauteur-asaf123'" if nb_lignes_milieu > 10 else "style='height: auto; display: block;'"
+            st.markdown(f"<div {style_scroll_milieu}>{gen_html(d_milieu, 'table-class-milieu')}</div>", unsafe_allow_html=True)
         if t_bas:
             st.markdown(f"<span class='titre-classement espace-classement-suivant'>{t_bas}</span>", unsafe_allow_html=True)
-            # On applique la classe div4 liée à h_asaf_4 pour le bas
-            st.markdown(f"<div class='div-scroll-local-div4'>{gen_html(d_bas, 'table-class-robuste')}</div>", unsafe_allow_html=True)
+            # Affichage fluide qui colle directement au tableau du dessus
+            st.markdown(f"<div style='height: auto; display: block;'>{gen_html(d_bas, 'table-class-robuste')}</div>", unsafe_allow_html=True)
     else:
         if t_haut:
             st.markdown(f"<span class='titre-classement'>{t_haut}</span>", unsafe_allow_html=True)
@@ -470,9 +468,6 @@ with cd:
         if t_bas:
             st.markdown(f"<span class='titre-classement espace-classement-suivant'>{t_bas}</span>", unsafe_allow_html=True)
             st.markdown(f"<div class='div-scroll-local-div4'>{gen_html(d_milieu, 'table-class-robuste')}</div>", unsafe_allow_html=True)
-
-
-
 
 
 # INJECTION DE LA SIGNATURE UNIQUE CONTRE LES DOUBLONS
