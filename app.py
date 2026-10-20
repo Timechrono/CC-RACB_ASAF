@@ -514,50 +514,27 @@ st.components.v1.html("""
 """, height=0, width=0)
 
 # ==============================================================================
-# 🎭 TRANSITION EFFET "BALAYAGE / RIDEAU" (RIDEAU DE TRANSITION FLUIDE)
+# 🎭 TRANSITION EFFET "FLASH-IN" (FONDU DOUX À L'APPARITION)
 # ==============================================================================
 
-# 1. CSS pour construire le rideau et son animation de fermeture/ouverture
+# 1. Animation CSS d'apparition : la page passe de translucide (0.2) à opaque (1) en 0.4 seconde
 st.markdown("""
 <style>
-    /* Structure du rideau de transition */
-    #rideau-transition {
-        position: fixed !important;
-        top: 0 !important;
-        left: -100% !important; /* Caché à gauche par défaut */
-        width: 100% !important;
-        height: 100% !important;
-        background-color: #1E3A8A !important; /* Couleur assortie à vos titres de classements */
-        opacity: 0.85 !important;
-        z-index: 999999 !important;
-        pointer-events: none !important;
+    @keyframes effetFlashIn {
+        from { opacity: 0.2 !important; }
+        to { opacity: 1 !important; }
     }
-
-    /* Animation d'ouverture automatique au chargement de la page (Le rideau s'en va vers la droite) */
-    @keyframes rideauOuverture {
-        from { left: 0px !important; }
-        to { left: 100% !important; }
-    }
-
-    .rideau-anime-entree {
-        animation: rideauOuverture 0.4s cubic-bezier(0.25, 1, 0.5, 1) forwards !important;
-    }
-
-    /* Classe injectée à la dernière seconde pour fermer le rideau */
-    .rideau-anime-fermeture {
-        transition: left 0.4s cubic-bezier(0.25, 1, 0.5, 1) !important;
-        left: 0px !important;
+    
+    [data-testid="stAppViewContainer"] {
+        animation: effetFlashIn 0.4s ease-out !important;
     }
 </style>
-
-<!-- Insertion de la balise HTML du rideau dans la page -->
-<div id="rideau-transition" class="rideau-anime-entree"></div>
 """, unsafe_allow_html=True)
 
-# 2. JavaScript pour figer la position du scroll au pixel près
+# 2. Stabilisateur JavaScript pour figer la position du scroll au pixel près
 st.components.v1.html("""
     <script>
-        // Enregistrer la position actuelle du scroll juste avant le rechargement
+        // Enregistrer la position actuelle du scroll juste avant que la page ne se recharge
         window.parent.addEventListener('beforeunload', function() {
             window.parent.sessionStorage.setItem('scrollPosition', window.parent.scrollY);
         });
@@ -570,16 +547,12 @@ st.components.v1.html("""
     </script>
 """, height=0, width=0)
 
-# 3. Votre boucle de décompte d'origine sécurisée
+# 3. Votre boucle de décompte d'origine (totalement sécurisée et isolée)
 for secondes_restantes in range(30, -1, -1):
     if "Derniers concurrents" in t_live or "DIRECT" in t_live.upper():
         conteneur_titre_live.markdown(f"<span class='titre-live'>🏎️ EN DIRECT / Derniers concurrents partis / <span class='refresh-bleu-clair-historique'>Refresh {secondes_restantes} Sec.</span></span>", unsafe_allow_html=True)
     else:
         conteneur_titre_live.markdown(f"<span class='titre-live'>{t_live}</span>", unsafe_allow_html=True)
-    
-    # À 1 seconde du refresh, on déploie le rideau en injectant le style de fermeture (Ultra-léger et stable)
-    if secondes_restantes == 1:
-        st.markdown("<style>#rideau-transition { classlist: none !important; left: 0px !important; transition: left 0.4s cubic-bezier(0.25, 1, 0.5, 1) !important; }</style>", unsafe_allow_html=True)
         
     if secondes_restantes > 0:
         time.sleep(1)
