@@ -454,9 +454,8 @@ with cd:
             st.markdown(f"<div class='ajust-hauteur-asaf123'>{gen_html(d_milieu, 'table-class-milieu')}</div>", unsafe_allow_html=True)
         if t_bas:
             st.markdown(f"<span class='titre-classement espace-classement-suivant'>{t_bas}</span>", unsafe_allow_html=True)
-            nb_lignes = len(d_bas) if hasattr(d_bas, '__len__') else 0
-            style_scroll = "class='ajust-hauteur-asaf123'" if nb_lignes > 10 else "style='height: auto; display: block;'"
-            st.markdown(f"<div {style_scroll}>{gen_html(d_bas, 'table-class-robuste')}</div>", unsafe_allow_html=True)
+            # Remplacement ici pour forcer un affichage compact ou utiliser la même classe restrictive que les Essais
+            st.markdown(f"<div class='div-scroll-local-div4'>{gen_html(d_bas, 'table-class-robuste')}</div>", unsafe_allow_html=True)
     else:
         if t_haut:
             st.markdown(f"<span class='titre-classement'>{t_haut}</span>", unsafe_allow_html=True)
@@ -467,6 +466,7 @@ with cd:
         if t_bas:
             st.markdown(f"<span class='titre-classement espace-classement-suivant'>{t_bas}</span>", unsafe_allow_html=True)
             st.markdown(f"<div class='div-scroll-local-div4'>{gen_html(d_milieu, 'table-class-robuste')}</div>", unsafe_allow_html=True)
+
 
 # INJECTION DE LA SIGNATURE UNIQUE CONTRE LES DOUBLONS
 st.markdown(f"""
