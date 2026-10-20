@@ -514,25 +514,32 @@ st.components.v1.html("""
 """, height=0, width=0)
 
 # ==============================================================================
-# 🎭 ANIMATION DE FONDU DE SÉCURITÉ POUR LE REFRESH (NE BLOQUE PAS)
+# 🎭 TRANSITION EFFET "FLASH-IN" (FONDU DOUX À L'APPARITION)
 # ==============================================================================
 
-# 1. CSS pour mémoriser la transition d'opacité
+# 1. Animation CSS d'apparition : la page passe de translucide (0.2) à opaque (1) en 0.4 seconde
 st.markdown("""
 <style>
+    @keyframes effetFlashIn {
+        from { opacity: 0.2 !important; }
+        to { opacity: 1 !important; }
+    }
+    
     [data-testid="stAppViewContainer"] {
-        transition: opacity 0.5s ease-in-out !important;
-        opacity: 1;
+        animation: effetFlashIn 0.4s ease-out !important;
     }
 </style>
 """, unsafe_allow_html=True)
 
-# 2. JavaScript UNIQUE hors de la boucle pour stabiliser le scroll au rechargement
+# 2. Stabilisateur JavaScript pour figer la position du scroll au pixel près
 st.components.v1.html("""
     <script>
+        // Enregistrer la position actuelle du scroll juste avant que la page ne se recharge
         window.parent.addEventListener('beforeunload', function() {
             window.parent.sessionStorage.setItem('scrollPosition', window.parent.scrollY);
         });
+        
+        // Remettre le scroll au même endroit immédiatement après le rechargement
         var scrollPosition = window.parent.sessionStorage.getItem('scrollPosition');
         if (scrollPosition) {
             window.parent.scrollTo(0, parseInt(scrollPosition));
@@ -540,20 +547,15 @@ st.components.v1.html("""
     </script>
 """, height=0, width=0)
 
-# 3. Boucle de décompte d'origine nettoyée
+# 3. Votre boucle de décompte d'origine (totalement sécurisée et isolée)
 for secondes_restantes in range(30, -1, -1):
     if "Derniers concurrents" in t_live or "DIRECT" in t_live.upper():
         conteneur_titre_live.markdown(f"<span class='titre-live'>🏎️ EN DIRECT / Derniers concurrents partis / <span class='refresh-bleu-clair-historique'>Refresh {secondes_restantes} Sec.</span></span>", unsafe_allow_html=True)
     else:
         conteneur_titre_live.markdown(f"<span class='titre-live'>{t_live}</span>", unsafe_allow_html=True)
-    
-    # À 1 seconde de la fin, on applique le fondu directement en CSS injecté (Ultra-léger)
-    if secondes_restantes == 1:
-        st.markdown("<style>[data-testid='stAppViewContainer'] { opacity: 0.25 !important; }</style>", unsafe_allow_html=True)
         
     if secondes_restantes > 0:
         time.sleep(1)
 
-# Relance de la page
+# Relance globale de la page
 st.rerun()
-
