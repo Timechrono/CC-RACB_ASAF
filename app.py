@@ -481,9 +481,53 @@ def conteneur_dynamique_course():
     # 2. AFFICHAGE DES COLONNES DE TABLEAUX (SANS TOUCHER AU SCROLL NAVIGATEUR)
     cg, cd = st.columns([1.3, 0.9])
     
+# ==============================================================================
+# 🔄 FRAGMENT DYNAMIQUE AVEC COMPTE À REBOURS INTÉGRÉ (SCROLL FIXE / TEXTE FLUIDE)
+# ==============================================================================
+
+# Le fragment se réexécute de lui-même toutes les 30 secondes pour rafraîchir les données
+@st.fragment(run_every=30)
+def conteneur_dynamique_course():
+    global d_liv, d_his, d_haut, d_milieu, d_bas, t_live, t_his, t_haut, t_milieu, t_bas
+    
+    # 1. TÉLÉCHARGEMENT DES DONNÉES DE COURSE (EN ARRIÈRE-PLAN)
+    try:
+        from concurrent.futures import ThreadPoolExecutor
+
+        def recuperer_avec_timeout():
+            if choix_course == "Course 1 ASAF": return Course_1_ASAF.recuperer_donnees_course()
+            elif choix_course == "Course 1 RACB": return Course_1_RACB.recuperer_donnees_course()
+            elif choix_course == "Course 2 ASAF": return Course_2_ASAF.recuperer_donnees_course()
+            elif choix_course == "Course 2 RACB": return Course_2_RACB.recuperer_donnees_course()
+            elif choix_course == "Course 3 ASAF": return Course_3_ASAF.recuperer_donnees_course()
+            elif choix_course == "Course 3 RACB": return Course_3_RACB.recuperer_donnees_course()
+            else: return Essais.recuperer_donnees_course()
+
+        with ThreadPoolExecutor(max_workers=1) as executor:
+            future = executor.submit(recuperer_avec_timeout)
+            res = future.result(timeout=4.0)
+            if res and len(res) == 10:
+                d_liv, d_his, d_haut, d_milieu, d_bas, t_live, t_his, t_haut, t_milieu, t_bas = res
+    except Exception as e:
+        pass
+
+    if t_haut and "TOP 20" in t_haut.upper():
+        t_haut = "🏆 CLASSEMENT GENERAL OFFICIEUX RACB"
+
+    # Ajustement de la hauteur forcée PC
+    if "ESSAIS" in choix_course.upper():
+        h_pc = "215px"
+    elif "COURSE 1" in choix_course.upper():
+        h_pc = "425px"
+    else:
+        h_pc = "380px"
+
+    # 2. PRÉPARATION DU CONTENEUR DE TITRE LIVE POUR LE COMPTE À REBOURS
+    cg, cd = st.columns([1.3, 0.9])
+    
     with cg:
-        # Titre Live épuré sans le décompte Python pour éviter les micro-sauts visuels
-        st.markdown(f"<span class='titre-live'>{t_live}</span>", unsafe_allow_html=True)
+        # On crée un emplacement vide dédié à votre titre live pour le mettre à jour seconde par seconde
+        conteneur_titre_live = st.empty()
         st.markdown(gen_html(d_liv, "table-live"), unsafe_allow_html=True)
         if t_his: 
             st.markdown(f"<span class='titre-hist'>{t_his}</span>", unsafe_allow_html=True)
@@ -528,5 +572,18 @@ def conteneur_dynamique_course():
     </div>
     """, unsafe_allow_html=True)
 
-# Lancement immédiat et automatique de l'affichage localisé
+    # 3. EXÉCUTION DE VOTRE BOUCLE DE DÉCOMPTE (SÉCURISÉE DANS LE FRAGMENT)
+    for secondes_restantes in range(30, -1, -1):
+        if "Derniers concurrents" in t_live or "DIRECT" in t_live.upper():
+            if secondes_restantes > 0:
+                conteneur_titre_live.markdown(f"<span class='titre-live'>🏎️ EN DIRECT / Derniers concurrents partis / <span class='refresh-bleu-clair-historique'>Refresh {secondes_restantes} Sec.</span></span>", unsafe_allow_html=True)
+            else:
+                conteneur_titre_live.markdown(f"<span class='titre-live'>🏎️ EN DIRECT / Derniers concurrents partis / <span class='refresh-bleu-clair-historique'>Mise à jour...</span></span>", unsafe_allow_html=True)
+        else:
+            conteneur_titre_live.markdown(f"<span class='titre-live'>{t_live}</span>", unsafe_allow_html=True)
+        
+        if secondes_restantes > 0:
+            time.sleep(1)
+
+# LE DÉCLENCHEUR DE TOUT LE BLOC
 conteneur_dynamique_course()
