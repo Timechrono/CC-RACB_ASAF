@@ -514,34 +514,15 @@ st.components.v1.html("""
 """, height=0, width=0)
 
 # ==============================================================================
-# 🎭 TRANSITION EFFET "FLASH-IN" (FONDU DOUX ACCENTUÉ ET VISIBLE)
+# 🏎️ MISE À JOUR INDICATEUR DE CHARGEMENT TECHNIQUE SANS BLOCAGE VISUEL
 # ==============================================================================
 
-# 1. Animation CSS d'apparition : la page part de l'invisibilité totale (0.0) 
-# et prend près d'une seconde (0.9s) pour apparaître complètement.
-st.markdown("""
-<style>
-    @keyframes effetFlashIn {
-        from { opacity: 0.0 !important; }
-        to { opacity: 1 !important; }
-    }
-    
-    [data-testid="stAppViewContainer"] {
-        animation: effetFlashIn 0.9s ease-out !important;
-    }
-</style>
-""", unsafe_allow_html=True)
-
-
-# 2. Stabilisateur JavaScript pour figer la position du scroll au pixel près
+# 1. Stabilisateur JavaScript unique pour le scroll au rechargement
 st.components.v1.html("""
     <script>
-        // Enregistrer la position actuelle du scroll juste avant que la page ne se recharge
         window.parent.addEventListener('beforeunload', function() {
             window.parent.sessionStorage.setItem('scrollPosition', window.parent.scrollY);
         });
-        
-        // Remettre le scroll au même endroit immédiatement après le rechargement
         var scrollPosition = window.parent.sessionStorage.getItem('scrollPosition');
         if (scrollPosition) {
             window.parent.scrollTo(0, parseInt(scrollPosition));
@@ -549,15 +530,18 @@ st.components.v1.html("""
     </script>
 """, height=0, width=0)
 
-# 3. Votre boucle de décompte d'origine (totalement sécurisée et isolée)
+# 2. Votre boucle de décompte d'origine dynamique et stable
 for secondes_restantes in range(30, -1, -1):
-    if "Derniers concurrents" in t_live or "DIRECT" in t_live.upper():
-        conteneur_titre_live.markdown(f"<span class='titre-live'>🏎️ EN DIRECT / Derniers concurrents partis / <span class='refresh-bleu-clair-historique'>Refresh {secondes_restantes} Sec.</span></span>", unsafe_allow_html=True)
-    else:
-        conteneur_titre_live.markdown(f"<span class='titre-live'>{t_live}</span>", unsafe_allow_html=True)
-        
     if secondes_restantes > 0:
+        if "Derniers concurrents" in t_live or "DIRECT" in t_live.upper():
+            conteneur_titre_live.markdown(f"<span class='titre-live'>🏎️ EN DIRECT / Derniers concurrents partis / <span class='refresh-bleu-clair-historique'>Refresh {secondes_restantes} Sec.</span></span>", unsafe_allow_html=True)
+        else:
+            conteneur_titre_live.markdown(f"<span class='titre-live'>{t_live}</span>", unsafe_allow_html=True)
         time.sleep(1)
+    else:
+        # À la seconde 0, pendant que le serveur travaille, on fige l'écran existant et on affiche un message propre
+        if "Derniers concurrents" in t_live or "DIRECT" in t_live.upper():
+            conteneur_titre_live.markdown(f"<span class='titre-live'>🏎️ EN DIRECT / Derniers concurrents partis / <span class='refresh-bleu-clair-historique'>Mise à jour en cours...</span></span>", unsafe_allow_html=True)
 
-# Relance globale de la page
+# Relance instantanée de la page
 st.rerun()
