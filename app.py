@@ -451,7 +451,8 @@ with cd:
             st.markdown(f"<div class='ajust-hauteur-asaf123'>{gen_html(d_milieu, 'table-class-milieu')}</div>", unsafe_allow_html=True)
         if t_bas:
             st.markdown(f"<span class='titre-classement espace-classement-suivant'>{t_bas}</span>", unsafe_allow_html=True)
-            # Correction de la classe CSS : On applique la hauteur 'ASAF_4' via 'div-scroll-local-div4'
+            # CORRECTION ICI : On utilise 'div-scroll-local-div4' (qui correspond à ASAF_4 / 100px)
+            # au lieu de 'ajust-hauteur-asaf123' (qui bloquait à 300px et créait le vide)
             st.markdown(f"<div class='div-scroll-local-div4'>{gen_html(d_bas, 'table-class-robuste')}</div>", unsafe_allow_html=True)
     else:
         if t_haut:
@@ -463,6 +464,7 @@ with cd:
         if t_bas:
             st.markdown(f"<span class='titre-classement espace-classement-suivant'>{t_bas}</span>", unsafe_allow_html=True)
             st.markdown(f"<div class='div-scroll-local-div4'>{gen_html(d_milieu, 'table-class-robuste')}</div>", unsafe_allow_html=True)
+
 
 
 
