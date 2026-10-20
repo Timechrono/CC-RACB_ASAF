@@ -403,18 +403,17 @@ h_racb = hauteurs_config.get("RACB", "380px")
 h_asaf_123 = hauteurs_config.get("ASAF_123", "380px")
 h_asaf_4 = hauteurs_config.get("ASAF_4", "114px")
 
-# Injection CSS unifiée (PC + Mobile) pour forcer le scroll et coller les tableaux
-st.markdown(f"""
-<style>
-@media (min-width: 769px) {{
-    .div-scroll-local-historique {{ height: {h_historique} !important; max-height: {h_historique} !important; overflow-y: auto !important; }}
-}}
-/* Utilisation de max-height et height: auto pour supprimer le vide et coller les blocs */
-.div-scroll-local-div4 {{ height: auto !important; max-height: {h_asaf_4} !important; overflow-y: auto !important; -webkit-overflow-scrolling: touch !important; }}
-.ajust-hauteur-racb {{ height: auto !important; max-height: {h_racb} !important; overflow-y: auto !important; display: block !important; -webkit-overflow-scrolling: touch !important; }}
-.ajust-hauteur-asaf123 {{ height: auto !important; max-height: {h_asaf_123} !important; overflow-y: auto !important; display: block !important; -webkit-overflow-scrolling: touch !important; }}
-</style>
-""", unsafe_allow_html=True)
+# Injection CSS unifiée sécurisée sans triple guillemet pour éviter les SyntaxError
+css_hauteurs = (
+    "<style>\n"
+    f"@media (min-width: 769px) {{ .div-scroll-local-historique {{ height: {h_historique} !important; max-height: {h_historique} !important; overflow-y: auto !important; }} }}\n"
+    f".div-scroll-local-div4 {{ height: auto !important; max-height: {h_asaf_4} !important; overflow-y: auto !important; -webkit-overflow-scrolling: touch !important; }}\n"
+    f".ajust-hauteur-racb {{ height: auto !important; max-height: {h_racb} !important; overflow-y: auto !important; display: block !important; -webkit-overflow-scrolling: touch !important; }}\n"
+    f".ajust-hauteur-asaf123 {{ height: auto !important; max-height: {h_asaf_123} !important; overflow-y: auto !important; display: block !important; -webkit-overflow-scrolling: touch !important; }}\n"
+    "</style>"
+)
+st.markdown(css_hauteurs, unsafe_allow_html=True)
+
 
 
 .div-scroll-local-div4 {{ height: {h_asaf_4} !important; max-height: {h_asaf_4} !important; overflow-y: auto !important; -webkit-overflow-scrolling: touch !important; }}
