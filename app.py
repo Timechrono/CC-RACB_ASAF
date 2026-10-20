@@ -524,10 +524,10 @@ def conteneur_dynamique_course():
 
 
 # ==============================================================================
-# 🎭 SYNC FONDU ENCHAÎNÉ GLOBAL (FADE OUT / FADE IN) SANS PAGE BLANCHE
+# 🎭 CONFIGURATION GRAPHIQUE DYNAMIQUE ET TRANSITION "SMOOTH-IN" (SANS BLOCAGE)
 # ==============================================================================
 
-# 1. Récupération des hauteurs customs du fichier actif
+# 1. Extraction en temps réel du dictionnaire HAUTEURS_TABLEAUX_PC propre au fichier actif
 if choix_course == "Course 1 ASAF": module_actif = Course_1_ASAF
 elif choix_course == "Course 1 RACB": module_actif = Course_1_RACB
 elif choix_course == "Course 2 ASAF": module_actif = Course_2_ASAF
@@ -542,19 +542,26 @@ h_haut_pc        = hauteurs_custom.get("RACB", "auto")
 h_milieu_pc      = hauteurs_custom.get("ASAF_123", "auto")
 h_bas_pc         = hauteurs_custom.get("ASAF_4", "auto")
 
-# 2. Injection CSS pour le fondu fluide à l'apparition et à la disparition
+# 2. INJECTION CSS : Animation douce à l'ARRIVÉE de la page + blocage des sauts de scroll
 st.markdown(f"""
 <style>
-  /* Transition fluide de l'opacité sur l'application */
-  [data-testid="stAppViewContainer"] {{
-    transition: opacity 0.4s ease-in-out !important;
-    opacity: 1;
+  /* Empêche le navigateur de faire sauter le scroll vers le haut lors du rendu Streamlit */
+  html, body, [data-testid="stAppViewContainer"] {{
+      overflow-anchor: none !important;
   }}
-  /* Classe injectée à la dernière seconde pour s'estomper doucement */
-  .fondu-disparition {{
-    opacity: 0.2 !important;
+
+  /* Animation fluide d'apparition progressive (Fondu enchaîné de 0.4s) */
+  @keyframes smoothIn {{
+    from {{ opacity: 0.4 !important; }}
+    to {{ opacity: 1 !important; }}
   }}
   
+  [data-testid="stAppViewContainer"] {{
+    animation: smoothIn 0.4s ease-out !important;
+    opacity: 1 !important;
+  }}
+  
+  /* Ajustement géométrique des hauteurs de vos 7 fichiers */
   @media (min-width: 769px) {{ 
     .div-scroll-local-historique {{ height: {h_historique_pc} !important; max-height: {h_historique_pc} !important; }}
     .ajust-haut-pc {{ max-height: {h_haut_pc} !important; overflow-y: auto; display: block; }}
@@ -567,12 +574,14 @@ st.markdown(f"""
 </style>
 """, unsafe_allow_html=True)
 
-# 3. Stabilisateur de Scroll en JavaScript pour éviter de remonter en haut de page
+# 3. JavaScript de secours pour verrouiller la position verticale du défilement
 st.components.v1.html("""
     <script>
+        // Enregistre la position du scroll juste avant la destruction de la page
         window.parent.addEventListener('beforeunload', function() {
             window.parent.sessionStorage.setItem('scrollPosition', window.parent.scrollY);
         });
+        // Remet instantanément le scroll à sa place au rechargement
         var scrollPosition = window.parent.sessionStorage.getItem('scrollPosition');
         if (scrollPosition) {
             window.parent.scrollTo(0, parseInt(scrollPosition));
@@ -580,7 +589,7 @@ st.components.v1.html("""
     </script>
 """, height=0, width=0)
 
-# 4. Affichage structurel des colonnes (Hors de tout fragment)
+# 4. Affichage structurel de vos colonnes de tableaux
 cg, cd = st.columns([1.3, 0.9])
 
 with cg:
@@ -592,6 +601,7 @@ with cg:
     
 with cd:
     if choix_course != "Essais":
+        # --- MODE DE COURSE ---
         if t_haut:
             st.markdown(f"<span class='titre-classement'>{t_haut}</span>", unsafe_allow_html=True)
             st.markdown(f"<div class='ajust-haut-pc'>{gen_html(d_haut, 'table-class-robuste')}</div>", unsafe_allow_html=True)
@@ -602,6 +612,7 @@ with cd:
             st.markdown(f"<span class='titre-classement espace-classement-suivant'>{t_bas}</span>", unsafe_allow_html=True)
             st.markdown(f"<div class='ajust-bas-pc'>{gen_html(d_bas, 'table-class-robuste')}</div>", unsafe_allow_html=True)
     else:
+        # --- MODE ESSAIS ---
         if t_haut:
             st.markdown(f"<span class='titre-classement'>{t_haut}</span>", unsafe_allow_html=True)
             st.markdown(f"<div class='ajust-haut-pc'>{gen_html(d_bas, 'table-class-robuste')}</div>", unsafe_allow_html=True)
@@ -619,7 +630,7 @@ st.markdown(f"""
 </div>
 """, unsafe_allow_html=True)
 
-# 5. Boucle de décompte Python avec activation du fondu à la dernière seconde
+# 5. Boucle de décompte Python standard (Plus aucune injection CSS déstabilisante ici)
 for secondes_restantes in range(30, -1, -1):
     if "Derniers concurrents" in t_live or "DIRECT" in t_live.upper():
         if secondes_restantes > 0:
@@ -628,13 +639,9 @@ for secondes_restantes in range(30, -1, -1):
             conteneur_titre_live.markdown(f"<span class='titre-live'>🏎️ EN DIRECT / Derniers concurrents partis / <span class='refresh-bleu-clair-historique'>Mise à jour...</span></span>", unsafe_allow_html=True)
     else:
         conteneur_titre_live.markdown(f"<span class='titre-live'>{t_live}</span>", unsafe_allow_html=True)
-    
-    # À la seconde 1, on injecte la classe CSS pour estomper l'écran doucement avant le refresh
-    if secondes_restantes == 1:
-        st.markdown("<style>[data-testid='stAppViewContainer'] { opacity: 0.15 !important; }</style>", unsafe_allow_html=True)
-
+        
     if secondes_restantes > 0:
         time.sleep(1)
 
-# Le rerun global qui garantit la mise à jour complète de toute la structure
+# Relance la page proprement
 st.rerun()
