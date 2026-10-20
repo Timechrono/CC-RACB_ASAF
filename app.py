@@ -18,6 +18,13 @@ d_haut = pd.DataFrame()
 d_milieu = pd.DataFrame()
 d_bas = pd.DataFrame()
 
+# AJOUT : Initialisation préventive des variables de texte
+t_live = ""
+t_his = ""
+t_haut = ""
+t_milieu = ""
+t_bas = ""
+
 # ==============================================================================
 # ⚠️ LIEN DROPBOX LOGO
 # ==============================================================================
