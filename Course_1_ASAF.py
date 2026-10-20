@@ -11,7 +11,7 @@ HAUTEURS_TABLEAUX_PC = {
     "HISTORIQUE": "487px",       # ⬅️ Colonne de gauche (Historique des temps)
     "RACB": "213px",             # ➡️ Haut de la colonne droite (Classement Général RACB)
     "ASAF_123": "147px",         # ➡️ Milieu de la colonne droite (Classement par Groupe / Classe)
-    "ASAF_4": "214px"              # ➡️ Bas de la colonne droite (0px car inutilisé sur cette feuille)
+    "ASAF_4": "215px"              # ➡️ Bas de la colonne droite (0px car inutilisé sur cette feuille)
 }
 
 # --- ENCODAGE NUMÉRIQUE INTERNE ANTI-CENSURE ---
