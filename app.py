@@ -444,6 +444,17 @@ with cg:
     
 with cd:
     h_mob = "380px"
+    
+    # SÉCURITÉ : Définition d'une hauteur par défaut pour éviter le NameError
+    if 'choix_course' in globals():
+        if "ESSAIS" in choix_course.upper():
+            h_pc = "215px"
+        elif "COURSE 1" in choix_course.upper():
+            h_pc = "425px"
+        else:
+            h_pc = "380px"
+    else:
+        h_pc = "380px"
 
     # Injection CSS dynamique
     st.markdown(f"""
