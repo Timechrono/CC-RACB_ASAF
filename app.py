@@ -522,123 +522,119 @@ def conteneur_dynamique_course():
     else:
         h_pc = "380px"
 
-    # 2. PRÉPARATION DU CONTENEUR DE TITRE LIVE POUR LE COMPTE À REBOURS
-    # ==============================================================================
-# 🔄 BLOC DYNAMIQUE DE RAFRAÎCHISSEMENT UNIQUE (SCROLL FIXE & DECOMPTE VERT)
+
+# ==============================================================================
+# 🎭 SYNC FONDU ENCHAÎNÉ GLOBAL (FADE OUT / FADE IN) SANS PAGE BLANCHE
 # ==============================================================================
 
-# Le fragment se réexécute de lui-même toutes les 30 secondes pour rafraîchir les données
-@st.fragment(run_every=30)
-def conteneur_dynamique_course():
-    global d_liv, d_his, d_haut, d_milieu, d_bas, t_live, t_his, t_haut, t_milieu, t_bas
+# 1. Récupération des hauteurs customs du fichier actif
+if choix_course == "Course 1 ASAF": module_actif = Course_1_ASAF
+elif choix_course == "Course 1 RACB": module_actif = Course_1_RACB
+elif choix_course == "Course 2 ASAF": module_actif = Course_2_ASAF
+elif choix_course == "Course 2 RACB": module_actif = Course_2_RACB
+elif choix_course == "Course 3 ASAF": module_actif = Course_3_ASAF
+elif choix_course == "Course 3 RACB": module_actif = Course_3_RACB
+else: module_actif = Essais
+
+hauteurs_custom = getattr(module_actif, "HAUTEURS_TABLEAUX_PC", {})
+h_historique_pc = hauteurs_custom.get("HISTORIQUE", "auto")
+h_haut_pc        = hauteurs_custom.get("RACB", "auto")
+h_milieu_pc      = hauteurs_custom.get("ASAF_123", "auto")
+h_bas_pc         = hauteurs_custom.get("ASAF_4", "auto")
+
+# 2. Injection CSS pour le fondu fluide à l'apparition et à la disparition
+st.markdown(f"""
+<style>
+  /* Transition fluide de l'opacité sur l'application */
+  [data-testid="stAppViewContainer"] {{
+    transition: opacity 0.4s ease-in-out !important;
+    opacity: 1;
+  }}
+  /* Classe injectée à la dernière seconde pour s'estomper doucement */
+  .fondu-disparition {{
+    opacity: 0.2 !important;
+  }}
+  
+  @media (min-width: 769px) {{ 
+    .div-scroll-local-historique {{ height: {h_historique_pc} !important; max-height: {h_historique_pc} !important; }}
+    .ajust-haut-pc {{ max-height: {h_haut_pc} !important; overflow-y: auto; display: block; }}
+    .ajust-milieu-pc {{ max-height: {h_milieu_pc} !important; overflow-y: auto; display: block; }}
+    .ajust-bas-pc {{ max-height: {h_bas_pc} !important; overflow-y: auto; display: block; }}
+  }}
+  @media (max-width: 768px) {{ 
+    .ajust-haut-pc, .ajust-milieu-pc, .ajust-bas-pc {{ max-height: 380px !important; overflow-y: auto; display: block; }}
+  }}
+</style>
+""", unsafe_allow_html=True)
+
+# 3. Stabilisateur de Scroll en JavaScript pour éviter de remonter en haut de page
+st.components.v1.html("""
+    <script>
+        window.parent.addEventListener('beforeunload', function() {
+            window.parent.sessionStorage.setItem('scrollPosition', window.parent.scrollY);
+        });
+        var scrollPosition = window.parent.sessionStorage.getItem('scrollPosition');
+        if (scrollPosition) {
+            window.parent.scrollTo(0, parseInt(scrollPosition));
+        }
+    </script>
+""", height=0, width=0)
+
+# 4. Affichage structurel des colonnes (Hors de tout fragment)
+cg, cd = st.columns([1.3, 0.9])
+
+with cg:
+    conteneur_titre_live = st.empty()
+    st.markdown(gen_html(d_liv, "table-live"), unsafe_allow_html=True)
+    if t_his: 
+        st.markdown(f"<span class='titre-hist'>{t_his}</span>", unsafe_allow_html=True)
+    st.markdown(gen_html(d_his, "table-hist"), unsafe_allow_html=True)
     
-    # 1. IDENTIFICATION DU MODULE ACTIF SELON LE CHOIX DE COURSE
-    if choix_course == "Course 1 ASAF": 
-        module_actif = Course_1_ASAF
-    elif choix_course == "Course 1 RACB": 
-        module_actif = Course_1_RACB
-    elif choix_course == "Course 2 ASAF": 
-        module_actif = Course_2_ASAF
-    elif choix_course == "Course 2 RACB": 
-        module_actif = Course_2_RACB
-    elif choix_course == "Course 3 ASAF": 
-        module_actif = Course_3_ASAF
-    elif choix_course == "Course 3 RACB": 
-        module_actif = Course_3_RACB
-    else: 
-        module_actif = Essais
+with cd:
+    if choix_course != "Essais":
+        if t_haut:
+            st.markdown(f"<span class='titre-classement'>{t_haut}</span>", unsafe_allow_html=True)
+            st.markdown(f"<div class='ajust-haut-pc'>{gen_html(d_haut, 'table-class-robuste')}</div>", unsafe_allow_html=True)
+        if t_milieu:
+            st.markdown(f"<span class='titre-classement espace-classement-suivant'>{t_milieu}</span>", unsafe_allow_html=True)
+            st.markdown(f"<div class='ajust-milieu-pc'>{gen_html(d_milieu, 'table-class-milieu')}</div>", unsafe_allow_html=True)
+        if t_bas:
+            st.markdown(f"<span class='titre-classement espace-classement-suivant'>{t_bas}</span>", unsafe_allow_html=True)
+            st.markdown(f"<div class='ajust-bas-pc'>{gen_html(d_bas, 'table-class-robuste')}</div>", unsafe_allow_html=True)
+    else:
+        if t_haut:
+            st.markdown(f"<span class='titre-classement'>{t_haut}</span>", unsafe_allow_html=True)
+            st.markdown(f"<div class='ajust-haut-pc'>{gen_html(d_bas, 'table-class-robuste')}</div>", unsafe_allow_html=True)
+        if t_milieu:
+            st.markdown(f"<span class='titre-classement espace-classement-suivant'>{t_milieu}</span>", unsafe_allow_html=True)
+            st.markdown(f"<div class='ajust-milieu-pc'>{gen_html(d_haut, 'table-class-robuste')}</div>", unsafe_allow_html=True)
+        if t_bas:
+            st.markdown(f"<span class='titre-classement espace-classement-suivant'>{t_bas}</span>", unsafe_allow_html=True)
+            st.markdown(f"<div class='div-scroll-local-div4'>{gen_html(d_milieu, 'table-class-robuste')}</div>", unsafe_allow_html=True)
 
-    # Extraction en temps réel du dictionnaire HAUTEURS_TABLEAUX_PC propre au fichier actif
-    hauteurs_custom = getattr(module_actif, "HAUTEURS_TABLEAUX_PC", {})
-    
-    # Lecture des configurations spécifiques de chacun de vos 7 fichiers (avec sécurité "auto" si absent)
-    h_historique_pc = hauteurs_custom.get("HISTORIQUE", "auto")
-    h_haut_pc        = hauteurs_custom.get("RACB", "auto")
-    h_milieu_pc      = hauteurs_custom.get("ASAF_123", "auto")
-    h_bas_pc         = hauteurs_custom.get("ASAF_4", "auto")
+st.markdown(f"""
+<div class='signature-fin-page'>
+    <img src='{LIEN_DROPBOX_LOGO}' class='logo-signature'>
+    www.timechrono.be
+</div>
+""", unsafe_allow_html=True)
 
-    # 2. TÉLÉCHARGEMENT DES DONNÉES DE COURSE DEPUIS LES SCRIPTS ANNEXES
-    try:
-        from concurrent.futures import ThreadPoolExecutor
-        with ThreadPoolExecutor(max_workers=1) as executor:
-            future = executor.submit(module_actif.recuperer_donnees_course)
-            res = future.result(timeout=4.0)
-            if res and len(res) == 10:
-                d_liv, d_his, d_haut, d_milieu, d_bas, t_live, t_his, t_haut, t_milieu, t_bas = res
-    except Exception as e:
-        pass
-
-    if t_haut and "TOP 20" in t_haut.upper():
-        t_haut = "🏆 CLASSEMENT GENERAL OFFICIEUX RACB"
-
-    # 3. APPLICATION EN CASQUADE DU CSS AVEC VOS HAUTEURS SUR MESURE
-    st.markdown(f"""
-    <style>
-      @media (min-width: 769px) {{ 
-        .div-scroll-local-historique {{ height: {h_historique_pc} !important; max-height: {h_historique_pc} !important; }}
-        .ajust-haut-pc {{ max-height: {h_haut_pc} !important; overflow-y: auto; display: block; }}
-        .ajust-milieu-pc {{ max-height: {h_milieu_pc} !important; overflow-y: auto; display: block; }}
-        .ajust-bas-pc {{ max-height: {h_bas_pc} !important; overflow-y: auto; display: block; }}
-      }}
-      @media (max-width: 768px) {{ 
-        .ajust-haut-pc, .ajust-milieu-pc, .ajust-bas-pc {{ max-height: 380px !important; overflow-y: auto; display: block; }}
-      }}
-    </style>
-    """, unsafe_allow_html=True)
-
-    # 4. ARCHITECTURE GRAPHIQUE DES COLONNES DE TABLEAUX
-    cg, cd = st.columns([1.3, 0.9])
-    
-    with cg:
-        conteneur_titre_live = st.empty()
-        st.markdown(gen_html(d_liv, "table-live"), unsafe_allow_html=True)
-        if t_his: 
-            st.markdown(f"<span class='titre-hist'>{t_his}</span>", unsafe_allow_html=True)
-        st.markdown(gen_html(d_his, "table-hist"), unsafe_allow_html=True)
-        
-    with cd:
-        if choix_course != "Essais":
-            # --- MODE DE COURSE ---
-            if t_haut:
-                st.markdown(f"<span class='titre-classement'>{t_haut}</span>", unsafe_allow_html=True)
-                st.markdown(f"<div class='ajust-haut-pc'>{gen_html(d_haut, 'table-class-robuste')}</div>", unsafe_allow_html=True)
-            if t_milieu:
-                st.markdown(f"<span class='titre-classement espace-classement-suivant'>{t_milieu}</span>", unsafe_allow_html=True)
-                st.markdown(f"<div class='ajust-milieu-pc'>{gen_html(d_milieu, 'table-class-milieu')}</div>", unsafe_allow_html=True)
-            if t_bas:
-                st.markdown(f"<span class='titre-classement espace-classement-suivant'>{t_bas}</span>", unsafe_allow_html=True)
-                st.markdown(f"<div class='ajust-bas-pc'>{gen_html(d_bas, 'table-class-robuste')}</div>", unsafe_allow_html=True)
-        else:
-            # --- MODE ESSAIS ---
-            if t_haut:
-                st.markdown(f"<span class='titre-classement'>{t_haut}</span>", unsafe_allow_html=True)
-                st.markdown(f"<div class='ajust-haut-pc'>{gen_html(d_bas, 'table-class-robuste')}</div>", unsafe_allow_html=True)
-            if t_milieu:
-                st.markdown(f"<span class='titre-classement espace-classement-suivant'>{t_milieu}</span>", unsafe_allow_html=True)
-                st.markdown(f"<div class='ajust-milieu-pc'>{gen_html(d_haut, 'table-class-robuste')}</div>", unsafe_allow_html=True)
-            if t_bas:
-                st.markdown(f"<span class='titre-classement espace-classement-suivant'>{t_bas}</span>", unsafe_allow_html=True)
-                st.markdown(f"<div class='div-scroll-local-div4'>{gen_html(d_milieu, 'table-class-robuste')}</div>", unsafe_allow_html=True)
-
-    st.markdown(f"""
-    <div class='signature-fin-page'>
-        <img src='{LIEN_DROPBOX_LOGO}' class='logo-signature'>
-        www.timechrono.be
-    </div>
-    """, unsafe_allow_html=True)
-
-    # 5. BOUCLE DU COMPTE À REBOURS INTEGRÉ ET FLUIDE
-    for secondes_restantes in range(30, -1, -1):
-        if "Derniers concurrents" in t_live or "DIRECT" in t_live.upper():
-            if secondes_restantes > 0:
-                conteneur_titre_live.markdown(f"<span class='titre-live'>🏎️ EN DIRECT / Derniers concurrents partis / <span class='refresh-bleu-clair-historique'>Refresh {secondes_restantes} Sec.</span></span>", unsafe_allow_html=True)
-            else:
-                conteneur_titre_live.markdown(f"<span class='titre-live'>🏎️ EN DIRECT / Derniers concurrents partis / <span class='refresh-bleu-clair-historique'>Mise à jour...</span></span>", unsafe_allow_html=True)
-        else:
-            conteneur_titre_live.markdown(f"<span class='titre-live'>{t_live}</span>", unsafe_allow_html=True)
-        
+# 5. Boucle de décompte Python avec activation du fondu à la dernière seconde
+for secondes_restantes in range(30, -1, -1):
+    if "Derniers concurrents" in t_live or "DIRECT" in t_live.upper():
         if secondes_restantes > 0:
-            time.sleep(1)
+            conteneur_titre_live.markdown(f"<span class='titre-live'>🏎️ EN DIRECT / Derniers concurrents partis / <span class='refresh-bleu-clair-historique'>Refresh {secondes_restantes} Sec.</span></span>", unsafe_allow_html=True)
+        else:
+            conteneur_titre_live.markdown(f"<span class='titre-live'>🏎️ EN DIRECT / Derniers concurrents partis / <span class='refresh-bleu-clair-historique'>Mise à jour...</span></span>", unsafe_allow_html=True)
+    else:
+        conteneur_titre_live.markdown(f"<span class='titre-live'>{t_live}</span>", unsafe_allow_html=True)
+    
+    # À la seconde 1, on injecte la classe CSS pour estomper l'écran doucement avant le refresh
+    if secondes_restantes == 1:
+        st.markdown("<style>[data-testid='stAppViewContainer'] { opacity: 0.15 !important; }</style>", unsafe_allow_html=True)
 
-# ÉCOUTEUR ET EXÉCUTION DU BLOC APPLICATIF
-conteneur_dynamique_course()
+    if secondes_restantes > 0:
+        time.sleep(1)
+
+# Le rerun global qui garantit la mise à jour complète de toute la structure
+st.rerun()
