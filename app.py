@@ -435,113 +435,98 @@ if t_haut and "TOP 20" in t_haut.upper():
     t_haut = "🏆 CLASSEMENT GENERAL OFFICIEUX RACB"
 
 cg, cd = st.columns([1.3, 0.9])
-with cg:
-    conteneur_titre_live = st.empty()
-    st.markdown(gen_html(d_liv, "table-live"), unsafe_allow_html=True)
-    if t_his: 
-        st.markdown(f"<span class='titre-hist'>{t_his}</span>", unsafe_allow_html=True)
-    st.markdown(gen_html(d_his, "table-hist"), unsafe_allow_html=True)
+# ==============================================================================
+# 🔄 COMPOSANT DE RAFRAÎCHISSEMENT LOCAL (ZÉRO PAGE BLANCHE / SCROLL FIXE)
+# ==============================================================================
+
+# Nous encapsulons le téléchargement et l'affichage dans un fragment autonome.
+# Streamlit va rafraîchir UNIQUEMENT ce bloc toutes les 30 secondes sans toucher au reste du site.
+@st.fragment(run_every=30)
+def conteneur_dynamique_course():
+    # Récupération des variables globales pour la mise à jour
+    global d_liv, d_his, d_haut, d_milieu, d_bas, t_live, t_his, t_haut, t_milieu, t_bas
     
-with cd:
-    h_mob = "380px"
-    
-    # SÉCURITÉ : Définition d'une hauteur par défaut pour éviter le NameError
-    if 'choix_course' in globals():
-        if "ESSAIS" in choix_course.upper():
-            h_pc = "215px"
-        elif "COURSE 1" in choix_course.upper():
-            h_pc = "425px"
-        else:
-            h_pc = "380px"
+    # 1. RE-TÉLÉCHARGEMENT DES DONNÉES EN ARRIÈRE-PLAN
+    try:
+        from concurrent.futures import ThreadPoolExecutor
+
+        def recuperer_avec_timeout():
+            if choix_course == "Course 1 ASAF": return Course_1_ASAF.recuperer_donnees_course()
+            elif choix_course == "Course 1 RACB": return Course_1_RACB.recuperer_donnees_course()
+            elif choix_course == "Course 2 ASAF": return Course_2_ASAF.recuperer_donnees_course()
+            elif choix_course == "Course 2 RACB": return Course_2_RACB.recuperer_donnees_course()
+            elif choix_course == "Course 3 ASAF": return Course_3_ASAF.recuperer_donnees_course()
+            elif choix_course == "Course 3 RACB": return Course_3_RACB.recuperer_donnees_course()
+            else: return Essais.recuperer_donnees_course()
+
+        with ThreadPoolExecutor(max_workers=1) as executor:
+            future = executor.submit(recuperer_avec_timeout)
+            res = future.result(timeout=4.0)
+            if res and len(res) == 10:
+                d_liv, d_his, d_haut, d_milieu, d_bas, t_live, t_his, t_haut, t_milieu, t_bas = res
+    except Exception as e:
+        pass # Reste sur les anciennes données si Dropbox est lent pendant le cycle
+
+    if t_haut and "TOP 20" in t_haut.upper():
+        t_haut = "🏆 CLASSEMENT GENERAL OFFICIEUX RACB"
+
+    # Ajustement de la hauteur forcée PC
+    if "ESSAIS" in choix_course.upper():
+        h_pc = "215px"
+    elif "COURSE 1" in choix_course.upper():
+        h_pc = "425px"
     else:
         h_pc = "380px"
 
-    # Injection CSS dynamique
+    # 2. AFFICHAGE DES COLONNES DE TABLEAUX (SANS TOUCHER AU SCROLL NAVIGATEUR)
+    cg, cd = st.columns([1.3, 0.9])
+    
+    with cg:
+        # Titre Live épuré sans le décompte Python pour éviter les micro-sauts visuels
+        st.markdown(f"<span class='titre-live'>{t_live}</span>", unsafe_allow_html=True)
+        st.markdown(gen_html(d_liv, "table-live"), unsafe_allow_html=True)
+        if t_his: 
+            st.markdown(f"<span class='titre-hist'>{t_his}</span>", unsafe_allow_html=True)
+        st.markdown(gen_html(d_his, "table-hist"), unsafe_allow_html=True)
+        
+    with cd:
+        h_mob = "380px"
+        st.markdown(f"""
+        <style>
+          @media (min-width: 769px) {{ .ajust-hauteur-pc {{ max-height: {h_pc} !important; }} }}
+          @media (max-width: 768px) {{ .ajust-hauteur-pc {{ max-height: {h_mob} !important; }} }}
+        </style>
+        """, unsafe_allow_html=True)
+
+        if choix_course != "Essais":
+            # --- MODE DE COURSE ---
+            if t_haut:
+                st.markdown(f"<span class='titre-classement'>{t_haut}</span>", unsafe_allow_html=True)
+                st.markdown(f"<div class='ajust-hauteur-pc' style='overflow-y: auto; display: block;'>{gen_html(d_haut, 'table-class-robuste')}</div>", unsafe_allow_html=True)
+            if t_milieu:
+                st.markdown(f"<span class='titre-classement espace-classement-suivant'>{t_milieu}</span>", unsafe_allow_html=True)
+                st.markdown(f"<div class='ajust-hauteur-pc' style='overflow-y: auto; display: block;'>{gen_html(d_milieu, 'table-class-milieu')}</div>", unsafe_allow_html=True)
+            if t_bas:
+                st.markdown(f"<span class='titre-classement espace-classement-suivant'>{t_bas}</span>", unsafe_allow_html=True)
+                st.markdown(f"<div class='ajust-hauteur-pc' style='overflow-y: auto; display: block;'>{gen_html(d_bas, 'table-class-robuste')}</div>", unsafe_allow_html=True)
+        else:
+            # --- MODE ESSAIS ---
+            if t_haut:
+                st.markdown(f"<span class='titre-classement'>{t_haut}</span>", unsafe_allow_html=True)
+                st.markdown(f"<div class='ajust-hauteur-pc' style='overflow-y: auto; display: block;'>{gen_html(d_bas, 'table-class-robuste')}</div>", unsafe_allow_html=True)
+            if t_milieu:
+                st.markdown(f"<span class='titre-classement espace-classement-suivant'>{t_milieu}</span>", unsafe_allow_html=True)
+                st.markdown(f"<div class='ajust-hauteur-pc' style='overflow-y: auto; display: block;'>{gen_html(d_haut, 'table-class-robuste')}</div>", unsafe_allow_html=True)
+            if t_bas:
+                st.markdown(f"<span class='titre-classement espace-classement-suivant'>{t_bas}</span>", unsafe_allow_html=True)
+                st.markdown(f"<div class='div-scroll-local-div4'>{gen_html(d_milieu, 'table-class-robuste')}</div>", unsafe_allow_html=True)
+
     st.markdown(f"""
-    <style>
-      @media (min-width: 769px) {{ .ajust-hauteur-pc {{ max-height: {h_pc} !important; }} }}
-      @media (max-width: 768px) {{ .ajust-hauteur-pc {{ max-height: {h_mob} !important; }} }}
-    </style>
+    <div class='signature-fin-page'>
+        <img src='{LIEN_DROPBOX_LOGO}' class='logo-signature'>
+        www.timechrono.be
+    </div>
     """, unsafe_allow_html=True)
 
-    if choix_course != "Essais":
-        # --- MODE DE COURSE ---
-        if t_haut:
-            st.markdown(f"<span class='titre-classement'>{t_haut}</span>", unsafe_allow_html=True)
-            st.markdown(f"<div class='ajust-hauteur-pc' style='overflow-y: auto; display: block;'>{gen_html(d_haut, 'table-class-robuste')}</div>", unsafe_allow_html=True)
-        if t_milieu:
-            st.markdown(f"<span class='titre-classement espace-classement-suivant'>{t_milieu}</span>", unsafe_allow_html=True)
-            st.markdown(f"<div class='ajust-hauteur-pc' style='overflow-y: auto; display: block;'>{gen_html(d_milieu, 'table-class-milieu')}</div>", unsafe_allow_html=True)
-        if t_bas:
-            st.markdown(f"<span class='titre-classement espace-classement-suivant'>{t_bas}</span>", unsafe_allow_html=True)
-            st.markdown(f"<div class='ajust-hauteur-pc' style='overflow-y: auto; display: block;'>{gen_html(d_bas, 'table-class-robuste')}</div>", unsafe_allow_html=True)
-    else:
-        # --- MODE ESSAIS ---
-        if t_haut:
-            st.markdown(f"<span class='titre-classement'>{t_haut}</span>", unsafe_allow_html=True)
-            st.markdown(f"<div class='ajust-hauteur-pc' style='overflow-y: auto; display: block;'>{gen_html(d_bas, 'table-class-robuste')}</div>", unsafe_allow_html=True)
-        if t_milieu:
-            st.markdown(f"<span class='titre-classement espace-classement-suivant'>{t_milieu}</span>", unsafe_allow_html=True)
-            st.markdown(f"<div class='ajust-hauteur-pc' style='overflow-y: auto; display: block;'>{gen_html(d_haut, 'table-class-robuste')}</div>", unsafe_allow_html=True)
-        if t_bas:
-            st.markdown(f"<span class='titre-classement espace-classement-suivant'>{t_bas}</span>", unsafe_allow_html=True)
-            # APPLICATION BRIDAGE : Encapsulation dans le conteneur forcé à 114px pour la Division 4 en mode Essais
-            st.markdown(f"<div class='div-scroll-local-div4'>{gen_html(d_milieu, 'table-class-robuste')}</div>", unsafe_allow_html=True)
-
-st.markdown(f"""
-<div class='signature-fin-page'>
-    <img src='{LIEN_DROPBOX_LOGO}' class='logo-signature'>
-    www.timechrono.be
-</div>
-""", unsafe_allow_html=True)
-
-
-# --- REFRESH FLUIDE SANS PAGE BLANCHE ET CONSERVATION DU SCROLL ---
-
-# 1. Injection d'un script pour mémoriser et restaurer instantanément la position du scroll
-st.components.v1.html("""
-    <script>
-        // Sauvegarder la position du scroll avant le rechargement
-        window.parent.addEventListener('beforeunload', function() {
-            window.parent.sessionStorage.setItem('scrollPosition', window.parent.scrollY);
-        });
-        // Restaurer la position dès que la page se recharge
-        var scrollPosition = window.parent.sessionStorage.getItem('scrollPosition');
-        if (scrollPosition) {
-            window.parent.scrollTo(0, parseInt(scrollPosition));
-        }
-    </script>
-""", height=0, width=0)
-
-# ==============================================================================
-# 🏎️ MISE À JOUR INDICATEUR DE CHARGEMENT TECHNIQUE SANS BLOCAGE VISUEL
-# ==============================================================================
-
-# 1. Stabilisateur JavaScript unique pour le scroll au rechargement
-st.components.v1.html("""
-    <script>
-        window.parent.addEventListener('beforeunload', function() {
-            window.parent.sessionStorage.setItem('scrollPosition', window.parent.scrollY);
-        });
-        var scrollPosition = window.parent.sessionStorage.getItem('scrollPosition');
-        if (scrollPosition) {
-            window.parent.scrollTo(0, parseInt(scrollPosition));
-        }
-    </script>
-""", height=0, width=0)
-
-# 2. Votre boucle de décompte d'origine dynamique et stable
-for secondes_restantes in range(30, -1, -1):
-    if secondes_restantes > 0:
-        if "Derniers concurrents" in t_live or "DIRECT" in t_live.upper():
-            conteneur_titre_live.markdown(f"<span class='titre-live'>🏎️ EN DIRECT / Derniers concurrents partis / <span class='refresh-bleu-clair-historique'>Refresh {secondes_restantes} Sec.</span></span>", unsafe_allow_html=True)
-        else:
-            conteneur_titre_live.markdown(f"<span class='titre-live'>{t_live}</span>", unsafe_allow_html=True)
-        time.sleep(1)
-    else:
-        # À la seconde 0, pendant que le serveur travaille, on fige l'écran existant et on affiche un message propre
-        if "Derniers concurrents" in t_live or "DIRECT" in t_live.upper():
-            conteneur_titre_live.markdown(f"<span class='titre-live'>🏎️ EN DIRECT / Derniers concurrents partis / <span class='refresh-bleu-clair-historique'>Mise à jour en cours...</span></span>", unsafe_allow_html=True)
-
-# Relance instantanée de la page
-st.rerun()
+# Lancement immédiat et automatique de l'affichage localisé
+conteneur_dynamique_course()
