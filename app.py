@@ -514,28 +514,22 @@ st.components.v1.html("""
 """, height=0, width=0)
 
 # ==============================================================================
-# 🎭 ANIMATION DE FONDU (FADE OUT / FADE IN) POUR LE REFRESH
+# 🎭 ANIMATION DE FONDU DE SÉCURITÉ POUR LE REFRESH (NE BLOQUE PAS)
 # ==============================================================================
 
-# 1. CSS pour gérer la transition de l'opacité sur toute l'application
+# 1. CSS pour mémoriser la transition d'opacité
 st.markdown("""
 <style>
-    /* L'application entière prend 0.4s pour changer d'opacité */
     [data-testid="stAppViewContainer"] {
-        transition: opacity 0.4s ease-in-out !important;
+        transition: opacity 0.5s ease-in-out !important;
         opacity: 1;
-    }
-    /* Classe technique temporaire lancée juste avant le rerun */
-    .fondu-fermeture {
-        opacity: 0.15 !important; /* L'écran s'estompe doucement vers le blanc sans disparaître totalement */
     }
 </style>
 """, unsafe_allow_html=True)
 
-# 2. JavaScript pour mémoriser le scroll et déclencher l'animation au dernier moment
+# 2. JavaScript UNIQUE hors de la boucle pour stabiliser le scroll au rechargement
 st.components.v1.html("""
     <script>
-        // Mémorisation et restauration du scroll
         window.parent.addEventListener('beforeunload', function() {
             window.parent.sessionStorage.setItem('scrollPosition', window.parent.scrollY);
         });
@@ -543,30 +537,22 @@ st.components.v1.html("""
         if (scrollPosition) {
             window.parent.scrollTo(0, parseInt(scrollPosition));
         }
-
-        // Écouter le signal Python pour lancer l'animation visuelle
-        window.parent.addEventListener('declencherFondu', function() {
-            var appContainer = window.parent.document.querySelector('[data-testid="stAppViewContainer"]');
-            if (appContainer) {
-                appContainer.classList.add('fondu-fermeture');
-            }
-        });
     </script>
 """, height=0, width=0)
 
-# 3. Votre boucle de décompte d'origine (inchangée)
+# 3. Boucle de décompte d'origine nettoyée
 for secondes_restantes in range(30, -1, -1):
     if "Derniers concurrents" in t_live or "DIRECT" in t_live.upper():
         conteneur_titre_live.markdown(f"<span class='titre-live'>🏎️ EN DIRECT / Derniers concurrents partis / <span class='refresh-bleu-clair-historique'>Refresh {secondes_restantes} Sec.</span></span>", unsafe_allow_html=True)
     else:
         conteneur_titre_live.markdown(f"<span class='titre-live'>{t_live}</span>", unsafe_allow_html=True)
     
-    # À 1 seconde de la fin, on envoie le signal à l'écran de commencer à s'estomper doucement
+    # À 1 seconde de la fin, on applique le fondu directement en CSS injecté (Ultra-léger)
     if secondes_restantes == 1:
-        st.components.v1.html("<script>window.parent.dispatchEvent(new CustomEvent('declencherFondu'));</script>", height=0, width=0)
+        st.markdown("<style>[data-testid='stAppViewContainer'] { opacity: 0.25 !important; }</style>", unsafe_allow_html=True)
         
     if secondes_restantes > 0:
         time.sleep(1)
 
-# Relance la page avec l'effet visuel actif
+# Relance de la page
 st.rerun()
