@@ -452,30 +452,29 @@ with cg:
     
 with cd:
     if choix_course != "Essais":
-        # --- MODE COMPÉTITION (Ordre Standard) ---
+        # --- MODE COMPÉTITION ---
         if t_haut:
             st.markdown(f"<span class='titre-classement'>{t_haut}</span>", unsafe_allow_html=True)
-            st.markdown(f"<div class='ajust-hauteur-racb'>{gen_html(d_haut, 'table-class-robuste')}</div>", unsafe_allow_html=True)
+            st.markdown(f"<div class='ajust-hauteur-racb' style='height: {h_racb} !important; max-height: {h_racb} !important; overflow-y: auto !important;'>{gen_html(d_haut, 'table-class-robuste')}</div>", unsafe_allow_html=True)
         if t_milieu:
             st.markdown(f"<span class='titre-classement espace-classement-suivant'>{t_milieu}</span>", unsafe_allow_html=True)
-            st.markdown(f"<div class='ajust-hauteur-asaf123'>{gen_html(d_milieu, 'table-class-milieu')}</div>", unsafe_allow_html=True)
+            st.markdown(f"<div class='ajust-hauteur-asaf123' style='height: {h_asaf_123} !important; max-height: {h_asaf_123} !important; overflow-y: auto !important;'>{gen_html(d_milieu, 'table-class-milieu')}</div>", unsafe_allow_html=True)
         if t_bas:
             st.markdown(f"<span class='titre-classement espace-classement-suivant'>{t_bas}</span>", unsafe_allow_html=True)
-            st.markdown(f"<div class='div-scroll-local-div4'>{gen_html(d_bas, 'table-class-robuste')}</div>", unsafe_allow_html=True)
+            st.markdown(f"<div class='div-scroll-local-div4' style='height: {h_asaf_4} !important; max-height: {h_asaf_4} !important; overflow-y: auto !important;'>{gen_html(d_bas, 'table-class-robuste')}</div>", unsafe_allow_html=True)
     else:
-        # --- MODE ESSAIS (Ordre Permuté mais Classes Fixes) ---
+        # --- MODE ESSAIS ---
         if t_haut:
             st.markdown(f"<span class='titre-classement'>{t_haut}</span>", unsafe_allow_html=True)
-            # Correction : Utilise 'ajust-hauteur-racb' pour le 1er conteneur de droite
-            st.markdown(f"<div class='ajust-hauteur-racb'>{gen_html(d_bas, 'table-class-robuste')}</div>", unsafe_allow_html=True)
+            st.markdown(f"<div class='ajust-hauteur-racb' style='height: {h_racb} !important; max-height: {h_racb} !important; overflow-y: auto !important;'>{gen_html(d_bas, 'table-class-robuste')}</div>", unsafe_allow_html=True)
         if t_milieu:
             st.markdown(f"<span class='titre-classement espace-classement-suivant'>{t_milieu}</span>", unsafe_allow_html=True)
-            # Correction : Utilise 'ajust-hauteur-asaf123' pour le 2ème conteneur de droite
-            st.markdown(f"<div class='ajust-hauteur-asaf123'>{gen_html(d_haut, 'table-class-robuste')}</div>", unsafe_allow_html=True)
+            st.markdown(f"<div class='ajust-hauteur-asaf123' style='height: {h_asaf_123} !important; max-height: {h_asaf_123} !important; overflow-y: auto !important;'>{gen_html(d_haut, 'table-class-robuste')}</div>", unsafe_allow_html=True)
         if t_bas:
             st.markdown(f"<span class='titre-classement espace-classement-suivant'>{t_bas}</span>", unsafe_allow_html=True)
-            # Correction : Utilise 'div-scroll-local-div4' pour le 3ème conteneur de droite
-            st.markdown(f"<div class='div-scroll-local-div4'>{gen_html(d_milieu, 'table-class-robuste')}</div>", unsafe_allow_html=True)
+            # Application stricte de h_asaf_4 ici
+            st.markdown(f"<div class='div-scroll-local-div4' style='height: {h_asaf_4} !important; max-height: {h_asaf_4} !important; overflow-y: auto !important;'>{gen_html(d_milieu, 'table-class-robuste')}</div>", unsafe_allow_html=True)
+
 
 
 
