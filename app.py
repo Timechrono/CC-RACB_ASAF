@@ -448,14 +448,11 @@ with cd:
             st.markdown(f"<div class='ajust-hauteur-racb'>{gen_html(d_haut, 'table-class-robuste')}</div>", unsafe_allow_html=True)
         if t_milieu:
             st.markdown(f"<span class='titre-classement espace-classement-suivant'>{t_milieu}</span>", unsafe_allow_html=True)
-            # Correction ici : Si le tableau a moins de 10 lignes, on ne force pas la hauteur de 380px
-            nb_lignes_milieu = len(d_milieu) if hasattr(d_milieu, '__len__') else 0
-            style_scroll_milieu = "class='ajust-hauteur-asaf123'" if nb_lignes_milieu > 10 else "style='height: auto; display: block;'"
-            st.markdown(f"<div {style_scroll_milieu}>{gen_html(d_milieu, 'table-class-milieu')}</div>", unsafe_allow_html=True)
+            st.markdown(f"<div class='ajust-hauteur-asaf123'>{gen_html(d_milieu, 'table-class-milieu')}</div>", unsafe_allow_html=True)
         if t_bas:
             st.markdown(f"<span class='titre-classement espace-classement-suivant'>{t_bas}</span>", unsafe_allow_html=True)
-            # Affichage fluide qui colle directement au tableau du dessus
-            st.markdown(f"<div style='height: auto; display: block;'>{gen_html(d_bas, 'table-class-robuste')}</div>", unsafe_allow_html=True)
+            # Correction de la classe ici pour utiliser 'div-scroll-local-div4' (ASAF_4) au lieu de 'ajust-hauteur-asaf123'
+            st.markdown(f"<div class='div-scroll-local-div4'>{gen_html(d_bas, 'table-class-robuste')}</div>", unsafe_allow_html=True)
     else:
         if t_haut:
             st.markdown(f"<span class='titre-classement'>{t_haut}</span>", unsafe_allow_html=True)
@@ -466,6 +463,7 @@ with cd:
         if t_bas:
             st.markdown(f"<span class='titre-classement espace-classement-suivant'>{t_bas}</span>", unsafe_allow_html=True)
             st.markdown(f"<div class='div-scroll-local-div4'>{gen_html(d_milieu, 'table-class-robuste')}</div>", unsafe_allow_html=True)
+
 
 
 # INJECTION DE LA SIGNATURE UNIQUE CONTRE LES DOUBLONS
