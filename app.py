@@ -487,16 +487,16 @@ st.markdown(f"""
 
 # GESTION DES SECONDES ET DU RAFRAÎCHISSEMENT DU LIVE
 for secondes_restantes in range(30, -1, -1):
-    # Injection universelle et immunisée de l'animation de rotation
+    # Injection de l'animation CSS Option 2 (Double Flash LED Stroboscopique)
     st.markdown("""
     <style>
-    @keyframes gyro-rot {
-        from { transform: rotate(-25deg); }
-        to { transform: rotate(25deg); }
+    @keyframes gyro-strobe {
+        0%, 15%, 30%, 100% { opacity: 1; filter: drop-shadow(0 0 2px #EF4444); }
+        7%, 22% { opacity: 0.2; filter: drop-shadow(0 0 0px transparent); }
     }
     .gyro-anime, .vrai-gyrophare {
         display: inline-block !important;
-        animation: gyro-rot 0.35s infinite alternate ease-in-out !important;
+        animation: gyro-strobe 1.1s infinite linear !important;
         margin-right: 4px !important;
     }
     .gyro-anime {
