@@ -106,7 +106,7 @@ def extraire_engages(flux):
     return df_clean[df_clean["N°"] != "NAN"]
 def recuperer_donnees_course():
     cols_live = ["N°", "Nom_Prenom", "Voiture", "Départ", "Arrivée", "Chrono"]
-    cols_hist = ["N°", "Nom_Prenom", "Voiture", "Gr/Div", "Cl", "Chrono"]
+    cols_hist = ["N°", "Nom_Prenom", "Voiture", "Division", "Cl", "Chrono"]
     df_live = pd.DataFrame(columns=cols_live)
     df_hist = pd.DataFrame(columns=cols_hist)
     df_asaf123 = pd.DataFrame(columns=["Pos", "N°", "Nom_Prenom", "Gr/Div", "Cl", "Chrono"])
