@@ -487,17 +487,17 @@ st.markdown(f"""
 
 # GESTION DES SECONDES ET DU RAFRAÎCHISSEMENT DU LIVE
 for secondes_restantes in range(30, -1, -1):
-    # Injection du style CSS - Point "Live" battant technologique (Standard FIA / F1)
+    # Injection du style CSS avec un NOM D'ANIMATION UNIQUE pour forcer la mise à jour du navigateur
     st.markdown("""
     <style>
-    @keyframes fia-pulse {
+    @keyframes fia-pulse-live {
         0% { transform: scale(0.9); opacity: 0.45; filter: drop-shadow(0 0 0px transparent); }
         50% { transform: scale(1.18); opacity: 1; filter: drop-shadow(0 0 6px #DC2626); }
         100% { transform: scale(0.9); opacity: 0.45; filter: drop-shadow(0 0 0px transparent); }
     }
     .vrai-gyrophare {
         display: inline-block !important;
-        animation: fia-pulse 1.3s infinite ease-in-out !important;
+        animation: fia-pulse-live 1.3s infinite ease-in-out !important;
         margin-right: 5px !important;
         font-size: 0.95rem !important;
         vertical-align: middle !important;
