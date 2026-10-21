@@ -100,9 +100,11 @@ def recuperer_donnees_course():
         flux_dep = telecharger_excel(FILE_DEPART)
         flux_arr = telecharger_excel(FILE_ARRIVEE)
         
-        df_eng_raw = pd.read_excel(flux_eng, skiprows=1, engine='openpyxl')
+        # --- CORRECTION DE LA LIGNE DE DÉPART : skiprows=0 au lieu de 1 ---
+        df_eng_raw = pd.read_excel(flux_eng, skiprows=0, engine='openpyxl')
         df_dep_raw = pd.read_excel(flux_dep, header=None, engine='openpyxl')
         df_arr_raw = pd.read_excel(flux_arr, header=None, engine='openpyxl')
+
 
         idx_dep, idx_arr = None, None
         for c_idx in range(len(df_dep_raw.columns)):
