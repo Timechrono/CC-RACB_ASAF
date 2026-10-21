@@ -94,7 +94,8 @@ def calculer_statut_chrono(row, est_dans_le_live=True):
     return "No Time"
 
 def extraire_engages(flux):
-    df_raw = pd.read_excel(flux, skiprows=1, engine='openpyxl')
+    # --- CORRECTION 1 : Lecture dès la ligne 2 (suppression de skiprows=1) ---
+    df_raw = pd.read_excel(flux, engine='openpyxl')
     df_raw.columns = df_raw.columns.astype(str).str.strip().str.upper()
     df_clean = pd.DataFrame({
         "N°": df_raw.iloc[:, 0].apply(nettoyer_numero), 
@@ -104,6 +105,7 @@ def extraire_engages(flux):
         "Classe": df_raw.iloc[:, 6].fillna("-").astype(str).str.strip().apply(lambda x: x[:-2] if x.endswith(".0") else x)
     })
     return df_clean[df_clean["N°"] != "NAN"]
+
 def recuperer_donnees_course():
     cols_live = ["N°", "Nom_Prenom", "Voiture", "Départ", "Arrivée", "Chrono"]
     cols_hist = ["N°", "Nom_Prenom", "Voiture", "Division", "Cl", "Chrono"]
@@ -118,7 +120,8 @@ def recuperer_donnees_course():
         flux_dep = telecharger_excel(FILE_DEPART)
         flux_arr = telecharger_excel(FILE_ARRIVEE)
         
-        df_eng_raw = pd.read_excel(flux_eng, skiprows=1, engine='openpyxl')
+        # --- LECTURE PROPRE DES EXCEL SANS SKIPROWS ---
+        df_eng_raw = pd.read_excel(flux_eng, engine='openpyxl')
         df_dep_raw = pd.read_excel(flux_dep, header=None, engine='openpyxl')
         df_arr_raw = pd.read_excel(flux_arr, header=None, engine='openpyxl')
 
@@ -152,7 +155,6 @@ def recuperer_donnees_course():
             d_racb = pd.DataFrame({"N°": df_dep_raw.iloc[2:, idx_dep_racb].apply(nettoyer_numero), "Heure_Depart": df_dep_raw.iloc[2:, idx_dep_racb + 1]})
             deps_list.append(d_racb[d_racb["N°"].isin(liste_numeros_asaf)])
         df_dep = pd.concat(deps_list).drop_duplicates(subset=["N°", "Heure_Depart"]) if deps_list else pd.DataFrame(columns=["N°", "Heure_Depart"])
-
         arrs_list = []
         if idx_arr_asaf is not None:
             a_asaf = pd.DataFrame({"N°": df_arr_raw.iloc[2:, idx_arr_asaf].apply(nettoyer_numero), "Heure_Arrivee": df_arr_raw.iloc[2:, idx_arr_asaf + 2], "Chrono_Excel": df_arr_raw.iloc[2:, idx_arr_asaf + 3]})
@@ -182,22 +184,22 @@ def recuperer_donnees_course():
             base["Départ_C1"] = base["Heure_Depart"].apply(formater_heure_ecran)
 
             if "Heure_Depart" in base.columns and base["Heure_Depart"].notna().any():
-                base_c1 = base[base["Heure_Depart"].notna()].copy(); base_c1["Ordre_Live"] = range(len(base_c1))
-                df_live_base = base_c1.sort_values(by="Ordre_Live", ascending=False).head(5).copy()
+                base_live = base[base["Heure_Depart"].notna()].copy(); base_live = base_live.sort_index(ascending=False)
+                df_live_base = base_live.head(5).copy()
                 df_live_base["Chrono"] = df_live_base.apply(lambda r: calculer_statut_chrono(r, est_dans_le_live=True), axis=1)
                 df_live_base["Arrivée_Brute"] = df_live_base["Heure_Arrivee"].apply(formater_heure_ecran)
                 df_live = df_live_base[["N°", "Nom_Prenom", "Voiture", "Départ_C1", "Arrivée_Brute", "Chrono"]].rename(columns={"Départ_C1": "Départ", "Arrivée_Brute": "Arrivée"})
 
-            base["Chrono_C1_Visual_Hist"] = base.apply(lambda r: "En Piste" if pd.notna(r["Heure_Depart"]) and pd.isna(r["Heure_Arrivee"]) and pd.isna(r["Sec_Excel"]) else format_final_chrono(r["Calc_Sec"]) if pd.notna(r["Calc_Sec"]) and r["Calc_Sec"] > 0 else "No Time", axis=1)
-            base["Ordre_Saisie"] = range(len(base))
-            df_hist = base.sort_values(by="Ordre_Saisie", ascending=False)[["N°", "Nom_Prenom", "Voiture", "Division", "Classe", "Chrono_C1_Visual_Hist"]].rename(columns={"Chrono_C1_Visual_Hist": "Chrono", "Division": "Division", "Classe": "Cl"})
-
+            base_historique = base[~base.index.isin(df_live_base.index)].copy()
+            base_historique["Chrono_C1_Visual_Hist"] = base_historique.apply(lambda r: "En Piste" if pd.notna(r["Heure_Depart"]) and pd.isna(r["Heure_Arrivee"]) and pd.isna(r["Sec_Excel"]) else format_final_chrono(r["Calc_Sec"]) if pd.notna(r["Calc_Sec"]) and r["Calc_Sec"] > 0 else "No Time", axis=1)
+            
+            # --- EMPILEMENT CHRONOLOGIQUE SANS TRI ---
+            df_hist = base_historique.sort_index(ascending=False)[["N°", "Nom_Prenom", "Voiture", "Division", "Classe", "Chrono_C1_Visual_Hist"]].rename(columns={"Chrono_C1_Visual_Hist": "Chrono", "Division": "Division", "Classe": "Cl"})
             valides = base[base["Calc_Sec"].notna() & (base["Calc_Sec"] > 0)].copy()
             if len(valides) > 0:
                 scr = valides.sort_values(by="Calc_Sec").drop_duplicates(subset=["N°"], keep="first").copy()
                 scr["Division_Clean"] = scr["Division"].astype(str).str.strip()
                 
-                # --- SOLUTIONS POUR AFFICHER ENTIÈREMENT SANS BRIDAGE DE LIGNES ---
                 asaf123 = scr[scr["Division_Clean"].isin(["1", "2", "3", "1.0", "2.0", "3.0"])].copy()
                 if len(asaf123) > 0:
                     asaf123["Pos"] = range(1, len(asaf123) + 1)
@@ -207,12 +209,9 @@ def recuperer_donnees_course():
                 asaf4 = scr[scr["Division_Clean"].isin(["4", "4.0"])].copy()
                 if len(asaf4) > 0:
                     asaf4["Pos"] = range(1, len(asaf4) + 1)
-                    # Application du style gras (font-weight: bold) directement sur le Chrono de la Division 4
                     asaf4["Chrono"] = asaf4["Calc_Sec"].apply(lambda x: f"<span style='font-weight: bold;'>{format_final_chrono(x)}</span>")
                     df_asaf4 = asaf4[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]].rename(columns={"Division": "Division", "Classe": "Cl"})
 
-
-                
                 scr_div_filtree = scr[scr["Division_Clean"].isin(["1", "2", "3", "4", "1.0", "2.0", "3.0", "4.0"])].copy()
                 if len(scr_div_filtree) > 0:
                     scr_div_filtree["Classe_Num"] = pd.to_numeric(scr_div_filtree["Classe"], errors='coerce').fillna(999)
@@ -220,10 +219,7 @@ def recuperer_donnees_course():
                     
                     if len(df_grouped) > 0:
                         html_blocs = []
-                        html_blocs.append("<table class='table-compacte table-class-robuste'>")
-                        html_blocs.append("<thead><tr><th>Pos</th><th>N°</th><th>Nom_Prenom</th><th>Division</th><th>Cl</th><th>Chrono</th></tr></thead>")
-                        html_blocs.append("<tbody>")
-                        
+                        html_blocs.append("<table class='table-compacte table-class-robuste'><thead><tr><th>Pos</th><th>N°</th><th>Nom_Prenom</th><th>Division</th><th>Cl</th><th>Chrono</th></tr></thead><tbody>")
                         grouped_objs = df_grouped.groupby(["Division_Clean", "Classe_Num"])
                         total_groups = len(grouped_objs)
                         current_group = 0
@@ -236,19 +232,19 @@ def recuperer_donnees_course():
                             for _, r_data in sub_df.iterrows():
                                 style_tr = "class='ligne-bleue-separation'" if current_group < total_groups and r_data.equals(sub_df.iloc[-1]) else ""
                                 html_blocs.append(f"<tr {style_tr}>")
-                                for cell in r_data: 
-                                    html_blocs.append(f"<td>{cell}</td>")
+                                for cell in r_data: html_blocs.append(f"<td>{cell}</td>")
                                 html_blocs.append("</tr>")
-                        
-                        html_blocs.append("</tbody>\n</table>")
+                        html_blocs.append("</tbody></table>")
                         html_divisions = "".join(html_blocs)
     except Exception: pass
 
-    # --- TITRES ENTIÈREMENT CENTRALISÉS AVEC "GENERAL" AJOUTÉ ---
     t_live = "🏎️ EN DIRECT / Derniers Concurrents partis"
     t_his = "🕒 HISTORIQUE DES TEMPS / 1er Course / Concurrents ASAF<span>↕️</span>"
     t_haut = "🏆 CLASSEMENT EVOLUTIF OFFICIEUX Division 123<span>↕️</span>"
     t_milieu = "🏆 CLASSEMENT EVOLUTIF OFFICIEUX Division 4<span>↕️</span>"
     t_bas = "🏆 CLASSEMENT EVOLUTIF OFFICIEUX PAR Div/Cl (Top 3)<span>↕️</span>"
+
+    return df_live, df_hist, df_asaf123, df_asaf4, html_divisions, t_live, t_his, t_haut, t_milieu, t_bas
+
 
     return df_live, df_hist, df_asaf123, df_asaf4, html_divisions, t_live, t_his, t_haut, t_milieu, t_bas
