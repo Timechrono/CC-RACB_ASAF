@@ -342,17 +342,17 @@ tr.ligne-separation-classe td,
 }}
 
 /* ANIMATION GYROPHARE ROTATIF */
-@keyframes gyro-rot {
-    0% { transform: rotate(-20deg); }
-    50% { transform: rotate(20deg); }
-    100% { transform: rotate(-20deg); }
-}
-.gyro-anime {
-    display: inline-block;
-    animation: gyro-rot 0.5s infinite ease-in-out;
-    margin-right: 6px;
-    font-size: 1.15rem;
-}
+@keyframes gyro-rot {{
+    0% {{ transform: rotate(-20deg); }}
+    50% {{ transform: rotate(20deg); }}
+    100% {{ transform: rotate(-20deg); }}
+}}
+.gyro-anime {{
+    display: inline-block !important;
+    animation: gyro-rot 0.5s infinite ease-in-out !important;
+    margin-right: 6px !important;
+    font-size: 1.15rem !important;
+}}
 
 </style>
 """, unsafe_allow_html=True)
@@ -508,4 +508,5 @@ for secondes_restantes in range(30, -1, -1):
         time.sleep(1)
 
 st.rerun()
+
 
