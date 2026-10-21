@@ -221,7 +221,7 @@ def recuperer_donnees_course():
                     if len(df_grouped) > 0:
                         html_blocs = []
                         html_blocs.append("<table class='table-compacte table-class-robuste'>")
-                        html_blocs.append("<thead><tr><th>Pos</th><th>N°</th><th>Nom_Prenom</th><th>Gr/Div</th><th>Cl</th><th>Chrono</th></tr></thead>")
+                        html_blocs.append("<thead><tr><th>Pos</th><th>N°</th><th>Nom_Prenom</th><th>Division</th><th>Cl</th><th>Chrono</th></tr></thead>")
                         html_blocs.append("<tbody>")
                         
                         grouped_objs = df_grouped.groupby(["Division_Clean", "Classe_Num"])
