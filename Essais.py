@@ -86,7 +86,7 @@ def calculer_statut_chrono_essais(row, est_dans_le_live=True):
             return f"{temps_formate}&nbsp;&nbsp;&nbsp;{coche}"
         return temps_formate
     if "Heure_Depart" in row and pd.notna(row["Heure_Depart"]) and pd.isna(row.get("Heure_Arrivee")):
-        return "<span class='vrai-gyrophare'>🚨</span> EN PISTE" if est_dans_le_live else "En Piste"
+        return "<span class='vrai-gyrophare'>🔴</span> EN PISTE" if est_dans_le_live else "En Piste"
     return "No Time"
 def recuperer_donnees_course():
     df_live = pd.DataFrame(columns=["N°", "Nom_Prenom", "Voiture", "Départ", "Arrivée", "Chrono"])
