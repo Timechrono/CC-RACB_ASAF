@@ -278,7 +278,7 @@ def recuperer_donnees_course():
                 if len(base) > 0:
                     if "Heure_Depart_3" in base.columns and base["Heure_Depart_3"].notna().any():
                         base_c3 = base[base["Heure_Depart_3"].notna()].copy()
-                        base_c3["Chrono réalisé"] = base_c3.apply(lambda r: calculer_statut_chrono_live(r["Calc_Sec_3"]) if pd.notna(r["Calc_Sec_3"]) else ("<span class='vrai-gyrophare'>🚨</span> EN PISTE" if pd.isna(r["Heure_Arrivee_3"]) else "No Time"), axis=1)
+                        base_c3["Chrono réalisé"] = base_c3.apply(lambda r: calculer_statut_chrono_live(r["Calc_Sec_3"]) if pd.notna(r["Calc_Sec_3"]) else ("<span class='vrai-gyrophare'>🟠</span> EN PISTE" if pd.isna(r["Heure_Arrivee_3"]) else "No Time"), axis=1)
                         base_c3["Départ"] = base_c3["Heure_Depart_3"].apply(formater_heure_ecran)
                         base_c3["Arrivée"] = base_c3["Heure_Arrivee_3"].apply(formater_heure_ecran)
                         df_live = base_c3.sort_values(by="Heure_Depart_3", ascending=False).head(5)[["N°", "Nom_Prenom", "Voiture", "Départ", "Arrivée", "Chrono réalisé"]]
