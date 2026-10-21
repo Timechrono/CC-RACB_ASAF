@@ -90,7 +90,7 @@ def calculer_statut_chrono(row, est_dans_le_live=True):
             return f"{temps_formate}&nbsp;&nbsp;&nbsp;{coche}"
         return temps_formate
     if "Heure_Depart" in row and pd.notna(row["Heure_Depart"]) and ("Heure_Arrivee" in row and pd.isna(row["Heure_Arrivee"])):
-        return "<span class='vrai-gyrophare'>🚨</span> EN PISTE" if est_dans_le_live else "En Piste"
+        return "<span class='vrai-gyrophare'>🟠</span> EN PISTE" if est_dans_le_live else "En Piste"
     return "No Time"
 
 def extraire_engages(flux):
