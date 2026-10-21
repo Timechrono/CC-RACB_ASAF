@@ -100,11 +100,10 @@ def recuperer_donnees_course():
         flux_dep = telecharger_excel(FILE_DEPART)
         flux_arr = telecharger_excel(FILE_ARRIVEE)
         
-        # --- CORRECTION DE LA LIGNE DE DÉPART : skiprows=0 au lieu de 1 ---
-        df_eng_raw = pd.read_excel(flux_eng, skiprows=0, engine='openpyxl')
+        # --- MODIFICATION 1 : Suppression de skiprows=1 pour intégrer le n°27 (Ligne 2 Excel) ---
+        df_eng_raw = pd.read_excel(flux_eng, engine='openpyxl')
         df_dep_raw = pd.read_excel(flux_dep, header=None, engine='openpyxl')
         df_arr_raw = pd.read_excel(flux_arr, header=None, engine='openpyxl')
-
 
         idx_dep, idx_arr = None, None
         for c_idx in range(len(df_dep_raw.columns)):
@@ -145,14 +144,12 @@ def recuperer_donnees_course():
         if len(base) > 0:
             base["Calc_Sec"] = base["Sec_Excel"].fillna((base["Sec_Arr"] - base["Sec_Dep"]).apply(lambda x: x + 3600 if (x is not None and x < 0) else x))
             
-            # --- CORRECTION DE L'EMPILEMENT CHRONOLOGIQUE ET INTEGRATION DES MANQUANTS ---
+            # --- MODIFICATION 2 : Reconstruction de l'ordre d'empilement chronologique inverse ---
             base["Ordre_Saisie"] = range(len(base))
             
-            # On isole les lignes avec heure de départ et on trie à l'envers pour le Live
             base_live = base[base["Heure_Depart"].notna()].copy()
             base_live = base_live.sort_index(ascending=False)
             
-            # Les 5 plus récents forment le "EN DIRECT"
             df_live_base = base_live.head(5).copy()
             
             df_live_base["Chrono"] = df_live_base.apply(lambda r: calculer_statut_chrono_essais(r, est_dans_le_live=True), axis=1)
@@ -160,7 +157,6 @@ def recuperer_donnees_course():
             df_live_base["Départ_Brute"] = df_live_base["Heure_Depart"].apply(formater_heure_ecran)
             df_live = df_live_base[["N°", "Nom_Prenom", "Voiture", "Départ_Brute", "Arrivée_Brute", "Chrono"]].rename(columns={"Départ_Brute": "Départ", "Arrivée_Brute": "Arrivée"})
 
-            # L'historique prend le reste SANS casser l'ordre brut d'origine
             base_historique = base[~base.index.isin(df_live_base.index)].copy()
             
             def determiner_chrono_historique(r):
@@ -172,13 +168,11 @@ def recuperer_donnees_course():
 
             base_historique["Chrono_Visual_Hist"] = base_historique.apply(determiner_chrono_historique, axis=1)
             
-            # Tri inverse pour que les voitures sortant du direct s'empilent naturellement par-dessus
+            # Tri inverse pour empiler naturellement les concurrents sortant du Live tout en haut de l'historique
             df_hist = base_historique.sort_index(ascending=False)[["N°", "Nom_Prenom", "Voiture", "Division", "Classe", "Chrono_Visual_Hist"]].rename(columns={"Chrono_Visual_Hist": "Chrono", "Division": "Gr/Div", "Classe": "Cl"})
 
-            # --- LE CLASSEMENT DE CHAQUE DIVISION SE BASE SUR 'BASE' POUR RE INTEGRER LE N°27 ---
+            # --- MODIFICATION 3 : Alignement des classements officiels sur le DataFrame d'origine complet ---
             valides = base[base["Calc_Sec"].notna() & (base["Calc_Sec"] > 0)].copy()
-
-            
             if len(valides) > 0:
                 scr = valides.sort_values(by="Calc_Sec").drop_duplicates(subset=["N°"], keep="first").copy()
                 scr["Division_Clean"] = scr["Division"].astype(str).str.strip()
@@ -205,21 +199,17 @@ def recuperer_donnees_course():
 
     except Exception: pass
 
-    # --- INJECTION DYNAMIQUE TOTALEMENT VERROUILLÉE DES HAUTEURS SUR PC ---
     h_hist = HAUTEURS_TABLEAUX_PC.get("HISTORIQUE", "456px")
 
     css_exclusif_pc = f"""
     <style>
       @media (min-width: 769px) {{
-        /* Bloc de Gauche : Historique */
         .div-scroll-local-historique {{
           height: {h_hist} !important;
           max-height: {h_hist} !important;
           overflow-y: auto !important;
           display: block !important;
         }}
-        
-        /* Neutralisation complète du bloc de bridage de app.py */
         .ajust-hauteur-pc {{
           height: auto !important;
           max-height: none !important;
@@ -230,10 +220,6 @@ def recuperer_donnees_course():
     </style>
     """
     st.markdown(css_exclusif_pc, unsafe_allow_html=True)
-
-
-
-
 
     t_live = "<span>🏎️ EN DIRECT / Derniers concurrents partis</span>"
     t_hist = "<span>🕒 HISTORIQUE DES TEMPS / ENTRAINEMENTS ASAF & RACB</span> <span>↕️</span>"
