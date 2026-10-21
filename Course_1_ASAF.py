@@ -120,7 +120,6 @@ def recuperer_donnees_course():
         flux_dep = telecharger_excel(FILE_DEPART)
         flux_arr = telecharger_excel(FILE_ARRIVEE)
         
-        # --- LECTURE INTEGRALE SANS SAUTER LA LIGNE 2 ---
         df_eng_raw = pd.read_excel(flux_eng, engine='openpyxl')
         df_dep_raw = pd.read_excel(flux_dep, header=None, engine='openpyxl')
         df_arr_raw = pd.read_excel(flux_arr, header=None, engine='openpyxl')
@@ -134,10 +133,8 @@ def recuperer_donnees_course():
         df_eng = df_eng[df_eng["N°"] != "NAN"].drop_duplicates(subset=["N°"])
         liste_numeros_asaf = set(df_eng["N°"].tolist())
 
-        # --- DETECTION STRICTE SUR LA LIGNE 2 (INDEX 1) ---
         idx_dep_asaf, idx_arr_asaf = None, None
         idx_dep_racb, idx_arr_racb = None, None
-        
         for c in range(len(df_dep_raw.columns)):
             val = str(df_dep_raw.iloc[1, c]).strip().upper()
             if "COURSE 1 ASAF" in val: idx_dep_asaf = c
@@ -146,55 +143,58 @@ def recuperer_donnees_course():
             val = str(df_arr_raw.iloc[1, c]).strip().upper()
             if "COURSE 1 ASAF" in val: idx_arr_asaf = c
             elif "COURSE 1 RACB" in val: idx_arr_racb = c
-        deps_list = []
-        if idx_dep_asaf is not None:
-            d_asaf = pd.DataFrame({"N°": df_dep_raw.iloc[2:, idx_dep_asaf].apply(nettoyer_numero), "Heure_Depart": df_dep_raw.iloc[2:, idx_dep_asaf + 1]})
-            deps_list.append(d_asaf[d_asaf["N°"].isin(liste_numeros_asaf)])
-        if idx_dep_racb is not None:
-            d_racb = pd.DataFrame({"N°": df_dep_raw.iloc[2:, idx_dep_racb].apply(nettoyer_numero), "Heure_Depart": df_dep_raw.iloc[2:, idx_dep_racb + 1]})
-            deps_list.append(d_racb[d_racb["N°"].isin(liste_numeros_asaf)])
-        df_dep = pd.concat(deps_list).drop_duplicates(subset=["N°", "Heure_Depart"]) if deps_list else pd.DataFrame(columns=["N°", "Heure_Depart"])
+        # 1. Extraction des Départs
+        d_asaf = pd.DataFrame({"N°": df_dep_raw.iloc[2:, idx_dep_asaf].apply(nettoyer_numero), "Heure_Depart": df_dep_raw.iloc[2:, idx_dep_asaf + 1]}) if idx_dep_asaf is not None else pd.DataFrame(columns=["N°", "Heure_Depart"])
+        d_asaf = d_asaf[d_asaf["N°"].isin(liste_numeros_asaf)].copy()
+        # Création d'un compteur d'ordre d'apparition propre à l'ASAF pour l'Historique
+        d_asaf["Ordre_Chrono_ASAF"] = range(len(d_asaf))
+        
+        d_racb = pd.DataFrame({"N°": df_dep_raw.iloc[2:, idx_dep_racb].apply(nettoyer_numero), "Heure_Depart": df_dep_raw.iloc[2:, idx_dep_racb + 1]}) if idx_dep_racb is not None else pd.DataFrame(columns=["N°", "Heure_Depart"])
+        d_racb = d_racb[d_racb["N°"].isin(liste_numeros_asaf)].copy()
+        d_racb["Ordre_Chrono_ASAF"] = 999999 # Valeur arbitraire (hors historique)
 
-        arrs_list = []
-        if idx_arr_asaf is not None:
-            a_asaf = pd.DataFrame({"N°": df_arr_raw.iloc[2:, idx_arr_asaf].apply(nettoyer_numero), "Heure_Arrivee": df_arr_raw.iloc[2:, idx_arr_asaf + 2], "Chrono_Excel": df_arr_raw.iloc[2:, idx_arr_asaf + 3]})
-            arrs_list.append(a_asaf[a_asaf["N°"].isin(liste_numeros_asaf)])
-        if idx_arr_racb is not None:
-            a_racb = pd.DataFrame({"N°": df_arr_raw.iloc[2:, idx_arr_racb].apply(nettoyer_numero), "Heure_Arrivee": df_arr_raw.iloc[2:, idx_arr_racb + 2], "Chrono_Excel": df_arr_raw.iloc[2:, idx_arr_racb + 3]})
-            arrs_list.append(a_racb[a_racb["N°"].isin(liste_numeros_asaf)])
-        df_arr = pd.concat(arrs_list).drop_duplicates(subset=["N°", "Heure_Arrivee"]) if arrs_list else pd.DataFrame(columns=["N°", "Heure_Arrivee", "Chrono_Excel"])
-
+        df_dep = pd.concat([d_asaf, d_racb])
         df_dep = df_dep[(df_dep["N°"] != "NAN") & (df_dep["N°"] != "")]
+
+        # 2. Extraction des Arrivées
+        a_asaf = pd.DataFrame({"N°": df_arr_raw.iloc[2:, idx_arr_asaf].apply(nettoyer_numero), "Heure_Arrivee": df_arr_raw.iloc[2:, idx_arr_asaf + 2], "Chrono_Excel": df_arr_raw.iloc[2:, idx_arr_asaf + 3]}) if idx_arr_asaf is not None else pd.DataFrame(columns=["N°", "Heure_Arrivee", "Chrono_Excel"])
+        a_asaf = a_asaf[a_asaf["N°"].isin(liste_numeros_asaf)]
+
+        a_racb = pd.DataFrame({"N°": df_arr_raw.iloc[2:, idx_arr_racb].apply(nettoyer_numero), "Heure_Arrivee": df_arr_raw.iloc[2:, idx_arr_racb + 2], "Chrono_Excel": df_arr_raw.iloc[2:, idx_arr_racb + 3]}) if idx_arr_racb is not None else pd.DataFrame(columns=["N°", "Heure_Arrivee", "Chrono_Excel"])
+        a_racb = a_racb[a_racb["N°"].isin(liste_numeros_asaf)]
+
+        df_arr = pd.concat([a_asaf, a_racb]).drop_duplicates(subset=["N°", "Heure_Arrivee"])
+
         for d in [df_dep, df_arr]:
             if len(d) > 0: d["N°"] = d["N°"].astype(str); d["Run_Index"] = d.groupby("N°").cumcount() + 1
 
         if len(df_dep) > 0: df_dep["Sec_Dep"] = df_dep["Heure_Depart"].apply(convertir_en_secondes)
         if len(df_arr) > 0: df_arr["Sec_Arr"] = df_arr["Heure_Arrivee"].apply(convertir_en_secondes); df_arr["Sec_Excel"] = df_arr["Chrono_Excel"].apply(convertir_en_secondes)
 
-        base_runs = pd.DataFrame(columns=["N°", "Run_Index"])
-        if len(df_dep) > 0: base_runs = pd.concat([base_runs, df_dep[["N°", "Run_Index"]]], ignore_index=True)
-        if len(base_runs) == 0: base_runs = df_eng[["N°"]].copy(); base_runs["Run_Index"] = 1
-        else: base_runs = base_runs.drop_duplicates(subset=["N°", "Run_Index"])
+        base_runs = df_dep[["N°", "Run_Index", "Ordre_Chrono_ASAF"]].copy() if len(df_dep) > 0 else pd.DataFrame(columns=["N°", "Run_Index", "Ordre_Chrono_ASAF"])
 
         base = pd.merge(base_runs, df_eng, on="N°", how="inner")
-        if len(df_dep) > 0: base = pd.merge(base, df_dep, on=["N°", "Run_Index"], how="left")
+        if len(df_dep) > 0: base = pd.merge(base, df_dep[["N°", "Run_Index", "Heure_Depart", "Sec_Dep"]], on=["N°", "Run_Index"], how="left")
         if len(df_arr) > 0: base = pd.merge(base, df_arr, on=["N°", "Run_Index"], how="left")
+        
         if len(base) > 0:
             base["Calc_Sec"] = base["Sec_Excel"].fillna((base["Sec_Arr"] - base["Sec_Dep"]).apply(lambda x: x + 3600 if (x is not None and not pd.isna(x) and x < 0) else x))
             base["Départ_C1"] = base["Heure_Depart"].apply(formater_heure_ecran)
 
-            if "Heure_Depart" in base.columns and base["Heure_Depart"].notna().any():
-                base_live = base[base["Heure_Depart"].notna()].copy(); base_live = base_live.sort_index(ascending=False)
-                df_live_base = base_live.head(5).copy()
-                df_live_base["Chrono"] = df_live_base.apply(lambda r: calculer_statut_chrono(r, est_dans_le_live=True), axis=1)
-                df_live_base["Arrivée_Brute"] = df_live_base["Heure_Arrivee"].apply(formater_heure_ecran)
-                df_live = df_live_base[["N°", "Nom_Prenom", "Voiture", "Départ_C1", "Arrivée_Brute", "Chrono"]].rename(columns={"Départ_C1": "Départ", "Arrivée_Brute": "Arrivée"})
+            # Le Live utilise uniquement les voitures qui ont un ordre ASAF valide
+            base_live = base[base["Heure_Depart"].notna() & (base["Ordre_Chrono_ASAF"] < 999999)].copy()
+            base_live = base_live.sort_values(by="Ordre_Chrono_ASAF", ascending=False)
+            df_live_base = base_live.head(5).copy()
+            df_live_base["Chrono"] = df_live_base.apply(lambda r: calculer_statut_chrono(r, est_dans_le_live=True), axis=1)
+            df_live_base["Arrivée_Brute"] = df_live_base["Heure_Arrivee"].apply(formater_heure_ecran)
+            df_live = df_live_base[["N°", "Nom_Prenom", "Voiture", "Départ_C1", "Arrivée_Brute", "Chrono"]].rename(columns={"Départ_C1": "Départ", "Arrivée_Brute": "Arrivée"})
 
-            base_historique = base[~base.index.isin(df_live_base.index)].copy()
+            # L'Historique prend le reste de l'ASAF (Exclut le Direct et exclut la RACB grâce au filtre < 999999)
+            base_historique = base[(base["Ordre_Chrono_ASAF"] < 999999) & (~base["Ordre_Chrono_ASAF"].isin(df_live_base["Ordre_Chrono_ASAF"]))].copy()
             base_historique["Chrono_C1_Visual_Hist"] = base_historique.apply(lambda r: "En Piste" if pd.notna(r["Heure_Depart"]) and pd.isna(r["Heure_Arrivee"]) and pd.isna(r["Sec_Excel"]) else format_final_chrono(r["Calc_Sec"]) if pd.notna(r["Calc_Sec"]) and r["Calc_Sec"] > 0 else "No Time", axis=1)
             
-            # --- EMPILEUR CHRONOLOGIQUE INVERSE SANS TRI DESTRUCTEUR ---
-            df_hist = base_historique.sort_index(ascending=False)[["N°", "Nom_Prenom", "Voiture", "Division", "Classe", "Chrono_C1_Visual_Hist"]].rename(columns={"Chrono_C1_Visual_Hist": "Chrono", "Division": "Division", "Classe": "Cl"})
+            df_hist = base_historique.sort_values(by="Ordre_Chrono_ASAF", ascending=False)[["N°", "Nom_Prenom", "Voiture", "Division", "Classe", "Chrono_C1_Visual_Hist"]].rename(columns={"Chrono_C1_Visual_Hist": "Chrono", "Division": "Division", "Classe": "Cl"})
+            # Les classements se basent sur 'base' (contient ASAF + les lignes RACB des pilotes ASAF)
             valides = base[base["Calc_Sec"].notna() & (base["Calc_Sec"] > 0)].copy()
             if len(valides) > 0:
                 scr = valides.sort_values(by="Calc_Sec").drop_duplicates(subset=["N°"], keep="first").copy()
