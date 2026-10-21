@@ -120,7 +120,7 @@ def recuperer_donnees_course():
         flux_dep = telecharger_excel(FILE_DEPART)
         flux_arr = telecharger_excel(FILE_ARRIVEE)
         
-        # --- LECTURE PROPRE DES EXCEL SANS SKIPROWS ---
+        # --- LECTURE INTEGRALE SANS SAUTER LA LIGNE 2 ---
         df_eng_raw = pd.read_excel(flux_eng, engine='openpyxl')
         df_dep_raw = pd.read_excel(flux_dep, header=None, engine='openpyxl')
         df_arr_raw = pd.read_excel(flux_arr, header=None, engine='openpyxl')
@@ -134,19 +134,18 @@ def recuperer_donnees_course():
         df_eng = df_eng[df_eng["N°"] != "NAN"].drop_duplicates(subset=["N°"])
         liste_numeros_asaf = set(df_eng["N°"].tolist())
 
+        # --- DETECTION STRICTE SUR LA LIGNE 2 (INDEX 1) ---
         idx_dep_asaf, idx_arr_asaf = None, None
         idx_dep_racb, idx_arr_racb = None, None
-        for r in range(min(5, len(df_dep_raw))):
-            for c in range(len(df_dep_raw.columns)):
-                val = str(df_dep_raw.iloc[r, c]).strip().upper()
-                if "COURSE 1 ASAF" in val: idx_dep_asaf = c
-                elif "COURSE 1 RACB" in val: idx_dep_racb = c
-        for r in range(min(5, len(df_arr_raw))):
-            for c in range(len(df_arr_raw.columns)):
-                val = str(df_arr_raw.iloc[r, c]).strip().upper()
-                if "COURSE 1 ASAF" in val: idx_arr_asaf = c
-                elif "COURSE 1 RACB" in val: idx_arr_racb = c
-
+        
+        for c in range(len(df_dep_raw.columns)):
+            val = str(df_dep_raw.iloc[1, c]).strip().upper()
+            if "COURSE 1 ASAF" in val: idx_dep_asaf = c
+            elif "COURSE 1 RACB" in val: idx_dep_racb = c
+        for c in range(len(df_arr_raw.columns)):
+            val = str(df_arr_raw.iloc[1, c]).strip().upper()
+            if "COURSE 1 ASAF" in val: idx_arr_asaf = c
+            elif "COURSE 1 RACB" in val: idx_arr_racb = c
         deps_list = []
         if idx_dep_asaf is not None:
             d_asaf = pd.DataFrame({"N°": df_dep_raw.iloc[2:, idx_dep_asaf].apply(nettoyer_numero), "Heure_Depart": df_dep_raw.iloc[2:, idx_dep_asaf + 1]})
@@ -155,6 +154,7 @@ def recuperer_donnees_course():
             d_racb = pd.DataFrame({"N°": df_dep_raw.iloc[2:, idx_dep_racb].apply(nettoyer_numero), "Heure_Depart": df_dep_raw.iloc[2:, idx_dep_racb + 1]})
             deps_list.append(d_racb[d_racb["N°"].isin(liste_numeros_asaf)])
         df_dep = pd.concat(deps_list).drop_duplicates(subset=["N°", "Heure_Depart"]) if deps_list else pd.DataFrame(columns=["N°", "Heure_Depart"])
+
         arrs_list = []
         if idx_arr_asaf is not None:
             a_asaf = pd.DataFrame({"N°": df_arr_raw.iloc[2:, idx_arr_asaf].apply(nettoyer_numero), "Heure_Arrivee": df_arr_raw.iloc[2:, idx_arr_asaf + 2], "Chrono_Excel": df_arr_raw.iloc[2:, idx_arr_asaf + 3]})
@@ -193,7 +193,7 @@ def recuperer_donnees_course():
             base_historique = base[~base.index.isin(df_live_base.index)].copy()
             base_historique["Chrono_C1_Visual_Hist"] = base_historique.apply(lambda r: "En Piste" if pd.notna(r["Heure_Depart"]) and pd.isna(r["Heure_Arrivee"]) and pd.isna(r["Sec_Excel"]) else format_final_chrono(r["Calc_Sec"]) if pd.notna(r["Calc_Sec"]) and r["Calc_Sec"] > 0 else "No Time", axis=1)
             
-            # --- EMPILEMENT CHRONOLOGIQUE SANS TRI ---
+            # --- EMPILEUR CHRONOLOGIQUE INVERSE SANS TRI DESTRUCTEUR ---
             df_hist = base_historique.sort_index(ascending=False)[["N°", "Nom_Prenom", "Voiture", "Division", "Classe", "Chrono_C1_Visual_Hist"]].rename(columns={"Chrono_C1_Visual_Hist": "Chrono", "Division": "Division", "Classe": "Cl"})
             valides = base[base["Calc_Sec"].notna() & (base["Calc_Sec"] > 0)].copy()
             if len(valides) > 0:
@@ -243,8 +243,5 @@ def recuperer_donnees_course():
     t_haut = "🏆 CLASSEMENT EVOLUTIF OFFICIEUX Division 123<span>↕️</span>"
     t_milieu = "🏆 CLASSEMENT EVOLUTIF OFFICIEUX Division 4<span>↕️</span>"
     t_bas = "🏆 CLASSEMENT EVOLUTIF OFFICIEUX PAR Div/Cl (Top 3)<span>↕️</span>"
-
-    return df_live, df_hist, df_asaf123, df_asaf4, html_divisions, t_live, t_his, t_haut, t_milieu, t_bas
-
 
     return df_live, df_hist, df_asaf123, df_asaf4, html_divisions, t_live, t_his, t_haut, t_milieu, t_bas
