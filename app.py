@@ -487,32 +487,28 @@ st.markdown(f"""
 
 # GESTION DES SECONDES ET DU RAFRAÎCHISSEMENT DU LIVE
 for secondes_restantes in range(30, -1, -1):
-    # Injection de l'animation CSS Option 2 (Double Flash LED Stroboscopique)
+    # Injection de l'animation CSS Option 2 UNIQUEMENT pour les gyrophares des tableaux
     st.markdown("""
     <style>
     @keyframes gyro-strobe {
         0%, 15%, 30%, 100% { opacity: 1; filter: drop-shadow(0 0 2px #EF4444); }
         7%, 22% { opacity: 0.2; filter: drop-shadow(0 0 0px transparent); }
     }
-    .gyro-anime, .vrai-gyrophare {
+    .vrai-gyrophare {
         display: inline-block !important;
         animation: gyro-strobe 1.1s infinite linear !important;
         margin-right: 4px !important;
-    }
-    .gyro-anime {
-        font-size: 1.25rem !important;
-    }
-    .vrai-gyrophare {
         font-size: 0.95rem !important;
         vertical-align: middle !important;
     }
     </style>
     """, unsafe_allow_html=True)
 
+    # Restauration stricte de votre affichage d'origine basé sur vos variables de fichiers
     if "Derniers concurrents" in t_live or "DIRECT" in t_live.upper():
-        conteneur_titre_live.markdown(f"<span class='titre-live'><span><span class='gyro-anime'>🚨</span>EN DIRECT / Derniers concurrents partis</span><span class='refresh-bleu-clair-historique'>Refresh {secondes_restantes} Sec.</span></span>", unsafe_allow_html=True)
+        conteneur_titre_live.markdown(f"<span class='titre-live'>{t_live} / <span class='refresh-bleu-clair-historique'>Refresh {secondes_restantes} Sec.</span></span>", unsafe_allow_html=True)
     else:
-        conteneur_titre_live.markdown(f"<span class='titre-live'><span><span class='gyro-anime'>🚨</span>{t_live}</span></span>", unsafe_allow_html=True)
+        conteneur_titre_live.markdown(f"<span class='titre-live'>{t_live}</span>", unsafe_allow_html=True)
     
     if secondes_restantes > 0:
         time.sleep(1)
