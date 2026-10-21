@@ -234,11 +234,24 @@ def recuperer_donnees_course():
                     df_hist_base = df_hist_brut.sort_values(by="Ordre_Live", ascending=False).copy()
                     
                     def formater_ligne_historique(r):
-                        if pd.notna(r["Heure_Depart"]) and pd.isna(r["Heure_Arrivee"]) and pd.isna(r["Sec_Excel"]): return "En Piste"
+                        if pd.notna(r["Heure_Depart"]) and pd.isna(r["Heure_Arrivee"]) and pd.isna(r["Sec_Excel"]): return "No Time"
+                        if pd.notna(r["Calc_Sec"]) and r["Calc_Sec"] > 0:
+                            return f"{format_final_chrono(r["Calc_Sec"])}"
+                        return "No Time"
+                    
+                    df_hist_base["Chrono_C1_Visual_Hist"] = df_hist_base.apply(formater_ligne_historique, axis=1)
+                    df_hist = df_hist_base[["N°", "Nom_Prenom", "Voiture", "Groupe", "Classe", "Chrono_C1_Visual_Hist"]].rename(columns={"Chrono_C1_Visual_Hist": "Chrono", "Classe": "Cl"})
+
+                    
+                    def formater_ligne_historique(r):
+                        # MODIFICATION 1 : "En Piste" devient désormais "No Time" dans l'historique
+                        if pd.notna(r["Heure_Depart"]) and pd.isna(r["Heure_Arrivee"]) and pd.isna(r["Sec_Excel"]): return "No Time"
                         if pd.notna(r["Calc_Sec"]) and r["Calc_Sec"] > 0:
                             t_form = format_final_chrono(r["Calc_Sec"])
-                            return f"{t_form}<span class='coche-rouge'>✓</span>" if r["Calc_Sec"] > 240 else f"{t_form}<span class='coche-verte'>✓</span>"
+                            # MODIFICATION 2 : Suppression des coches (<span class='coche...'>✓</span>)
+                            return f"{t_form}"
                         return "No Time"
+
                     
                     df_hist_base["Chrono_C1_Visual_Hist"] = df_hist_base.apply(formater_ligne_historique, axis=1)
                     df_hist = df_hist_base[["N°", "Nom_Prenom", "Voiture", "Groupe", "Classe", "Chrono_C1_Visual_Hist"]].rename(columns={"Chrono_C1_Visual_Hist": "Chrono", "Classe": "Cl"})
