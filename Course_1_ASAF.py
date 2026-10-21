@@ -202,14 +202,14 @@ def recuperer_donnees_course():
                 if len(asaf123) > 0:
                     asaf123["Pos"] = range(1, len(asaf123) + 1)
                     asaf123["Chrono"] = asaf123["Calc_Sec"].apply(format_final_chrono)
-                    df_asaf123 = asaf123[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]].rename(columns={"Division": "Gr/Div", "Classe": "Cl"})
+                    df_asaf123 = asaf123[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]].rename(columns={"Division": "Division", "Classe": "Cl"})
                 
                 asaf4 = scr[scr["Division_Clean"].isin(["4", "4.0"])].copy()
                 if len(asaf4) > 0:
                     asaf4["Pos"] = range(1, len(asaf4) + 1)
                     # Application du style gras (font-weight: bold) directement sur le Chrono de la Division 4
                     asaf4["Chrono"] = asaf4["Calc_Sec"].apply(lambda x: f"<span style='font-weight: bold;'>{format_final_chrono(x)}</span>")
-                    df_asaf4 = asaf4[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]].rename(columns={"Division": "Gr/Div", "Classe": "Cl"})
+                    df_asaf4 = asaf4[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]].rename(columns={"Division": "Division", "Classe": "Cl"})
 
 
                 
