@@ -105,7 +105,7 @@ def calculer_statut_chrono(row, est_dans_le_live=True):
             return f"{temps_formate}&nbsp;&nbsp;&nbsp;<span style='color: #DC2626; font-weight: bold;'>✓</span>" if row["Calc_Sec"] > 240 else f"{temps_formate}&nbsp;&nbsp;&nbsp;<span style='color: #16A34A; font-weight: bold;'>✓</span>"
         return temps_formate
     if "Heure_Depart" in row and pd.notna(row["Heure_Depart"]) and pd.isna(row.get("Heure_Arrivee")):
-        return "<span class='vrai-gyrophare'>🚨</span> EN PISTE" if est_dans_le_live else "En Piste"
+        return "<span class='vrai-gyrophare'>🟠</span> EN PISTE" if est_dans_le_live else "En Piste"
     if ("Heure_Depart" in row and pd.isna(row["Heure_Depart"])) and ("Heure_Arrivee" in row and pd.isna(row["Heure_Arrivee"])):
         return "Au départ"
     return "No Time"
