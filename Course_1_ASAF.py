@@ -231,7 +231,7 @@ def recuperer_donnees_course():
                         for (div, cl_num), group in grouped_objs:
                             current_group += 1
                             group = group.copy(); group["Pos"] = range(1, len(group) + 1); group["Chrono"] = group["Calc_Sec"].apply(format_final_chrono)
-                            sub_df = group[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]].rename(columns={"Division": "Gr/Div", "Classe": "Cl"})
+                            sub_df = group[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]].rename(columns={"Division": "Division", "Classe": "Cl"})
                             
                             for _, r_data in sub_df.iterrows():
                                 style_tr = "class='ligne-bleue-separation'" if current_group < total_groups and r_data.equals(sub_df.iloc[-1]) else ""
