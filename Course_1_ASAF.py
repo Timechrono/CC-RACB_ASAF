@@ -245,10 +245,10 @@ def recuperer_donnees_course():
     except Exception: pass
 
     # --- TITRES ENTIÈREMENT CENTRALISÉS AVEC "GENERAL" AJOUTÉ ---
-    t_live = "🏎️ EN DIRECT / 1er Course / Concurrents ASAF"
+    t_live = "🏎️ EN DIRECT / Derniers Concurrents partis"
     t_his = "🕒 HISTORIQUE DES TEMPS / 1er Course / Concurrents ASAF<span>↕️</span>"
-    t_haut = "🏆 CLASSEMENT GENERAL OFFICIEUX Division 123<span>↕️</span>"
-    t_milieu = "🏆 CLASSEMENT GENERAL OFFICIEUX Division 4<span>↕️</span>"
-    t_bas = "🏆 CLASSEMENT OFFICIEUX PAR Division / Classe (Top 3)<span>↕️</span>"
+    t_haut = "🏆 CLASSEMENT EVOLUTIF OFFICIEUX Division 123<span>↕️</span>"
+    t_milieu = "🏆 CLASSEMENT EVOLUTIF OFFICIEUX Division 4<span>↕️</span>"
+    t_bas = "🏆 CLASSEMENT EVOLUTIF OFFICIEUX PAR Div/Cl (Top 3)<span>↕️</span>"
 
     return df_live, df_hist, df_asaf123, df_asaf4, html_divisions, t_live, t_his, t_haut, t_milieu, t_bas
