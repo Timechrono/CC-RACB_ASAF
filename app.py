@@ -277,8 +277,8 @@ div.stElementContainer {{
     .table-hist td:nth-child(4) {{ max-width: 32px !important; overflow: hidden !important; text-overflow: clip !important; white-space: nowrap !important; }}
     .table-compacte td:nth-child(3), table td:nth-child(3) {{ max-width: 60px !important; overflow: hidden !important; text-overflow: ellipsis !important; white-space: nowrap !important; }}
     
-    /* LES TEMPS SONT ALIGNÉS EN 0.65REM SANS CASSER LE SCRIPT PYTHON */
-    .table-live td:last-child, .table-class-robuste td:last-child, .table-hist td:last-child {{ font-size: 0.65rem !important; }}
+    /* Les colonnes Chrono passent en 0.70rem tandis que le reste du tableau reste en 0.65rem */
+    .table-live td:last-child, .table-class-robuste td:last-child, .table-hist td:last-child {{ font-size: 0.70rem !important; }}
     
     .titre-live, .titre-hist, .titre-classement {{
         height: auto !important;
