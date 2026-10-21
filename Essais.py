@@ -142,21 +142,25 @@ def recuperer_donnees_course():
 
         if len(base) > 0:
             base["Calc_Sec"] = base["Sec_Excel"].fillna((base["Sec_Arr"] - base["Sec_Dep"]).apply(lambda x: x + 3600 if (x is not None and x < 0) else x))
+            
+            # --- CORRECTION DE L'EMPILEMENT CHRONOLOGIQUE ET INTEGRATION DES MANQUANTS ---
             base["Ordre_Saisie"] = range(len(base))
             
-            idx_exclure_du_hist = []
-            if "Heure_Depart" in base.columns and base["Heure_Depart"].notna().any():
-                base_c1 = base[base["Heure_Depart"].notna()].copy()
-                base_c1["Ordre_Live"] = range(len(base_c1))
-                df_live_base = base_c1.sort_values(by="Ordre_Live", ascending=False).head(5).copy()
-                
-                idx_exclure_du_hist = df_live_base["Ordre_Saisie"].tolist()
-                
-                df_live_base["Chrono"] = df_live_base.apply(lambda r: calculer_statut_chrono_essais(r, est_dans_le_live=True), axis=1)
-                df_live_base["Arrivée_Brute"] = df_live_base["Heure_Arrivee"].apply(formater_heure_ecran)
-                df_live_base["Départ_Brute"] = df_live_base["Heure_Depart"].apply(formater_heure_ecran)
-                df_live = df_live_base[["N°", "Nom_Prenom", "Voiture", "Départ_Brute", "Arrivée_Brute", "Chrono"]].rename(columns={"Départ_Brute": "Départ", "Arrivée_Brute": "Arrivée"})
+            # On isole les lignes avec heure de départ et on trie à l'envers pour le Live
+            base_live = base[base["Heure_Depart"].notna()].copy()
+            base_live = base_live.sort_index(ascending=False)
+            
+            # Les 5 plus récents forment le "EN DIRECT"
+            df_live_base = base_live.head(5).copy()
+            
+            df_live_base["Chrono"] = df_live_base.apply(lambda r: calculer_statut_chrono_essais(r, est_dans_le_live=True), axis=1)
+            df_live_base["Arrivée_Brute"] = df_live_base["Heure_Arrivee"].apply(formater_heure_ecran)
+            df_live_base["Départ_Brute"] = df_live_base["Heure_Depart"].apply(formater_heure_ecran)
+            df_live = df_live_base[["N°", "Nom_Prenom", "Voiture", "Départ_Brute", "Arrivée_Brute", "Chrono"]].rename(columns={"Départ_Brute": "Départ", "Arrivée_Brute": "Arrivée"})
 
+            # L'historique prend le reste SANS casser l'ordre brut d'origine
+            base_historique = base[~base.index.isin(df_live_base.index)].copy()
+            
             def determiner_chrono_historique(r):
                 if pd.notna(r["Heure_Depart"]) and pd.isna(r["Heure_Arrivee"]) and pd.isna(r["Sec_Excel"]):
                     return "No Time"
@@ -164,12 +168,15 @@ def recuperer_donnees_course():
                     return format_final_chrono(r["Calc_Sec"])
                 return "No Time"
 
-            base["Chrono_Visual_Hist"] = base.apply(determiner_chrono_historique, axis=1)
+            base_historique["Chrono_Visual_Hist"] = base_historique.apply(determiner_chrono_historique, axis=1)
             
-            base_historique = base[~base["Ordre_Saisie"].isin(idx_exclure_du_hist)].copy()
-            df_hist = base_historique.sort_values(by="Ordre_Saisie", ascending=False)[["N°", "Nom_Prenom", "Voiture", "Division", "Classe", "Chrono_Visual_Hist"]].rename(columns={"Chrono_Visual_Hist": "Chrono", "Division": "Gr/Div", "Classe": "Cl"})
+            # Tri inverse pour que les voitures sortant du direct s'empilent naturellement par-dessus
+            df_hist = base_historique.sort_index(ascending=False)[["N°", "Nom_Prenom", "Voiture", "Division", "Classe", "Chrono_Visual_Hist"]].rename(columns={"Chrono_Visual_Hist": "Chrono", "Division": "Gr/Div", "Classe": "Cl"})
 
+            # --- LE CLASSEMENT DE CHAQUE DIVISION SE BASE SUR 'BASE' POUR RE INTEGRER LE N°27 ---
             valides = base[base["Calc_Sec"].notna() & (base["Calc_Sec"] > 0)].copy()
+
+            
             if len(valides) > 0:
                 scr = valides.sort_values(by="Calc_Sec").drop_duplicates(subset=["N°"], keep="first").copy()
                 scr["Division_Clean"] = scr["Division"].astype(str).str.strip()
