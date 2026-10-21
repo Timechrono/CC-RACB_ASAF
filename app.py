@@ -487,24 +487,25 @@ st.markdown(f"""
 
 # GESTION DES SECONDES ET DU RAFRAÎCHISSEMENT DU LIVE
 for secondes_restantes in range(30, -1, -1):
-    # Injection de l'animation CSS Option 2 UNIQUEMENT pour les gyrophares des tableaux
+    # Injection du style CSS - Point "Live" battant technologique (Standard FIA / F1)
     st.markdown("""
     <style>
-    @keyframes gyro-strobe {
-        0%, 15%, 30%, 100% { opacity: 1; filter: drop-shadow(0 0 2px #EF4444); }
-        7%, 22% { opacity: 0.2; filter: drop-shadow(0 0 0px transparent); }
+    @keyframes fia-pulse {
+        0% { transform: scale(0.9); opacity: 0.45; filter: drop-shadow(0 0 0px transparent); }
+        50% { transform: scale(1.18); opacity: 1; filter: drop-shadow(0 0 6px #DC2626); }
+        100% { transform: scale(0.9); opacity: 0.45; filter: drop-shadow(0 0 0px transparent); }
     }
     .vrai-gyrophare {
         display: inline-block !important;
-        animation: gyro-strobe 1.1s infinite linear !important;
-        margin-right: 4px !important;
+        animation: fia-pulse 1.3s infinite ease-in-out !important;
+        margin-right: 5px !important;
         font-size: 0.95rem !important;
         vertical-align: middle !important;
     }
     </style>
     """, unsafe_allow_html=True)
 
-    # Restauration stricte de votre affichage d'origine basé sur vos variables de fichiers
+    # Respect absolu de vos bandeaux de titres d'origine gérés par vos feuilles
     if "Derniers concurrents" in t_live or "DIRECT" in t_live.upper():
         conteneur_titre_live.markdown(f"<span class='titre-live'>{t_live} / <span class='refresh-bleu-clair-historique'>Refresh {secondes_restantes} Sec.</span></span>", unsafe_allow_html=True)
     else:
