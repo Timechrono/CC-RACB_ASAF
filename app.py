@@ -487,18 +487,24 @@ st.markdown(f"""
 
 # GESTION DES SECONDES ET DU RAFRAÎCHISSEMENT DU LIVE
 for secondes_restantes in range(30, -1, -1):
-    # Injection ultra-sécurisée de l'animation CSS de rotation
+    # Injection universelle et immunisée de l'animation de rotation
     st.markdown("""
     <style>
     @keyframes gyro-rot {
-        from { transform: rotate(-20deg); }
-        to { transform: rotate(20deg); }
+        from { transform: rotate(-25deg); }
+        to { transform: rotate(25deg); }
+    }
+    .gyro-anime, .vrai-gyrophare {
+        display: inline-block !important;
+        animation: gyro-rot 0.35s infinite alternate ease-in-out !important;
+        margin-right: 4px !important;
     }
     .gyro-anime {
-        display: inline-block !important;
-        animation: gyro-rot 0.3s infinite alternate ease-in-out !important;
-        margin-right: 6px !important;
         font-size: 1.25rem !important;
+    }
+    .vrai-gyrophare {
+        font-size: 0.95rem !important;
+        vertical-align: middle !important;
     }
     </style>
     """, unsafe_allow_html=True)
@@ -512,7 +518,3 @@ for secondes_restantes in range(30, -1, -1):
         time.sleep(1)
 
 st.rerun()
-
-st.rerun()
-
-
