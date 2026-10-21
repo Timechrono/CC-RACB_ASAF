@@ -341,6 +341,19 @@ tr.ligne-separation-classe td,
     }}
 }}
 
+/* ANIMATION GYROPHARE ROTATIF */
+@keyframes gyro-rot {
+    0% { transform: rotate(-20deg); }
+    50% { transform: rotate(20deg); }
+    100% { transform: rotate(-20deg); }
+}
+.gyro-anime {
+    display: inline-block;
+    animation: gyro-rot 0.5s infinite ease-in-out;
+    margin-right: 6px;
+    font-size: 1.15rem;
+}
+
 </style>
 """, unsafe_allow_html=True)
 
@@ -488,10 +501,11 @@ st.markdown(f"""
 # GESTION DES SECONDES ET DU RAFRAÎCHISSEMENT DU LIVE
 for secondes_restantes in range(30, -1, -1):
     if "Derniers concurrents" in t_live or "DIRECT" in t_live.upper():
-        conteneur_titre_live.markdown(f"<span class='titre-live'>🏎️ EN DIRECT / Derniers concurrents partis / <span class='refresh-bleu-clair-historique'>Refresh {secondes_restantes} Sec.</span></span>", unsafe_allow_html=True)
+        conteneur_titre_live.markdown(f"<span class='titre-live'><span><span class='gyro-anime'>🚨</span>EN DIRECT / Derniers concurrents partis</span><span class='refresh-bleu-clair-historique'>Refresh {secondes_restantes} Sec.</span></span>", unsafe_allow_html=True)
     else:
-        conteneur_titre_live.markdown(f"<span class='titre-live'>{t_live}</span>", unsafe_allow_html=True)
+        conteneur_titre_live.markdown(f"<span class='titre-live'><span><span class='gyro-anime'>🚨</span>{t_live}</span></span>", unsafe_allow_html=True)
     if secondes_restantes > 0:
         time.sleep(1)
 
 st.rerun()
+
