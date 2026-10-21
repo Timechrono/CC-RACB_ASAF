@@ -153,7 +153,7 @@ def calculer_statut_chrono(row, est_dans_le_live=True):
                 return f"{chrono_txt} &nbsp;<span style='color: #22C55E; font-weight: bold;'>✓</span>"
         return chrono_txt
     if "Heure_Depart_2" in row and pd.notna(row["Heure_Depart_2"]) and ("Heure_Arrivee_2" in row and pd.isna(row["Heure_Arrivee_2"])):
-        return "<span class='vrai-gyrophare'>🚨</span> EN PISTE" if est_dans_le_live else "En Piste"
+        return "<span class='vrai-gyrophare'>🟠</span> EN PISTE" if est_dans_le_live else "En Piste"
     return "No Time"
 
 def generer_tableau_html(df, classe_specifique):
