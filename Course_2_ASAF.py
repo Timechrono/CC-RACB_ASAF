@@ -34,19 +34,20 @@ st.markdown("""
     
     .table-compacte { width: 100% !important; margin-bottom: 0px !important; border-collapse: collapse !important; table-layout: fixed !important; }
     .table-compacte tr { height: 18px !important; }
-    .table-compacte th, .table-compacte td { 
+    
+    /* Égalisation totale et stricte de la grandeur de la fonte pour absolument tout le texte de données */
+    .table-compacte th, .table-compacte td, .table-compacte td b, .table-compacte td span { 
         height: 18px !important; padding: 1px 5px !important; line-height: 1.1 !important; font-size: 0.85rem !important; color: #000000 !important; 
-        vertical-align: middle !important; overflow: hidden !important; text-overflow: ellipsis !important; white-space: nowrap !important; 
+        vertical-align: middle !important; overflow: hidden !important; text-overflow: ellipsis !important; white-space: nowrap !important;
     }
     .table-compacte td { font-weight: normal !important; border-bottom: 1px solid #E0E0E0 !important; background-color: #FFFFFF !important; }
-    
-    /* Forçage absolu de la taille et de l'interligne pour tous les éléments imbriqués (b, span, etc.) dans les cellules */
-    .table-compacte td, .table-compacte td b, .table-compacte td span { font-size: 0.85rem !important; line-height: 1.1 !important; }
-    
     .table-compacte th { font-weight: bold !important; background-color: #F5F5F5 !important; border-bottom: 2px solid #CCCCCC !important; text-align: left !important; }
     .table-compacte td.meilleur-temps { background-color: #d9fcec !important; color: #000000 !important; font-weight: bold !important; }
     .table-class-robuste tr:nth-child(odd) td { background-color: #E0F2FE !important; }
-    .table-class-groupes tr.ligne-separation-classe td { border-bottom: 2px solid #1E3A8A !important; }
+    
+    /* Suppression radicale de l'espace blanc de séparation de classe */
+    .table-class-groupes tr.ligne-separation-classe { display: none !important; }
+    .table-class-groupes tr.ligne-separation-classe + tr td { border-top: 2px solid #1E3A8A !important; }
     
     .table-live th:nth-child(1), .table-live td:nth-child(1) { width: 8% !important; }
     .table-live th:nth-child(2), .table-live td:nth-child(2) { width: 26% !important; }
@@ -200,8 +201,9 @@ def recuperer_donnees_course():
                         base_c3["Arrivée"] = base_c3["Heure_Arrivee_3"].apply(formater_heure_ecran)
                         df_live = base_c3.sort_values(by="Heure_Depart_3", ascending=False).head(5)[["N°", "Nom_Prenom", "Voiture", "Départ", "Arrivée", "Chrono réalisé"]]
 
-                    # Pas de tri .sort_values() ici : empilement brut suivant l'ordre d'arrivée
+                    # Empilement dynamique basé strictement sur l'ordre d'arrivée décroissant (le plus récent en premier)
                     df_hb = base[base["Calc_Sec_1"].notna() | base["Calc_Sec_2"].notna()].copy()
+                    df_hb = df_hb.sort_values(by="Heure_Arrivee_3", ascending=False, na_position="last")
                     
                     html_hist = "<div class='zone-defilement-tactile'><table class='table-compacte table-hist'><thead><tr><th>N°</th><th>Nom_Prenom</th><th>Voiture</th><th>Div</th><th>Cl</th><th>Course 1</th><th>Chrono</th></tr></thead><tbody>"
                     for idx, row in df_hb.iterrows():
