@@ -230,7 +230,7 @@ def recuperer_donnees_course():
                         html_hist += f"<tr><td>{row['N°']}</td><td>{row['Nom_Prenom']}</td><td>{row['Voiture']}</td><td>{row['Division']}</td><td>{row['Classe']}</td><td>{txt_c1}</td><td>{txt_c2}</td></tr>"
                     html_hist += "</tbody></table></div>"
                     
-                    # FIN DU SCRIPT DE COURSE DE DROITE SANS LIGNE BLANCHE INTERMÉDIAIRE
+                    # FIN DU SCRIPT DE COURSE DE DROITE AVEC LIGNE BLEU COLLÉE AU BON ENDROIT
                     def tri_val(r1, r2):
                         if pd.isna(r1) or pd.isna(r2) or r1 <= 0 or r2 <= 0: return float('inf')
                         return float(round(r1, 2) + round(r2, 2))
@@ -266,7 +266,7 @@ def recuperer_donnees_course():
                         else:
                             df_asaf4 = "<div class='zone-defilement-tactile'><table class='table-compacte'><tr><td>Aucune donnée</td></tr></table></div>"
                         
-                        # 3. CLASSEMENT par Division / Classe (Top 3) -> SANS LIGNE BLANCHE
+                        # 3. CLASSEMENT par Division / Classe (Top 3)
                         scr["Classe_Tri"] = pd.to_numeric(scr["Classe"], errors='coerce').fillna(999)
                         df_grouped = scr.sort_values(by=["Division", "Classe_Tri", "Cumul_Sec"]).groupby(["Division", "Classe_Tri"]).head(3).copy()
                         if len(df_grouped) > 0:
@@ -281,13 +281,14 @@ def recuperer_donnees_course():
                                 sh = g[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]].rename(columns={"Division": "Div", "Classe": "Cl"}).to_html(index=False, header=(cg==1), classes='table-compacte table-class-groupes', escape=False, border=0)
                                 sh_clean = sh.replace("</tbody>\n</table>", "").replace("</tbody></table>", "")
                                 
-                                # Si ce n'est pas la première classe, on isole les lignes du corps du tableau
                                 if cg > 1:
                                     sh_clean = sh_clean.split("<tbody>")[-1]
                                 
-                                # 🎯 TRUC VISUEL : Si d'autres classes suivent, on ajoute le style de séparation DIRECTEMENT sur le dernier <tr> du groupe de pilotes
+                                # 🎯 CORRECTIF EMPLACEMENT : On cherche le tout DERNIER début de ligne '<tr>' de ce groupe de pilotes
                                 if cg < tg:
-                                    sh_clean = sh_clean.rstrip().replace("</tr>\n", "</tr>\n").replace("<tr>", "<tr class='ligne-separation-classe'>", sh_clean.count("<tr>") - 1)
+                                    idx_dernier_tr = sh_clean.rfind("<tr>")
+                                    if idx_dernier_tr != -1:
+                                        sh_clean = sh_clean[:idx_dernier_tr] + "<tr class='ligne-separation-classe'>" + sh_clean[idx_dernier_tr + 4:]
                                 
                                 hb.append(sh_clean)
                             
