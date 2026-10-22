@@ -157,7 +157,6 @@ def recuperer_donnees_course():
                 "Division": df_eng_raw.iloc[:, 5].astype(str).str.strip().apply(lambda x: x[:-2] if x.endswith(".0") else x),
                 "Classe": df_eng_raw.iloc[:, 6].fillna("-").astype(str).str.strip().apply(lambda x: x[:-2] if x.endswith(".0") else x)
             })
-            
             df_eng = df_eng[~df_eng["N°"].str.startswith("N", na=False)].copy()
             df_eng["Num_Tri_Sec"] = pd.to_numeric(df_eng["N°"], errors='coerce').fillna(-1)
             df_eng = df_eng[~((df_eng["Num_Tri_Sec"] >= 900) & (df_eng["Num_Tri_Sec"] <= 999))].copy()
@@ -188,7 +187,6 @@ def recuperer_donnees_course():
             dict_c1.update({k: v for k, v in extraire_manche_selon_regles_asaf(df_arr_raw, "COURSE 1", "RACB").items() if k not in dict_c1 or dict_c1[k]["sec"] is None})
             dict_c2 = extraire_manche_selon_regles_asaf(df_arr_raw, "COURSE 2", "ASAF")
             dict_c2.update({k: v for k, v in extraire_manche_selon_regles_asaf(df_arr_raw, "COURSE 2", "RACB").items() if k not in dict_c2 or dict_c2[k]["sec"] is None})
-            
             if not df_eng.empty:
                 rows_data = []
                 for _, pilot in df_eng.iterrows():
@@ -241,21 +239,18 @@ def recuperer_donnees_course():
                     scr = scr.drop(columns=["Num_Filter_Check"])
                     
                     if len(scr) > 0:
-                        # 1. Division 123 (Scroll complet renvoyé au format DataFrame)
                         df_asaf123_raw = scr[scr["Division"].isin(["1", "2", "3"])].copy()
                         if not df_asaf123_raw.empty:
                             df_asaf123_raw["Pos"] = [str(i+1) if v < float('inf') else "-" for i, v in enumerate(df_asaf123_raw["Cumul_Sec"])]
                             df_asaf123_raw["Chrono"] = df_asaf123_raw["Cumul_Sec"].apply(lambda val: format_final_chrono(val, "No Time"))
                             df_asaf123 = df_asaf123_raw[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]]
                         
-                        # 2. Division 4 (Scroll complet renvoyé au format DataFrame)
                         df_asaf4_raw = scr[scr["Division"] == "4"].copy()
                         if not df_asaf4_raw.empty:
                             df_asaf4_raw["Pos"] = [str(i+1) if v < float('inf') else "-" for i, v in enumerate(df_asaf4_raw["Cumul_Sec"])]
                             df_asaf4_raw["Chrono"] = df_asaf4_raw["Cumul_Sec"].apply(lambda val: format_final_chrono(val, "No Time"))
                             df_asaf4 = df_asaf4_raw[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]]
                         
-                        # 3. Classement par Division / Classe (Rendu HTML continu propre sans tr vide)
                         scr["Classe_Tri"] = pd.to_numeric(scr["Classe"], errors='coerce').fillna(999)
                         df_grouped = scr.sort_values(by=["Division", "Classe_Tri", "Cumul_Sec"]).groupby(["Division", "Classe_Tri"]).head(3).copy()
                         if len(df_grouped) > 0:
