@@ -45,6 +45,13 @@ st.markdown("""
     .table-class-robuste tr:nth-child(odd) td { background-color: #E0F2FE !important; }
     .table-class-groupes tr.ligne-separation-classe td { border-bottom: 2px solid #1E3A8A !important; }
 
+    /* 🚨 LE CODE DE SECOURS ABSOLU : Force le gras et la taille en ciblant chaque tableau de droite */
+    div[data-testid="stMarkdownContainer"] table tr td:last-child {
+        font-weight: 900 !important;
+        font-size: 0.85rem !important;
+    }
+
+
     /* 🎯 SOLUTION RADICALE : Force TOUTES les dernières cellules (colonne Chrono) des tableaux de droite */
     .table-compacte td:last-child, 
     .table-class-groupes td:last-child {
