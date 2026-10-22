@@ -140,10 +140,10 @@ def recuperer_donnees_course():
     df_divisions = html_hist
 
     t_live = "🏎️ EN DIRECT / Derniers Concurrents partis"
-    t_his = "🕒 HISTORIQUE DES TEMPS / 2ème COURSE / Concurrents ASAF<span>↕️</span>"
-    t_haut = "🏆 CLASSEMENT EVOLUTIF OFFICIEUX Division 123<span>↕️</span>"
-    t_milieu = "🏆 CLASSEMENT EVOLUTIF OFFICIEUX Division 4<span>↕️</span>"
-    t_bas = "📊 CLASSEMENT EVOLUTIF OFFICIEUX par Division / Classe (Top 3)<span>↕️</span>"
+    t_his = "🕒 HISTORIQUE DES TEMPS / ASAF<span>↕️</span>"
+    t_haut = "🏆 CLASSEMENT GENERAL OFFICIEUX Division 123 (Top 25)<span>↕️</span>"
+    t_milieu = "🏆 CLASSEMENT GENERAL OFFICIEUX Division 4 (Top 10)<span>↕️</span>"
+    t_bas = "📊 CLASSEMENT OFFICIEUX par Division / Classe (Top 3)<span>↕️</span>"
 
     try:
         flux_eng = telecharger_excel(FILE_ENGAGES)
@@ -229,8 +229,7 @@ def recuperer_donnees_course():
                         txt_c2 = f"{format_final_chrono(t2)}{symbole}" if t2 else f"No Time{symbole}"
                         html_hist += f"<tr><td>{row['N°']}</td><td>{row['Nom_Prenom']}</td><td>{row['Voiture']}</td><td>{row['Division']}</td><td>{row['Classe']}</td><td>{txt_c1}</td><td>{txt_c2}</td></tr>"
                     html_hist += "</tbody></table></div>"
-                    
-                    # FIN DU SCRIPT DE COURSE DE DROITE AVEC LIGNE BLEU COLLÉE AU BON ENDROIT
+                    # CLASSEMENTS SANS DOUBLONS ET SANS INTERFÉRENCE DE TEXTE
                     def tri_val(r1, r2):
                         if pd.isna(r1) or pd.isna(r2) or r1 <= 0 or r2 <= 0: return float('inf')
                         return float(round(r1, 2) + round(r2, 2))
@@ -266,7 +265,7 @@ def recuperer_donnees_course():
                         else:
                             df_asaf4 = "<div class='zone-defilement-tactile'><table class='table-compacte'><tr><td>Aucune donnée</td></tr></table></div>"
                         
-                        # 3. CLASSEMENT par Division / Classe (Top 3)
+                        # 3. CLASSEMENT par Division / Classe -> RECONSTRUIT EN HTML PAR PANDAS SANS CHANGER LES LIGNES
                         scr["Classe_Tri"] = pd.to_numeric(scr["Classe"], errors='coerce').fillna(999)
                         df_grouped = scr.sort_values(by=["Division", "Classe_Tri", "Cumul_Sec"]).groupby(["Division", "Classe_Tri"]).head(3).copy()
                         if len(df_grouped) > 0:
@@ -278,20 +277,13 @@ def recuperer_donnees_course():
                                 g["Pos"] = [str(i+1) if v < float('inf') else "-" for i, v in enumerate(g["Cumul_Sec"])]
                                 g["Chrono"] = g["Cumul_Sec"].apply(lambda val: f"<span style='font-weight: bold !important; font-size: 0.85rem !important;'>{format_final_chrono(val, 'No Time')}</span>")
                                 
+                                # Export propre : On génère le HTML brut de chaque classe
                                 sh = g[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]].rename(columns={"Division": "Div", "Classe": "Cl"}).to_html(index=False, header=(cg==1), classes='table-compacte table-class-groupes', escape=False, border=0)
                                 sh_clean = sh.replace("</tbody>\n</table>", "").replace("</tbody></table>", "")
+                                if cg == 1: hb.append(sh_clean)
+                                else: hb.append(sh_clean.split("<tbody>")[-1])
                                 
-                                if cg > 1:
-                                    sh_clean = sh_clean.split("<tbody>")[-1]
-                                
-                                # 🎯 CORRECTIF EMPLACEMENT : On cherche le tout DERNIER début de ligne '<tr>' de ce groupe de pilotes
-                                if cg < tg:
-                                    idx_dernier_tr = sh_clean.rfind("<tr>")
-                                    if idx_dernier_tr != -1:
-                                        sh_clean = sh_clean[:idx_dernier_tr] + "<tr class='ligne-separation-classe'>" + sh_clean[idx_dernier_tr + 4:]
-                                
-                                hb.append(sh_clean)
-                            
+                                # On n'injecte plus aucune ligne tr vide en Python pour éviter la ligne blanche !
                             hb.append("</tbody>\n</table>")
                             df_divisions = "".join(hb)
     except Exception: pass
