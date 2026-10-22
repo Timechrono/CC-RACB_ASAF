@@ -295,11 +295,13 @@ div.stElementContainer {{
     }}
 }}
 
+/* 🎯 CORRECTION BORDURE : La ligne bleue se dessine sur la bordure de la case du dernier pilote, sans espace vide */
 .table-class-robuste tr.ligne-bleue-separation td,
 tr.ligne-separation-classe td, 
 .table-compacte tr.ligne-separation-classe td {{ 
-    box-shadow: inset 0 -3px 0 0 #1E3A8A !important; 
+    border-bottom: 3px solid #1E3A8A !important; 
 }}
+
 
 /* 6. PIED DE PAGE TECHNIQUE UNIQUE (GESTION PC VS MOBILE) */
 .signature-fin-page {{
