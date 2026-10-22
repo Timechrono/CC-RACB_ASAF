@@ -35,15 +35,19 @@ st.markdown("""
     .table-compacte { width: 100% !important; margin-bottom: 0px !important; border-collapse: collapse !important; table-layout: fixed !important; }
     .table-compacte tr { height: 18px !important; }
     
-    /* CIBLAGE ABSOLU ET RADICAL : Force la grandeur exacte de EN DIRECT (0.85rem) sur TOUS les tableaux de l'écran */
+    /* FORCE TOUS LES COMPOSANTS DE TOUS LES TABLEAUX A RESTER EN 0.85rem (ALIGNÉ SUR EN DIRECT) */
     .table-compacte, 
     .table-compacte th, 
     .table-compacte td, 
     .table-compacte tr td, 
     .table-compacte td b, 
     .table-compacte td span,
+    .table-hist,
+    .table-hist th,
     .table-hist td,
     .table-hist td span,
+    .table-class-groupes,
+    .table-class-groupes th,
     .table-class-groupes td,
     .table-class-groupes td b { 
         height: 18px !important; 
@@ -219,7 +223,6 @@ def recuperer_donnees_course():
                         base_c3["Arrivée"] = base_c3["Heure_Arrivee_3"].apply(formater_heure_ecran)
                         df_live = base_c3.sort_values(by="Heure_Depart_3", ascending=False).head(5)[["N°", "Nom_Prenom", "Voiture", "Départ", "Arrivée", "Chrono réalisé"]]
 
-                    # Inversion pure de la lecture de la feuille Excel (l'entrant prend la première place et décale le reste)
                     df_hb = base[base["Calc_Sec_1"].notna() | base["Calc_Sec_2"].notna()].copy().iloc[::-1]
                     
                     html_hist = "<div class='zone-defilement-tactile'><table class='table-compacte table-hist'><thead><tr><th>N°</th><th>Nom_Prenom</th><th>Voiture</th><th>Div</th><th>Cl</th><th>Course 1</th><th>Chrono</th></tr></thead><tbody>"
@@ -283,15 +286,17 @@ def recuperer_donnees_course():
                                 
                                 sh = g[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]].rename(columns={"Division": "Div", "Classe": "Cl"}).to_html(index=False, header=(cg==1), classes='table-compacte table-class-groupes', escape=False, border=0)
                                 
+                                # Nettoyage strict des retours à la ligne pour éradiquer l'espace blanc au-dessus de la ligne bleue
+                                sh = sh.strip().replace("\n", "")
+                                
                                 if cg == 1: 
-                                    html_brut = sh.replace("</tbody>\n</table>", "")
+                                    html_brut = sh.replace("</tbody></table>", "")
                                 else: 
-                                    html_brut = sh.split("<tbody>")[-1].replace("</tbody>\n</table>", "")
-                                    # Insertion invisible d'une classe de repérage pour tracer la ligne bleue sans injecter de texte brut
+                                    html_brut = sh.split("<tbody>")[-1].replace("</tbody></table>", "")
                                     html_brut = html_brut.replace("<tr>", "<tr class='ligne-separatrice-groupe'>", 1)
                                 
                                 hb.append(html_brut)
-                            hb.append("</tbody>\n</table>")
+                            hb.append("</tbody></table>")
                             df_divisions = "".join(hb)
     except Exception: pass
     return df_live, html_hist, df_asaf123, df_asaf4, df_divisions, t_live, t_his, t_haut, t_milieu, t_bas
