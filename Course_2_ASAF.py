@@ -259,19 +259,17 @@ def recuperer_donnees_course():
                             tg, cg = len(go), 0
                             for (div, cl), g in go:
                                 cg += 1; g = g.copy()
-                                is_first_row_of_class = True
                                 g["Pos"] = [str(i+1) if v < float('inf') else "-" for i, v in enumerate(g["Cumul_Sec"])]
                                 g["Chrono"] = g["Cumul_Sec"].apply(lambda val: f"<b>{format_final_chrono(val, 'No Time')}</b>")
                                 
-                                # Injection d'une classe HTML d'identification de bordure sur les cellules pour le CSS (et suppression de la ligne vide tr)
                                 sh = g[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]].rename(columns={"Division": "Div", "Classe": "Cl"}).to_html(index=False, header=(cg==1), classes='table-compacte table-class-groupes', escape=False, border=0)
                                 
                                 if cg == 1: 
                                     html_brut = sh.replace("</tbody>\n</table>", "")
                                 else: 
                                     html_brut = sh.split("<tbody>")[-1].replace("</tbody>\n</table>", "")
-                                    # Ajout d'un marqueur CSS de classe sur la première ligne pour tirer le trait bleu sans espace blanc
-                                    html_brut = html_brut.replace("<tr>", "<tr class='bordure-separation-classe'>", 1)
+                                    # Injection d'un style de bordure solide directement sur les cellules de la première ligne de la nouvelle classe (Supprime l'espace blanc)
+                                    html_brut = html_brut.replace("<td>", "<td style='border-top: 2px solid #1E3A8A !important;'>", 6)
                                 
                                 hb.append(html_brut)
                             hb.append("</tbody>\n</table>")
