@@ -35,18 +35,37 @@ st.markdown("""
     .table-compacte { width: 100% !important; margin-bottom: 0px !important; border-collapse: collapse !important; table-layout: fixed !important; }
     .table-compacte tr { height: 18px !important; }
     
-    /* Égalisation et verrouillage de la taille de fonte pour TOUTES les cellules et contenus (gras b inclus) de TOUS les tableaux */
-    .table-compacte th, .table-compacte td, .table-compacte td b, .table-compacte td span { 
-        height: 18px !important; padding: 1px 5px !important; line-height: 1.1 !important; font-size: 0.85rem !important; color: #000000 !important; 
-        vertical-align: middle !important; overflow: hidden !important; text-overflow: ellipsis !important; white-space: nowrap !important;
+    /* CIBLAGE ABSOLU ET RADICAL : Force la grandeur exacte de EN DIRECT (0.85rem) sur TOUS les tableaux de l'écran */
+    .table-compacte, 
+    .table-compacte th, 
+    .table-compacte td, 
+    .table-compacte tr td, 
+    .table-compacte td b, 
+    .table-compacte td span,
+    .table-hist td,
+    .table-hist td span,
+    .table-class-groupes td,
+    .table-class-groupes td b { 
+        height: 18px !important; 
+        padding: 1px 5px !important; 
+        line-height: 1.1 !important; 
+        font-size: 0.85rem !important; 
+        color: #000000 !important; 
+        vertical-align: middle !important; 
+        overflow: hidden !important; 
+        text-overflow: ellipsis !important; 
+        white-space: nowrap !important;
     }
+    
     .table-compacte td { font-weight: normal !important; border-bottom: 1px solid #E0E0E0 !important; background-color: #FFFFFF !important; }
     .table-compacte th { font-weight: bold !important; background-color: #F5F5F5 !important; border-bottom: 2px solid #CCCCCC !important; text-align: left !important; }
     .table-compacte td.meilleur-temps { background-color: #d9fcec !important; color: #000000 !important; font-weight: bold !important; }
     .table-class-robuste tr:nth-child(odd) td { background-color: #E0F2FE !important; }
     
-    /* Style de la ligne de séparation de classe (sans espace blanc au-dessus) */
-    .table-class-groupes tr.bordure-separation-classe td { border-top: 2px solid #1E3A8A !important; }
+    /* Tracé de la ligne bleue sans aucun espace blanc au-dessus */
+    .table-class-groupes tr.ligne-separatrice-groupe td {
+        border-top: 2px solid #1E3A8A !important;
+    }
     
     .table-live th:nth-child(1), .table-live td:nth-child(1) { width: 8% !important; }
     .table-live th:nth-child(2), .table-live td:nth-child(2) { width: 26% !important; }
@@ -200,7 +219,7 @@ def recuperer_donnees_course():
                         base_c3["Arrivée"] = base_c3["Heure_Arrivee_3"].apply(formater_heure_ecran)
                         df_live = base_c3.sort_values(by="Heure_Depart_3", ascending=False).head(5)[["N°", "Nom_Prenom", "Voiture", "Départ", "Arrivée", "Chrono réalisé"]]
 
-                    # Inversion brute de la feuille d'arrivée Excel (le dernier concurrent lu prend directement la 1ère place sans aucun tri)
+                    # Inversion pure de la lecture de la feuille Excel (l'entrant prend la première place et décale le reste)
                     df_hb = base[base["Calc_Sec_1"].notna() | base["Calc_Sec_2"].notna()].copy().iloc[::-1]
                     
                     html_hist = "<div class='zone-defilement-tactile'><table class='table-compacte table-hist'><thead><tr><th>N°</th><th>Nom_Prenom</th><th>Voiture</th><th>Div</th><th>Cl</th><th>Course 1</th><th>Chrono</th></tr></thead><tbody>"
@@ -268,8 +287,8 @@ def recuperer_donnees_course():
                                     html_brut = sh.replace("</tbody>\n</table>", "")
                                 else: 
                                     html_brut = sh.split("<tbody>")[-1].replace("</tbody>\n</table>", "")
-                                    # Injection d'un style de bordure solide directement sur les cellules de la première ligne de la nouvelle classe (Supprime l'espace blanc)
-                                    html_brut = html_brut.replace("<td>", "<td style='border-top: 2px solid #1E3A8A !important;'>", 6)
+                                    # Insertion invisible d'une classe de repérage pour tracer la ligne bleue sans injecter de texte brut
+                                    html_brut = html_brut.replace("<tr>", "<tr class='ligne-separatrice-groupe'>", 1)
                                 
                                 hb.append(html_brut)
                             hb.append("</tbody>\n</table>")
