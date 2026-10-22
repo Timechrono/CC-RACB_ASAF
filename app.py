@@ -376,10 +376,26 @@ def gen_html(df, cl):
             debut = df.upper().find("<TABLE")
             fin = df.upper().find("</TABLE>") + 8
             tableau_propre = df[debut:fin]
+            
+            # 🎯 CORRECTIF ULTRA-CIBLE POUR LES CLASSES :
+            # Supprime les fermetures prématurées de tableaux au milieu du texte pour éradiquer la ligne blanche
+            if cl == "table-class-groupes":
+                tableau_propre = tableau_propre.replace("</tbody></table>", "").replace("</tbody>\n</table>", "")
+                # Recrée une fermeture propre unique à la toute fin du bloc
+                tableau_propre += "</tbody></table>"
+                
             return f"<div {style_conteneur}>{tableau_propre}</div>"
                 
         tableau_vide = f"<table class='table-compacte {cl}'><tr><td style='text-align: center; padding: 10px; font-style: italic; color: #64748B;'>{phrase_attente}</td></tr></table>"
         return f"<div {style_conteneur}>{tableau_vide}</div>"
+
+    if df is None or (isinstance(df, pd.DataFrame) and df.empty): 
+        tableau_vide = f"<table class='table-compacte {cl}'><tr><td style='text-align: center; padding: 10px; font-style: italic; color: #64748B;'>{phrase_attente}</td></tr></table>"
+        return f"<div {style_conteneur}>{tableau_vide}</div>"
+    
+    html_table = df.to_html(index=False, classes=f"table-compacte {cl}", escape=False, border=0)
+    return f"<div {style_conteneur}>{html_table}</div>"
+
 
     if df is None or (isinstance(df, pd.DataFrame) and df.empty): 
         tableau_vide = f"<table class='table-compacte {cl}'><tr><td style='text-align: center; padding: 10px; font-style: italic; color: #64748B;'>{phrase_attente}</td></tr></table>"
