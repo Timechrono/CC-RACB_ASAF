@@ -44,7 +44,6 @@ st.markdown("""
     .table-class-robuste tr:nth-child(odd) td { background-color: #E0F2FE !important; }
     .table-class-groupes tr.ligne-separation-classe td { border-bottom: 2px solid #1E3A8A !important; }
 
-    /* Force le gras et la taille en ciblant chaque tableau de droite */
     div[data-testid="stMarkdownContainer"] table tr td:last-child {
         font-weight: bold !important;
         font-size: 0.85rem !important;
@@ -157,6 +156,7 @@ def recuperer_donnees_course():
                 "Division": df_eng_raw.iloc[:, 5].astype(str).str.strip().apply(lambda x: x[:-2] if x.endswith(".0") else x),
                 "Classe": df_eng_raw.iloc[:, 6].fillna("-").astype(str).str.strip().apply(lambda x: x[:-2] if x.endswith(".0") else x)
             })
+            
             df_eng = df_eng[~df_eng["N°"].str.startswith("N", na=False)].copy()
             df_eng["Num_Tri_Sec"] = pd.to_numeric(df_eng["N°"], errors='coerce').fillna(-1)
             df_eng = df_eng[~((df_eng["Num_Tri_Sec"] >= 900) & (df_eng["Num_Tri_Sec"] <= 999))].copy()
@@ -187,6 +187,7 @@ def recuperer_donnees_course():
             dict_c1.update({k: v for k, v in extraire_manche_selon_regles_asaf(df_arr_raw, "COURSE 1", "RACB").items() if k not in dict_c1 or dict_c1[k]["sec"] is None})
             dict_c2 = extraire_manche_selon_regles_asaf(df_arr_raw, "COURSE 2", "ASAF")
             dict_c2.update({k: v for k, v in extraire_manche_selon_regles_asaf(df_arr_raw, "COURSE 2", "RACB").items() if k not in dict_c2 or dict_c2[k]["sec"] is None})
+            
             if not df_eng.empty:
                 rows_data = []
                 for _, pilot in df_eng.iterrows():
