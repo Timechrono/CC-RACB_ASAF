@@ -42,6 +42,10 @@ st.markdown("""
     .table-compacte td { font-weight: normal !important; border-bottom: 1px solid #E0E0E0 !important; background-color: #FFFFFF !important; }
     .table-compacte th { font-weight: bold !important; background-color: #F5F5F5 !important; border-bottom: 2px solid #CCCCCC !important; text-align: left !important; }
     .table-compacte td.meilleur-temps { background-color: #d9fcec !important; color: #000000 !important; font-weight: bold !important; }
+    
+    /* Harmonisation absolue de la taille des textes dans les chronos (gras et icônes inclus) */
+    .table-compacte td b, .table-compacte td span { font-size: 0.85rem !important; line-height: 1.1 !important; }
+    
     .table-class-robuste tr:nth-child(odd) td { background-color: #E0F2FE !important; }
     .table-class-groupes tr.ligne-separation-classe td { border-bottom: 2px solid #1E3A8A !important; }
     
@@ -192,7 +196,6 @@ def recuperer_donnees_course():
                 if len(base) > 0:
                     if "Heure_Depart_3" in base.columns and base["Heure_Depart_3"].notna().any():
                         base_c3 = base[base["Heure_Depart_3"].notna()].copy()
-                        # Restauration complète du comportement d'origine "🟠 EN PISTE"
                         base_c3["Chrono réalisé"] = base_c3.apply(lambda r: calculer_statut_chrono_live(r["Calc_Sec_2"]) if pd.notna(r["Calc_Sec_2"]) else ("🟠 EN PISTE" if pd.isna(r["Heure_Arrivee_3"]) else "No Time"), axis=1)
                         base_c3["Départ"] = base_c3["Heure_Depart_3"].apply(formater_heure_ecran)
                         base_c3["Arrivée"] = base_c3["Heure_Arrivee_3"].apply(formater_heure_ecran)
@@ -248,7 +251,7 @@ def recuperer_donnees_course():
                             df_asaf4["Chrono"] = df_asaf4["Cumul_Sec"].apply(lambda val: f"<b>{format_final_chrono(val, 'No Time')}</b>")
                             df_asaf4 = df_asaf4[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]]
                         
-                        scr["Classe_Tri"] = pd.to_numeric(scr["Classe"], errors='coerce').fillna(999)
+                        scr["Classe_Tri = pd.to_numeric(scr["Classe"], errors='coerce').fillna(999)
                         df_grouped = scr.sort_values(by=["Division", "Classe_Tri", "Cumul_Sec"]).groupby(["Division", "Classe_Tri"]).head(3).copy()
                         if len(df_grouped) > 0:
                             hb = []
