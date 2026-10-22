@@ -7,14 +7,12 @@ import time
 import io
 import requests
 
-# ==============================================================================
-# ⚙️ CONFIGURATION DES HAUTEURS VISUELLES SUR PC (en pixels)
-# ==============================================================================
+# CONFIGURATION DES HAUTEURS VISUELLES SUR PC
 HAUTEURS_TABLEAUX_PC = {
-    "HISTORIQUE": "487px",       # ⬅️ Colonne de gauche (Historique des temps)
-    "RACB": "213px",             # ➡️ Haut de la colonne droite (Classement Général RACB)
-    "ASAF_123": "147px",         # ➡️ Milieu de la colonne droite (Classement par Groupe / Classe)
-    "ASAF_4": "215px"            # ➡️ Bas de la colonne droite (0px car inutilisé sur cette feuille)
+    "HISTORIQUE": "487px",       
+    "RACB": "213px",             
+    "ASAF_123": "147px",         
+    "ASAF_4": "215px"            
 }
 
 st.cache_data.clear()
@@ -43,17 +41,6 @@ st.markdown("""
     .table-compacte td.meilleur-temps { background-color: #d9fcec !important; color: #000000 !important; font-weight: bold !important; }
     .table-class-robuste tr:nth-child(odd) td { background-color: #E0F2FE !important; }
     .table-class-groupes tr.ligne-separation-classe td { border-bottom: 2px solid #1E3A8A !important; }
-
-    div[data-testid="stMarkdownContainer"] table tr td:last-child {
-        font-weight: bold !important;
-        font-size: 0.85rem !important;
-    }
-
-    .table-compacte td:last-child, 
-    .table-class-groupes td:last-child {
-        font-weight: bold !important;
-        font-size: 0.85rem !important;
-    }
     
     .table-live th:nth-child(1), .table-live td:nth-child(1) { width: 8% !important; }
     .table-live th:nth-child(2), .table-live td:nth-child(2) { width: 26% !important; }
@@ -124,10 +111,6 @@ def formater_heure_ecran(val):
 def calculer_statut_chrono_live(valeur_sec):
     if pd.isna(valeur_sec) or valeur_sec <= 0: return "No Time"
     return f"{format_final_chrono(valeur_sec)} &nbsp;<span style='color: #22C55E;'>✓</span>"
-
-def generer_tableau_html(df, cls_spec):
-    if df.empty: return "<div class='zone-defilement-tactile'><table class='table-compacte'><tr><td>Aucune donnée</td></tr></table></div>"
-    return f"<div class='zone-defilement-tactile'>{df.to_html(index=False, classes=f'table-compacte {cls_spec}', escape=False, border=0)}</div>"
 def recuperer_donnees_course():
     df_live = pd.DataFrame(columns=["N°", "Nom_Prenom", "Voiture", "Départ", "Arrivée", "Chrono réalisé"])
     df_asaf123 = pd.DataFrame(columns=["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"])
@@ -240,27 +223,18 @@ def recuperer_donnees_course():
                     scr = scr.drop(columns=["Num_Filter_Check"])
                     
                     if len(scr) > 0:
-                        # 1. Division 123 (Génération HTML avec Scroll infini)
                         df_asaf123_raw = scr[scr["Division"].isin(["1", "2", "3"])].copy()
                         if not df_asaf123_raw.empty:
                             df_asaf123_raw["Pos"] = [str(i+1) if v < float('inf') else "-" for i, v in enumerate(df_asaf123_raw["Cumul_Sec"])]
                             df_asaf123_raw["Chrono"] = df_asaf123_raw["Cumul_Sec"].apply(lambda val: format_final_chrono(val, "No Time"))
-                            df_asaf123_raw = df_asaf123_raw[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]]
-                            df_asaf123 = f"<div class='zone-defilement-tactile'>{df_asaf123_raw.to_html(index=False, classes='table-compacte table-class-robuste', escape=False, border=0)}</div>"
-                        else:
-                            df_asaf123 = "<div class='zone-defilement-tactile'><table class='table-compacte'><tr><td>Aucune donnée</td></tr></table></div>"
+                            df_asaf123 = df_asaf123_raw[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]]
                         
-                        # 2. Division 4 (Génération HTML avec Scroll infini)
                         df_asaf4_raw = scr[scr["Division"] == "4"].copy()
                         if not df_asaf4_raw.empty:
                             df_asaf4_raw["Pos"] = [str(i+1) if v < float('inf') else "-" for i, v in enumerate(df_asaf4_raw["Cumul_Sec"])]
                             df_asaf4_raw["Chrono"] = df_asaf4_raw["Cumul_Sec"].apply(lambda val: format_final_chrono(val, "No Time"))
-                            df_asaf4_raw = df_asaf4_raw[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]]
-                            df_asaf4 = f"<div class='zone-defilement-tactile'>{df_asaf4_raw.to_html(index=False, classes='table-compacte table-class-milieu', escape=False, border=0)}</div>"
-                        else:
-                            df_asaf4 = "<div class='zone-defilement-tactile'><table class='table-compacte'><tr><td>Aucune donnée</td></tr></table></div>"
+                            df_asaf4 = df_asaf4_raw[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]]
                         
-                        # 3. Classement par Division / Classe (Top 3 continu en pur HTML)
                         scr["Classe_Tri"] = pd.to_numeric(scr["Classe"], errors='coerce').fillna(999)
                         df_grouped = scr.sort_values(by=["Division", "Classe_Tri", "Cumul_Sec"]).groupby(["Division", "Classe_Tri"]).head(3).copy()
                         if len(df_grouped) > 0:
