@@ -379,6 +379,15 @@ def gen_html(df, cl):
         tableau_vide = f"<table class='table-compacte {cl}'><tr><td style='text-align: center; padding: 10px; font-style: italic; color: #64748B;'>{phrase_attente}</td></tr></table>"
         return f"<div {style_conteneur}>{tableau_vide}</div>"
     
+    # MODIFICATION : Ajout de escape=False pour autoriser l'affichage du GRAS injecté par le script de course
+    html_table = df.to_html(index=False, classes=f"table-compacte {cl}", escape=False, border=0)
+    return f"<div {style_conteneur}>{html_table}</div>"
+
+
+    if df is None or (isinstance(df, pd.DataFrame) and df.empty): 
+        tableau_vide = f"<table class='table-compacte {cl}'><tr><td style='text-align: center; padding: 10px; font-style: italic; color: #64748B;'>{phrase_attente}</td></tr></table>"
+        return f"<div {style_conteneur}>{tableau_vide}</div>"
+    
     html_table = df.to_html(index=False, classes=f"table-compacte {cl}", escape=False, border=0)
     return f"<div {style_conteneur}>{html_table}</div>"
 # --- LECTURE DU PARAMÈTRE DE COURSE DEPUIS L'URL ---
