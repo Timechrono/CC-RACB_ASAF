@@ -205,14 +205,6 @@ def recuperer_donnees_course():
                         df_live = base_c3.sort_values(by="Heure_Depart_3", ascending=False).head(5)[["N°", "Nom_Prenom", "Voiture", "Départ", "Arrivée", "Chrono réalisé"]]
 
                     # 2. Construction de l'HISTORIQUE DES TEMPS
-                    # On prend tous les pilotes qui ont commencé la Course 2
-                    df_partants = base_c3.sort_values(by="Heure_Depart_3", ascending=False).copy()
-                    
-                    # L'historique ne contient QUE les concurrents éliminés du direct (à partir du 6ème et plus anciens)
-                    # Grâce à l'ordre décroissant ci-dessus, le concurrent qui vient de sortir du direct (le 6e) sera le premier de ce tableau.
-                    df_hb = df_partants.iloc[5:].copy()
-                    
-                    # 2. Construction de l'HISTORIQUE DES TEMPS
                     df_partants = base_c3.sort_values(by="Heure_Depart_3", ascending=False).copy()
                     
                     # L'historique contient les concurrents éliminés du direct (à partir du 6ème)
@@ -223,13 +215,16 @@ def recuperer_donnees_course():
                         t1, t2 = row["Calc_Sec_1"], row["Calc_Sec_2"]
                         txt_c1 = format_final_chrono(t1)
                         
-                        # Logique de comparaison et choix du symbole visuel à taille réelle du texte (0.85rem)
+                        # Logique de comparaison avec des symboles "Heavy" forcés en taille
                         if pd.isna(t1) or t1 <= 0 or pd.isna(t2) or t2 <= 0:
-                            symbole = "&nbsp;<span style='color: #9CA3AF; font-size: 0.85rem; vertical-align: middle;'>◆</span>"  # Losange gris
+                            # ❖ (Losange épais) ou ◆
+                            symbole = "&nbsp;<span style='color: #9CA3AF; font-size: 1.1rem; display: inline-block; line-height: 1; vertical-align: -1px;'>◆</span>"
                         elif t2 < t1:
-                            symbole = "&nbsp;<span style='color: #22C55E; font-size: 0.85rem; vertical-align: middle;'>▲</span>"  # Triangle vert
+                            # ▲ (Triangle haut) forcé à 1.1rem pour égaler visuellement le texte
+                            symbole = "&nbsp;<span style='color: #22C55E; font-size: 1.1rem; display: inline-block; line-height: 1; vertical-align: -1px;'>▲</span>"
                         else:
-                            symbole = "&nbsp;<span style='color: #EF4444; font-size: 0.85rem; vertical-align: middle;'>▼</span>"  # Triangle rouge
+                            # ▼ (Triangle bas)
+                            symbole = "&nbsp;<span style='color: #EF4444; font-size: 1.1rem; display: inline-block; line-height: 1; vertical-align: -1px;'>▼</span>"
                         
                         txt_c2 = f"{format_final_chrono(t2)}{symbole}" if t2 else f"No Time{symbole}"
                         
