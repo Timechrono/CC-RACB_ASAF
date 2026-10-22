@@ -49,8 +49,8 @@ st.markdown("""
         padding: 0px !important;
     }
 
-    /* 🔵 LIGNE DE SÉPARATION BLEUE ENTRE LES CLASSES (SANS ESPACE VIDE) */
-    .table-class-groupes tr.ligne-debut-classe td {
+    /* 🔵 MARQUAGE STRICT DE LA BORDURE BLEUE LORS DU CHANGEMENT DE CLASSE */
+    .table-class-groupes tr.separateur-classe td {
         border-top: 3px solid #1E3A8A !important;
     }
 
@@ -59,7 +59,6 @@ st.markdown("""
         font-weight: 900 !important;
         font-size: 0.85rem !important;
     }
-
 
     /* 🎯 SOLUTION RADICALE : Force TOUTES les dernières cellules (colonne Chrono) des tableaux de droite */
     .table-compacte td:last-child, 
@@ -273,31 +272,37 @@ def recuperer_donnees_course():
                         scr["Classe_Tri"] = pd.to_numeric(scr["Classe"], errors='coerce').fillna(999)
                         df_grouped = scr.sort_values(by=["Division", "Classe_Tri", "Cumul_Sec"]).groupby(["Division", "Classe_Tri"]).head(3).copy()
                         if len(df_grouped) > 0:
-                            lignes_corps = []
+                            lignes_html = []
                             go = df_grouped.sort_values(by=["Division", "Classe_Tri", "Cumul_Sec"]).groupby(["Division", "Classe_Tri"])
                             
                             compteur_classe = 0
                             for (div, cl), g in go:
                                 compteur_classe += 1
-                                g = g.copy()
-                                g["Pos"] = [str(i+1) if v < float('inf') else "-" for i, v in enumerate(g["Cumul_Sec"])]
-                                g["Chrono"] = g["Cumul_Sec"].apply(lambda val: f"<span style='font-weight: bold !important; font-size: 0.85rem !important;'>{format_final_chrono(val, 'No Time')}</span>")
+                                positions = [str(i+1) if v < float('inf') else "-" for i, v in enumerate(g["Cumul_Sec"])]
                                 
-                                sh = g[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]].rename(columns={"Division": "Div", "Classe": "Cl"}).to_html(index=False, header=False, classes='table-compacte', escape=False, border=0)
-                                if "<tbody>" in sh:
-                                    corps_propre = sh.split("<tbody>")[-1].split("</tbody>")[0].strip()
+                                for idx_ligne, (_, row) in enumerate(g.iterrows()):
+                                    pos = positions[idx_ligne]
+                                    chrono_formate = format_final_chrono(row["Cumul_Sec"], 'No Time')
+                                    chrono_cellule = f"<span style='font-weight: bold !important; font-size: 0.85rem !important;'>{chrono_formate}</span>"
                                     
-                                    # 🎯 On injecte la bordure bleue sur la toute première ligne de la classe (sauf la première du tableau)
-                                    if compteur_classe > 1:
-                                        corps_propre = corps_propre.replace("<tr>", "<tr class='ligne-debut-classe'>", 1)
-                                        
-                                    lignes_corps.append(corps_propre)
+                                    # 🎯 Détection stricte : Si c'est la toute première ligne d'un nouveau groupe de classe, on injecte la bordure bleue
+                                    classe_tr = "class='separateur-classe'" if (compteur_classe > 1 and idx_ligne == 0) else ""
+                                    
+                                    ligne_tr = f"""<tr {classe_tr}>
+                                        <td>{pos}</td>
+                                        <td>{row['N°']}</td>
+                                        <td>{row['Nom_Prenom']}</td>
+                                        <td>{row['Division']}</td>
+                                        <td>{row['Classe']}</td>
+                                        <td>{chrono_cellule}</td>
+                                    </tr>"""
+                                    lignes_html.append(ligne_tr)
                             
                             df_divisions = (
                                 "<div class='zone-defilement-tactile'>"
                                 "<table class='table-compacte table-class-groupes'>"
                                 "<thead><tr><th>Pos</th><th>N°</th><th>Nom_Prenom</th><th>Div</th><th>Cl</th><th>Chrono</th></tr></thead>"
-                                "<tbody>" + "".join(lignes_corps).replace("\n", "") + "</tbody>"
+                                "<tbody>" + "".join(lignes_html).replace("\n", "") + "</tbody>"
                                 "</table>"
                                 "</div>"
                             )
