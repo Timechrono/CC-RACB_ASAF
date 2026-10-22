@@ -283,8 +283,11 @@ def recuperer_donnees_course():
                                 g["Chrono"] = g["Cumul_Sec"].apply(lambda val: f"<span style='font-weight: bold !important; font-size: 0.85rem !important;'>{format_final_chrono(val, 'No Time')}</span>")
                                 
                                 sh = g[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]].rename(columns={"Division": "Div", "Classe": "Cl"}).to_html(index=False, header=(cg==1), classes='table-compacte table-class-groupes', escape=False, border=0)
-                                if cg == 1: hb.append(sh.replace("</tbody>\n</table>", ""))
-                                else: hb.append(sh.split("<tbody>")[-1].replace("</tbody>\n</table>", ""))
+#  CODE MODIFIÉ (NETTOYÉ)
+if cg == 1: hb.append(sh.replace("</tbody>\n</table>", ""))
+else: hb.append(sh.split("<tbody>")[-1].replace("</tbody>\n</table>", ""))
+hb.append("</tbody>\n</table>")
+
                                 if cg < tg: hb.append("<tr class='ligne-separation-classe'><td colspan='6' style='padding:0 !important;'></td></tr>")
                             hb.append("</tbody>\n</table>")
                             df_divisions = "".join(hb)
