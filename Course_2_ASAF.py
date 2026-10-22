@@ -273,10 +273,11 @@ def recuperer_donnees_course():
                                 
                                 sh = g[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]].rename(columns={"Division": "Div", "Classe": "Cl"}).to_html(index=False, header=(cg==1), classes='table-compacte table-class-groupes', escape=False, border=0)
                                 if cg == 1: 
-                                    hb.append(sh.replace("</tbody>\n</table>", ""))
+                                    hb.append(sh.replace("</tbody>\n</table>", "").strip())
                                 else: 
-                                    hb.append(sh.split("<tbody>")[-1].replace("</tbody>\n</table>", ""))
+                                    corps_table = sh.split("<tbody>")[-1].replace("</tbody>\n</table>", "").strip()
+                                    hb.append(corps_table)
                             hb.append("</tbody>\n</table>")
-                            df_divisions = "".join(hb)
+                            df_divisions = "<div class='zone-defilement-tactile'>" + "".join(hb).replace("\n", "") + "</div>"
     except Exception: pass
     return df_live, html_hist, df_asaf123, df_asaf4, df_divisions, t_live, t_his, t_haut, t_milieu, t_bas
