@@ -44,12 +44,10 @@ st.markdown("""
     .table-compacte td.meilleur-temps { background-color: #d9fcec !important; color: #000000 !important; font-weight: bold !important; }
     .table-class-robuste tr:nth-child(odd) td { background-color: #E0F2FE !important; }
 
-    /* 🎯 CORRECTION DES ESPACES VIDES : Supprime l'espacement entre chaque classe générée */
+    /* 🎯 PLUS D'ESPACES ENTRE LES CLASSES : Le tableau est désormais unique et fluide */
     .table-class-groupes {
-        margin-top: 0px !important;
-        margin-bottom: 0px !important;
-        padding-top: 0px !important;
-        padding-bottom: 0px !important;
+        margin: 0px !important;
+        padding: 0px !important;
     }
 
     /* 🚨 LE CODE DE SECOURS ABSOLU : Force le gras et la taille en ciblant chaque tableau de droite */
@@ -271,21 +269,27 @@ def recuperer_donnees_course():
                         scr["Classe_Tri"] = pd.to_numeric(scr["Classe"], errors='coerce').fillna(999)
                         df_grouped = scr.sort_values(by=["Division", "Classe_Tri", "Cumul_Sec"]).groupby(["Division", "Classe_Tri"]).head(3).copy()
                         if len(df_grouped) > 0:
-                            hb = []
+                            lignes_corps = []
                             go = df_grouped.sort_values(by=["Division", "Classe_Tri", "Cumul_Sec"]).groupby(["Division", "Classe_Tri"])
-                            tg, cg = len(go), 0
                             for (div, cl), g in go:
-                                cg += 1; g = g.copy()
+                                g = g.copy()
                                 g["Pos"] = [str(i+1) if v < float('inf') else "-" for i, v in enumerate(g["Cumul_Sec"])]
                                 g["Chrono"] = g["Cumul_Sec"].apply(lambda val: f"<span style='font-weight: bold !important; font-size: 0.85rem !important;'>{format_final_chrono(val, 'No Time')}</span>")
                                 
-                                sh = g[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]].rename(columns={"Division": "Div", "Classe": "Cl"}).to_html(index=False, header=(cg==1), classes='table-compacte table-class-groupes', escape=False, border=0)
-                                if cg == 1: 
-                                    hb.append(sh.replace("</tbody>\n</table>", "").strip())
-                                else: 
-                                    corps_table = sh.split("<tbody>")[-1].replace("</tbody>\n</table>", "").strip()
-                                    hb.append(corps_table)
-                            hb.append("</tbody>\n</table>")
-                            df_divisions = "<div class='zone-defilement-tactile'>" + "".join(hb).replace("\n", "") + "</div>"
+                                # Génère l'HTML brut et isole uniquement les lignes <tr> du corps du tableau
+                                sh = g[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]].rename(columns={"Division": "Div", "Classe": "Cl"}).to_html(index=False, header=False, classes='table-compacte', escape=False, border=0)
+                                if "<tbody>" in sh:
+                                    corps_propre = sh.split("<tbody>")[-1].split("</tbody>")[0].strip()
+                                    lignes_corps.append(corps_propre)
+                            
+                            # On enveloppe toutes les lignes concaténées à l'intérieur d'une UNIQUE structure de tableau HTML stable
+                            df_divisions = (
+                                "<div class='zone-defilement-tactile'>"
+                                "<table class='table-compacte table-class-groupes'>"
+                                "<thead><tr><th>Pos</th><th>N°</th><th>Nom_Prenom</th><th>Div</th><th>Cl</th><th>Chrono</th></tr></thead>"
+                                "<tbody>" + "".join(lignes_corps).replace("\n", "") + "</tbody>"
+                                "</table>"
+                                "</div>"
+                            )
     except Exception: pass
     return df_live, html_hist, df_asaf123, df_asaf4, df_divisions, t_live, t_his, t_haut, t_milieu, t_bas
