@@ -49,7 +49,7 @@ st.markdown("""
         padding: 0px !important;
     }
 
-    /* 🔵 MARQUAGE STRICT DE LA BORDURE BLEUE LORS DU CHANGEMENT DE CLASSE */
+    /* 🔵 BORDURE BLEUE LORS DU CHANGEMENT DE CLASSE SANS ESPACE VIDE */
     .table-class-groupes tr.separateur-classe td {
         border-top: 3px solid #1E3A8A !important;
     }
@@ -60,7 +60,7 @@ st.markdown("""
         font-size: 0.85rem !important;
     }
 
-    /* 🎯 SOLUTION RADICALE : Force TOUTES les dernières cellules (colonne Chrono) des tableaux de droite */
+    /* 🎯 SOLUTION RADICALE : Force TOUTES les dernières cellules des tableaux de droite */
     .table-compacte td:last-child, 
     .table-class-groupes td:last-child {
         font-weight: bold !important;
