@@ -193,7 +193,7 @@ def recuperer_donnees_course():
 
     t_live = "🏎️ EN DIRECT / Derniers concurrents partis"
     t_his = "🕒 HISTORIQUE DES TEMPS / 2ème COURSE / Concurrents RACB<span>↕️</span>"
-    t_haut = "🏆 CLASSEMENT EVOLUTIF OFFICIEUX RACB (Top 20)<span>↕️</span>"
+    t_haut = "🏆 CLASSEMENT EVOLUTIF OFFICIEUX RACB<span>↕️</span>"
     t_milieu = "📊 CLASSEMENT EVOLUTIF OFFICIEUX PAR Classe (Top 3)<span>↕️</span>"
     t_bas = ""
 
