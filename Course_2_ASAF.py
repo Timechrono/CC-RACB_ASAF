@@ -59,6 +59,7 @@ st.markdown("""
     .zone-defilement-tactile { width: 100% !important; overflow-x: auto !important; display: block !important; }
     </style>
 """, unsafe_allow_html=True)
+# fin bloc 1
 BASE_DIR = "Dropbox Cloud"
 C = [100, 108, 46, 100, 114, 111, 112, 98, 111, 120, 117, 115, 101, 114]
 D = [99, 111, 110, 116, 101, 110, 116, 46, 99, 111, 109]
@@ -111,6 +112,7 @@ def formater_heure_ecran(val):
 def calculer_statut_chrono_live(valeur_sec):
     if pd.isna(valeur_sec) or valeur_sec <= 0: return "No Time"
     return f"{format_final_chrono(valeur_sec)} &nbsp;<span style='color: #22C55E;'>✓</span>"
+# fin bloc 2
 def recuperer_donnees_course():
     df_live = pd.DataFrame(columns=["N°", "Nom_Prenom", "Voiture", "Départ", "Arrivée", "Chrono réalisé"])
     df_asaf123 = pd.DataFrame(columns=["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"])
@@ -208,6 +210,8 @@ def recuperer_donnees_course():
                         txt_c2 = f"{format_final_chrono(t2)}{symbole}" if t2 else f"No Time{symbole}"
                         html_hist += f"<tr><td>{row['N°']}</td><td>{row['Nom_Prenom']}</td><td>{row['Voiture']}</td><td>{row['Division']}</td><td>{row['Classe']}</td><td>{txt_c1}</td><td>{txt_c2}</td></tr>"
                     html_hist += "</tbody></table></div>"
+# fin bloc 3
+
                     def tri_val(r1, r2):
                         if pd.isna(r1) or pd.isna(r2) or r1 <= 0 or r2 <= 0: return float('inf')
                         return float(round(r1, 2) + round(r2, 2))
@@ -237,7 +241,7 @@ def recuperer_donnees_course():
                             df_asaf4_raw["Chrono"] = df_asaf4_raw["Cumul_Sec"].apply(lambda val: format_final_chrono(val, "No Time"))
                             df_asaf4 = df_asaf4_raw[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]]
                         
-                        # 3. Classement par Division / Classe (Correction du nettoyage de structure)
+                        # 3. Classement par Division / Classe (Top 3 continu avec marquage de ligne)
                         scr["Classe_Tri"] = pd.to_numeric(scr["Classe"], errors='coerce').fillna(999)
                         df_grouped = scr.sort_values(by=["Division", "Classe_Tri", "Cumul_Sec"]).groupby(["Division", "Classe_Tri"]).head(3).copy()
                         if len(df_grouped) > 0:
@@ -249,16 +253,19 @@ def recuperer_donnees_course():
                                 g["Pos"] = [str(i+1) if v < float('inf') else "-" for i, v in enumerate(g["Cumul_Sec"])]
                                 g["Chrono"] = g["Cumul_Sec"].apply(lambda val: format_final_chrono(val, "No Time"))
                                 
-                                #génère la structure de base
+                                # Génération de la table HTML de base pour ce groupe de classe
                                 sh = g[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]].rename(columns={"Division": "Div", "Classe": "Cl"}).to_html(index=False, header=(cg==1), classes='table-compacte table-class-groupes', escape=False, border=0)
-                                
-                                # 🎯 CORRECTIF NETTOYAGE : Supprime de manière étanche toutes les fermetures de tableaux
                                 sh_clean = sh.replace("</tbody>", "").replace("</table>", "").strip()
+                                
+                                # Si d'autres classes suivent, on marque le tout dernier concurrent de cette classe
+                                if cg < tg:
+                                    idx_dernier_tr = sh_clean.rfind("<tr>")
+                                    if idx_dernier_tr != -1:
+                                        sh_clean = sh_clean[:idx_dernier_tr] + "<tr class='separateur-classe'>" + sh_clean[idx_dernier_tr + 4:]
                                 
                                 if cg == 1: 
                                     hb.append(sh_clean)
                                 else: 
-                                    # Isole uniquement le contenu des lignes de pilotes
                                     if "<tbody>" in sh_clean:
                                         hb.append(sh_clean.split("<tbody>")[-1].strip())
                                     else:
