@@ -1,7 +1,8 @@
 # https://www.dropbox.com/scl/fi/hi24fjo0vbal4oiiwt9jl/logo-TimeC.png?rlkey=xlw0oqk9gdnq6v5dgahi0klg0&st=y86yrn6y&dl=1
 # https://www.dropbox.com/scl/fi/hi24fjo0vbal4oiiwt9jl/logo-TimeC.png?rlkey=xlw0oqk9gdnq6v5dgahi0klg0&st=y86yrn6y&dl=1
-# https://dropbox.com
-
+# ==============================================================================
+# 📊 TIMECHRONO - APPLICATION PRINCIPALE LIVE (Partie 1 de 4)
+# ==============================================================================
 import streamlit as st
 import pandas as pd
 import time
@@ -9,20 +10,16 @@ import requests
 import io
 import Essais
 
+# Initialisation préventive globale de toutes les variables pour éviter le NameError
 d_liv = pd.DataFrame()
 d_his = pd.DataFrame()
 d_haut = pd.DataFrame()
 d_milieu = pd.DataFrame()
 d_bas = pd.DataFrame()
 
-t_live = ""
-t_his = ""
-t_haut = ""
-t_milieu = ""
-t_bas = ""
+t_live, t_his, t_haut, t_milieu, t_bas = "", "", "", "", ""
 
 LIEN_DROPBOX_LOGO = "https://dropbox.com"
-
 module_actif = Essais
 
 try:
@@ -76,8 +73,9 @@ div[data-stale="false"], [data-testid="stAppViewContainer"], [data-testid="stApp
 }}
 [data-testid="stSkeleton"] {{ display: none !important; height: 0px !important; }}
 """, unsafe_allow_html=True)
-# fin bloc 1
-
+# ==============================================================================
+# 📊 TIMECHRONO - APPLICATION PRINCIPALE LIVE (Partie 2 de 4)
+# ==============================================================================
 st.markdown(f"""
 <style>
 @media (min-width: 769px) {{
@@ -88,7 +86,6 @@ st.markdown(f"""
 }}
 
 button:focus, div:focus, input:focus, select:focus {{ outline: none !important; border-color: transparent !important; box-shadow: none !important; }}
-
 html, body, [data-testid="stAppViewContainer"], [data-testid="stMainBlockContainer"] {{ overflow: auto !important; overflow-y: auto !important; height: auto !important; max-height: none !important; }}
 .block-container {{ padding-top: 5px !important; padding-left: 0.5rem !important; padding-right: 0.5rem !important; }}
 @media (min-width: 769px) {{ .block-container {{ padding-bottom: 50px !important; }} }}
@@ -128,7 +125,7 @@ div.stElementContainer {{ margin-top: 0px !important; margin-bottom: 0px !import
 .table-live tr td {{ background-color: #FEF9C3 !important; }}
 .table-live tr:nth-child(even) td {{ background-color: #FEFCE8 !important; }}
 
-/* 🎯 APPLIQUE LE GRAS ET LA TAILLE UNIFORME SUR TOUT LE COTÉ DROIT */
+/* FORCE LE TEXTE EN GRAS ET HARMONISE LA TAILLE (0.85rem) SUR TOUT LE BLOCK DROIT */
 .table-live td:last-child, 
 .table-class-robuste td:last-child, 
 .table-class-milieu td:last-child,
@@ -139,7 +136,7 @@ div.stElementContainer {{ margin-top: 0px !important; margin-bottom: 0px !import
     color: #0F172A !important; 
 }}
 
-/* 🎯 APPLIQUE LA LIGNE BLEUE SANS DÉCALAGE SUR LA LIGNE MARQUÉE */
+/* APPLIQUE LA SÉPARATION BLEUE UNIQUE SANS AUCUNE LIGNE BLANCHE */
 .table-class-groupes tr.separateur-classe td {{ 
     border-bottom: 3px solid #1E3A8A !important; 
 }}
@@ -165,18 +162,17 @@ div.stElementContainer {{ margin-top: 0px !important; margin-bottom: 0px !import
 }}
 </style>
 """, unsafe_allow_html=True)
-# fin bloc 2
-
+# ==============================================================================
+# 📊 TIMECHRONO - APPLICATION PRINCIPALE LIVE (Partie 3 de 4)
+# ==============================================================================
 def gen_html(df, cl):
-    if cl == "table-hist":
-        phrase_attente = "En attente d'arrivée..."
+    if cl == "table-hist": phrase_attente = "En attente d'arrivée..."
     elif cl in ["table-class-robuste", "table-class-groupes", "table-class-milieu"]:
         nom_course = choix_course.upper() if 'choix_course' in globals() else ""
         if "RACB" in nom_course: phrase_attente = "En attente du premier classé RACB..."
         elif "ASAF" in nom_course: phrase_attente = "En attente du premier classé ASAF..."
         else: phrase_attente = "En attente du premier classé..."
-    else:
-        phrase_attente = "En attente du départ..."
+    else: phrase_attente = "En attente du départ..."
 
     style_conteneur = "class='div-scroll-local-historique'" if cl == "table-hist" else "class='table-responsive-container'"
 
@@ -184,43 +180,24 @@ def gen_html(df, cl):
         if "<TABLE" in df.upper() and "</TABLE>" in df.upper():
             debut = df.upper().find("<TABLE")
             fin = df.upper().find("</TABLE>") + 8
-            tableau_propre = df[debut:fin]
-            return f"<div {style_conteneur}>{tableau_propre}</div>"
-                
-        tableau_vide = f"<table class='table-compacte {cl}'><tr><td style='text-align: center; padding: 10px; font-style: italic; color: #64748B;'>{phrase_attente}</td></tr></table>"
-        return f"<div {style_conteneur}>{tableau_vide}</div>"
+            return f"<div {style_conteneur}>{df[debut:fin]}</div>"
+        return f"<div {style_conteneur}><table class='table-compacte {cl}'><tr><td style='text-align: center; padding: 10px; font-style: italic; color: #64748B;'>{phrase_attente}</td></tr></table></div>"
 
     if df is None or (isinstance(df, pd.DataFrame) and df.empty): 
-        tableau_vide = f"<table class='table-compacte {cl}'><tr><td style='text-align: center; padding: 10px; font-style: italic; color: #64748B;'>{phrase_attente}</td></tr></table>"
-        return f"<div {style_conteneur}>{tableau_vide}</div>"
+        return f"<div {style_conteneur}><table class='table-compacte {cl}'><tr><td style='text-align: center; padding: 10px; font-style: italic; color: #64748B;'>{phrase_attente}</td></tr></table></div>"
     
-    html_table = df.to_html(index=False, classes=f"table-compacte {cl}", escape=False, border=0)
-    return f"<div {style_conteneur}>{html_table}</div>"
+    return f"<div {style_conteneur}>{df.to_html(index=False, classes=f'table-compacte {cl}', escape=False, border=0)}</div>"
 
 query_params = st.query_params
 choix_course_url = query_params.get("course", "essais").lower()
 
-if choix_course_url == "c1asaf" and course1_disponible:
-    choix_course = "Course 1 ASAF"
-    module_actif = Course_1_ASAF
-elif choix_course_url == "c1racb" and course1_racb_disponible:
-    choix_course = "Course 1 RACB"
-    module_actif = Course_1_RACB
-elif choix_course_url == "c2asaf" and course2_disponible:
-    choix_course = "Course 2 ASAF"
-    module_actif = Course_2_ASAF
-elif choix_course_url == "c2racb" and course2_racb_disponible:
-    choix_course = "Course 2 RACB"
-    module_actif = Course_2_RACB
-elif choix_course_url == "c3asaf" and course3_disponible:
-    choix_course = "Course 3 ASAF"
-    module_actif = Course_3_ASAF
-elif choix_course_url == "c3racb" and course3_racb_disponible:
-    choix_course = "Course 3 RACB"
-    module_actif = Course_3_RACB
-else:
-    choix_course = "Essais"
-    module_actif = Essais
+if choix_course_url == "c1asaf" and course1_disponible: choix_course, module_actif = "Course 1 ASAF", Course_1_ASAF
+elif choix_course_url == "c1racb" and course1_racb_disponible: choix_course, module_actif = "Course 1 RACB", Course_1_RACB
+elif choix_course_url == "c2asaf" and course2_disponible: choix_course, module_actif = "Course 2 ASAF", Course_2_ASAF
+elif choix_course_url == "c2racb" and course2_racb_disponible: choix_course, module_actif = "Course 2 RACB", Course_2_RACB
+elif choix_course_url == "c3asaf" and course3_disponible: choix_course, module_actif = "Course 3 ASAF", Course_3_ASAF
+elif choix_course_url == "c3racb" and course3_racb_disponible: choix_course, module_actif = "Course 3 RACB", Course_3_RACB
+else: choix_course, module_actif = "Essais", Essais
 
 hauteurs_config = getattr(module_actif, "HAUTEURS_TABLEAUX_PC", {})
 h_historique = hauteurs_config.get("HISTORIQUE", "456px")
@@ -236,15 +213,14 @@ st.markdown(f"""
 .div-scroll-local-div4 {{ height: {h_asaf_4} !important; max-height: {h_asaf_4} !important; overflow-y: auto !important; -webkit-overflow-scrolling: touch !important; }}
 </style>
 """, unsafe_allow_html=True)
-# fin bloc 3
-
-# 🎯 SÉCURITÉ ABSOLUE : Suppression du ThreadPoolExecutor lourd qui faisait planter le site
+# ==============================================================================
+# 📊 TIMECHRONO - APPLICATION PRINCIPALE LIVE (Partie 4 de 4)
+# ==============================================================================
 try:
     res = module_actif.recuperer_donnees_course()
-    if res and len(res) == 10: 
-        d_liv, d_his, d_haut, d_milieu, d_bas, t_live, t_his, t_haut, t_milieu, t_bas = res
-except Exception as e:
-    t_live = "⚠️ Liaison Dropbox ralentie ou instable — Tentative de reconnexon en cours..."
+    if res and len(res) == 10: d_liv, d_his, d_haut, d_milieu, d_bas, t_live, t_his, t_haut, t_milieu, t_bas = res
+except Exception:
+    t_live = "⚠️ Liaison Dropbox ralentie ou instable..."
 
 st.markdown("<style>@media (min-width: 769px) { .table-hist th:nth-child(1), .table-hist td:nth-child(1) { width: 8% !important; } .table-hist th:nth-child(2), .table-hist td:nth-child(2) { width: 32% !important; } .table-hist th:nth-child(3), .table-hist td:nth-child(3) { width: 21% !important; } .table-hist th:nth-child(4), .table-hist td:nth-child(4) { width: 10% !important; } .table-hist th:nth-child(5), .table-hist td:nth-child(5) { width: 5% !important; } .table-hist th:nth-child(6), .table-hist td:nth-child(6) { width: 11% !important; } .table-hist th:nth-child(7), .table-hist td:nth-child(7) { width: 25% !important; } }</style>", unsafe_allow_html=True)
 
@@ -297,7 +273,6 @@ for secondes_restantes in range(30, -1, -1):
     .vrai-gyrophare { display: inline-block !important; animation: fia-pulse-live 1.3s infinite ease-in-out !important; margin-right: 5px !important; font-size: 0.95rem !important; vertical-align: middle !important; }
     </style>
     """, unsafe_allow_html=True)
-
     if "Derniers concurrents" in t_live or "DIRECT" in t_live.upper():
         conteneur_titre_live.markdown(f"<span class='titre-live'>{t_live} / <span class='refresh-bleu-clair-historique'>Refresh {secondes_restantes} Sec.</span></span>", unsafe_allow_html=True)
     else:
