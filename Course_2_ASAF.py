@@ -40,12 +40,12 @@ st.markdown("""
         vertical-align: middle !important; overflow: hidden !important; text-overflow: ellipsis !important; white-space: nowrap !important; 
     }
     .table-compacte td { font-weight: normal !important; border-bottom: 1px solid #E0E0E0 !important; background-color: #FFFFFF !important; }
+    
+    /* Forçage absolu de la taille et de l'interligne pour tous les éléments imbriqués (b, span, etc.) dans les cellules */
+    .table-compacte td, .table-compacte td b, .table-compacte td span { font-size: 0.85rem !important; line-height: 1.1 !important; }
+    
     .table-compacte th { font-weight: bold !important; background-color: #F5F5F5 !important; border-bottom: 2px solid #CCCCCC !important; text-align: left !important; }
     .table-compacte td.meilleur-temps { background-color: #d9fcec !important; color: #000000 !important; font-weight: bold !important; }
-    
-    /* Harmonisation absolue de la taille des textes dans les chronos (gras et icônes inclus) */
-    .table-compacte td b, .table-compacte td span { font-size: 0.85rem !important; line-height: 1.1 !important; }
-    
     .table-class-robuste tr:nth-child(odd) td { background-color: #E0F2FE !important; }
     .table-class-groupes tr.ligne-separation-classe td { border-bottom: 2px solid #1E3A8A !important; }
     
