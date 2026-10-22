@@ -212,14 +212,30 @@ def recuperer_donnees_course():
                     # Grâce à l'ordre décroissant ci-dessus, le concurrent qui vient de sortir du direct (le 6e) sera le premier de ce tableau.
                     df_hb = df_partants.iloc[5:].copy()
                     
+                    # 2. Construction de l'HISTORIQUE DES TEMPS
+                    df_partants = base_c3.sort_values(by="Heure_Depart_3", ascending=False).copy()
+                    
+                    # L'historique contient les concurrents éliminés du direct (à partir du 6ème)
+                    df_hb = df_partants.iloc[5:].copy()
+                    
                     html_hist = "<div class='zone-defilement-tactile'><table class='table-compacte table-hist'><thead><tr><th>N°</th><th>Nom_Prenom</th><th>Voiture</th><th>Div</th><th>Cl</th><th>Course 1</th><th>Chrono</th></tr></thead><tbody>"
                     for idx, row in df_hb.iterrows():
                         t1, t2 = row["Calc_Sec_1"], row["Calc_Sec_2"]
                         txt_c1 = format_final_chrono(t1)
-                        # Modification : Retrait du point vert (span) devant le chrono 2
-                        txt_c2 = format_final_chrono(t2) if t2 else "No Time"
+                        
+                        # Logique de comparaison et choix du symbole visuel
+                        if pd.isna(t1) or t1 <= 0 or pd.isna(t2) or t2 <= 0:
+                            symbole = "&nbsp;<span style='color: #9CA3AF; font-size: 0.75rem;'>◆</span>"  # Losange gris (Manque C1 ou C2)
+                        elif t2 < t1:
+                            symbole = "&nbsp;<span style='color: #22C55E; font-size: 0.75rem;'>▲</span>"  # Triangle vert (Meilleur temps en C2)
+                        else:
+                            symbole = "&nbsp;<span style='color: #EF4444; font-size: 0.75rem;'>▼</span>"  # Triangle rouge (Temps moins bon ou égal)
+                        
+                        txt_c2 = f"{format_final_chrono(t2)}{symbole}" if t2 else f"No Time{symbole}"
+                        
                         html_hist += f"<tr><td>{row['N°']}</td><td>{row['Nom_Prenom']}</td><td>{row['Voiture']}</td><td>{row['Division']}</td><td>{row['Classe']}</td><td>{txt_c1}</td><td>{txt_c2}</td></tr>"
                     html_hist += "</tbody></table></div>"
+
                     
                     # 3. Calcul des classements globaux (incluant TOUS les concurrents de 'base')
                     def tri_val(r1, r2):
