@@ -295,10 +295,10 @@ div.stElementContainer {{
     }}
 }}
 
-/* 🎯 CORRECTION BORDURE : La ligne bleue se dessine sur la bordure de la case du dernier pilote, sans espace vide */
-.table-class-robuste tr.ligne-bleue-separation td,
-tr.ligne-separation-classe td, 
-.table-compacte tr.ligne-separation-classe td {{ 
+/* 🎯 LE MIRACLE DU CSS : Dessine la ligne de séparation automatiquement sous le dernier pilote de chaque classe */
+.table-class-groupes tbody tr:has(+ tr td:nth-child(5):not(:empty)) td,
+.table-class-groupes tbody tr:nth-of-type(3n) td,
+.table-class-robuste tr.ligne-bleue-separation td {{ 
     border-bottom: 3px solid #1E3A8A !important; 
 }}
 
