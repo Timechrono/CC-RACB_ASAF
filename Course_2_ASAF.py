@@ -230,7 +230,7 @@ def recuperer_donnees_course():
                         html_hist += f"<tr><td>{row['N°']}</td><td>{row['Nom_Prenom']}</td><td>{row['Voiture']}</td><td>{row['Division']}</td><td>{row['Classe']}</td><td>{txt_c1}</td><td>{txt_c2}</td></tr>"
                     html_hist += "</tbody></table></div>"
                     
-                    # SÉLECTION DU SCRIPT DE COURSE DE DROITE SANS LIMITE + SUPPRESSION TOTALE DE LA LIGNE BLANCHE
+                    # FIN DU SCRIPT DE COURSE DE DROITE SANS LIGNE BLANCHE INTERMÉDIAIRE
                     def tri_val(r1, r2):
                         if pd.isna(r1) or pd.isna(r2) or r1 <= 0 or r2 <= 0: return float('inf')
                         return float(round(r1, 2) + round(r2, 2))
@@ -266,7 +266,7 @@ def recuperer_donnees_course():
                         else:
                             df_asaf4 = "<div class='zone-defilement-tactile'><table class='table-compacte'><tr><td>Aucune donnée</td></tr></table></div>"
                         
-                        # 3. CLASSEMENT par Division / Classe (Top 3) -> EFFACEMENT DE LA LIGNE BLANCHE PAR DISQUE INVISIBLE
+                        # 3. CLASSEMENT par Division / Classe (Top 3) -> SANS LIGNE BLANCHE
                         scr["Classe_Tri"] = pd.to_numeric(scr["Classe"], errors='coerce').fillna(999)
                         df_grouped = scr.sort_values(by=["Division", "Classe_Tri", "Cumul_Sec"]).groupby(["Division", "Classe_Tri"]).head(3).copy()
                         if len(df_grouped) > 0:
@@ -279,17 +279,17 @@ def recuperer_donnees_course():
                                 g["Chrono"] = g["Cumul_Sec"].apply(lambda val: f"<span style='font-weight: bold !important; font-size: 0.85rem !important;'>{format_final_chrono(val, 'No Time')}</span>")
                                 
                                 sh = g[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]].rename(columns={"Division": "Div", "Classe": "Cl"}).to_html(index=False, header=(cg==1), classes='table-compacte table-class-groupes', escape=False, border=0)
-                                
                                 sh_clean = sh.replace("</tbody>\n</table>", "").replace("</tbody></table>", "")
                                 
-                                if cg == 1: 
-                                    hb.append(sh_clean)
-                                else: 
-                                    hb.append(sh_clean.split("<tbody>")[-1])
+                                # Si ce n'est pas la première classe, on isole les lignes du corps du tableau
+                                if cg > 1:
+                                    sh_clean = sh_clean.split("<tbody>")[-1]
                                 
-                                # 🎯 RECORRIGÉ : Utilisation d'un espace insécable (&nbsp;) combiné à une hauteur de ligne forcée à 0px et une taille de police à 0px pour détruire la ligne blanche
-                                if cg < tg: 
-                                    hb.append("<tr class='ligne-separation-classe' style='height: 0px !important; line-height: 0 !important; font-size: 0px !important;'><td colspan='6' style='padding: 0 !important; height: 0px !important; line-height: 0 !important; font-size: 0px !important;'>&nbsp;</td></tr>")
+                                # 🎯 TRUC VISUEL : Si d'autres classes suivent, on ajoute le style de séparation DIRECTEMENT sur le dernier <tr> du groupe de pilotes
+                                if cg < tg:
+                                    sh_clean = sh_clean.rstrip().replace("</tr>\n", "</tr>\n").replace("<tr>", "<tr class='ligne-separation-classe'>", sh_clean.count("<tr>") - 1)
+                                
+                                hb.append(sh_clean)
                             
                             hb.append("</tbody>\n</table>")
                             df_divisions = "".join(hb)
