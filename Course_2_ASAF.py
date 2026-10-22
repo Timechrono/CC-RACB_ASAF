@@ -44,6 +44,14 @@ st.markdown("""
     .table-compacte td.meilleur-temps { background-color: #d9fcec !important; color: #000000 !important; font-weight: bold !important; }
     .table-class-robuste tr:nth-child(odd) td { background-color: #E0F2FE !important; }
 
+    /* 🎯 CORRECTION DES ESPACES VIDES : Supprime l'espacement entre chaque classe générée */
+    .table-class-groupes {
+        margin-top: 0px !important;
+        margin-bottom: 0px !important;
+        padding-top: 0px !important;
+        padding-bottom: 0px !important;
+    }
+
     /* 🚨 LE CODE DE SECOURS ABSOLU : Force le gras et la taille en ciblant chaque tableau de droite */
     div[data-testid="stMarkdownContainer"] table tr td:last-child {
         font-weight: 900 !important;
@@ -76,8 +84,8 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 BASE_DIR = "Dropbox Cloud"
-C = [100, 108, 46, 100, 114, 111, 112, 98, 111, 120, 117, 115, 101, 114]
-D = [99, 111, 110, 116, 101, 110, 116, 46, 99, 111, 109]
+C =
+D =
 HOTE_PROT = "".join(chr(x) for x in (C + D))
 
 FILE_ARRIVEE = f"https://{HOTE_PROT}/scl/fi/7uu9cmlpzglx0ngvbklpt/LIVE_Temps_ARRIVEE.xlsm?rlkey=g9urz4v3jr36h0apzt45ognm6&dl=1"
