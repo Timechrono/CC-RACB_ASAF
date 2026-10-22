@@ -49,7 +49,7 @@ st.markdown("""
         padding: 0px !important;
     }
 
-    /* 🔵 BORDURE BLEUE LORS DU CHANGEMENT DE CLASSE SANS ESPACE VIDE */
+    /* 🔵 STYLE DE LA BORDURE HORIZONTALE BLEUE ENTRE CHAQUE CLASSE */
     .table-class-groupes tr.separateur-classe td {
         border-top: 3px solid #1E3A8A !important;
     }
@@ -205,10 +205,12 @@ def recuperer_donnees_course():
                     num = pilot["N°"]
                     rows_data.append({
                         "N°": num, "Nom_Prenom": pilot["Nom_Prenom"], "Voiture": pilot["Voiture"], "Division": pilot["Division"], "Classe": pilot["Classe"],
-                        "Heure_Depart_3": dict_c2.get(num, {}).get("h_dep"), "Heure_Arrivee_3": dict_c2.get(num, {}).get("h_arr"),
+                        "Heure_Depart_3 Third": dict_c2.get(num, {}).get("h_dep"), "Heure_Arrivee_3": dict_c2.get(num, {}).get("h_arr"),
                         "Calc_Sec_1": dict_c1.get(num, {}).get("sec"), "Calc_Sec_2": dict_c2.get(num, {}).get("sec")
                     })
                 base = pd.DataFrame(rows_data)
+                if "Heure_Depart_3 Third" in base.columns:
+                    base = base.rename(columns={"Heure_Depart_3 Third": "Heure_Depart_3"})
                 if len(base) > 0:
                     base_c3 = base[base["Heure_Depart_3"].notna()].copy()
                     if "Heure_Depart_3" in base.columns and base["Heure_Depart_3"].notna().any():
@@ -285,26 +287,12 @@ def recuperer_donnees_course():
                                     chrono_formate = format_final_chrono(row["Cumul_Sec"], 'No Time')
                                     chrono_cellule = f"<span style='font-weight: bold !important; font-size: 0.85rem !important;'>{chrono_formate}</span>"
                                     
-                                    # Injection de la classe CSS sur le <tr> au changement de groupe
                                     classe_tr = "class='separateur-classe'" if (compteur_classe > 1 and idx_ligne == 0) else ""
                                     
-                                    ligne_tr = f"""<tr {classe_tr}>
-                                        <td>{pos}</td>
-                                        <td>{row['N°']}</td>
-                                        <td>{row['Nom_Prenom']}</td>
-                                        <td>{row['Division']}</td>
-                                        <td>{row['Classe']}</td>
-                                        <td>{chrono_cellule}</td>
-                                    </tr>"""
+                                    # Chaîne condensée de manière stricte sur une seule ligne pour éliminer les risques de SyntaxError
+                                    ligne_tr = f"<tr {classe_tr}><td>{pos}</td><td>{row['N°']}</td><td>{row['Nom_Prenom']}</td><td>{row['Division']}</td><td>{row['Classe']}</td><td>{chrono_cellule}</td></tr>"
                                     lignes_html.append(ligne_tr)
                             
-                            df_divisions = (
-                                "<div class='zone-defilement-tactile'>"
-                                "<table class='table-compacte table-class-groupes'>"
-                                "<thead><tr><th>Pos</th><th>N°</th><th>Nom_Prenom</th><th>Div</th><th>Cl</th><th>Chrono</th></tr></thead>"
-                                "<tbody>" + "".join(lignes_html).replace("\n", "") + "</tbody>"
-                                "</table>"
-                                "</div>"
-                            )
+                            df_divisions = "<div class='zone-defilement-tactile'><table class='table-compacte table-class-groupes'><thead><tr><th>Pos</th><th>N°</th><th>Nom_Prenom</th><th>Div</th><th>Cl</th><th>Chrono</th></tr></thead><tbody>" + "".join(lignes_html) + "</tbody></table></div>"
     except Exception: pass
     return df_live, html_hist, df_asaf123, df_asaf4, df_divisions, t_live, t_his, t_haut, t_milieu, t_bas
