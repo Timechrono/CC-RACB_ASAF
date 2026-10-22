@@ -269,7 +269,47 @@ def recuperer_donnees_course():
                     
                     if len(scr) > 0:
                         # 1. CLASSEMENT GENERAL Division 123 (Top 25)
+                        df_asaf123 = scr[scr["Divisi                    if len(scr) > 0:
+                        # 1. CLASSEMENT GENERAL Division 123 (Top 25)
                         df_asaf123 = scr[scr["Division"].isin(["1", "2", "3"])].head(25).copy()
+                        if not df_asaf123.empty:
+                            df_asaf123["Pos"] = [str(i+1) if v < float('inf') else "-" for i, v in enumerate(df_asaf123["Cumul_Sec"])]
+                            # Force l'injection du style directement dans la cellule HTML pour contourner Streamlit
+                            df_asaf123["Chrono"] = df_asaf123["Cumul_Sec"].apply(lambda val: f"<span style='font-weight: bold !important; font-size: 0.85rem !important;'>{format_final_chrono(val, 'No Time')}</span>")
+                            df_asaf123 = df_asaf123[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]]
+                        
+                        # 2. CLASSEMENT GENERAL Division 4 (Top 10)
+                        df_asaf4 = scr[scr["Division"] == "4"].head(10).copy()
+                        if not df_asaf4.empty:
+                            df_asaf4["Pos"] = [str(i+1) if v < float('inf') else "-" for i, v in enumerate(df_asaf4["Cumul_Sec"])]
+                            # Force l'injection du style directement dans la cellule HTML pour contourner Streamlit
+                            df_asaf4["Chrono"] = df_asaf4["Cumul_Sec"].apply(lambda val: f"<span style='font-weight: bold !important; font-size: 0.85rem !important;'>{format_final_chrono(val, 'No Time')}</span>")
+                            df_asaf4 = df_asaf4[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]]
+                        
+                        # 3. CLASSEMENT par Division / Classe (Top 3) - NETTOYÉ ET SANS DOUBLONS
+                        scr["Classe_Tri"] = pd.to_numeric(scr["Classe"], errors='coerce').fillna(999)
+                        df_grouped = scr.sort_values(by=["Division", "Classe_Tri", "Cumul_Sec"]).groupby(["Division", "Classe_Tri"]).head(3).copy()
+                        if len(df_grouped) > 0:
+                            hb = []
+                            go = df_grouped.sort_values(by=["Division", "Classe_Tri", "Cumul_Sec"]).groupby(["Division", "Classe_Tri"])
+                            tg, cg = len(go), 0
+                            for (div, cl), g in go:
+                                cg += 1; g = g.copy()
+                                g["Pos"] = [str(i+1) if v < float('inf') else "-" for i, v in enumerate(g["Cumul_Sec"])]
+                                
+                                # Force l'injection du style directement dans la cellule HTML pour contourner Streamlit
+                                g["Chrono"] = g["Cumul_Sec"].apply(lambda val: f"<span style='font-weight: bold !important; font-size: 0.85rem !important;'>{format_final_chrono(val, 'No Time')}</span>")
+                                
+                                sh = g[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]].rename(columns={"Division": "Div", "Classe": "Cl"}).to_html(index=False, header=(cg==1), classes='table-compacte table-class-groupes', escape=False, border=0)
+                                if cg == 1: hb.append(sh.replace("</tbody>\n</table>", ""))
+                                else: hb.append(sh.split("<tbody>")[-1].replace("</tbody>\n</table>", ""))
+                                if cg < tg: hb.append("<tr class='ligne-separation-classe'><td colspan='6' style='padding:0 !important;'></td></tr>")
+                            hb.append("</tbody>\n</table>")
+                            df_divisions = "".join(hb)
+                            
+    except Exception: pass
+    return df_live, html_hist, df_asaf123, df_asaf4, df_divisions, t_live, t_his, t_haut, t_milieu, t_bas
+on"].isin(["1", "2", "3"])].head(25).copy()
                         if not df_asaf123.empty:
                             df_asaf123["Pos"] = [str(i+1) if v < float('inf') else "-" for i, v in enumerate(df_asaf123["Cumul_Sec"])]
                             # Retour au formatage de texte brut, le CSS s'occupe du gras
