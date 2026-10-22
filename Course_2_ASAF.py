@@ -263,8 +263,28 @@ def recuperer_donnees_course():
                         df_asaf4 = scr[scr["Division"] == "4"].head(10).copy()
                         if not df_asaf4.empty:
                             df_asaf4["Pos"] = [str(i+1) if v < float('inf') else "-" for i, v in enumerate(df_asaf4["Cumul_Sec"])]
-                            df_asaf4["Chrono"] = df_asaf4["Cumul_Sec"].apply(lambda val: format_final_chrono(val, "No Time"))
+                            # Modification : Application du style gras et taille 0.85rem sur le Chrono de Div 4
+                            df_asaf4["Chrono"] = df_asaf4["Cumul_Sec"].apply(lambda val: f"<span style='font-weight: bold; font-size: 0.85rem;'>{format_final_chrono(val, 'No Time')}</span>")
                             df_asaf4 = df_asaf4[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]]
+                        
+                        scr["Classe_Tri"] = pd.to_numeric(scr["Classe"], errors='coerce').fillna(999)
+                        df_grouped = scr.sort_values(by=["Division", "Classe_Tri", "Cumul_Sec"]).groupby(["Division", "Classe_Tri"]).head(3).copy()
+                        if len(df_grouped) > 0:
+                            hb = []
+                            go = df_grouped.sort_values(by=["Division", "Classe_Tri", "Cumul_Sec"]).groupby(["Division", "Classe_Tri"])
+                            tg, cg = len(go), 0
+                            for (div, cl), g in go:
+                                cg += 1; g = g.copy()
+                                g["Pos"] = [str(i+1) if v < float('inf') else "-" for i, v in enumerate(g["Cumul_Sec"])]
+                                # Modification : Application du style gras et taille 0.85rem sur le Chrono du Top 3 par Classe
+                                g["Chrono"] = g["Cumul_Sec"].apply(lambda val: f"<span style='font-weight: bold; font-size: 0.85rem;'>{format_final_chrono(val, 'No Time')}</span>")
+                                sh = g[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]].rename(columns={"Division": "Div", "Classe": "Cl"}).to_html(index=False, header=(cg==1), classes='table-compacte table-class-groupes', escape=False, border=0)
+                                if cg == 1: hb.append(sh.replace("</tbody>\n</table>", ""))
+                                else: hb.append(sh.split("<tbody>")[-1].replace("</tbody>\n</table>", ""))
+                                if cg < tg: hb.append("<tr class='ligne-separation-classe'><td colspan='6' style='padding:0 !important;'></td></tr>")
+                            hb.append("</tbody>\n</table>")
+                            df_divisions = "".join(hb)
+
                         
                         scr["Classe_Tri"] = pd.to_numeric(scr["Classe"], errors='coerce').fillna(999)
                         df_grouped = scr.sort_values(by=["Division", "Classe_Tri", "Cumul_Sec"]).groupby(["Division", "Classe_Tri"]).head(3).copy()
