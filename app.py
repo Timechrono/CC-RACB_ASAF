@@ -9,7 +9,6 @@ import requests
 import io
 import Essais
 
-# Initialisation préventive globale de toutes les variables pour éviter le NameError
 d_liv = pd.DataFrame()
 d_his = pd.DataFrame()
 d_haut = pd.DataFrame()
@@ -22,7 +21,7 @@ t_haut = ""
 t_milieu = ""
 t_bas = ""
 
-LIEN_DROPBOX_LOGO = "https://www.dropbox.com/scl/fi/hi24fjo0vbal4oiiwt9jl/logo-TimeC.png?rlkey=xlw0oqk9gdnq6v5dgahi0klg0&st=y86yrn6y&dl=1"
+LIEN_DROPBOX_LOGO = "https://dropbox.com"
 
 module_actif = Essais
 
@@ -77,6 +76,8 @@ div[data-stale="false"], [data-testid="stAppViewContainer"], [data-testid="stApp
 }}
 [data-testid="stSkeleton"] {{ display: none !important; height: 0px !important; }}
 """, unsafe_allow_html=True)
+# fin bloc 1
+
 st.markdown(f"""
 <style>
 @media (min-width: 769px) {{
@@ -127,7 +128,7 @@ div.stElementContainer {{ margin-top: 0px !important; margin-bottom: 0px !import
 .table-live tr td {{ background-color: #FEF9C3 !important; }}
 .table-live tr:nth-child(even) td {{ background-color: #FEFCE8 !important; }}
 
-/* 🎯 RESTAURATION DU GRAS ET HARMONISATION DE TAILLE (0.85rem) POUR TOUT LE COTÉ DROIT */
+/* 🎯 APPLIQUE LE GRAS ET LA TAILLE UNIFORME SUR TOUT LE COTÉ DROIT */
 .table-live td:last-child, 
 .table-class-robuste td:last-child, 
 .table-class-milieu td:last-child,
@@ -136,6 +137,11 @@ div.stElementContainer {{ margin-top: 0px !important; margin-bottom: 0px !import
     font-weight: bold !important; 
     font-size: 0.85rem !important; 
     color: #0F172A !important; 
+}}
+
+/* 🎯 APPLIQUE LA LIGNE BLEUE SANS DÉCALAGE SUR LA LIGNE MARQUÉE */
+.table-class-groupes tr.separateur-classe td {{ 
+    border-bottom: 3px solid #1E3A8A !important; 
 }}
 
 .table-hist tr:nth-child(odd) td {{ background-color: #E0F2FE !important; }}
@@ -148,12 +154,6 @@ div.stElementContainer {{ margin-top: 0px !important; margin-bottom: 0px !import
     .titre-live, .titre-hist, .titre-classement {{ height: auto !important; max-height: none !important; line-height: 1.3 !important; padding: 4px 8px !important; }}
 }}
 
-/* 🎯 LOGIQUE SÉCURISÉE : Applique la bordure bleue épaisse uniquement sur les lignes marquées */
-.table-class-groupes tr.separateur-classe td {{ 
-    border-bottom: 3px solid #1E3A8A !important; 
-}}
-
-
 .signature-fin-page {{
     position: fixed !important; bottom: 0px !important; left: 0px !important; width: 100vw !important; height: 32px !important; background-color: #FFFFFF !important; display: flex !important; justify-content: center !important; align-items: center !important; gap: 12px !important; text-align: center !important; color: #1E3A8A !important; font-size: 0.92rem !important; font-weight: bold !important; border-top: 1px dashed #1E3A8A !important; z-index: 999999 !important; padding: 0px !important; margin: 0px !important;
 }}
@@ -165,6 +165,8 @@ div.stElementContainer {{ margin-top: 0px !important; margin-bottom: 0px !import
 }}
 </style>
 """, unsafe_allow_html=True)
+# fin bloc 2
+
 def gen_html(df, cl):
     if cl == "table-hist":
         phrase_attente = "En attente d'arrivée..."
@@ -177,22 +179,6 @@ def gen_html(df, cl):
         phrase_attente = "En attente du départ..."
 
     style_conteneur = "class='div-scroll-local-historique'" if cl == "table-hist" else "class='table-responsive-container'"
-
-    # 🎯 SÉCURITÉ ENTIÈREMENT REVUE : Si la variable est déjà une chaîne HTML (générée par Course_2_ASAF)
-    if isinstance(df, str):
-        if "<DIV" in df.upper() or "<TABLE" in df.upper():
-            return df  # On retourne directement le tableau HTML pré-packagé sans le modifier
-                
-        tableau_vide = f"<table class='table-compacte {cl}'><tr><td style='text-align: center; padding: 10px; font-style: italic; color: #64748B;'>{phrase_attente}</td></tr></table>"
-        return f"<div {style_conteneur}>{tableau_vide}</div>"
-
-    if df is None or (isinstance(df, pd.DataFrame) and df.empty): 
-        tableau_vide = f"<table class='table-compacte {cl}'><tr><td style='text-align: center; padding: 10px; font-style: italic; color: #64748B;'>{phrase_attente}</td></tr></table>"
-        return f"<div {style_conteneur}>{tableau_vide}</div>"
-    
-    html_table = df.to_html(index=False, classes=f"table-compacte {cl}", escape=False, border=0)
-    return f"<div {style_conteneur}>{html_table}</div>"
-
 
     if isinstance(df, str):
         if "<TABLE" in df.upper() and "</TABLE>" in df.upper():
@@ -250,13 +236,13 @@ st.markdown(f"""
 .div-scroll-local-div4 {{ height: {h_asaf_4} !important; max-height: {h_asaf_4} !important; overflow-y: auto !important; -webkit-overflow-scrolling: touch !important; }}
 </style>
 """, unsafe_allow_html=True)
+# fin bloc 3
+
+# 🎯 SÉCURITÉ ABSOLUE : Suppression du ThreadPoolExecutor lourd qui faisait planter le site
 try:
-    from concurrent.futures import ThreadPoolExecutor
-    def recuperer_avec_timeout(): return module_actif.recuperer_donnees_course()
-    with ThreadPoolExecutor(max_workers=1) as executor:
-        future = executor.submit(recuperer_avec_timeout)
-        res = future.result(timeout=3.5)
-        if res and len(res) == 10: d_liv, d_his, d_haut, d_milieu, d_bas, t_live, t_his, t_haut, t_milieu, t_bas = res
+    res = module_actif.recuperer_donnees_course()
+    if res and len(res) == 10: 
+        d_liv, d_his, d_haut, d_milieu, d_bas, t_live, t_his, t_haut, t_milieu, t_bas = res
 except Exception as e:
     t_live = "⚠️ Liaison Dropbox ralentie ou instable — Tentative de reconnexon en cours..."
 
