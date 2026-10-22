@@ -35,7 +35,7 @@ st.markdown("""
     .table-compacte { width: 100% !important; margin-bottom: 0px !important; border-collapse: collapse !important; table-layout: fixed !important; }
     .table-compacte tr { height: 18px !important; }
     
-    /* Égalisation totale et stricte de la grandeur de la fonte pour absolument tout le texte de données */
+    /* Égalisation et verrouillage de la taille de fonte pour TOUTES les cellules et contenus (gras b inclus) de TOUS les tableaux */
     .table-compacte th, .table-compacte td, .table-compacte td b, .table-compacte td span { 
         height: 18px !important; padding: 1px 5px !important; line-height: 1.1 !important; font-size: 0.85rem !important; color: #000000 !important; 
         vertical-align: middle !important; overflow: hidden !important; text-overflow: ellipsis !important; white-space: nowrap !important;
@@ -45,9 +45,8 @@ st.markdown("""
     .table-compacte td.meilleur-temps { background-color: #d9fcec !important; color: #000000 !important; font-weight: bold !important; }
     .table-class-robuste tr:nth-child(odd) td { background-color: #E0F2FE !important; }
     
-    /* Suppression radicale de l'espace blanc de séparation de classe */
-    .table-class-groupes tr.ligne-separation-classe { display: none !important; }
-    .table-class-groupes tr.ligne-separation-classe + tr td { border-top: 2px solid #1E3A8A !important; }
+    /* Style de la ligne de séparation de classe (sans espace blanc au-dessus) */
+    .table-class-groupes tr.bordure-separation-classe td { border-top: 2px solid #1E3A8A !important; }
     
     .table-live th:nth-child(1), .table-live td:nth-child(1) { width: 8% !important; }
     .table-live th:nth-child(2), .table-live td:nth-child(2) { width: 26% !important; }
@@ -201,9 +200,8 @@ def recuperer_donnees_course():
                         base_c3["Arrivée"] = base_c3["Heure_Arrivee_3"].apply(formater_heure_ecran)
                         df_live = base_c3.sort_values(by="Heure_Depart_3", ascending=False).head(5)[["N°", "Nom_Prenom", "Voiture", "Départ", "Arrivée", "Chrono réalisé"]]
 
-                    # Empilement dynamique basé strictement sur l'ordre d'arrivée décroissant (le plus récent en premier)
-                    df_hb = base[base["Calc_Sec_1"].notna() | base["Calc_Sec_2"].notna()].copy()
-                    df_hb = df_hb.sort_values(by="Heure_Arrivee_3", ascending=False, na_position="last")
+                    # Inversion brute de la feuille d'arrivée Excel (le dernier concurrent lu prend directement la 1ère place sans aucun tri)
+                    df_hb = base[base["Calc_Sec_1"].notna() | base["Calc_Sec_2"].notna()].copy().iloc[::-1]
                     
                     html_hist = "<div class='zone-defilement-tactile'><table class='table-compacte table-hist'><thead><tr><th>N°</th><th>Nom_Prenom</th><th>Voiture</th><th>Div</th><th>Cl</th><th>Course 1</th><th>Chrono</th></tr></thead><tbody>"
                     for idx, row in df_hb.iterrows():
@@ -261,12 +259,21 @@ def recuperer_donnees_course():
                             tg, cg = len(go), 0
                             for (div, cl), g in go:
                                 cg += 1; g = g.copy()
+                                is_first_row_of_class = True
                                 g["Pos"] = [str(i+1) if v < float('inf') else "-" for i, v in enumerate(g["Cumul_Sec"])]
                                 g["Chrono"] = g["Cumul_Sec"].apply(lambda val: f"<b>{format_final_chrono(val, 'No Time')}</b>")
+                                
+                                # Injection d'une classe HTML d'identification de bordure sur les cellules pour le CSS (et suppression de la ligne vide tr)
                                 sh = g[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]].rename(columns={"Division": "Div", "Classe": "Cl"}).to_html(index=False, header=(cg==1), classes='table-compacte table-class-groupes', escape=False, border=0)
-                                if cg == 1: hb.append(sh.replace("</tbody>\n</table>", ""))
-                                else: hb.append(sh.split("<tbody>")[-1].replace("</tbody>\n</table>", ""))
-                                if cg < tg: hb.append("<tr class='ligne-separation-classe'><td colspan='6' style='padding:0 !important;'></td></tr>")
+                                
+                                if cg == 1: 
+                                    html_brut = sh.replace("</tbody>\n</table>", "")
+                                else: 
+                                    html_brut = sh.split("<tbody>")[-1].replace("</tbody>\n</table>", "")
+                                    # Ajout d'un marqueur CSS de classe sur la première ligne pour tirer le trait bleu sans espace blanc
+                                    html_brut = html_brut.replace("<tr>", "<tr class='bordure-separation-classe'>", 1)
+                                
+                                hb.append(html_brut)
                             hb.append("</tbody>\n</table>")
                             df_divisions = "".join(hb)
     except Exception: pass
