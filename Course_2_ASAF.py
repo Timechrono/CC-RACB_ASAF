@@ -1,6 +1,3 @@
-# ==============================================================================
-# 🏎️ TIMECHRONO - SCRIPT DE COURSE MANCHE 2 ASAF (Partie 1 de 4)
-# ==============================================================================
 import streamlit as st
 import pandas as pd
 import numpy as np
@@ -10,12 +7,18 @@ import time
 import io
 import requests
 
+# ==============================================================================
+# ⚙️ CONFIGURATION DES HAUTEURS VISUELLES SUR PC (en pixels)
+# ==============================================================================
 HAUTEURS_TABLEAUX_PC = {
-    "HISTORIQUE": "487px",       
-    "RACB": "213px",             
-    "ASAF_123": "147px",         
-    "ASAF_4": "215px"            
+    "HISTORIQUE": "487px",       # ⬅️ Colonne de gauche (Historique des temps)
+    "RACB": "213px",             # ➡️ Haut de la colonne droite (Classement Général RACB)
+    "ASAF_123": "147px",         # ➡️ Milieu de la colonne droite (Classement par Groupe / Classe)
+    "ASAF_4": "215px"              # ➡️ Bas de la colonne droite (0px car inutilisé sur cette feuille)
 }
+
+
+st.cache_data.clear()
 
 st.markdown("""
     <style>
@@ -41,6 +44,20 @@ st.markdown("""
     .table-compacte td.meilleur-temps { background-color: #d9fcec !important; color: #000000 !important; font-weight: bold !important; }
     .table-class-robuste tr:nth-child(odd) td { background-color: #E0F2FE !important; }
     .table-class-groupes tr.ligne-separation-classe td { border-bottom: 2px solid #1E3A8A !important; }
+
+    /* 🚨 LE CODE DE SECOURS ABSOLU : Force le gras et la taille en ciblant chaque tableau de droite */
+    div[data-testid="stMarkdownContainer"] table tr td:last-child {
+        font-weight: 900 !important;
+        font-size: 0.85rem !important;
+    }
+
+
+    /* 🎯 SOLUTION RADICALE : Force TOUTES les dernières cellules (colonne Chrono) des tableaux de droite */
+    .table-compacte td:last-child, 
+    .table-class-groupes td:last-child {
+        font-weight: bold !important;
+        font-size: 0.85rem !important;
+    }
     
     .table-live th:nth-child(1), .table-live td:nth-child(1) { width: 8% !important; }
     .table-live th:nth-child(2), .table-live td:nth-child(2) { width: 26% !important; }
@@ -59,9 +76,6 @@ st.markdown("""
     .zone-defilement-tactile { width: 100% !important; overflow-x: auto !important; display: block !important; }
     </style>
 """, unsafe_allow_html=True)
-# ==============================================================================
-# 🏎️ TIMECHRONO - SCRIPT DE COURSE MANCHE 2 ASAF (Partie 2 de 4)
-# ==============================================================================
 BASE_DIR = "Dropbox Cloud"
 C = [100, 108, 46, 100, 114, 111, 112, 98, 111, 120, 117, 115, 101, 114]
 D = [99, 111, 110, 116, 101, 110, 116, 46, 99, 111, 109]
@@ -71,11 +85,11 @@ FILE_ARRIVEE = f"https://{HOTE_PROT}/scl/fi/7uu9cmlpzglx0ngvbklpt/LIVE_Temps_ARR
 FILE_DEPART  = f"https://{HOTE_PROT}/scl/fi/gbkaq01qzjujc8nq3zj28/LIVE_Temps_DEPART.xlsm?rlkey=4x4rvvlfyzz8v59gqbxn80a4d&dl=1"
 FILE_ENGAGES = f"https://{HOTE_PROT}/scl/fi/sqrqinksco1am700s27h4/LIVE_Liste_ENGAGES.xlsm?rlkey=8p0n8jyeuiivaa375bh3p608n&dl=1"
 
-@st.cache_data(ttl=15)
+@st.cache_data(ttl=30)
 def telecharger_excel(url):
     try:
         entetes = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'}
-        reponse = requests.get(url, headers=entetes, timeout=10)
+        reponse = requests.get(url, headers=entetes, timeout=12)
         return io.BytesIO(reponse.content)
     except Exception: return None
 
@@ -114,9 +128,10 @@ def formater_heure_ecran(val):
 def calculer_statut_chrono_live(valeur_sec):
     if pd.isna(valeur_sec) or valeur_sec <= 0: return "No Time"
     return f"{format_final_chrono(valeur_sec)} &nbsp;<span style='color: #22C55E;'>✓</span>"
-# ==============================================================================
-# 🏎️ TIMECHRONO - SCRIPT DE COURSE MANCHE 2 ASAF (Partie 3 de 4)
-# ==============================================================================
+
+def generer_tableau_html(df, cls_spec):
+    if df.empty: return "<div class='zone-defilement-tactile'><table class='table-compacte'><tr><td>Aucune donnée</td></tr></table></div>"
+    return f"<div class='zone-defilement-tactile'>{df.to_html(index=False, classes=f'table-compacte {cls_spec}', escape=False, border=0)}</div>"
 def recuperer_donnees_course():
     df_live = pd.DataFrame(columns=["N°", "Nom_Prenom", "Voiture", "Départ", "Arrivée", "Chrono réalisé"])
     df_asaf123 = pd.DataFrame(columns=["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"])
@@ -125,10 +140,10 @@ def recuperer_donnees_course():
     df_divisions = html_hist
 
     t_live = "🏎️ EN DIRECT / Derniers Concurrents partis"
-    t_his = "🕒 HISTORIQUE DES TEMPS / ASAF<span>↕️</span>"
-    t_haut = "🏆 CLASSEMENT GENERAL OFFICIEUX Division 123<span>↕️</span>"
-    t_milieu = "🏆 CLASSEMENT GENERAL OFFICIEUX Division 4<span>↕️</span>"
-    t_bas = "📊 CLASSEMENT OFFICIEUX par Division / Classe (Top 3)<span>↕️</span>"
+    t_his = "🕒 HISTORIQUE DES TEMPS / 2ème COURSE / Concurrents ASAF<span>↕️</span>"
+    t_haut = "🏆 CLASSEMENT EVOLUTIF OFFICIEUX Division 123<span>↕️</span>"
+    t_milieu = "🏆 CLASSEMENT EVOLUTIF OFFICIEUX Division 4<span>↕️</span>"
+    t_bas = "📊 CLASSEMENT EVOLUTIF OFFICIEUX par Division / Classe (Top 3)<span>↕️</span>"
 
     try:
         flux_eng = telecharger_excel(FILE_ENGAGES)
@@ -214,9 +229,8 @@ def recuperer_donnees_course():
                         txt_c2 = f"{format_final_chrono(t2)}{symbole}" if t2 else f"No Time{symbole}"
                         html_hist += f"<tr><td>{row['N°']}</td><td>{row['Nom_Prenom']}</td><td>{row['Voiture']}</td><td>{row['Division']}</td><td>{row['Classe']}</td><td>{txt_c1}</td><td>{txt_c2}</td></tr>"
                     html_hist += "</tbody></table></div>"
-# ==============================================================================
-# 🏎️ TIMECHRONO - SCRIPT DE COURSE MANCHE 2 ASAF (Partie 4 de 4)
-# ==============================================================================
+                    
+                                        # SÉLECTION DU SCRIPT DE COURSE DE DROITE SANS LIMITE DE CLASSEMENT AVEC LE GRAS RESTAURÉ
                     def tri_val(r1, r2):
                         if pd.isna(r1) or pd.isna(r2) or r1 <= 0 or r2 <= 0: return float('inf')
                         return float(round(r1, 2) + round(r2, 2))
@@ -232,18 +246,31 @@ def recuperer_donnees_course():
                     scr = scr.drop(columns=["Num_Filter_Check"])
                     
                     if len(scr) > 0:
-                        df_asaf123 = scr[scr["Division"].isin(["1", "2", "3"])].copy()
-                        if not df_asaf123.empty:
-                            df_asaf123["Pos"] = [str(i+1) if v < float('inf') else "-" for i, v in enumerate(df_asaf123["Cumul_Sec"])]
-                            df_asaf123["Chrono"] = df_asaf123["Cumul_Sec"].apply(lambda val: format_final_chrono(val, "No Time"))
-                            df_asaf123 = df_asaf123[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]]
+                        # 1. CLASSEMENT GENERAL Division 123 -> SANS LIMITE + GRAS RESTAURÉ (0.85rem)
+                        df_asaf123_raw = scr[scr["Division"].isin(["1", "2", "3"])].copy()
+                        if not df_asaf123_raw.empty:
+                            df_asaf123_raw["Pos"] = [str(i+1) if v < float('inf') else "-" for i, v in enumerate(df_asaf123_raw["Cumul_Sec"])]
+                            # Ré-injection chirurgicale de la balise de gras
+                            df_asaf123_raw["Chrono"] = df_asaf123_raw["Cumul_Sec"].apply(lambda val: f"<span style='font-weight: bold !important; font-size: 0.85rem !important;'>{format_final_chrono(val, 'No Time')}</span>")
+                            df_asaf123_raw = df_asaf123_raw[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]]
+                            # Sortie HTML compatible
+                            df_asaf123 = f"<div class='zone-defilement-tactile'>{df_asaf123_raw.to_html(index=False, classes='table-compacte table-class-robuste', escape=False, border=0)}</div>"
+                        else:
+                            df_asaf123 = "<div class='zone-defilement-tactile'><table class='table-compacte'><tr><td>Aucune donnée</td></tr></table></div>"
                         
-                        df_asaf4 = scr[scr["Division"] == "4"].copy()
-                        if not df_asaf4.empty:
-                            df_asaf4["Pos"] = [str(i+1) if v < float('inf') else "-" for i, v in enumerate(df_asaf4["Cumul_Sec"])]
-                            df_asaf4["Chrono"] = df_asaf4["Cumul_Sec"].apply(lambda val: format_final_chrono(val, "No Time"))
-                            df_asaf4 = df_asaf4[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]]
+                        # 2. CLASSEMENT GENERAL Division 4 -> SANS LIMITE + GRAS RESTAURÉ (0.85rem)
+                        df_asaf4_raw = scr[scr["Division"] == "4"].copy()
+                        if not df_asaf4_raw.empty:
+                            df_asaf4_raw["Pos"] = [str(i+1) if v < float('inf') else "-" for i, v in enumerate(df_asaf4_raw["Cumul_Sec"])]
+                            # Ré-injection chirurgicale de la balise de gras
+                            df_asaf4_raw["Chrono"] = df_asaf4_raw["Cumul_Sec"].apply(lambda val: f"<span style='font-weight: bold !important; font-size: 0.85rem !important;'>{format_final_chrono(val, 'No Time')}</span>")
+                            df_asaf4_raw = df_asaf4_raw[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]]
+                            # Sortie HTML compatible
+                            df_asaf4 = f"<div class='zone-defilement-tactile'>{df_asaf4_raw.to_html(index=False, classes='table-compacte table-class-milieu', escape=False, border=0)}</div>"
+                        else:
+                            df_asaf4 = "<div class='zone-defilement-tactile'><table class='table-compacte'><tr><td>Aucune donnée</td></tr></table></div>"
                         
+                        # 3. CLASSEMENT par Division / Classe (Top 3) -> Reste identique + GRAS GARANTI
                         scr["Classe_Tri"] = pd.to_numeric(scr["Classe"], errors='coerce').fillna(999)
                         df_grouped = scr.sort_values(by=["Division", "Classe_Tri", "Cumul_Sec"]).groupby(["Division", "Classe_Tri"]).head(3).copy()
                         if len(df_grouped) > 0:
@@ -253,21 +280,14 @@ def recuperer_donnees_course():
                             for (div, cl), g in go:
                                 cg += 1; g = g.copy()
                                 g["Pos"] = [str(i+1) if v < float('inf') else "-" for i, v in enumerate(g["Cumul_Sec"])]
-                                g["Chrono"] = g["Cumul_Sec"].apply(lambda val: format_final_chrono(val, "No Time"))
+                                g["Chrono"] = g["Cumul_Sec"].apply(lambda val: f"<span style='font-weight: bold !important; font-size: 0.85rem !important;'>{format_final_chrono(val, 'No Time')}</span>")
                                 
                                 sh = g[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]].rename(columns={"Division": "Div", "Classe": "Cl"}).to_html(index=False, header=(cg==1), classes='table-compacte table-class-groupes', escape=False, border=0)
-                                sh_clean = sh.replace("</tbody>\n</table>", "").replace("</tbody></table>", "")
-                                
-                                # Injection du marqueur de séparation bleu directement sur le dernier pilote du groupe
-                                if cg < tg:
-                                    idx_dernier_tr = sh_clean.rfind("<tr>")
-                                    if idx_dernier_tr != -1:
-                                        sh_clean = sh_clean[:idx_dernier_tr] + "<tr class='separateur-classe'>" + sh_clean[idx_dernier_tr + 4:]
-                                
-                                if cg == 1: hb.append(sh_clean)
-                                else: hb.append(sh_clean.split("<tbody>")[-1])
-                                
+                                if cg == 1: hb.append(sh.replace("</tbody>\n</table>", ""))
+                                else: hb.append(sh.split("<tbody>")[-1].replace("</tbody>\n</table>", ""))
+                                if cg < tg: hb.append("<tr class='ligne-separation-classe'><td colspan='6' style='padding:0 !important;'></td></tr>")
                             hb.append("</tbody>\n</table>")
                             df_divisions = "".join(hb)
     except Exception: pass
     return df_live, html_hist, df_asaf123, df_asaf4, df_divisions, t_live, t_his, t_haut, t_milieu, t_bas
+
