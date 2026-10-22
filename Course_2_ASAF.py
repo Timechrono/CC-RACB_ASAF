@@ -67,8 +67,8 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 BASE_DIR = "Dropbox Cloud"
-C = [100, 108, 46, 100, 114, 111, 112, 98, 111, 120, 117, 115, 101, 114]
-D = [99, 111, 110, 116, 101, 110, 116, 46, 99, 111, 109]
+C =
+D =
 HOTE_PROT = "".join(chr(x) for x in (C + D))
 
 FILE_ARRIVEE = f"https://{HOTE_PROT}/scl/fi/7uu9cmlpzglx0ngvbklpt/LIVE_Temps_ARRIVEE.xlsm?rlkey=g9urz4v3jr36h0apzt45ognm6&dl=1"
@@ -201,7 +201,8 @@ def recuperer_donnees_course():
                         base_c3["Arrivée"] = base_c3["Heure_Arrivee_3"].apply(formater_heure_ecran)
                         df_live = base_c3.sort_values(by="Heure_Depart_3", ascending=False).head(5)[["N°", "Nom_Prenom", "Voiture", "Départ", "Arrivée", "Chrono réalisé"]]
 
-                    df_hb = base[base["Calc_Sec_1"].notna() | base["Calc_Sec_2"].notna()].copy().sort_values(by="Heure_Depart_3", ascending=False, na_position="last")
+                    # Suppression du tri .sort_values(by="Heure_Depart_3") pour respecter strictement l'ordre d'empilement brut à l'arrivée
+                    df_hb = base[base["Calc_Sec_1"].notna() | base["Calc_Sec_2"].notna()].copy()
                     
                     html_hist = "<div class='zone-defilement-tactile'><table class='table-compacte table-hist'><thead><tr><th>N°</th><th>Nom_Prenom</th><th>Voiture</th><th>Div</th><th>Cl</th><th>Course 1</th><th>Chrono</th></tr></thead><tbody>"
                     for idx, row in df_hb.iterrows():
