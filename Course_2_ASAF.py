@@ -193,22 +193,35 @@ def recuperer_donnees_course():
                 base = pd.DataFrame(rows_data)
                 
                 if len(base) > 0:
+                    # 1. Extraction et formatage du tableau EN DIRECT (Top 5 des partants)
+                    base_c3 = base[base["Heure_Depart_3"].notna()].copy()
+                    
                     if "Heure_Depart_3" in base.columns and base["Heure_Depart_3"].notna().any():
-                        base_c3 = base[base["Heure_Depart_3"].notna()].copy()
                         base_c3["Chrono réalisé"] = base_c3.apply(lambda r: calculer_statut_chrono_live(r["Calc_Sec_2"]) if pd.notna(r["Calc_Sec_2"]) else ("🟠 EN PISTE" if pd.isna(r["Heure_Arrivee_3"]) else "No Time"), axis=1)
                         base_c3["Départ"] = base_c3["Heure_Depart_3"].apply(formater_heure_ecran)
                         base_c3["Arrivée"] = base_c3["Heure_Arrivee_3"].apply(formater_heure_ecran)
+                        
+                        # Le direct affiche uniquement les 5 derniers partants
                         df_live = base_c3.sort_values(by="Heure_Depart_3", ascending=False).head(5)[["N°", "Nom_Prenom", "Voiture", "Départ", "Arrivée", "Chrono réalisé"]]
 
-                    df_hb = base[base["Calc_Sec_1"].notna() | base["Calc_Sec_2"].notna()].copy().sort_values(by="Heure_Depart_3", ascending=False, na_position="last")
+                    # 2. Construction de l'HISTORIQUE DES TEMPS
+                    # On prend tous les pilotes qui ont commencé la Course 2
+                    df_partants = base_c3.sort_values(by="Heure_Depart_3", ascending=False).copy()
+                    
+                    # L'historique ne contient QUE les concurrents éliminés du direct (à partir du 6ème et plus anciens)
+                    # Grâce à l'ordre décroissant ci-dessus, le concurrent qui vient de sortir du direct (le 6e) sera le premier de ce tableau.
+                    df_hb = df_partants.iloc[5:].copy()
                     
                     html_hist = "<div class='zone-defilement-tactile'><table class='table-compacte table-hist'><thead><tr><th>N°</th><th>Nom_Prenom</th><th>Voiture</th><th>Div</th><th>Cl</th><th>Course 1</th><th>Chrono</th></tr></thead><tbody>"
                     for idx, row in df_hb.iterrows():
                         t1, t2 = row["Calc_Sec_1"], row["Calc_Sec_2"]
                         txt_c1 = format_final_chrono(t1)
-                        txt_c2 = f"<span style='color: #22C55E;'>•</span>&nbsp;{format_final_chrono(t2)}" if t2 else "No Time"
+                        # Modification : Retrait du point vert (span) devant le chrono 2
+                        txt_c2 = format_final_chrono(t2) if t2 else "No Time"
                         html_hist += f"<tr><td>{row['N°']}</td><td>{row['Nom_Prenom']}</td><td>{row['Voiture']}</td><td>{row['Division']}</td><td>{row['Classe']}</td><td>{txt_c1}</td><td>{txt_c2}</td></tr>"
                     html_hist += "</tbody></table></div>"
+                    
+                    # 3. Calcul des classements globaux (incluant TOUS les concurrents de 'base')
                     def tri_val(r1, r2):
                         if pd.isna(r1) or pd.isna(r2) or r1 <= 0 or r2 <= 0: return float('inf')
                         return float(round(r1, 2) + round(r2, 2))
@@ -217,7 +230,10 @@ def recuperer_donnees_course():
                     
                     base_valides = base[base["Cumul_Sec"] < float('inf')].sort_values(by="Cumul_Sec").copy()
                     base_invalides = base[base["Cumul_Sec"] == float('inf')].copy()
+                    
+                    # Cette variable contient tout le monde, garantissant la présence des pilotes du EN DIRECT dans les classements
                     scr = pd.concat([base_valides, base_invalides]).drop_duplicates(subset=["N°"]).copy()
+
                     
                     # Verrouillage final de sécurité (Exclusion N et 900-999)
                     scr = scr[~scr["N°"].str.startswith("N", na=False)].copy()
