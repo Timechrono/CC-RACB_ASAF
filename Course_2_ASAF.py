@@ -39,20 +39,18 @@ st.markdown("""
         height: 18px !important; padding: 1px 5px !important; line-height: 1.1 !important; font-size: 0.85rem !important; color: #000000 !important; 
         vertical-align: middle !important; overflow: hidden !important; text-overflow: ellipsis !important; white-space: nowrap !important; 
     }
-    /* Correction ici : retrait de "font-weight: normal !important" pour autoriser le gras */
     .table-compacte td { border-bottom: 1px solid #E0E0E0 !important; background-color: #FFFFFF !important; }
     .table-compacte th { font-weight: bold !important; background-color: #F5F5F5 !important; border-bottom: 2px solid #CCCCCC !important; text-align: left !important; }
     .table-compacte td.meilleur-temps { background-color: #d9fcec !important; color: #000000 !important; font-weight: bold !important; }
     .table-class-robuste tr:nth-child(odd) td { background-color: #E0F2FE !important; }
     .table-class-groupes tr.ligne-separation-classe td { border-bottom: 2px solid #1E3A8A !important; }
-    
-    /* Nouvelle règle absolue pour harmoniser la taille à 0.85rem et forcer le gras sur la colonne Chrono */
-    .chrono-classement {
+
+    /* 🎯 SOLUTION RADICALE : Force TOUTES les dernières cellules (colonne Chrono) des tableaux de droite */
+    .table-compacte td:last-child, 
+    .table-class-groupes td:last-child {
         font-weight: bold !important;
         font-size: 0.85rem !important;
-        display: inline-block !important;
     }
-
     
     .table-live th:nth-child(1), .table-live td:nth-child(1) { width: 8% !important; }
     .table-live th:nth-child(2), .table-live td:nth-child(2) { width: 26% !important; }
@@ -267,15 +265,39 @@ def recuperer_donnees_course():
                         df_asaf123 = scr[scr["Division"].isin(["1", "2", "3"])].head(25).copy()
                         if not df_asaf123.empty:
                             df_asaf123["Pos"] = [str(i+1) if v < float('inf') else "-" for i, v in enumerate(df_asaf123["Cumul_Sec"])]
-                            df_asaf123["Chrono"] = df_asaf123["Cumul_Sec"].apply(lambda val: f"<span style='font-weight: bold; font-size: 0.85rem;'>{format_final_chrono(val, 'No Time')}</span>")
+                            # Retour au formatage de texte brut, le CSS s'occupe du gras
+                            df_asaf123["Chrono"] = df_asaf123["Cumul_Sec"].apply(lambda val: format_final_chrono(val, "No Time"))
                             df_asaf123 = df_asaf123[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]]
                         
                         # 2. CLASSEMENT GENERAL Division 4 (Top 10)
                         df_asaf4 = scr[scr["Division"] == "4"].head(10).copy()
                         if not df_asaf4.empty:
                             df_asaf4["Pos"] = [str(i+1) if v < float('inf') else "-" for i, v in enumerate(df_asaf4["Cumul_Sec"])]
-                            df_asaf4["Chrono"] = df_asaf4["Cumul_Sec"].apply(lambda val: f"<span style='font-weight: bold; font-size: 0.85rem;'>{format_final_chrono(val, 'No Time')}</span>")
+                            # Texte brut également
+                            df_asaf4["Chrono"] = df_asaf4["Cumul_Sec"].apply(lambda val: format_final_chrono(val, "No Time"))
                             df_asaf4 = df_asaf4[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]]
+                        
+                        # 3. CLASSEMENT par Division / Classe (Top 3)
+                        scr["Classe_Tri"] = pd.to_numeric(scr["Classe"], errors='coerce').fillna(999)
+                        df_grouped = scr.sort_values(by=["Division", "Classe_Tri", "Cumul_Sec"]).groupby(["Division", "Classe_Tri"]).head(3).copy()
+                        if len(df_grouped) > 0:
+                            hb = []
+                            go = df_grouped.sort_values(by=["Division", "Classe_Tri", "Cumul_Sec"]).groupby(["Division", "Classe_Tri"])
+                            tg, cg = len(go), 0
+                            for (div, cl), g in go:
+                                cg += 1; g = g.copy()
+                                g["Pos"] = [str(i+1) if v < float('inf') else "-" for i, v in enumerate(g["Cumul_Sec"])]
+                                
+                                # Texte brut ici aussi
+                                g["Chrono"] = g["Cumul_Sec"].apply(lambda val: format_final_chrono(val, "No Time"))
+                                
+                                sh = g[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]].rename(columns={"Division": "Div", "Classe": "Cl"}).to_html(index=False, header=(cg==1), classes='table-compacte table-class-groupes', escape=False, border=0)
+                                if cg == 1: hb.append(sh.replace("</tbody>\n</table>", ""))
+                                else: hb.append(sh.split("<tbody>")[-1].replace("</tbody>\n</table>", ""))
+                                if cg < tg: hb.append("<tr class='ligne-separation-classe'><td colspan='6' style='padding:0 !important;'></td></tr>")
+                            hb.append("</tbody>\n</table>")
+                            df_divisions = "".join(hb)
+
                         
                         # 3. CLASSEMENT par Division / Classe (Top 3)
                         scr["Classe_Tri"] = pd.to_numeric(scr["Classe"], errors='coerce').fillna(999)
