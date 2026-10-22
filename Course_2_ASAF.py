@@ -127,8 +127,8 @@ def recuperer_donnees_course():
 
     t_live = "🏎️ EN DIRECT / Derniers Concurrents partis"
     t_his = "🕒 HISTORIQUE DES TEMPS / 2ème COURSE / Concurrents ASAF<span>↕️</span>"
-    t_haut = "🏆 CLASSEMENT EVOLUTIF OFFICIEUX Division 123 (Top 25)<span>↕️</span>"
-    t_milieu = "🏆 CLASSEMENT EVOLUTIF OFFICIEUX Division 4 (Top 10)<span>↕️</span>"
+    t_haut = "🏆 CLASSEMENT EVOLUTIF OFFICIEUX Division 123<span>↕️</span>"
+    t_milieu = "🏆 CLASSEMENT EVOLUTIF OFFICIEUX Division 4<span>↕️</span>"
     t_bas = "📊 CLASSEMENT EVOLUTIF OFFICIEUX par Division / Classe (Top 3)<span>↕️</span>"
 
     try:
