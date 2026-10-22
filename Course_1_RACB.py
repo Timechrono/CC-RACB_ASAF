@@ -142,8 +142,8 @@ def recuperer_donnees_course():
     # --- TITRES DES BANDEAUX (4 espaces au début de chaque ligne) ---
     t_live = "🏎️ EN DIRECT / Derniers concurrents partis"
     t_his = "🕒 HISTORIQUE DES TEMPS / 1er COURSE / Concurrents RACB<span>↕️</span>"
-    t_haut = "🏆 CLASSEMENT GENERAL OFFICIEUX RACB<span>↕️</span>"
-    t_milieu = "📊 CLASSEMENT OFFICIEUX PAR Groupe / Classe (Top 3)<span>↕️</span>"
+    t_haut = "🏆 CLASSEMENT EVOLUTIF OFFICIEUX RACB<span>↕️</span>"
+    t_milieu = "📊 CLASSEMENT EVOLUTIF OFFICIEUX PAR Groupe / Classe (Top 3)<span>↕️</span>"
     t_bas = ""
 
     try:
