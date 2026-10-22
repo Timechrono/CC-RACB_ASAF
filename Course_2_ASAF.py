@@ -285,7 +285,7 @@ def recuperer_donnees_course():
                                     chrono_formate = format_final_chrono(row["Cumul_Sec"], 'No Time')
                                     chrono_cellule = f"<span style='font-weight: bold !important; font-size: 0.85rem !important;'>{chrono_formate}</span>"
                                     
-                                    # 🎯 Détection stricte : Si c'est la toute première ligne d'un nouveau groupe de classe, on injecte la bordure bleue
+                                    # Injection de la classe CSS sur le <tr> au changement de groupe
                                     classe_tr = "class='separateur-classe'" if (compteur_classe > 1 and idx_ligne == 0) else ""
                                     
                                     ligne_tr = f"""<tr {classe_tr}>
