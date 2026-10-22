@@ -17,6 +17,7 @@ HAUTEURS_TABLEAUX_PC = {
     "ASAF_4": "215px"              # ➡️ Bas de la colonne droite (0px car inutilisé sur cette feuille)
 }
 
+
 st.cache_data.clear()
 
 st.markdown("""
@@ -34,42 +35,15 @@ st.markdown("""
     
     .table-compacte { width: 100% !important; margin-bottom: 0px !important; border-collapse: collapse !important; table-layout: fixed !important; }
     .table-compacte tr { height: 18px !important; }
-    
-    /* FORCE TOUS LES COMPOSANTS DE TOUS LES TABLEAUX A RESTER EN 0.85rem (ALIGNÉ SUR EN DIRECT) */
-    .table-compacte, 
-    .table-compacte th, 
-    .table-compacte td, 
-    .table-compacte tr td, 
-    .table-compacte td b, 
-    .table-compacte td span,
-    .table-hist,
-    .table-hist th,
-    .table-hist td,
-    .table-hist td span,
-    .table-class-groupes,
-    .table-class-groupes th,
-    .table-class-groupes td,
-    .table-class-groupes td b { 
-        height: 18px !important; 
-        padding: 1px 5px !important; 
-        line-height: 1.1 !important; 
-        font-size: 0.85rem !important; 
-        color: #000000 !important; 
-        vertical-align: middle !important; 
-        overflow: hidden !important; 
-        text-overflow: ellipsis !important; 
-        white-space: nowrap !important;
+    .table-compacte th, .table-compacte td { 
+        height: 18px !important; padding: 1px 5px !important; line-height: 1.1 !important; font-size: 0.85rem !important; color: #000000 !important; 
+        vertical-align: middle !important; overflow: hidden !important; text-overflow: ellipsis !important; white-space: nowrap !important; 
     }
-    
     .table-compacte td { font-weight: normal !important; border-bottom: 1px solid #E0E0E0 !important; background-color: #FFFFFF !important; }
     .table-compacte th { font-weight: bold !important; background-color: #F5F5F5 !important; border-bottom: 2px solid #CCCCCC !important; text-align: left !important; }
     .table-compacte td.meilleur-temps { background-color: #d9fcec !important; color: #000000 !important; font-weight: bold !important; }
     .table-class-robuste tr:nth-child(odd) td { background-color: #E0F2FE !important; }
-    
-    /* Tracé de la ligne bleue sans aucun espace blanc au-dessus */
-    .table-class-groupes tr.ligne-separatrice-groupe td {
-        border-top: 2px solid #1E3A8A !important;
-    }
+    .table-class-groupes tr.ligne-separation-classe td { border-bottom: 2px solid #1E3A8A !important; }
     
     .table-live th:nth-child(1), .table-live td:nth-child(1) { width: 8% !important; }
     .table-live th:nth-child(2), .table-live td:nth-child(2) { width: 26% !important; }
@@ -152,10 +126,10 @@ def recuperer_donnees_course():
     df_divisions = html_hist
 
     t_live = "🏎️ EN DIRECT / Derniers Concurrents partis"
-    t_his = "🕒 HISTORIQUE DES TEMPS / 2ème COURSE / Concurrents ASAF<span>↕️</span>"
-    t_haut = "🏆 CLASSEMENT EVOLUTIF OFFICIEUX Division 123<span>↕️</span>"
-    t_milieu = "🏆 CLASSEMENT EVOLUTIF OFFICIEUX Division 4<span>↕️</span>"
-    t_bas = "📊 CLASSEMENT EVOLUTIF OFFICIEUX par Division / Classe (Top 3)<span>↕️</span>"
+    t_his = "🕒 HISTORIQUE DES TEMPS / ASAF<span>↕️</span>"
+    t_haut = "🏆 CLASSEMENT GENERAL OFFICIEUX Division 123 (Top 25)<span>↕️</span>"
+    t_milieu = "🏆 CLASSEMENT GENERAL OFFICIEUX Division 4 (Top 10)<span>↕️</span>"
+    t_bas = "📊 CLASSEMENT OFFICIEUX par Division / Classe (Top 3)<span>↕️</span>"
 
     try:
         flux_eng = telecharger_excel(FILE_ENGAGES)
@@ -173,10 +147,14 @@ def recuperer_donnees_course():
                 "Classe": df_eng_raw.iloc[:, 6].fillna("-").astype(str).str.strip().apply(lambda x: x[:-2] if x.endswith(".0") else x)
             })
             
+            # 1. EXCLUSION DE LA LETTRE "N"
             df_eng = df_eng[~df_eng["N°"].str.startswith("N", na=False)].copy()
+            
+            # 2. EXCLUSION STRICTE DES NUMÉROS ENTRE 900 ET 999
             df_eng["Num_Tri_Sec"] = pd.to_numeric(df_eng["N°"], errors='coerce').fillna(-1)
             df_eng = df_eng[~((df_eng["Num_Tri_Sec"] >= 900) & (df_eng["Num_Tri_Sec"] <= 999))].copy()
             df_eng = df_eng.drop(columns=["Num_Tri_Sec"])
+            
             df_eng = df_eng[df_eng["N°"] != "NAN"].drop_duplicates(subset=["N°"])
             tous_numeros_autorises_asaf = set(df_eng["N°"].unique())
 
@@ -203,7 +181,6 @@ def recuperer_donnees_course():
             dict_c1.update({k: v for k, v in extraire_manche_selon_regles_asaf(df_arr_raw, "COURSE 1", "RACB").items() if k not in dict_c1 or dict_c1[k]["sec"] is None})
             dict_c2 = extraire_manche_selon_regles_asaf(df_arr_raw, "COURSE 2", "ASAF")
             dict_c2.update({k: v for k, v in extraire_manche_selon_regles_asaf(df_arr_raw, "COURSE 2", "RACB").items() if k not in dict_c2 or dict_c2[k]["sec"] is None})
-            
             if not df_eng.empty:
                 rows_data = []
                 for _, pilot in df_eng.iterrows():
@@ -223,27 +200,13 @@ def recuperer_donnees_course():
                         base_c3["Arrivée"] = base_c3["Heure_Arrivee_3"].apply(formater_heure_ecran)
                         df_live = base_c3.sort_values(by="Heure_Depart_3", ascending=False).head(5)[["N°", "Nom_Prenom", "Voiture", "Départ", "Arrivée", "Chrono réalisé"]]
 
-                    df_hb = base[base["Calc_Sec_1"].notna() | base["Calc_Sec_2"].notna()].copy().iloc[::-1]
+                    df_hb = base[base["Calc_Sec_1"].notna() | base["Calc_Sec_2"].notna()].copy().sort_values(by="Heure_Depart_3", ascending=False, na_position="last")
                     
                     html_hist = "<div class='zone-defilement-tactile'><table class='table-compacte table-hist'><thead><tr><th>N°</th><th>Nom_Prenom</th><th>Voiture</th><th>Div</th><th>Cl</th><th>Course 1</th><th>Chrono</th></tr></thead><tbody>"
                     for idx, row in df_hb.iterrows():
                         t1, t2 = row["Calc_Sec_1"], row["Calc_Sec_2"]
-                        h_arr = row["Heure_Depart_3"]
                         txt_c1 = format_final_chrono(t1)
-                        
-                        if pd.notna(h_arr) and pd.isna(row["Heure_Arrivee_3"]) and pd.isna(t2):
-                            txt_c2 = "No Time"
-                        elif t2:
-                            if t1 and t2 < t1:
-                                icone = "&nbsp;<span style='color: #22C55E;'>▲</span>"
-                            elif t1 and t2 >= t1:
-                                icone = "&nbsp;<span style='color: #EF4444;'>▼</span>"
-                            else:
-                                icone = "&nbsp;<span style='color: #9CA3AF;'>◆</span>"
-                            txt_c2 = f"{format_final_chrono(t2)}{icone}"
-                        else:
-                            txt_c2 = "No Time"
-                            
+                        txt_c2 = f"<span style='color: #22C55E;'>•</span>&nbsp;{format_final_chrono(t2)}" if t2 else "No Time"
                         html_hist += f"<tr><td>{row['N°']}</td><td>{row['Nom_Prenom']}</td><td>{row['Voiture']}</td><td>{row['Division']}</td><td>{row['Classe']}</td><td>{txt_c1}</td><td>{txt_c2}</td></tr>"
                     html_hist += "</tbody></table></div>"
                     def tri_val(r1, r2):
@@ -251,10 +214,12 @@ def recuperer_donnees_course():
                         return float(round(r1, 2) + round(r2, 2))
                     
                     base["Cumul_Sec"] = base.apply(lambda r: tri_val(r["Calc_Sec_1"], r["Calc_Sec_2"]), axis=1)
+                    
                     base_valides = base[base["Cumul_Sec"] < float('inf')].sort_values(by="Cumul_Sec").copy()
                     base_invalides = base[base["Cumul_Sec"] == float('inf')].copy()
                     scr = pd.concat([base_valides, base_invalides]).drop_duplicates(subset=["N°"]).copy()
                     
+                    # Verrouillage final de sécurité (Exclusion N et 900-999)
                     scr = scr[~scr["N°"].str.startswith("N", na=False)].copy()
                     scr["Num_Filter_Check"] = pd.to_numeric(scr["N°"], errors='coerce').fillna(-1)
                     scr = scr[~((scr["Num_Filter_Check"] >= 900) & (scr["Num_Filter_Check"] <= 999))].copy()
@@ -270,7 +235,7 @@ def recuperer_donnees_course():
                         df_asaf4 = scr[scr["Division"] == "4"].head(10).copy()
                         if not df_asaf4.empty:
                             df_asaf4["Pos"] = [str(i+1) if v < float('inf') else "-" for i, v in enumerate(df_asaf4["Cumul_Sec"])]
-                            df_asaf4["Chrono"] = df_asaf4["Cumul_Sec"].apply(lambda val: f"<b>{format_final_chrono(val, 'No Time')}</b>")
+                            df_asaf4["Chrono"] = df_asaf4["Cumul_Sec"].apply(lambda val: format_final_chrono(val, "No Time"))
                             df_asaf4 = df_asaf4[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]]
                         
                         scr["Classe_Tri"] = pd.to_numeric(scr["Classe"], errors='coerce').fillna(999)
@@ -282,21 +247,12 @@ def recuperer_donnees_course():
                             for (div, cl), g in go:
                                 cg += 1; g = g.copy()
                                 g["Pos"] = [str(i+1) if v < float('inf') else "-" for i, v in enumerate(g["Cumul_Sec"])]
-                                g["Chrono"] = g["Cumul_Sec"].apply(lambda val: f"<b>{format_final_chrono(val, 'No Time')}</b>")
-                                
+                                g["Chrono"] = g["Cumul_Sec"].apply(lambda val: format_final_chrono(val, "No Time"))
                                 sh = g[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]].rename(columns={"Division": "Div", "Classe": "Cl"}).to_html(index=False, header=(cg==1), classes='table-compacte table-class-groupes', escape=False, border=0)
-                                
-                                # Nettoyage strict des retours à la ligne pour éradiquer l'espace blanc au-dessus de la ligne bleue
-                                sh = sh.strip().replace("\n", "")
-                                
-                                if cg == 1: 
-                                    html_brut = sh.replace("</tbody></table>", "")
-                                else: 
-                                    html_brut = sh.split("<tbody>")[-1].replace("</tbody></table>", "")
-                                    html_brut = html_brut.replace("<tr>", "<tr class='ligne-separatrice-groupe'>", 1)
-                                
-                                hb.append(html_brut)
-                            hb.append("</tbody></table>")
+                                if cg == 1: hb.append(sh.replace("</tbody>\n</table>", ""))
+                                else: hb.append(sh.split("<tbody>")[-1].replace("</tbody>\n</table>", ""))
+                                if cg < tg: hb.append("<tr class='ligne-separation-classe'><td colspan='6' style='padding:0 !important;'></td></tr>")
+                            hb.append("</tbody>\n</table>")
                             df_divisions = "".join(hb)
     except Exception: pass
     return df_live, html_hist, df_asaf123, df_asaf4, df_divisions, t_live, t_his, t_haut, t_milieu, t_bas
