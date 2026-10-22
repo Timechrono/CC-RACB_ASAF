@@ -1,3 +1,6 @@
+# ==============================================================================
+# 🏎️ TIMECHRONO - SCRIPT DE COURSE MANCHE 2 ASAF (Partie 1 de 4)
+# ==============================================================================
 import streamlit as st
 import pandas as pd
 import numpy as np
@@ -7,7 +10,6 @@ import time
 import io
 import requests
 
-# CONFIGURATION DES HAUTEURS VISUELLES SUR PC
 HAUTEURS_TABLEAUX_PC = {
     "HISTORIQUE": "487px",       
     "RACB": "213px",             
@@ -57,6 +59,9 @@ st.markdown("""
     .zone-defilement-tactile { width: 100% !important; overflow-x: auto !important; display: block !important; }
     </style>
 """, unsafe_allow_html=True)
+# ==============================================================================
+# 🏎️ TIMECHRONO - SCRIPT DE COURSE MANCHE 2 ASAF (Partie 2 de 4)
+# ==============================================================================
 BASE_DIR = "Dropbox Cloud"
 C = [100, 108, 46, 100, 114, 111, 112, 98, 111, 120, 117, 115, 101, 114]
 D = [99, 111, 110, 116, 101, 110, 116, 46, 99, 111, 109]
@@ -66,7 +71,7 @@ FILE_ARRIVEE = f"https://{HOTE_PROT}/scl/fi/7uu9cmlpzglx0ngvbklpt/LIVE_Temps_ARR
 FILE_DEPART  = f"https://{HOTE_PROT}/scl/fi/gbkaq01qzjujc8nq3zj28/LIVE_Temps_DEPART.xlsm?rlkey=4x4rvvlfyzz8v59gqbxn80a4d&dl=1"
 FILE_ENGAGES = f"https://{HOTE_PROT}/scl/fi/sqrqinksco1am700s27h4/LIVE_Liste_ENGAGES.xlsm?rlkey=8p0n8jyeuiivaa375bh3p608n&dl=1"
 
-@st.cache_data(ttl=15) # Réduit à 15s pour un flux fluide sans bloquer le serveur
+@st.cache_data(ttl=15)
 def telecharger_excel(url):
     try:
         entetes = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'}
@@ -109,6 +114,9 @@ def formater_heure_ecran(val):
 def calculer_statut_chrono_live(valeur_sec):
     if pd.isna(valeur_sec) or valeur_sec <= 0: return "No Time"
     return f"{format_final_chrono(valeur_sec)} &nbsp;<span style='color: #22C55E;'>✓</span>"
+# ==============================================================================
+# 🏎️ TIMECHRONO - SCRIPT DE COURSE MANCHE 2 ASAF (Partie 3 de 4)
+# ==============================================================================
 def recuperer_donnees_course():
     df_live = pd.DataFrame(columns=["N°", "Nom_Prenom", "Voiture", "Départ", "Arrivée", "Chrono réalisé"])
     df_asaf123 = pd.DataFrame(columns=["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"])
@@ -118,8 +126,8 @@ def recuperer_donnees_course():
 
     t_live = "🏎️ EN DIRECT / Derniers Concurrents partis"
     t_his = "🕒 HISTORIQUE DES TEMPS / ASAF<span>↕️</span>"
-    t_haut = "🏆 CLASSEMENT GENERAL OFFICIEUX Division 123 (Top 25)<span>↕️</span>"
-    t_milieu = "🏆 CLASSEMENT GENERAL OFFICIEUX Division 4 (Top 10)<span>↕️</span>"
+    t_haut = "🏆 CLASSEMENT GENERAL OFFICIEUX Division 123<span>↕️</span>"
+    t_milieu = "🏆 CLASSEMENT GENERAL OFFICIEUX Division 4<span>↕️</span>"
     t_bas = "📊 CLASSEMENT OFFICIEUX par Division / Classe (Top 3)<span>↕️</span>"
 
     try:
@@ -206,6 +214,9 @@ def recuperer_donnees_course():
                         txt_c2 = f"{format_final_chrono(t2)}{symbole}" if t2 else f"No Time{symbole}"
                         html_hist += f"<tr><td>{row['N°']}</td><td>{row['Nom_Prenom']}</td><td>{row['Voiture']}</td><td>{row['Division']}</td><td>{row['Classe']}</td><td>{txt_c1}</td><td>{txt_c2}</td></tr>"
                     html_hist += "</tbody></table></div>"
+# ==============================================================================
+# 🏎️ TIMECHRONO - SCRIPT DE COURSE MANCHE 2 ASAF (Partie 4 de 4)
+# ==============================================================================
                     def tri_val(r1, r2):
                         if pd.isna(r1) or pd.isna(r2) or r1 <= 0 or r2 <= 0: return float('inf')
                         return float(round(r1, 2) + round(r2, 2))
@@ -221,17 +232,17 @@ def recuperer_donnees_course():
                     scr = scr.drop(columns=["Num_Filter_Check"])
                     
                     if len(scr) > 0:
-                        df_asaf123_raw = scr[scr["Division"].isin(["1", "2", "3"])].copy()
-                        if not df_asaf123_raw.empty:
-                            df_asaf123_raw["Pos"] = [str(i+1) if v < float('inf') else "-" for i, v in enumerate(df_asaf123_raw["Cumul_Sec"])]
-                            df_asaf123_raw["Chrono"] = df_asaf123_raw["Cumul_Sec"].apply(lambda val: format_final_chrono(val, "No Time"))
-                            df_asaf123 = df_asaf123_raw[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]]
+                        df_asaf123 = scr[scr["Division"].isin(["1", "2", "3"])].copy()
+                        if not df_asaf123.empty:
+                            df_asaf123["Pos"] = [str(i+1) if v < float('inf') else "-" for i, v in enumerate(df_asaf123["Cumul_Sec"])]
+                            df_asaf123["Chrono"] = df_asaf123["Cumul_Sec"].apply(lambda val: format_final_chrono(val, "No Time"))
+                            df_asaf123 = df_asaf123[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]]
                         
-                        df_asaf4_raw = scr[scr["Division"] == "4"].copy()
-                        if not df_asaf4_raw.empty:
-                            df_asaf4_raw["Pos"] = [str(i+1) if v < float('inf') else "-" for i, v in enumerate(df_asaf4_raw["Cumul_Sec"])]
-                            df_asaf4_raw["Chrono"] = df_asaf4_raw["Cumul_Sec"].apply(lambda val: format_final_chrono(val, "No Time"))
-                            df_asaf4 = df_asaf4_raw[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]]
+                        df_asaf4 = scr[scr["Division"] == "4"].copy()
+                        if not df_asaf4.empty:
+                            df_asaf4["Pos"] = [str(i+1) if v < float('inf') else "-" for i, v in enumerate(df_asaf4["Cumul_Sec"])]
+                            df_asaf4["Chrono"] = df_asaf4["Cumul_Sec"].apply(lambda val: format_final_chrono(val, "No Time"))
+                            df_asaf4 = df_asaf4[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]]
                         
                         scr["Classe_Tri"] = pd.to_numeric(scr["Classe"], errors='coerce').fillna(999)
                         df_grouped = scr.sort_values(by=["Division", "Classe_Tri", "Cumul_Sec"]).groupby(["Division", "Classe_Tri"]).head(3).copy()
@@ -246,6 +257,13 @@ def recuperer_donnees_course():
                                 
                                 sh = g[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]].rename(columns={"Division": "Div", "Classe": "Cl"}).to_html(index=False, header=(cg==1), classes='table-compacte table-class-groupes', escape=False, border=0)
                                 sh_clean = sh.replace("</tbody>\n</table>", "").replace("</tbody></table>", "")
+                                
+                                # Injection du marqueur de séparation bleu directement sur le dernier pilote du groupe
+                                if cg < tg:
+                                    idx_dernier_tr = sh_clean.rfind("<tr>")
+                                    if idx_dernier_tr != -1:
+                                        sh_clean = sh_clean[:idx_dernier_tr] + "<tr class='separateur-classe'>" + sh_clean[idx_dernier_tr + 4:]
+                                
                                 if cg == 1: hb.append(sh_clean)
                                 else: hb.append(sh_clean.split("<tbody>")[-1])
                                 
