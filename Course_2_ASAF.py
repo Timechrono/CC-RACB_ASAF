@@ -223,18 +223,19 @@ def recuperer_donnees_course():
                         t1, t2 = row["Calc_Sec_1"], row["Calc_Sec_2"]
                         txt_c1 = format_final_chrono(t1)
                         
-                        # Logique de comparaison et choix du symbole visuel
+                        # Logique de comparaison et choix du symbole visuel à taille réelle du texte (0.85rem)
                         if pd.isna(t1) or t1 <= 0 or pd.isna(t2) or t2 <= 0:
-                            symbole = "&nbsp;<span style='color: #9CA3AF; font-size: 0.75rem;'>◆</span>"  # Losange gris (Manque C1 ou C2)
+                            symbole = "&nbsp;<span style='color: #9CA3AF; font-size: 0.85rem; vertical-align: middle;'>◆</span>"  # Losange gris
                         elif t2 < t1:
-                            symbole = "&nbsp;<span style='color: #22C55E; font-size: 0.75rem;'>▲</span>"  # Triangle vert (Meilleur temps en C2)
+                            symbole = "&nbsp;<span style='color: #22C55E; font-size: 0.85rem; vertical-align: middle;'>▲</span>"  # Triangle vert
                         else:
-                            symbole = "&nbsp;<span style='color: #EF4444; font-size: 0.75rem;'>▼</span>"  # Triangle rouge (Temps moins bon ou égal)
+                            symbole = "&nbsp;<span style='color: #EF4444; font-size: 0.85rem; vertical-align: middle;'>▼</span>"  # Triangle rouge
                         
                         txt_c2 = f"{format_final_chrono(t2)}{symbole}" if t2 else f"No Time{symbole}"
                         
                         html_hist += f"<tr><td>{row['N°']}</td><td>{row['Nom_Prenom']}</td><td>{row['Voiture']}</td><td>{row['Division']}</td><td>{row['Classe']}</td><td>{txt_c1}</td><td>{txt_c2}</td></tr>"
                     html_hist += "</tbody></table></div>"
+
 
                     
                     # 3. Calcul des classements globaux (incluant TOUS les concurrents de 'base')
