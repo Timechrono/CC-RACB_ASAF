@@ -454,7 +454,9 @@ try:
 except Exception as e:
     t_live = "⚠️ Liaison Dropbox ralentie ou instable — Tentative de reconnexon en cours..."
 
-st.markdown("<style>@media (min-width: 769px) { .table-hist th:nth-child(1), .table-hist td:nth-child(1) { width: 8% !important; } .table-hist th:nth-child(2), .table-hist td:nth-child(2) { width: 32% !important; } .table-hist th:nth-child(3), .table-hist td:nth-child(3) { width: 28% !important; } .table-hist th:nth-child(4), .table-hist td:nth-child(4) { width: 10% !important; } .table-hist th:nth-child(5), .table-hist td:nth-child(5) { width: 5% !important; } .table-hist th:nth-child(6), .table-hist td:nth-child(6) { width: 17% !important; } }</style>", unsafe_allow_html=True)
+# 🎯 EQUILIBRAGE PC : Réduction de Course 1 (Col 6) et élargissement de Chrono (Col 7)
+st.markdown("<style>@media (min-width: 769px) { .table-hist th:nth-child(1), .table-hist td:nth-child(1) { width: 8% !important; } .table-hist th:nth-child(2), .table-hist td:nth-child(2) { width: 32% !important; } .table-hist th:nth-child(3), .table-hist td:nth-child(3) { width: 21% !important; } .table-hist th:nth-child(4), .table-hist td:nth-child(4) { width: 10% !important; } .table-hist th:nth-child(5), .table-hist td:nth-child(5) { width: 5% !important; } .table-hist th:nth-child(6), .table-hist td:nth-child(6) { width: 11% !important; } .table-hist th:nth-child(7), .table-hist td:nth-child(7) { width: 25% !important; } }</style>", unsafe_allow_html=True)
+
 
 if t_haut and "TOP 20" in t_haut.upper():
     t_haut = "🏆 CLASSEMENT GENERAL OFFICIEUX RACB"
