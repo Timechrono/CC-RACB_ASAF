@@ -263,16 +263,13 @@ div.stElementContainer {{
 .table-live tr td {{ background-color: #FEF9C3 !important; }}
 .table-live tr:nth-child(even) td {{ background-color: #FEFCE8 !important; }}
 
-/* 🎯 CORRECTION FINALE : Applique le gras et la taille 0.85rem à TOUS les classements de droite */
-.table-live td:last-child, 
-.table-class-robuste td:last-child, 
-.table-class-milieu td:last-child,
-.table-class-groupes td:last-child,
-.table-hist td:last-child {{ 
-    font-weight: bold !important; 
-    font-size: 0.85rem !important; 
-    color: #0F172A !important; 
+/* 🎯 LE MIRACLE DU CSS : Dessine la ligne de séparation automatiquement sous le dernier pilote de chaque classe, sans décalage */
+.table-class-groupes tbody tr:has(+ tr td:nth-child(5):not(:empty)) td,
+.table-class-groupes tbody tr:nth-of-type(3n) td,
+.table-class-robuste tr.ligne-bleue-separation td {{ 
+    border-bottom: 3px solid #1E3A8A !important; 
 }}
+
 .table-hist tr:nth-child(odd) td {{ background-color: #E0F2FE !important; }}
 
 @media (max-width: 768px) {{
