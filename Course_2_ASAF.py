@@ -44,10 +44,14 @@ st.markdown("""
     .table-compacte td.meilleur-temps { background-color: #d9fcec !important; color: #000000 !important; font-weight: bold !important; }
     .table-class-robuste tr:nth-child(odd) td { background-color: #E0F2FE !important; }
 
-    /* 🎯 PLUS D'ESPACES ENTRE LES CLASSES : Le tableau est désormais unique et fluide */
     .table-class-groupes {
         margin: 0px !important;
         padding: 0px !important;
+    }
+
+    /* 🔵 LIGNE DE SÉPARATION BLEUE ENTRE LES CLASSES (SANS ESPACE VIDE) */
+    .table-class-groupes tr.ligne-debut-classe td {
+        border-top: 3px solid #1E3A8A !important;
     }
 
     /* 🚨 LE CODE DE SECOURS ABSOLU : Force le gras et la taille en ciblant chaque tableau de droite */
@@ -82,8 +86,8 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 BASE_DIR = "Dropbox Cloud"
-C = [100, 108, 46, 100, 114, 111, 112, 98, 111, 120, 117, 115, 101, 114]
-D = [99, 111, 110, 116, 101, 110, 116, 46, 99, 111, 109]
+C =
+D =
 HOTE_PROT = "".join(chr(x) for x in (C + D))
 
 FILE_ARRIVEE = f"https://{HOTE_PROT}/scl/fi/7uu9cmlpzglx0ngvbklpt/LIVE_Temps_ARRIVEE.xlsm?rlkey=g9urz4v3jr36h0apzt45ognm6&dl=1"
@@ -271,7 +275,10 @@ def recuperer_donnees_course():
                         if len(df_grouped) > 0:
                             lignes_corps = []
                             go = df_grouped.sort_values(by=["Division", "Classe_Tri", "Cumul_Sec"]).groupby(["Division", "Classe_Tri"])
+                            
+                            compteur_classe = 0
                             for (div, cl), g in go:
+                                compteur_classe += 1
                                 g = g.copy()
                                 g["Pos"] = [str(i+1) if v < float('inf') else "-" for i, v in enumerate(g["Cumul_Sec"])]
                                 g["Chrono"] = g["Cumul_Sec"].apply(lambda val: f"<span style='font-weight: bold !important; font-size: 0.85rem !important;'>{format_final_chrono(val, 'No Time')}</span>")
@@ -279,6 +286,11 @@ def recuperer_donnees_course():
                                 sh = g[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]].rename(columns={"Division": "Div", "Classe": "Cl"}).to_html(index=False, header=False, classes='table-compacte', escape=False, border=0)
                                 if "<tbody>" in sh:
                                     corps_propre = sh.split("<tbody>")[-1].split("</tbody>")[0].strip()
+                                    
+                                    # 🎯 On injecte la bordure bleue sur la toute première ligne de la classe (sauf la première du tableau)
+                                    if compteur_classe > 1:
+                                        corps_propre = corps_propre.replace("<tr>", "<tr class='ligne-debut-classe'>", 1)
+                                        
                                     lignes_corps.append(corps_propre)
                             
                             df_divisions = (
