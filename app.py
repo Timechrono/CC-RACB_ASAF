@@ -148,10 +148,21 @@ div.stElementContainer {{ margin-top: 0px !important; margin-bottom: 0px !import
     .titre-live, .titre-hist, .titre-classement {{ height: auto !important; max-height: none !important; line-height: 1.3 !important; padding: 4px 8px !important; }}
 }}
 
-/* 🎯 SÉPARATION AUTOMATIQUE PAR CELLULES (Éradication définitive de l'espace blanc de structure) */
-.table-class-groupes tbody tr:nth-of-type(3n) td {{ 
-    border-bottom: 3px solid #1E3A8A !important; 
+/* 🎯 LOGIQUE INTELLIGENTE : Repère le changement de classe (Col 5) et trace la ligne sous le dernier pilote du groupe */
+.table-class-groupes tbody tr:has(+ tr td:nth-child(5):not(:empty)) td {{
+    border-bottom: 1px solid #E0E0E0 !important; /* Reste normal tant que c'est la même classe */
 }}
+
+.table-class-groupes tbody tr:has(+ tr td:nth-child(5)) td {{
+    /* Si le numéro de la colonne 5 de la ligne suivante est différent du sien, on applique la grosse ligne bleue */
+    border-bottom: 3px solid #1E3A8A !important;
+}}
+
+/* Sécurité pour forcer la ligne de séparation si le numéro de classe change d'une ligne à l'autre */
+.table-class-groupes tbody tr td:nth-child(5) {{
+    border-bottom-color: inherit !important;
+}}
+
 
 .signature-fin-page {{
     position: fixed !important; bottom: 0px !important; left: 0px !important; width: 100vw !important; height: 32px !important; background-color: #FFFFFF !important; display: flex !important; justify-content: center !important; align-items: center !important; gap: 12px !important; text-align: center !important; color: #1E3A8A !important; font-size: 0.92rem !important; font-weight: bold !important; border-top: 1px dashed #1E3A8A !important; z-index: 999999 !important; padding: 0px !important; margin: 0px !important;
