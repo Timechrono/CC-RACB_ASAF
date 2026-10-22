@@ -49,7 +49,7 @@ st.markdown("""
         padding: 0px !important;
     }
 
-    /* 🔵 STYLE DE LA BORDURE HORIZONTALE BLEUE ENTRE CHAQUE CLASSE */
+    /* 🔵 INJECTION CSS AUTOMATIQUE : Bordure supérieure bleue sur les changements de classe */
     .table-class-groupes tr.separateur-classe td {
         border-top: 3px solid #1E3A8A !important;
     }
@@ -85,8 +85,8 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 BASE_DIR = "Dropbox Cloud"
-C =
-D =
+C = [100, 108, 46, 100, 114, 111, 112, 98, 111, 120, 117, 115, 101, 114]
+D = [99, 111, 110, 116, 101, 110, 116, 46, 99, 111, 109]
 HOTE_PROT = "".join(chr(x) for x in (C + D))
 
 FILE_ARRIVEE = f"https://{HOTE_PROT}/scl/fi/7uu9cmlpzglx0ngvbklpt/LIVE_Temps_ARRIVEE.xlsm?rlkey=g9urz4v3jr36h0apzt45ognm6&dl=1"
@@ -205,12 +205,10 @@ def recuperer_donnees_course():
                     num = pilot["N°"]
                     rows_data.append({
                         "N°": num, "Nom_Prenom": pilot["Nom_Prenom"], "Voiture": pilot["Voiture"], "Division": pilot["Division"], "Classe": pilot["Classe"],
-                        "Heure_Depart_3 Third": dict_c2.get(num, {}).get("h_dep"), "Heure_Arrivee_3": dict_c2.get(num, {}).get("h_arr"),
+                        "Heure_Depart_3": dict_c2.get(num, {}).get("h_dep"), "Heure_Arrivee_3": dict_c2.get(num, {}).get("h_arr"),
                         "Calc_Sec_1": dict_c1.get(num, {}).get("sec"), "Calc_Sec_2": dict_c2.get(num, {}).get("sec")
                     })
                 base = pd.DataFrame(rows_data)
-                if "Heure_Depart_3 Third" in base.columns:
-                    base = base.rename(columns={"Heure_Depart_3 Third": "Heure_Depart_3"})
                 if len(base) > 0:
                     base_c3 = base[base["Heure_Depart_3"].notna()].copy()
                     if "Heure_Depart_3" in base.columns and base["Heure_Depart_3"].notna().any():
@@ -274,25 +272,37 @@ def recuperer_donnees_course():
                         scr["Classe_Tri"] = pd.to_numeric(scr["Classe"], errors='coerce').fillna(999)
                         df_grouped = scr.sort_values(by=["Division", "Classe_Tri", "Cumul_Sec"]).groupby(["Division", "Classe_Tri"]).head(3).copy()
                         if len(df_grouped) > 0:
-                            lignes_html = []
-                            go = df_grouped.sort_values(by=["Division", "Classe_Tri", "Cumul_Sec"]).groupby(["Division", "Classe_Tri"])
+                            df_grouped["Pos"] = df_grouped.groupby(["Division", "Classe_Tri"]).cumcount() + 1
+                            df_grouped["Chrono"] = df_grouped["Cumul_Sec"].apply(lambda val: f"<span style='font-weight: bold !important; font-size: 0.85rem !important;'>{format_final_chrono(val, 'No Time')}</span>")
                             
-                            compteur_classe = 0
-                            for (div, cl), g in go:
-                                compteur_classe += 1
-                                positions = [str(i+1) if v < float('inf') else "-" for i, v in enumerate(g["Cumul_Sec"])]
+                            df_final_group = df_grouped[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]].rename(columns={"Division": "Div", "Classe": "Cl"}).copy()
+                            
+                            # Identification des lignes de changement de classe pour insérer la classe CSS separateur-classe
+                            classes_html = []
+                            classe_precedente = None
+                            for idx, row in df_final_group.iterrows():
+                                classe_actuelle = (row["Div"], row["Cl"])
+                                if classe_precedente is not None and classe_actuelle != classe_precedente:
+                                    classes_html.append("separateur-classe")
+                                else:
+                                    classes_html.append("")
+                                classe_precedente = classe_actuelle
                                 
-                                for idx_ligne, (_, row) in enumerate(g.iterrows()):
-                                    pos = positions[idx_ligne]
-                                    chrono_formate = format_final_chrono(row["Cumul_Sec"], 'No Time')
-                                    chrono_cellule = f"<span style='font-weight: bold !important; font-size: 0.85rem !important;'>{chrono_formate}</span>"
-                                    
-                                    classe_tr = "class='separateur-classe'" if (compteur_classe > 1 and idx_ligne == 0) else ""
-                                    
-                                    # Chaîne condensée de manière stricte sur une seule ligne pour éliminer les risques de SyntaxError
-                                    ligne_tr = f"<tr {classe_tr}><td>{pos}</td><td>{row['N°']}</td><td>{row['Nom_Prenom']}</td><td>{row['Division']}</td><td>{row['Classe']}</td><td>{chrono_cellule}</td></tr>"
-                                    lignes_html.append(ligne_tr)
+                            html_brut = df_final_group.to_html(index=False, classes='table-compacte table-class-groupes', escape=False, border=0)
                             
-                            df_divisions = "<div class='zone-defilement-tactile'><table class='table-compacte table-class-groupes'><thead><tr><th>Pos</th><th>N°</th><th>Nom_Prenom</th><th>Div</th><th>Cl</th><th>Chrono</th></tr></thead><tbody>" + "".join(lignes_html) + "</tbody></table></div>"
+                            # Injection chirurgicale des classes de séparation dans l'HTML de Pandas sans manipuler de boucles à risque
+                            blocs_tr = html_brut.split("<tr>")
+                            compteur_ligne = 0
+                            for i in range(1, len(blocs_tr)):
+                                if "<td>" in blocs_tr[i]:
+                                    if compteur_ligne < len(classes_html) and classes_html[compteur_ligne] != "":
+                                        blocs_tr[i] = f"<tr class='{classes_html[compteur_ligne]}'>" + blocs_tr[i]
+                                    else:
+                                        blocs_tr[i] = "<tr>" + blocs_tr[i]
+                                    compteur_ligne += 1
+                                else:
+                                    blocs_tr[i] = "<tr>" + blocs_tr[i]
+                                    
+                            df_divisions = "<div class='zone-defilement-tactile'>" + "".join(blocs_tr) + "</div>"
     except Exception: pass
     return df_live, html_hist, df_asaf123, df_asaf4, df_divisions, t_live, t_his, t_haut, t_milieu, t_bas
