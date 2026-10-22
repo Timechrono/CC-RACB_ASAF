@@ -22,7 +22,7 @@ t_haut = ""
 t_milieu = ""
 t_bas = ""
 
-LIEN_DROPBOX_LOGO = "https://dropbox.com"
+LIEN_DROPBOX_LOGO = "https://www.dropbox.com/scl/fi/hi24fjo0vbal4oiiwt9jl/logo-TimeC.png?rlkey=xlw0oqk9gdnq6v5dgahi0klg0&st=y86yrn6y&dl=1"
 
 module_actif = Essais
 
