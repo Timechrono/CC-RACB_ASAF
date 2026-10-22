@@ -229,7 +229,7 @@ def recuperer_donnees_course():
                         txt_c2 = f"{format_final_chrono(t2)}{symbole}" if t2 else f"No Time{symbole}"
                         html_hist += f"<tr><td>{row['N°']}</td><td>{row['Nom_Prenom']}</td><td>{row['Voiture']}</td><td>{row['Division']}</td><td>{row['Classe']}</td><td>{txt_c1}</td><td>{txt_c2}</td></tr>"
                     html_hist += "</tbody></table></div>"
-                    # CLASSEMENTS SANS DOUBLONS ET SANS INTERFÉRENCE DE TEXTE
+                    # CALCULS ET CLASSEMENTS PROPRES SANS INTERFÉRENCE DE TEXTE BRUT
                     def tri_val(r1, r2):
                         if pd.isna(r1) or pd.isna(r2) or r1 <= 0 or r2 <= 0: return float('inf')
                         return float(round(r1, 2) + round(r2, 2))
@@ -245,7 +245,7 @@ def recuperer_donnees_course():
                     scr = scr.drop(columns=["Num_Filter_Check"])
                     
                     if len(scr) > 0:
-                        # 1. CLASSEMENT GENERAL Division 123
+                        # 1. Division 123 (Scroll complet)
                         df_asaf123_raw = scr[scr["Division"].isin(["1", "2", "3"])].copy()
                         if not df_asaf123_raw.empty:
                             df_asaf123_raw["Pos"] = [str(i+1) if v < float('inf') else "-" for i, v in enumerate(df_asaf123_raw["Cumul_Sec"])]
@@ -255,7 +255,7 @@ def recuperer_donnees_course():
                         else:
                             df_asaf123 = "<div class='zone-defilement-tactile'><table class='table-compacte'><tr><td>Aucune donnée</td></tr></table></div>"
                         
-                        # 2. CLASSEMENT GENERAL Division 4
+                        # 2. Division 4 (Scroll complet)
                         df_asaf4_raw = scr[scr["Division"] == "4"].copy()
                         if not df_asaf4_raw.empty:
                             df_asaf4_raw["Pos"] = [str(i+1) if v < float('inf') else "-" for i, v in enumerate(df_asaf4_raw["Cumul_Sec"])]
@@ -265,7 +265,7 @@ def recuperer_donnees_course():
                         else:
                             df_asaf4 = "<div class='zone-defilement-tactile'><table class='table-compacte'><tr><td>Aucune donnée</td></tr></table></div>"
                         
-                        # 3. CLASSEMENT par Division / Classe -> RECONSTRUIT EN HTML PAR PANDAS SANS CHANGER LES LIGNES
+                        # 3. Classement par Division / Classe (Top 3 continu sans tr de coupure)
                         scr["Classe_Tri"] = pd.to_numeric(scr["Classe"], errors='coerce').fillna(999)
                         df_grouped = scr.sort_values(by=["Division", "Classe_Tri", "Cumul_Sec"]).groupby(["Division", "Classe_Tri"]).head(3).copy()
                         if len(df_grouped) > 0:
@@ -277,13 +277,11 @@ def recuperer_donnees_course():
                                 g["Pos"] = [str(i+1) if v < float('inf') else "-" for i, v in enumerate(g["Cumul_Sec"])]
                                 g["Chrono"] = g["Cumul_Sec"].apply(lambda val: f"<span style='font-weight: bold !important; font-size: 0.85rem !important;'>{format_final_chrono(val, 'No Time')}</span>")
                                 
-                                # Export propre : On génère le HTML brut de chaque classe
                                 sh = g[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]].rename(columns={"Division": "Div", "Classe": "Cl"}).to_html(index=False, header=(cg==1), classes='table-compacte table-class-groupes', escape=False, border=0)
                                 sh_clean = sh.replace("</tbody>\n</table>", "").replace("</tbody></table>", "")
                                 if cg == 1: hb.append(sh_clean)
                                 else: hb.append(sh_clean.split("<tbody>")[-1])
                                 
-                                # On n'injecte plus aucune ligne tr vide en Python pour éviter la ligne blanche !
                             hb.append("</tbody>\n</table>")
                             df_divisions = "".join(hb)
     except Exception: pass
