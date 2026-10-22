@@ -82,8 +82,8 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 BASE_DIR = "Dropbox Cloud"
-C =
-D =
+C = [100, 108, 46, 100, 114, 111, 112, 98, 111, 120, 117, 115, 101, 114]
+D = [99, 111, 110, 116, 101, 110, 116, 46, 99, 111, 109]
 HOTE_PROT = "".join(chr(x) for x in (C + D))
 
 FILE_ARRIVEE = f"https://{HOTE_PROT}/scl/fi/7uu9cmlpzglx0ngvbklpt/LIVE_Temps_ARRIVEE.xlsm?rlkey=g9urz4v3jr36h0apzt45ognm6&dl=1"
@@ -276,13 +276,11 @@ def recuperer_donnees_course():
                                 g["Pos"] = [str(i+1) if v < float('inf') else "-" for i, v in enumerate(g["Cumul_Sec"])]
                                 g["Chrono"] = g["Cumul_Sec"].apply(lambda val: f"<span style='font-weight: bold !important; font-size: 0.85rem !important;'>{format_final_chrono(val, 'No Time')}</span>")
                                 
-                                # Génère l'HTML brut et isole uniquement les lignes <tr> du corps du tableau
                                 sh = g[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]].rename(columns={"Division": "Div", "Classe": "Cl"}).to_html(index=False, header=False, classes='table-compacte', escape=False, border=0)
                                 if "<tbody>" in sh:
                                     corps_propre = sh.split("<tbody>")[-1].split("</tbody>")[0].strip()
                                     lignes_corps.append(corps_propre)
                             
-                            # On enveloppe toutes les lignes concaténées à l'intérieur d'une UNIQUE structure de tableau HTML stable
                             df_divisions = (
                                 "<div class='zone-defilement-tactile'>"
                                 "<table class='table-compacte table-class-groupes'>"
