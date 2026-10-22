@@ -229,7 +229,8 @@ def recuperer_donnees_course():
                         txt_c2 = f"{format_final_chrono(t2)}{symbole}" if t2 else f"No Time{symbole}"
                         html_hist += f"<tr><td>{row['N°']}</td><td>{row['Nom_Prenom']}</td><td>{row['Voiture']}</td><td>{row['Division']}</td><td>{row['Classe']}</td><td>{txt_c1}</td><td>{txt_c2}</td></tr>"
                     html_hist += "</tbody></table></div>"
-                    # SÉLECTION DU SCRIPT DE COURSE DE DROITE SANS LIMITE DE CLASSEMENT (.head ENLEVÉS)
+                    
+                                        # SÉLECTION DU SCRIPT DE COURSE DE DROITE SANS LIMITE DE CLASSEMENT AVEC LE GRAS RESTAURÉ
                     def tri_val(r1, r2):
                         if pd.isna(r1) or pd.isna(r2) or r1 <= 0 or r2 <= 0: return float('inf')
                         return float(round(r1, 2) + round(r2, 2))
@@ -245,29 +246,31 @@ def recuperer_donnees_course():
                     scr = scr.drop(columns=["Num_Filter_Check"])
                     
                     if len(scr) > 0:
-                        # 1. CLASSEMENT GENERAL Division 123 -> SANS LIMITE DE NOMBRE DE LIGNES (.head(25) RETIRÉ)
+                        # 1. CLASSEMENT GENERAL Division 123 -> SANS LIMITE + GRAS RESTAURÉ (0.85rem)
                         df_asaf123_raw = scr[scr["Division"].isin(["1", "2", "3"])].copy()
                         if not df_asaf123_raw.empty:
                             df_asaf123_raw["Pos"] = [str(i+1) if v < float('inf') else "-" for i, v in enumerate(df_asaf123_raw["Cumul_Sec"])]
-                            df_asaf123_raw["Chrono"] = df_asaf123_raw["Cumul_Sec"].apply(lambda val: format_final_chrono(val, "No Time"))
+                            # Ré-injection chirurgicale de la balise de gras
+                            df_asaf123_raw["Chrono"] = df_asaf123_raw["Cumul_Sec"].apply(lambda val: f"<span style='font-weight: bold !important; font-size: 0.85rem !important;'>{format_final_chrono(val, 'No Time')}</span>")
                             df_asaf123_raw = df_asaf123_raw[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]]
                             # Sortie HTML compatible
-                            df_asaf123 = f"<div class='zone-defilement-tactile'>{df_asaf123_raw.to_html(index=False, classes='table-compacte', escape=False, border=0)}</div>"
+                            df_asaf123 = f"<div class='zone-defilement-tactile'>{df_asaf123_raw.to_html(index=False, classes='table-compacte table-class-robuste', escape=False, border=0)}</div>"
                         else:
                             df_asaf123 = "<div class='zone-defilement-tactile'><table class='table-compacte'><tr><td>Aucune donnée</td></tr></table></div>"
                         
-                        # 2. CLASSEMENT GENERAL Division 4 -> SANS LIMITE DE NOMBRE DE LIGNES (.head(10) RETIRÉ)
+                        # 2. CLASSEMENT GENERAL Division 4 -> SANS LIMITE + GRAS RESTAURÉ (0.85rem)
                         df_asaf4_raw = scr[scr["Division"] == "4"].copy()
                         if not df_asaf4_raw.empty:
                             df_asaf4_raw["Pos"] = [str(i+1) if v < float('inf') else "-" for i, v in enumerate(df_asaf4_raw["Cumul_Sec"])]
-                            df_asaf4_raw["Chrono"] = df_asaf4_raw["Cumul_Sec"].apply(lambda val: format_final_chrono(val, "No Time"))
+                            # Ré-injection chirurgicale de la balise de gras
+                            df_asaf4_raw["Chrono"] = df_asaf4_raw["Cumul_Sec"].apply(lambda val: f"<span style='font-weight: bold !important; font-size: 0.85rem !important;'>{format_final_chrono(val, 'No Time')}</span>")
                             df_asaf4_raw = df_asaf4_raw[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]]
                             # Sortie HTML compatible
-                            df_asaf4 = f"<div class='zone-defilement-tactile'>{df_asaf4_raw.to_html(index=False, classes='table-compacte', escape=False, border=0)}</div>"
+                            df_asaf4 = f"<div class='zone-defilement-tactile'>{df_asaf4_raw.to_html(index=False, classes='table-compacte table-class-milieu', escape=False, border=0)}</div>"
                         else:
                             df_asaf4 = "<div class='zone-defilement-tactile'><table class='table-compacte'><tr><td>Aucune donnée</td></tr></table></div>"
                         
-                        # 3. CLASSEMENT par Division / Classe (Top 3) -> Reste identique
+                        # 3. CLASSEMENT par Division / Classe (Top 3) -> Reste identique + GRAS GARANTI
                         scr["Classe_Tri"] = pd.to_numeric(scr["Classe"], errors='coerce').fillna(999)
                         df_grouped = scr.sort_values(by=["Division", "Classe_Tri", "Cumul_Sec"]).groupby(["Division", "Classe_Tri"]).head(3).copy()
                         if len(df_grouped) > 0:
@@ -277,7 +280,7 @@ def recuperer_donnees_course():
                             for (div, cl), g in go:
                                 cg += 1; g = g.copy()
                                 g["Pos"] = [str(i+1) if v < float('inf') else "-" for i, v in enumerate(g["Cumul_Sec"])]
-                                g["Chrono"] = g["Cumul_Sec"].apply(lambda val: format_final_chrono(val, "No Time"))
+                                g["Chrono"] = g["Cumul_Sec"].apply(lambda val: f"<span style='font-weight: bold !important; font-size: 0.85rem !important;'>{format_final_chrono(val, 'No Time')}</span>")
                                 
                                 sh = g[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]].rename(columns={"Division": "Div", "Classe": "Cl"}).to_html(index=False, header=(cg==1), classes='table-compacte table-class-groupes', escape=False, border=0)
                                 if cg == 1: hb.append(sh.replace("</tbody>\n</table>", ""))
@@ -287,3 +290,4 @@ def recuperer_donnees_course():
                             df_divisions = "".join(hb)
     except Exception: pass
     return df_live, html_hist, df_asaf123, df_asaf4, df_divisions, t_live, t_his, t_haut, t_milieu, t_bas
+
