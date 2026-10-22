@@ -177,6 +177,22 @@ def gen_html(df, cl):
 
     style_conteneur = "class='div-scroll-local-historique'" if cl == "table-hist" else "class='table-responsive-container'"
 
+    # 🎯 SÉCURITÉ ENTIÈREMENT REVUE : Si la variable est déjà une chaîne HTML (générée par Course_2_ASAF)
+    if isinstance(df, str):
+        if "<DIV" in df.upper() or "<TABLE" in df.upper():
+            return df  # On retourne directement le tableau HTML pré-packagé sans le modifier
+                
+        tableau_vide = f"<table class='table-compacte {cl}'><tr><td style='text-align: center; padding: 10px; font-style: italic; color: #64748B;'>{phrase_attente}</td></tr></table>"
+        return f"<div {style_conteneur}>{tableau_vide}</div>"
+
+    if df is None or (isinstance(df, pd.DataFrame) and df.empty): 
+        tableau_vide = f"<table class='table-compacte {cl}'><tr><td style='text-align: center; padding: 10px; font-style: italic; color: #64748B;'>{phrase_attente}</td></tr></table>"
+        return f"<div {style_conteneur}>{tableau_vide}</div>"
+    
+    html_table = df.to_html(index=False, classes=f"table-compacte {cl}", escape=False, border=0)
+    return f"<div {style_conteneur}>{html_table}</div>"
+
+
     if isinstance(df, str):
         if "<TABLE" in df.upper() and "</TABLE>" in df.upper():
             debut = df.upper().find("<TABLE")
