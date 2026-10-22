@@ -161,14 +161,10 @@ def recuperer_donnees_course():
                 "Classe": df_eng_raw.iloc[:, 6].fillna("-").astype(str).str.strip().apply(lambda x: x[:-2] if x.endswith(".0") else x)
             })
             
-            # 1. EXCLUSION DE LA LETTRE "N"
             df_eng = df_eng[~df_eng["N°"].str.startswith("N", na=False)].copy()
-            
-            # 2. EXCLUSION STRICTE DES NUMÉROS ENTRE 900 ET 999
             df_eng["Num_Tri_Sec"] = pd.to_numeric(df_eng["N°"], errors='coerce').fillna(-1)
             df_eng = df_eng[~((df_eng["Num_Tri_Sec"] >= 900) & (df_eng["Num_Tri_Sec"] <= 999))].copy()
             df_eng = df_eng.drop(columns=["Num_Tri_Sec"])
-            
             df_eng = df_eng[df_eng["N°"] != "NAN"].drop_duplicates(subset=["N°"])
             tous_numeros_autorises_asaf = set(df_eng["N°"].unique())
 
@@ -195,6 +191,7 @@ def recuperer_donnees_course():
             dict_c1.update({k: v for k, v in extraire_manche_selon_regles_asaf(df_arr_raw, "COURSE 1", "RACB").items() if k not in dict_c1 or dict_c1[k]["sec"] is None})
             dict_c2 = extraire_manche_selon_regles_asaf(df_arr_raw, "COURSE 2", "ASAF")
             dict_c2.update({k: v for k, v in extraire_manche_selon_regles_asaf(df_arr_raw, "COURSE 2", "RACB").items() if k not in dict_c2 or dict_c2[k]["sec"] is None})
+            
             if not df_eng.empty:
                 rows_data = []
                 for _, pilot in df_eng.iterrows():
@@ -207,21 +204,14 @@ def recuperer_donnees_course():
                 base = pd.DataFrame(rows_data)
                 
                 if len(base) > 0:
-                    # 1. Extraction et formatage du tableau EN DIRECT (Top 5 des partants)
                     base_c3 = base[base["Heure_Depart_3"].notna()].copy()
-                    
                     if "Heure_Depart_3" in base.columns and base["Heure_Depart_3"].notna().any():
                         base_c3["Chrono réalisé"] = base_c3.apply(lambda r: calculer_statut_chrono_live(r["Calc_Sec_2"]) if pd.notna(r["Calc_Sec_2"]) else ("🟠 EN PISTE" if pd.isna(r["Heure_Arrivee_3"]) else "No Time"), axis=1)
                         base_c3["Départ"] = base_c3["Heure_Depart_3"].apply(formater_heure_ecran)
                         base_c3["Arrivée"] = base_c3["Heure_Arrivee_3"].apply(formater_heure_ecran)
-                        
-                        # Le direct affiche uniquement les 5 derniers partants
                         df_live = base_c3.sort_values(by="Heure_Depart_3", ascending=False).head(5)[["N°", "Nom_Prenom", "Voiture", "Départ", "Arrivée", "Chrono réalisé"]]
 
-                    # 2. Construction de l'HISTORIQUE DES TEMPS
                     df_partants = base_c3.sort_values(by="Heure_Depart_3", ascending=False).copy()
-                    
-                    # L'historique contient les concurrents éliminés du direct (à partir du 6ème)
                     df_hb = df_partants.iloc[5:].copy()
                     
                     html_hist = "<div class='zone-defilement-tactile'><table class='table-compacte table-hist'><thead><tr><th>N°</th><th>Nom_Prenom</th><th>Voiture</th><th>Div</th><th>Cl</th><th>Course 1</th><th>Chrono</th></tr></thead><tbody>"
@@ -229,192 +219,13 @@ def recuperer_donnees_course():
                         t1, t2 = row["Calc_Sec_1"], row["Calc_Sec_2"]
                         txt_c1 = format_final_chrono(t1)
                         
-                        # Logique de comparaison avec des symboles "Heavy" forcés en taille
                         if pd.isna(t1) or t1 <= 0 or pd.isna(t2) or t2 <= 0:
-                            # ❖ (Losange épais) ou ◆
                             symbole = "&nbsp;<span style='color: #9CA3AF; font-size: 1.1rem; display: inline-block; line-height: 1; vertical-align: -1px;'>◆</span>"
                         elif t2 < t1:
-                            # ▲ (Triangle haut) forcé à 1.1rem pour égaler visuellement le texte
                             symbole = "&nbsp;<span style='color: #22C55E; font-size: 1.1rem; display: inline-block; line-height: 1; vertical-align: -1px;'>▲</span>"
                         else:
-                            # ▼ (Triangle bas)
                             symbole = "&nbsp;<span style='color: #EF4444; font-size: 1.1rem; display: inline-block; line-height: 1; vertical-align: -1px;'>▼</span>"
                         
                         txt_c2 = f"{format_final_chrono(t2)}{symbole}" if t2 else f"No Time{symbole}"
-                        
                         html_hist += f"<tr><td>{row['N°']}</td><td>{row['Nom_Prenom']}</td><td>{row['Voiture']}</td><td>{row['Division']}</td><td>{row['Classe']}</td><td>{txt_c1}</td><td>{txt_c2}</td></tr>"
                     html_hist += "</tbody></table></div>"
-
-
-                    
-                    # 3. Calcul des classements globaux (incluant TOUS les concurrents de 'base')
-                    def tri_val(r1, r2):
-                        if pd.isna(r1) or pd.isna(r2) or r1 <= 0 or r2 <= 0: return float('inf')
-                        return float(round(r1, 2) + round(r2, 2))
-                    
-                    base["Cumul_Sec"] = base.apply(lambda r: tri_val(r["Calc_Sec_1"], r["Calc_Sec_2"]), axis=1)
-                    
-                    base_valides = base[base["Cumul_Sec"] < float('inf')].sort_values(by="Cumul_Sec").copy()
-                    base_invalides = base[base["Cumul_Sec"] == float('inf')].copy()
-                    
-                    # Cette variable contient tout le monde, garantissant la présence des pilotes du EN DIRECT dans les classements
-                    scr = pd.concat([base_valides, base_invalides]).drop_duplicates(subset=["N°"]).copy()
-
-                    
-                    # Verrouillage final de sécurité (Exclusion N et 900-999)
-                    scr = scr[~scr["N°"].str.startswith("N", na=False)].copy()
-                    scr["Num_Filter_Check"] = pd.to_numeric(scr["N°"], errors='coerce').fillna(-1)
-                    scr = scr[~((scr["Num_Filter_Check"] >= 900) & (scr["Num_Filter_Check"] <= 999))].copy()
-                    scr = scr.drop(columns=["Num_Filter_Check"])
-                    
-                    if len(scr) > 0:
-                        # 1. CLASSEMENT GENERAL Division 123 (Top 25)
-                        df_asaf123 = scr[scr["Divisi                    if len(scr) > 0:
-                        # 1. CLASSEMENT GENERAL Division 123 (Top 25)
-                        df_asaf123 = scr[scr["Division"].isin(["1", "2", "3"])].head(25).copy()
-                        if not df_asaf123.empty:
-                            df_asaf123["Pos"] = [str(i+1) if v < float('inf') else "-" for i, v in enumerate(df_asaf123["Cumul_Sec"])]
-                            # Force l'injection du style directement dans la cellule HTML pour contourner Streamlit
-                            df_asaf123["Chrono"] = df_asaf123["Cumul_Sec"].apply(lambda val: f"<span style='font-weight: bold !important; font-size: 0.85rem !important;'>{format_final_chrono(val, 'No Time')}</span>")
-                            df_asaf123 = df_asaf123[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]]
-                        
-                        # 2. CLASSEMENT GENERAL Division 4 (Top 10)
-                        df_asaf4 = scr[scr["Division"] == "4"].head(10).copy()
-                        if not df_asaf4.empty:
-                            df_asaf4["Pos"] = [str(i+1) if v < float('inf') else "-" for i, v in enumerate(df_asaf4["Cumul_Sec"])]
-                            # Force l'injection du style directement dans la cellule HTML pour contourner Streamlit
-                            df_asaf4["Chrono"] = df_asaf4["Cumul_Sec"].apply(lambda val: f"<span style='font-weight: bold !important; font-size: 0.85rem !important;'>{format_final_chrono(val, 'No Time')}</span>")
-                            df_asaf4 = df_asaf4[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]]
-                        
-                        # 3. CLASSEMENT par Division / Classe (Top 3) - NETTOYÉ ET SANS DOUBLONS
-                        scr["Classe_Tri"] = pd.to_numeric(scr["Classe"], errors='coerce').fillna(999)
-                        df_grouped = scr.sort_values(by=["Division", "Classe_Tri", "Cumul_Sec"]).groupby(["Division", "Classe_Tri"]).head(3).copy()
-                        if len(df_grouped) > 0:
-                            hb = []
-                            go = df_grouped.sort_values(by=["Division", "Classe_Tri", "Cumul_Sec"]).groupby(["Division", "Classe_Tri"])
-                            tg, cg = len(go), 0
-                            for (div, cl), g in go:
-                                cg += 1; g = g.copy()
-                                g["Pos"] = [str(i+1) if v < float('inf') else "-" for i, v in enumerate(g["Cumul_Sec"])]
-                                
-                                # Force l'injection du style directement dans la cellule HTML pour contourner Streamlit
-                                g["Chrono"] = g["Cumul_Sec"].apply(lambda val: f"<span style='font-weight: bold !important; font-size: 0.85rem !important;'>{format_final_chrono(val, 'No Time')}</span>")
-                                
-                                sh = g[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]].rename(columns={"Division": "Div", "Classe": "Cl"}).to_html(index=False, header=(cg==1), classes='table-compacte table-class-groupes', escape=False, border=0)
-                                if cg == 1: hb.append(sh.replace("</tbody>\n</table>", ""))
-                                else: hb.append(sh.split("<tbody>")[-1].replace("</tbody>\n</table>", ""))
-                                if cg < tg: hb.append("<tr class='ligne-separation-classe'><td colspan='6' style='padding:0 !important;'></td></tr>")
-                            hb.append("</tbody>\n</table>")
-                            df_divisions = "".join(hb)
-                            
-    except Exception: pass
-    return df_live, html_hist, df_asaf123, df_asaf4, df_divisions, t_live, t_his, t_haut, t_milieu, t_bas
-on"].isin(["1", "2", "3"])].head(25).copy()
-                        if not df_asaf123.empty:
-                            df_asaf123["Pos"] = [str(i+1) if v < float('inf') else "-" for i, v in enumerate(df_asaf123["Cumul_Sec"])]
-                            # Retour au formatage de texte brut, le CSS s'occupe du gras
-                            df_asaf123["Chrono"] = df_asaf123["Cumul_Sec"].apply(lambda val: format_final_chrono(val, "No Time"))
-                            df_asaf123 = df_asaf123[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]]
-                        
-                        # 2. CLASSEMENT GENERAL Division 4 (Top 10)
-                        df_asaf4 = scr[scr["Division"] == "4"].head(10).copy()
-                        if not df_asaf4.empty:
-                            df_asaf4["Pos"] = [str(i+1) if v < float('inf') else "-" for i, v in enumerate(df_asaf4["Cumul_Sec"])]
-                            # Texte brut également
-                            df_asaf4["Chrono"] = df_asaf4["Cumul_Sec"].apply(lambda val: format_final_chrono(val, "No Time"))
-                            df_asaf4 = df_asaf4[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]]
-                        
-                        # 3. CLASSEMENT par Division / Classe (Top 3)
-                        scr["Classe_Tri"] = pd.to_numeric(scr["Classe"], errors='coerce').fillna(999)
-                        df_grouped = scr.sort_values(by=["Division", "Classe_Tri", "Cumul_Sec"]).groupby(["Division", "Classe_Tri"]).head(3).copy()
-                        if len(df_grouped) > 0:
-                            hb = []
-                            go = df_grouped.sort_values(by=["Division", "Classe_Tri", "Cumul_Sec"]).groupby(["Division", "Classe_Tri"])
-                            tg, cg = len(go), 0
-                            for (div, cl), g in go:
-                                cg += 1; g = g.copy()
-                                g["Pos"] = [str(i+1) if v < float('inf') else "-" for i, v in enumerate(g["Cumul_Sec"])]
-                                
-                                # Texte brut ici aussi
-                                g["Chrono"] = g["Cumul_Sec"].apply(lambda val: format_final_chrono(val, "No Time"))
-                                
-                                sh = g[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]].rename(columns={"Division": "Div", "Classe": "Cl"}).to_html(index=False, header=(cg==1), classes='table-compacte table-class-groupes', escape=False, border=0)
-                                if cg == 1: hb.append(sh.replace("</tbody>\n</table>", ""))
-                                else: hb.append(sh.split("<tbody>")[-1].replace("</tbody>\n</table>", ""))
-                                if cg < tg: hb.append("<tr class='ligne-separation-classe'><td colspan='6' style='padding:0 !important;'></td></tr>")
-                            hb.append("</tbody>\n</table>")
-                            df_divisions = "".join(hb)
-
-                        
-                        # 3. CLASSEMENT par Division / Classe (Top 3)
-                        scr["Classe_Tri"] = pd.to_numeric(scr["Classe"], errors='coerce').fillna(999)
-                        df_grouped = scr.sort_values(by=["Division", "Classe_Tri", "Cumul_Sec"]).groupby(["Division", "Classe_Tri"]).head(3).copy()
-                        if len(df_grouped) > 0:
-                            hb = []
-                            go = df_grouped.sort_values(by=["Division", "Classe_Tri", "Cumul_Sec"]).groupby(["Division", "Classe_Tri"])
-                            tg, cg = len(go), 0
-                            for (div, cl), g in go:
-                                cg += 1; g = g.copy()
-                                g["Pos"] = [str(i+1) if v < float('inf') else "-" for i, v in enumerate(g["Cumul_Sec"])]
-                                
-                                # ➡️ Validation stricte de la mise en gras et taille identique à "EN DIRECT"
-                                g["Chrono"] = g["Cumul_Sec"].apply(lambda val: f"<span style='font-weight: bold; font-size: 0.85rem;'>{format_final_chrono(val, 'No Time')}</span>")
-                                
-                                sh = g[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]].rename(columns={"Division": "Div", "Classe": "Cl"}).to_html(index=False, header=(cg==1), classes='table-compacte table-class-groupes', escape=False, border=0)
-                                if cg == 1: hb.append(sh.replace("</tbody>\n</table>", ""))
-                                else: hb.append(sh.split("<tbody>")[-1].replace("</tbody>\n</table>", ""))
-                                if cg < tg: hb.append("<tr class='ligne-separation-classe'><td colspan='6' style='padding:0 !important;'></td></tr>")
-                            hb.append("</tbody>\n</table>")
-                            df_divisions = "".join(hb)
-
-                        if len(df_grouped) > 0:
-                            hb = []
-                            go = df_grouped.sort_values(by=["Division", "Classe_Tri", "Cumul_Sec"]).groupby(["Division", "Classe_Tri"])
-                            tg, cg = len(go), 0
-                            for (div, cl), g in go:
-                                cg += 1; g = g.copy()
-                                g["Pos"] = [str(i+1) if v < float('inf') else "-" for i, v in enumerate(g["Cumul_Sec"])]
-                                # Modification : Application du style gras et taille 0.85rem sur le Chrono du Top 3 par Classe
-                                g["Chrono"] = g["Cumul_Sec"].apply(lambda val: f"<span style='font-weight: bold; font-size: 0.85rem;'>{format_final_chrono(val, 'No Time')}</span>")
-                                sh = g[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]].rename(columns={"Division": "Div", "Classe": "Cl"}).to_html(index=False, header=(cg==1), classes='table-compacte table-class-groupes', escape=False, border=0)
-                                if cg == 1: hb.append(sh.replace("</tbody>\n</table>", ""))
-                                else: hb.append(sh.split("<tbody>")[-1].replace("</tbody>\n</table>", ""))
-                                if cg < tg: hb.append("<tr class='ligne-separation-classe'><td colspan='6' style='padding:0 !important;'></td></tr>")
-                            hb.append("</tbody>\n</table>")
-                            df_divisions = "".join(hb)
-
-                        if len(df_grouped) > 0:
-                            hb = []
-                            go = df_grouped.sort_values(by=["Division", "Classe_Tri", "Cumul_Sec"]).groupby(["Division", "Classe_Tri"])
-                            tg, cg = len(go), 0
-                            for (div, cl), g in go:
-                                cg += 1; g = g.copy()
-                                g["Pos"] = [str(i+1) if v < float('inf') else "-" for i, v in enumerate(g["Cumul_Sec"])]
-                                # Modification : Application du style gras et taille 0.85rem sur le Chrono du Top 3 par Classe
-                                g["Chrono"] = g["Cumul_Sec"].apply(lambda val: f"<span style='font-weight: bold; font-size: 0.85rem;'>{format_final_chrono(val, 'No Time')}</span>")
-                                sh = g[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]].rename(columns={"Division": "Div", "Classe": "Cl"}).to_html(index=False, header=(cg==1), classes='table-compacte table-class-groupes', escape=False, border=0)
-                                if cg == 1: hb.append(sh.replace("</tbody>\n</table>", ""))
-                                else: hb.append(sh.split("<tbody>")[-1].replace("</tbody>\n</table>", ""))
-                                if cg < tg: hb.append("<tr class='ligne-separation-classe'><td colspan='6' style='padding:0 !important;'></td></tr>")
-                            hb.append("</tbody>\n</table>")
-                            df_divisions = "".join(hb)
-
-                        
-                        scr["Classe_Tri"] = pd.to_numeric(scr["Classe"], errors='coerce').fillna(999)
-                        df_grouped = scr.sort_values(by=["Division", "Classe_Tri", "Cumul_Sec"]).groupby(["Division", "Classe_Tri"]).head(3).copy()
-                        if len(df_grouped) > 0:
-                            hb = []
-                            go = df_grouped.sort_values(by=["Division", "Classe_Tri", "Cumul_Sec"]).groupby(["Division", "Classe_Tri"])
-                            tg, cg = len(go), 0
-                            for (div, cl), g in go:
-                                cg += 1; g = g.copy()
-                                g["Pos"] = [str(i+1) if v < float('inf') else "-" for i, v in enumerate(g["Cumul_Sec"])]
-                                g["Chrono"] = g["Cumul_Sec"].apply(lambda val: format_final_chrono(val, "No Time"))
-                                sh = g[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]].rename(columns={"Division": "Div", "Classe": "Cl"}).to_html(index=False, header=(cg==1), classes='table-compacte table-class-groupes', escape=False, border=0)
-                                if cg == 1: hb.append(sh.replace("</tbody>\n</table>", ""))
-                                else: hb.append(sh.split("<tbody>")[-1].replace("</tbody>\n</table>", ""))
-                                if cg < tg: hb.append("<tr class='ligne-separation-classe'><td colspan='6' style='padding:0 !important;'></td></tr>")
-                            hb.append("</tbody>\n</table>")
-                            df_divisions = "".join(hb)
-    except Exception: pass
-    return df_live, html_hist, df_asaf123, df_asaf4, df_divisions, t_live, t_his, t_haut, t_milieu, t_bas
