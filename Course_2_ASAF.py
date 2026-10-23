@@ -49,9 +49,9 @@ st.markdown("""
         padding: 0px !important;
     }
 
-    /* 🔵 CORRECTION VISUELLE : Bordure appliquée sur le haut des cellules td */
+    # 🔵 LA CLASSE CORRECTE EXTRAITE ET ADAPTÉE DU DEUXIÈME FICHIER :
     .table-class-groupes tr.separateur-classe td {
-        border-top: 3px solid #1E3A8A !important;
+        border-bottom: 3px solid #1E3A8A !important;
     }
 
     /* 🚨 LE CODE DE SECOURS ABSOLU : Force le gras et la taille en ciblant chaque tableau de droite */
@@ -276,7 +276,7 @@ def recuperer_donnees_course():
                             
                             df_final_group = df_grouped[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]].rename(columns={"Division": "Div", "Classe": "Cl"}).copy()
                             
-                            # Identification des lignes de changement uniquement sur la colonne "Cl"
+                            # Identification des changements de Classe (Cl) pour marquer la ligne
                             classes_html = []
                             classe_precedente = None
                             for idx, row in df_final_group.iterrows():
@@ -289,7 +289,7 @@ def recuperer_donnees_course():
                                 
                             html_brut = df_final_group.to_html(index=False, classes='table-compacte table-class-groupes', escape=False, border=0)
                             
-                            # Injection chirurgicale des classes de séparation dans l'HTML de Pandas sans manipuler de boucles à risque
+                            # Injection chirurgicale de l'attribut de classe HTML dans les balises TR de Pandas
                             blocs_tr = html_brut.split("<tr>")
                             compteur_ligne = 0
                             for i in range(1, len(blocs_tr)):
