@@ -49,7 +49,7 @@ st.markdown("""
         padding: 0px !important;
     }
 
-    /* 🔵 INJECTION CSS OPTIMISÉE : Assure que la bordure bleue foncée écrase les styles par défaut */
+    /* 🔵 CORRECTION RADICALE : On applique la bordure bleue sur le haut des CELLULES (td) pour qu'elle soit visible à l'écran */
     .table-class-groupes tr.separateur-classe td {
         border-top: 3px solid #1E3A8A !important;
     }
@@ -85,15 +85,13 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 BASE_DIR = "Dropbox Cloud"
-C = [100, 108, 46, 100, 114, 111, 112, 98, 111, 120, 117, 115, 101, 114]
-D = [99, 111, 110, 116, 101, 110, 116, 46, 99, 111, 109]
+C =
+D =
 HOTE_PROT = "".join(chr(x) for x in (C + D))
 
 FILE_ARRIVEE = f"https://{HOTE_PROT}/scl/fi/7uu9cmlpzglx0ngvbklpt/LIVE_Temps_ARRIVEE.xlsm?rlkey=g9urz4v3jr36h0apzt45ognm6&dl=1"
 FILE_DEPART  = f"https://{HOTE_PROT}/scl/fi/gbkaq01qzjujc8nq3zj28/LIVE_Temps_DEPART.xlsm?rlkey=4x4rvvlfyzz8v59gqbxn80a4d&dl=1"
 FILE_ENGAGES = f"https://{HOTE_PROT}/scl/fi/sqrqinksco1am700s27h4/LIVE_Liste_ENGAGES.xlsm?rlkey=8p0n8jyeuiivaa375bh3p608n&dl=1"
-# fin bloc 1
-
 @st.cache_data(ttl=30)
 def telecharger_excel(url):
     try:
@@ -141,8 +139,6 @@ def calculer_statut_chrono_live(valeur_sec):
 def generer_tableau_html(df, cls_spec):
     if df.empty: return "<div class='zone-defilement-tactile'><table class='table-compacte'><tr><td>Aucune donnée</td></tr></table></div>"
     return f"<div class='zone-defilement-tactile'>{df.to_html(index=False, classes=f'table-compacte {cls_spec}', escape=False, border=0)}</div>"
-# fin bloc 2
-
 def recuperer_donnees_course():
     df_live = pd.DataFrame(columns=["N°", "Nom_Prenom", "Voiture", "Départ", "Arrivée", "Chrono réalisé"])
     df_asaf123 = pd.DataFrame(columns=["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"])
@@ -202,8 +198,6 @@ def recuperer_donnees_course():
             dict_c1.update({k: v for k, v in extraire_manche_selon_regles_asaf(df_arr_raw, "COURSE 1", "RACB").items() if k not in dict_c1 or dict_c1[k]["sec"] is None})
             dict_c2 = extraire_manche_selon_regles_asaf(df_arr_raw, "COURSE 2", "ASAF")
             dict_c2.update({k: v for k, v in extraire_manche_selon_regles_asaf(df_arr_raw, "COURSE 2", "RACB").items() if k not in dict_c2 or dict_c2[k]["sec"] is None})
-# fin bloc 3
-
             if not df_eng.empty:
                 rows_data = []
                 for _, pilot in df_eng.iterrows():
