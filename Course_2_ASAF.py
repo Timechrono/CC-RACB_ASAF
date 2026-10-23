@@ -59,50 +59,66 @@ def telecharger_excel(url):
         reponse = requests.get(url, headers=entetes, timeout=12)
         reponse.raise_for_status()
         return io.BytesIO(reponse.content)
-    except Exception: return None
+    except Exception:
+        return None
 
 def convertir_en_secondes(valeur):
-    if pd.isna(valeur) or valeur is None: return None
-    if isinstance(valeur, pd.Timedelta): return valeur.total_seconds()
+    if pd.isna(valeur) or valeur is None:
+        return None
+    if isinstance(valeur, pd.Timedelta):
+        return valeur.total_seconds()
     if isinstance(valeur, (datetime.time, datetime.datetime)):
         return (valeur.minute * 60) + valeur.second + (valeur.microsecond / 1000000)
     s = str(valeur).strip()
-    if not s or s.lower() == "nan": return None
+    if not s or s.lower() == "nan":
+        return None
     if ":" in s:
         try:
             parts = s.split(":")
             m = int(parts[0])
             sec = float(parts[1].replace(",", "."))
             return (m * 60) + sec
-        except Exception: pass
-    if s.endswith(".0"): s = s[:-2]
+        except Exception:
+            pass
+    if s.endswith(".0"):
+        s = s[:-2]
     s_clean = "".join([c for c in s if c.isdigit()])
-    if not s_clean: return None
+    if not s_clean:
+        return None
     num = int(s_clean)
     centiemes = num % 100
     secondes = (num // 100) % 100
     minutes = num // 10000
-    if minutes >= 60: minutes = minutes % 60
+    if minutes >= 60:
+        minutes = minutes % 60
     return (minutes * 60) + secondes + (centiemes / 100)
 
 def nettoyer_numero(valeur):
-    if pd.isna(valeur): return "nan"
+    if pd.isna(valeur):
+        return "nan"
     s = str(valeur).strip().upper()
     return s[:-2] if s.endswith(".0") else s
 
 def format_final_chrono(total_sec, fallback_statut="No Time"):
-    if total_sec is None or pd.isna(total_sec) or total_sec < 0: return fallback_statut
+    if total_sec is None or pd.isna(total_sec) or total_sec < 0:
+        return fallback_statut
     m, reste_sec = divmod(round(total_sec, 2), 60)
     s = int(reste_sec // 1)
     c = int(round((reste_sec % 1) * 100))
-    if c == 100: s += 1; c = 0
-    if s == 60: m += 1; s = 0
+    if c == 100:
+        s += 1
+        c = 0
+    if s == 60:
+        m += 1
+        s = 0
     return f"{int(m):02d}:{s:02d}.{c:02d}"
 
 def formater_heure_ecran(val):
-    if pd.isna(val) or val == "" or str(val).lower() == "nan": return "-"
+    if pd.isna(val) or val == "" or str(val).lower() == "nan":
+        return "-"
     s = str(val).strip()
-    if s.endswith(".0"): s = s[:-2]
+    if s.endswith(".0"):
+        s = s[:-2]
     s = s.zfill(6)
     return f"{s[0:2]}:{s[2:4]}.{s[4:6]}" if len(s) == 6 else str(val)
 
@@ -131,7 +147,45 @@ def extraire_engages(flux):
         "Classe": df_raw.iloc[:, 6].fillna("-").astype(str).str.strip().apply(lambda x: x[:-2] if x.endswith(".0") else x)
     })
     return df_clean[df_clean["N°"] != "NAN"]
-        # 1. Extraction des Départs ASAF et RACB (Ordre naturel du fichier)
+def recuperer_donnees_course():
+    cols_live = ["N°", "Nom_Prenom", "Voiture", "Départ", "Arrivée", "Chrono"]
+    cols_hist = ["N°", "Nom_Prenom", "Voiture", "Division", "Cl", "Chrono"]
+    df_live = pd.DataFrame(columns=cols_live)
+    df_hist = pd.DataFrame(columns=cols_hist)
+    df_asaf123 = pd.DataFrame(columns=["Pos", "N°", "Nom_Prenom", "Division", "Cl", "Chrono"])
+    df_asaf4 = pd.DataFrame(columns=["Pos", "N°", "Nom_Prenom", "Division", "Cl", "Chrono"])
+    html_divisions = "<table class='table-compacte table-class-robuste'><tr><td style='text-align: center; padding: 10px;'>Aucune donnée disponible</td></tr></table>"
+
+    try:
+        flux_eng = telecharger_excel(FILE_ENGAGES_ASAF)
+        flux_dep = telecharger_excel(FILE_DEPART)
+        flux_arr = telecharger_excel(FILE_ARRIVEE)
+        
+        df_eng_raw = pd.read_excel(flux_eng, engine='openpyxl')
+        df_dep_raw = pd.read_excel(flux_dep, header=None, engine='openpyxl')
+        df_arr_raw = pd.read_excel(flux_arr, header=None, engine='openpyxl')
+
+        df_eng_raw.columns = df_eng_raw.columns.astype(str).str.strip().str.upper()
+        df_eng = pd.DataFrame({"N°": df_eng_raw.iloc[:, 0].apply(nettoyer_numero), 
+                               "Nom_Prenom": df_eng_raw.iloc[:, 1].fillna("Pilote Inconnu").astype(str).str.strip(),
+                               "Voiture": df_eng_raw.iloc[:, 4].fillna("").astype(str).str.strip(),
+                               "Division": df_eng_raw.iloc[:, 5].apply(lambda x: "-" if pd.isna(x) else str(x).strip()[:-2] if str(x).strip().endswith(".0") else str(x).strip()),
+                               "Classe": df_eng_raw.iloc[:, 6].fillna("-").astype(str).str.strip().apply(lambda x: x[:-2] if x.endswith(".0") else x)})
+        df_eng = df_eng[df_eng["N°"] != "NAN"].drop_duplicates(subset=["N°"])
+        liste_numeros_asaf = set(df_eng["N°"].tolist())
+
+        idx_dep_asaf, idx_arr_asaf = None, None
+        idx_dep_racb, idx_arr_racb = None, None
+        for c in range(len(df_dep_raw.columns)):
+            val = str(df_dep_raw.iloc[1, c]).strip().upper()
+            if "COURSE 1 ASAF" in val: idx_dep_asaf = c
+            elif "COURSE 1 RACB" in val: idx_dep_racb = c
+        for c in range(len(df_arr_raw.columns)):
+            val = str(df_arr_raw.iloc[1, c]).strip().upper()
+            if "COURSE 1 ASAF" in val: idx_arr_asaf = c
+            elif "COURSE 1 RACB" in val: idx_arr_racb = c
+
+        # Extraction des départs (Ordre naturel stable)
         d_asaf = pd.DataFrame({"N°": df_dep_raw.iloc[2:, idx_dep_asaf].apply(nettoyer_numero), "Heure_Depart": df_dep_raw.iloc[2:, idx_dep_asaf + 1]}) if idx_dep_asaf is not None else pd.DataFrame(columns=["N°", "Heure_Depart"])
         d_asaf = d_asaf[d_asaf["N°"].isin(liste_numeros_asaf)].copy()
         
@@ -140,11 +194,9 @@ def extraire_engages(flux):
 
         df_dep = pd.concat([d_asaf, d_racb])
         df_dep = df_dep[(df_dep["N°"] != "NAN") & (df_dep["N°"] != "")]
-        
-        # On calcule l'index de passage (Run 1, Run 2) sur l'ordre chronologique réel
         df_dep["Run_Index"] = df_dep.groupby("N°").cumcount() + 1
 
-        # 2. Extraction des Arrivées
+        # Extraction des Arrivées
         a_asaf = pd.DataFrame({"N°": df_arr_raw.iloc[2:, idx_arr_asaf].apply(nettoyer_numero), "Heure_Arrivee": df_arr_raw.iloc[2:, idx_arr_asaf + 2], "Chrono_Excel": df_arr_raw.iloc[2:, idx_arr_asaf + 3]}) if idx_arr_asaf is not None else pd.DataFrame(columns=["N°", "Heure_Arrivee", "Chrono_Excel"])
         a_asaf = a_asaf[a_asaf["N°"].isin(liste_numeros_asaf)]
 
@@ -161,7 +213,6 @@ def extraire_engages(flux):
             df_arr["Sec_Arr"] = df_arr["Heure_Arrivee"].apply(convertir_en_secondes)
             df_arr["Sec_Excel"] = df_arr["Chrono_Excel"].apply(convertir_en_secondes)
 
-        # Assemblage final
         base = pd.merge(df_dep[["N°", "Run_Index", "Heure_Depart", "Sec_Dep"]], df_eng, on="N°", how="inner") if len(df_dep) > 0 else pd.DataFrame()
         if len(base) > 0 and len(df_arr) > 0:
             base = pd.merge(base, df_arr, on=["N°", "Run_Index"], how="left")
@@ -170,22 +221,20 @@ def extraire_engages(flux):
             base["Calc_Sec"] = base["Sec_Excel"].fillna((base["Sec_Arr"] - base["Sec_Dep"]).apply(lambda x: x + 3600 if (x is not None and not pd.isna(x) and x < 0) else x))
             base["Départ_C1"] = base["Heure_Depart"].apply(formater_heure_ecran)
 
-            # --- LA CLÉ DE L'AFFICHAGE REPRÉNSENTATIF ---
-            # On trie TOUT le tableau par l'heure de départ numérique décroissante (le plus récent en haut)
-            # Cela garantit que les couples départ/arrivée restent soudés, mais l'affichage s'empile correctement.
+            # Tri par heure de départ descendante : le plus récent se place en haut
             base_affichage = base.sort_values(by="Sec_Dep", ascending=False)
 
-            # 🏎️ SECTION EN DIRECT (Les 5 premiers de la liste affichée)
+            # 🏎️ EN DIRECT : Les 5 départs les plus récents, empilés du haut vers le bas
             df_live_base = base_affichage.head(5).copy()
             df_live_base["Chrono"] = df_live_base.apply(lambda r: calculer_statut_chrono(r, est_dans_le_live=True), axis=1)
             df_live_base["Arrivée_Brute"] = df_live_base["Heure_Arrivee"].apply(formater_heure_ecran)
             df_live = df_live_base[["N°", "Nom_Prenom", "Voiture", "Départ_C1", "Arrivée_Brute", "Chrono"]].rename(columns={"Départ_C1": "Départ", "Arrivée_Brute": "Arrivée"})
 
-            # 🕒 SECTION HISTORIQUE (Le reste de la liste, préservant l'ordre chronologique inverse)
+            # 🕒 HISTORIQUE : Le reste, glissant à la 1ère ligne dès l'éjection du direct
             base_historique = base_affichage.iloc[5:].copy()
             base_historique["Chrono_C1_Visual_Hist"] = base_historique.apply(lambda r: "En Piste" if pd.notna(r["Heure_Depart"]) and pd.isna(r["Heure_Arrivee"]) and pd.isna(r["Sec_Excel"]) else format_final_chrono(r["Calc_Sec"]) if pd.notna(r["Calc_Sec"]) and r["Calc_Sec"] > 0 else "No Time", axis=1)
             df_hist = base_historique[["N°", "Nom_Prenom", "Voiture", "Division", "Classe", "Chrono_C1_Visual_Hist"]].rename(columns={"Chrono_C1_Visual_Hist": "Chrono", "Division": "Division", "Classe": "Cl"})
-            # Traitement inchangé des classements officieux
+            # Suite des traitements de classements officieux
             valides = base[base["Calc_Sec"].notna() & (base["Calc_Sec"] > 0)].copy()
             if len(valides) > 0:
                 scr = valides.sort_values(by="Calc_Sec").drop_duplicates(subset=["N°"], keep="first").copy()
@@ -241,7 +290,8 @@ def extraire_engages(flux):
                             
                         html_blocs.append("</tbody></table>")
                         html_divisions = "".join(html_blocs)
-    except Exception: pass
+    except Exception:
+        pass
 
     t_live = "🏎️ EN DIRECT / Derniers Concurrents partis"
     t_his = "🕒 HISTORIQUE DES TEMPS / 2ème Course / Concurrents ASAF<span>↕️</span>"
