@@ -253,9 +253,9 @@ def recuperer_donnees_course():
                             for _, r_data in sub_df.iterrows():
                                 liste_lignes.append((r_data, cl_num))
 
-                        # 🎯 SEPARATION TEXTUELLE FINE : Suite ininterrompue de tirets bas fins forcé en bleu
-                        liste_tirets = "_" * 140
-                        separateur_bleu = f"<span style='color: #1E3A8A !important; font-size: 10px !important; font-weight: bold !important; line-height: 1 !important; display: block !important;'>{liste_tirets}</span>"
+                        # 🎯 LA SÉCURITÉ ABSOLUE : Utilisation d'une suite de blocs dont la couleur bleue est codée dans le caractère
+                        blocs_bleus = "🟦🟦🟦🟦🟦🟦🟦🟦🟦🟦🟦🟦🟦🟦🟦🟦🟦🟦🟦🟦🟦🟦🟦🟦🟦🟦🟦🟦🟦🟦🟦🟦🟦🟦🟦🟦🟦🟦🟦🟦"
+                        separateur_bleu = f"<small style='font-size: 2px; line-height: 1;'>{blocs_bleus}</small>"
 
                         for i in range(len(liste_lignes)):
                             r_data, cl_actuelle = liste_lignes[i]
@@ -263,7 +263,7 @@ def recuperer_donnees_course():
                             if i > 0:
                                 _, cl_precedente = liste_lignes[i - 1]
                                 if cl_actuelle != cl_precedente:
-                                    html_blocs.append(f"<tr><td colspan='6' style='padding: 0px 4px !important; margin: 0px !important; height: 12px !important; background-color: #FFFFFF !important; vertical-align: top !important;'>{separateur_bleu}</td></tr>")
+                                    html_blocs.append(f"<tr><td colspan='6' style='padding: 0px !important; margin: 0px !important; height: 4px !important; background-color: #FFFFFF !important; text-align: center; vertical-align: middle;'>{separateur_bleu}</td></tr>")
                             
                             html_blocs.append("<tr>")
                             for cell in r_data:
