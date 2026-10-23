@@ -178,14 +178,16 @@ def recuperer_donnees_course():
         idx_dep_racb, idx_arr_racb = None, None
         for c in range(len(df_dep_raw.columns)):
             val = str(df_dep_raw.iloc[1, c]).strip().upper()
-            if "COURSE 1 ASAF" in val: idx_dep_asaf = c
-            elif "COURSE 1 RACB" in val: idx_dep_racb = c
+            # 🎯 CIBLAGE STRICT DE LA COURSE 2 POUR LES DÉPARTS
+            if "COURSE 2 ASAF" in val: idx_dep_asaf = c
+            elif "COURSE 2 RACB" in val: idx_dep_racb = c
         for c in range(len(df_arr_raw.columns)):
             val = str(df_arr_raw.iloc[1, c]).strip().upper()
-            if "COURSE 1 ASAF" in val: idx_arr_asaf = c
-            elif "COURSE 1 RACB" in val: idx_arr_racb = c
+            # 🎯 CIBLAGE STRICT DE LA COURSE 2 POUR LES ARRIVÉES
+            if "COURSE 2 ASAF" in val: idx_arr_asaf = c
+            elif "COURSE 2 RACB" in val: idx_arr_racb = c
 
-        # Extraction des départs (Ordre naturel stable)
+        # Extraction des départs (Course 2)
         d_asaf = pd.DataFrame({"N°": df_dep_raw.iloc[2:, idx_dep_asaf].apply(nettoyer_numero), "Heure_Depart": df_dep_raw.iloc[2:, idx_dep_asaf + 1]}) if idx_dep_asaf is not None else pd.DataFrame(columns=["N°", "Heure_Depart"])
         d_asaf = d_asaf[d_asaf["N°"].isin(liste_numeros_asaf)].copy()
         
@@ -196,7 +198,7 @@ def recuperer_donnees_course():
         df_dep = df_dep[(df_dep["N°"] != "NAN") & (df_dep["N°"] != "")]
         df_dep["Run_Index"] = df_dep.groupby("N°").cumcount() + 1
 
-        # Extraction des Arrivées
+        # Extraction des Arrivées (Course 2)
         a_asaf = pd.DataFrame({"N°": df_arr_raw.iloc[2:, idx_arr_asaf].apply(nettoyer_numero), "Heure_Arrivee": df_arr_raw.iloc[2:, idx_arr_asaf + 2], "Chrono_Excel": df_arr_raw.iloc[2:, idx_arr_asaf + 3]}) if idx_arr_asaf is not None else pd.DataFrame(columns=["N°", "Heure_Arrivee", "Chrono_Excel"])
         a_asaf = a_asaf[a_asaf["N°"].isin(liste_numeros_asaf)]
 
@@ -221,20 +223,20 @@ def recuperer_donnees_course():
             base["Calc_Sec"] = base["Sec_Excel"].fillna((base["Sec_Arr"] - base["Sec_Dep"]).apply(lambda x: x + 3600 if (x is not None and not pd.isna(x) and x < 0) else x))
             base["Départ_C1"] = base["Heure_Depart"].apply(formater_heure_ecran)
 
-            # Tri par heure de départ descendante : le plus récent se place en haut
+            # Tri par heure de départ numérique descendante pour l'empilement stable de la Course 2
             base_affichage = base.sort_values(by="Sec_Dep", ascending=False)
 
-            # 🏎️ EN DIRECT : Les 5 départs les plus récents, empilés du haut vers le bas
+            # 🏎️ EN DIRECT : Les 5 départs Course 2 les plus récents, empilés à la chaîne
             df_live_base = base_affichage.head(5).copy()
             df_live_base["Chrono"] = df_live_base.apply(lambda r: calculer_statut_chrono(r, est_dans_le_live=True), axis=1)
             df_live_base["Arrivée_Brute"] = df_live_base["Heure_Arrivee"].apply(formater_heure_ecran)
             df_live = df_live_base[["N°", "Nom_Prenom", "Voiture", "Départ_C1", "Arrivée_Brute", "Chrono"]].rename(columns={"Départ_C1": "Départ", "Arrivée_Brute": "Arrivée"})
 
-            # 🕒 HISTORIQUE : Le reste, glissant à la 1ère ligne dès l'éjection du direct
+            # 🕒 HISTORIQUE : Le reste de la Course 2 qui glisse vers le bas à l'éjection
             base_historique = base_affichage.iloc[5:].copy()
             base_historique["Chrono_C1_Visual_Hist"] = base_historique.apply(lambda r: "En Piste" if pd.notna(r["Heure_Depart"]) and pd.isna(r["Heure_Arrivee"]) and pd.isna(r["Sec_Excel"]) else format_final_chrono(r["Calc_Sec"]) if pd.notna(r["Calc_Sec"]) and r["Calc_Sec"] > 0 else "No Time", axis=1)
             df_hist = base_historique[["N°", "Nom_Prenom", "Voiture", "Division", "Classe", "Chrono_C1_Visual_Hist"]].rename(columns={"Chrono_C1_Visual_Hist": "Chrono", "Division": "Division", "Classe": "Cl"})
-            # Suite des traitements de classements officieux
+            # Classements évolutifs mis à jour avec les chronos de la Course 2
             valides = base[base["Calc_Sec"].notna() & (base["Calc_Sec"] > 0)].copy()
             if len(valides) > 0:
                 scr = valides.sort_values(by="Calc_Sec").drop_duplicates(subset=["N°"], keep="first").copy()
