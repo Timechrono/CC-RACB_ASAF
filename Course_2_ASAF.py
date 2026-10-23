@@ -51,9 +51,9 @@ st.markdown("""
     .table-compacte th { font-weight: bold !important; background-color: #F5F5F5 !important; border-bottom: 2px solid #CCCCCC !important; text-align: left !important; }
     .table-class-robuste tr:nth-child(odd) td { background-color: #E0F2FE !important; }
 
-    /* 🔵 STYLE PROPRE RECONNU PAR LE CHANGERMENT DE CLASSE DANS LE TABLEAU DES DIVISIONS */
-    .ligne-bleue-separation td {
-        border-bottom: 3px solid #1E3A8A !important;
+    /* 🔵 CORRECTION CSS ABSOLUE : Force l'affichage du bas des cellules pour masquer le trait gris par défaut */
+    .table-class-groupes tr.ligne-bleue-separation td {
+        border-bottom: 4px solid #1E3A8A !important;
     }
     </style>
 """, unsafe_allow_html=True)
@@ -240,7 +240,6 @@ def recuperer_donnees_course():
                 if len(scr_div_filtree) > 0:
                     scr_div_filtree["Classe_Num"] = pd.to_numeric(scr_div_filtree["Classe"], errors='coerce').fillna(999)
                     
-                    # Tri strict par Division puis par numéro de Classe (Cl) pour aligner les ruptures
                     df_grouped = scr_div_filtree.sort_values(by=["Division_Clean", "Classe_Num", "Calc_Sec"])
                     df_grouped = df_grouped.groupby(["Division_Clean", "Classe_Num"]).head(3).copy()
                     
@@ -249,17 +248,15 @@ def recuperer_donnees_course():
                         html_blocs.append("<table class='table-compacte table-class-groupes'><thead><tr><th>Pos</th><th>N°</th><th>Nom_Prenom</th><th>Division</th><th>Cl</th><th>Chrono</th></tr></thead><tbody>")
                         
                         liste_lignes = []
-                        # Indexation globale pour détecter le changement de Classe "Cl" sur la ligne suivante
                         for (div, cl_num), group in df_grouped.groupby(["Division_Clean", "Classe_Num"], sort=False):
                             group = group.copy()
                             group["Pos"] = range(1, len(group) + 1)
                             group["Chrono"] = group["Calc_Sec"].apply(format_final_chrono)
                             sub_df = group[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]].rename(columns={"Division": "Division", "Classe": "Cl"})
                             for _, r_data in sub_df.iterrows():
-                                idx_global = len(liste_lignes)
                                 liste_lignes.append((r_data, cl_num))
 
-                        # Boucle de génération HTML avec détection de changement de Classe (Cl) entre la ligne courante et la suivante
+                        # Parcours des éléments : injection stricte de .ligne-bleue-separation
                         for i in range(len(liste_lignes)):
                             r_data, cl_actuelle = liste_lignes[i]
                             style_tr = ""
