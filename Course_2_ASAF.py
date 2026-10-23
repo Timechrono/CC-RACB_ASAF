@@ -253,14 +253,16 @@ def recuperer_donnees_course():
                             for _, r_data in sub_df.iterrows():
                                 liste_lignes.append((r_data, cl_num))
 
-                        # 🛠️ AJUSTEMENT INFAILLIBLE : Remplacement de <hr> par un <div> avec une couleur de fond brute
+                        # 🎯 LA MÉTHODE ULTIME : Affichage d'un bloc d'image brut bleu marine (#1E3A8A) impossible à censurer ou blanchir
+                        img_bleue_base64 = "data:image/svg+xml;utf8,<svg xmlns='http://w3.org' width='100' height='4'><rect width='100' height='4' fill='%231E3A8A'/></svg>"
+
                         for i in range(len(liste_lignes)):
                             r_data, cl_actuelle = liste_lignes[i]
                             
                             if i > 0:
                                 _, cl_precedente = liste_lignes[i - 1]
                                 if cl_actuelle != cl_precedente:
-                                    html_blocs.append("<tr><td colspan='6' style='padding: 2px 0px !important; background-color: #FFFFFF !important;'><div style='height: 3px !important; width: 100% !important; background-color: #1E3A8A !important;'></div></td></tr>")
+                                    html_blocs.append(f"<tr><td colspan='6' style='padding: 0px !important; margin: 0px !important; line-height: 0 !important; height: 4px !important; background-color: #FFFFFF !important;'><img src='{img_bleue_base64}' style='width: 100% !important; height: 4px !important; display: block !important; margin: 0px !important; padding: 0px !important;'></td></tr>")
                             
                             html_blocs.append("<tr>")
                             for cell in r_data:
