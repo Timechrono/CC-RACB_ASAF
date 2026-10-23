@@ -253,14 +253,14 @@ def recuperer_donnees_course():
                             for _, r_data in sub_df.iterrows():
                                 liste_lignes.append((r_data, cl_num))
 
-                        # 🛠️ STRATÉGIE PARFAITE : Insertion physique d'une ligne d'espacement avec séparateur graphique <hr> bleu
+                        # 🛠️ AJUSTEMENT INFAILLIBLE : Remplacement de <hr> par un <div> avec une couleur de fond brute
                         for i in range(len(liste_lignes)):
                             r_data, cl_actuelle = liste_lignes[i]
                             
                             if i > 0:
                                 _, cl_precedente = liste_lignes[i - 1]
                                 if cl_actuelle != cl_precedente:
-                                    html_blocs.append("<tr><td colspan='6' style='padding: 2px 0px !important; background-color: #FFFFFF !important;'><hr style='margin: 0px !important; border: none !important; border-top: 3px solid #1E3A8A !important; opacity: 1 !important;'></td></tr>")
+                                    html_blocs.append("<tr><td colspan='6' style='padding: 2px 0px !important; background-color: #FFFFFF !important;'><div style='height: 3px !important; width: 100% !important; background-color: #1E3A8A !important;'></div></td></tr>")
                             
                             html_blocs.append("<tr>")
                             for cell in r_data:
