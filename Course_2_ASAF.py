@@ -253,9 +253,9 @@ def recuperer_donnees_course():
                             for _, r_data in sub_df.iterrows():
                                 liste_lignes.append((r_data, cl_num))
 
-                        # Blocs de texte plats empilés avec forçage de taille stricte (4px)
+                        # 🎯 TRICHE GÉOMÉTRIQUE : Écrasement vertical à 50% (transform: scaleY(0.5)) pour forcer une épaisseur de 2px
                         caractere_trait_plat = "\u25AC" * 160
-                        separateur_bleu = f"<span style='color: #1E3A8A; font-size: 4px !important; line-height: 4px !important; display: block !important;'>{caractere_trait_plat}</span>"
+                        separateur_bleu = f"<span style='color: #1E3A8A; font-size: 4px !important; line-height: 2px !important; display: block !important; transform: scaleY(0.5) !important; transform-origin: top !important;'>{caractere_trait_plat}</span>"
 
                         for i in range(len(liste_lignes)):
                             r_data, cl_actuelle = liste_lignes[i]
@@ -263,7 +263,7 @@ def recuperer_donnees_course():
                             if i > 0:
                                 _, cl_precedente = liste_lignes[i - 1]
                                 if cl_actuelle != cl_precedente:
-                                    html_blocs.append(f"<tr><td colspan='6' style='padding: 0px !important; margin: 0px !important; line-height: 4px !important; height: 4px !important; font-size: 4px !important; background-color: #FFFFFF !important;'>{separateur_bleu}</td></tr>")
+                                    html_blocs.append(f"<tr><td colspan='6' style='padding: 0px !important; margin: 0px !important; line-height: 2px !important; height: 2px !important; font-size: 4px !important; background-color: #FFFFFF !important;'>{separateur_bleu}</td></tr>")
                             
                             html_blocs.append("<tr>")
                             for cell in r_data:
