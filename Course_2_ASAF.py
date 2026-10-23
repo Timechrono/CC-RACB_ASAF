@@ -253,8 +253,8 @@ def recuperer_donnees_course():
                             for _, r_data in sub_df.iterrows():
                                 liste_lignes.append((r_data, cl_num))
 
-                        # 🎯 LA MÉTHODE ULTIME : Affichage d'un bloc d'image brut bleu marine (#1E3A8A) impossible à censurer ou blanchir
-                        img_bleue_base64 = "data:image/svg+xml;utf8,<svg xmlns='http://w3.org' width='100' height='4'><rect width='100' height='4' fill='%231E3A8A'/></svg>"
+                        # Bloc continu de caractères bleus pour simuler une ligne continue sans aucune balise bloquante
+                        separateur_bleu = "<span style='color: #1E3A8A; font-weight: bold;'>██████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████</span>"
 
                         for i in range(len(liste_lignes)):
                             r_data, cl_actuelle = liste_lignes[i]
@@ -262,7 +262,7 @@ def recuperer_donnees_course():
                             if i > 0:
                                 _, cl_precedente = liste_lignes[i - 1]
                                 if cl_actuelle != cl_precedente:
-                                    html_blocs.append(f"<tr><td colspan='6' style='padding: 0px !important; margin: 0px !important; line-height: 0 !important; height: 4px !important; background-color: #FFFFFF !important;'><img src='{img_bleue_base64}' style='width: 100% !important; height: 4px !important; display: block !important; margin: 0px !important; padding: 0px !important;'></td></tr>")
+                                    html_blocs.append(f"<tr><td colspan='6' style='padding: 0px !important; margin: 0px !important; font-size: 4px !important; line-height: 1 !important; height: 4px !important;'>{separateur_bleu}</td></tr>")
                             
                             html_blocs.append("<tr>")
                             for cell in r_data:
