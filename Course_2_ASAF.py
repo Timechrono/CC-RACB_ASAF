@@ -253,18 +253,18 @@ def recuperer_donnees_course():
                             for _, r_data in sub_df.iterrows():
                                 liste_lignes.append((r_data, cl_num))
 
-                        # 🎯 LA SÉCURITÉ ABSOLUE : On applique une bordure SUPÉRIEURE (border-top) sur la première ligne du groupe suivant (zone libre de conflit CSS)
+                        # 🛠️ STRATÉGIE PARFAITE : Insertion physique d'une ligne d'espacement avec séparateur graphique <hr> bleu
                         for i in range(len(liste_lignes)):
                             r_data, cl_actuelle = liste_lignes[i]
-                            style_cellule = ""
+                            
                             if i > 0:
                                 _, cl_precedente = liste_lignes[i - 1]
                                 if cl_actuelle != cl_precedente:
-                                    style_cellule = "style='border-top: 4px solid #1E3A8A !important;'"
+                                    html_blocs.append("<tr><td colspan='6' style='padding: 2px 0px !important; background-color: #FFFFFF !important;'><hr style='margin: 0px !important; border: none !important; border-top: 3px solid #1E3A8A !important; opacity: 1 !important;'></td></tr>")
                             
                             html_blocs.append("<tr>")
                             for cell in r_data:
-                                html_blocs.append(f"<td {style_cellule}>{cell}</td>")
+                                html_blocs.append(f"<td>{cell}</td>")
                             html_blocs.append("</tr>")
                             
                         html_blocs.append("</tbody></table>")
