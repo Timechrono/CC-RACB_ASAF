@@ -178,16 +178,14 @@ def recuperer_donnees_course():
         idx_dep_racb, idx_arr_racb = None, None
         for c in range(len(df_dep_raw.columns)):
             val = str(df_dep_raw.iloc[1, c]).strip().upper()
-            # 🎯 CIBLAGE STRICT DE LA COURSE 2 POUR LES DÉPARTS
             if "COURSE 2 ASAF" in val: idx_dep_asaf = c
             elif "COURSE 2 RACB" in val: idx_dep_racb = c
         for c in range(len(df_arr_raw.columns)):
             val = str(df_arr_raw.iloc[1, c]).strip().upper()
-            # 🎯 CIBLAGE STRICT DE LA COURSE 2 POUR LES ARRIVÉES
             if "COURSE 2 ASAF" in val: idx_arr_asaf = c
             elif "COURSE 2 RACB" in val: idx_arr_racb = c
 
-        # Extraction des départs (Course 2)
+        # Extraction de l'ordre de départ brut (Suivant strictement la position dans le fichier)
         d_asaf = pd.DataFrame({"N°": df_dep_raw.iloc[2:, idx_dep_asaf].apply(nettoyer_numero), "Heure_Depart": df_dep_raw.iloc[2:, idx_dep_asaf + 1]}) if idx_dep_asaf is not None else pd.DataFrame(columns=["N°", "Heure_Depart"])
         d_asaf = d_asaf[d_asaf["N°"].isin(liste_numeros_asaf)].copy()
         
@@ -196,9 +194,11 @@ def recuperer_donnees_course():
 
         df_dep = pd.concat([d_asaf, d_racb])
         df_dep = df_dep[(df_dep["N°"] != "NAN") & (df_dep["N°"] != "")]
+        
+        # Attribution de l'index d'occurrence basé sur l'ordre de saisie réel (du haut vers le bas dans Excel)
         df_dep["Run_Index"] = df_dep.groupby("N°").cumcount() + 1
 
-        # Extraction des Arrivées (Course 2)
+        # Extraction des Arrivées
         a_asaf = pd.DataFrame({"N°": df_arr_raw.iloc[2:, idx_arr_asaf].apply(nettoyer_numero), "Heure_Arrivee": df_arr_raw.iloc[2:, idx_arr_asaf + 2], "Chrono_Excel": df_arr_raw.iloc[2:, idx_arr_asaf + 3]}) if idx_arr_asaf is not None else pd.DataFrame(columns=["N°", "Heure_Arrivee", "Chrono_Excel"])
         a_asaf = a_asaf[a_asaf["N°"].isin(liste_numeros_asaf)]
 
@@ -215,6 +215,7 @@ def recuperer_donnees_course():
             df_arr["Sec_Arr"] = df_arr["Heure_Arrivee"].apply(convertir_en_secondes)
             df_arr["Sec_Excel"] = df_arr["Chrono_Excel"].apply(convertir_en_secondes)
 
+        # Liaison départ/arrivée stable basée sur la position physique d'origine
         base = pd.merge(df_dep[["N°", "Run_Index", "Heure_Depart", "Sec_Dep"]], df_eng, on="N°", how="inner") if len(df_dep) > 0 else pd.DataFrame()
         if len(base) > 0 and len(df_arr) > 0:
             base = pd.merge(base, df_arr, on=["N°", "Run_Index"], how="left")
@@ -223,20 +224,21 @@ def recuperer_donnees_course():
             base["Calc_Sec"] = base["Sec_Excel"].fillna((base["Sec_Arr"] - base["Sec_Dep"]).apply(lambda x: x + 3600 if (x is not None and not pd.isna(x) and x < 0) else x))
             base["Départ_C1"] = base["Heure_Depart"].apply(formater_heure_ecran)
 
-            # Tri par heure de départ numérique descendante pour l'empilement stable de la Course 2
-            base_affichage = base.sort_values(by="Sec_Dep", ascending=False)
+            # --- EMPILEMENT SANS TRI NUMÉRIQUE ---
+            # On inverse simplement l'ordre physique du tableau complet : les lignes du bas d'Excel passent en haut de la pile.
+            base_pile = base.iloc[::-1].copy()
 
-            # 🏎️ EN DIRECT : Les 5 départs Course 2 les plus récents, empilés à la chaîne
-            df_live_base = base_affichage.head(5).copy()
+            # 🏎️ EN DIRECT : On prend les 5 premières lignes de la pile inversée (donc les 5 derniers départs saisis)
+            df_live_base = base_pile.head(5).copy()
             df_live_base["Chrono"] = df_live_base.apply(lambda r: calculer_statut_chrono(r, est_dans_le_live=True), axis=1)
             df_live_base["Arrivée_Brute"] = df_live_base["Heure_Arrivee"].apply(formater_heure_ecran)
             df_live = df_live_base[["N°", "Nom_Prenom", "Voiture", "Départ_C1", "Arrivée_Brute", "Chrono"]].rename(columns={"Départ_C1": "Départ", "Arrivée_Brute": "Arrivée"})
 
-            # 🕒 HISTORIQUE : Le reste de la Course 2 qui glisse vers le bas à l'éjection
-            base_historique = base_affichage.iloc[5:].copy()
+            # 🕒 HISTORIQUE : On prend tout le reste de la pile à partir de la 6ème ligne, sans re-trier
+            base_historique = base_pile.iloc[5:].copy()
             base_historique["Chrono_C1_Visual_Hist"] = base_historique.apply(lambda r: "En Piste" if pd.notna(r["Heure_Depart"]) and pd.isna(r["Heure_Arrivee"]) and pd.isna(r["Sec_Excel"]) else format_final_chrono(r["Calc_Sec"]) if pd.notna(r["Calc_Sec"]) and r["Calc_Sec"] > 0 else "No Time", axis=1)
             df_hist = base_historique[["N°", "Nom_Prenom", "Voiture", "Division", "Classe", "Chrono_C1_Visual_Hist"]].rename(columns={"Chrono_C1_Visual_Hist": "Chrono", "Division": "Division", "Classe": "Cl"})
-            # Classements évolutifs mis à jour avec les chronos de la Course 2
+            # Traitement des classements par groupe/classe (Eux conservent leur tri par performance)
             valides = base[base["Calc_Sec"].notna() & (base["Calc_Sec"] > 0)].copy()
             if len(valides) > 0:
                 scr = valides.sort_values(by="Calc_Sec").drop_duplicates(subset=["N°"], keep="first").copy()
