@@ -253,17 +253,15 @@ def recuperer_donnees_course():
                             for _, r_data in sub_df.iterrows():
                                 liste_lignes.append((r_data, cl_num))
 
-                        # 🎯 TRICHE GÉOMÉTRIQUE : Écrasement vertical à 50% (transform: scaleY(0.5)) pour forcer une épaisseur de 2px
-                        caractere_trait_plat = "\u25AC" * 160
-                        separateur_bleu = f"<span style='color: #1E3A8A; font-size: 4px !important; line-height: 2px !important; display: block !important; transform: scaleY(0.5) !important; transform-origin: top !important;'>{caractere_trait_plat}</span>"
-
+                        # 🎯 TRICHE VISUELLE : On utilise une chaîne transparente (&nbsp;) mais on dessine une vraie bordure de 2px sur la cellule.
+                        # Le navigateur applique sa hauteur de texte par défaut, mais visuellement cela crée une ligne de 2px sur fond blanc.
                         for i in range(len(liste_lignes)):
                             r_data, cl_actuelle = liste_lignes[i]
                             
                             if i > 0:
                                 _, cl_precedente = liste_lignes[i - 1]
                                 if cl_actuelle != cl_precedente:
-                                    html_blocs.append(f"<tr><td colspan='6' style='padding: 0px !important; margin: 0px !important; line-height: 2px !important; height: 2px !important; font-size: 4px !important; background-color: #FFFFFF !important;'>{separateur_bleu}</td></tr>")
+                                    html_blocs.append("<tr><td colspan='6' style='padding: 0px !important; margin: 0px !important; height: 2px !important; line-height: 2px !important; font-size: 2px !important; background-color: #FFFFFF !important; border-bottom: 2px solid #1E3A8A !important;'>&nbsp;</td></tr>")
                             
                             html_blocs.append("<tr>")
                             for cell in r_data:
