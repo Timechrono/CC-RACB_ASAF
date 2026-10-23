@@ -27,7 +27,7 @@ FILE_DEPART  = f"ht" + f"tps://{HOTE_PROT}/scl/fi/gbkaq01qzjujc8nq3zj28/LIVE_Tem
 FILE_ENGAGES_ASAF = f"ht" + f"tps://{HOTE_PROT}/scl/fi/wyof20d4bg4lbmnv0c7m5/LIVE_Liste_ENGAGES_ASAF.xlsm?rlkey=8q59lu88046nxu8mr8gs5ufvc&st=vny281ln&dl=1"
 FILE_ENGAGES_RACB = f"ht" + f"tps://{HOTE_PROT}/scl/fi/69zkwsb45bpiw3ys3kk4c/LIVE_Liste_ENGAGES_RACB.xlsm?rlkey=qpjrlmbxhcskifnabs84veqh8&st=0snuv3e7&dl=1"
 
-# Injection globale des styles CSS
+# Injection globale des styles CSS standards
 st.markdown("""
     <style>
     [data-testid="stHeader"] { display: none !important; }
@@ -50,11 +50,6 @@ st.markdown("""
     .table-compacte td { border-bottom: 1px solid #E0E0E0 !important; background-color: #FFFFFF !important; }
     .table-compacte th { font-weight: bold !important; background-color: #F5F5F5 !important; border-bottom: 2px solid #CCCCCC !important; text-align: left !important; }
     .table-class-robuste tr:nth-child(odd) td { background-color: #E0F2FE !important; }
-
-    /* 🔵 CORRECTION CSS ABSOLUE : Force l'affichage du bas des cellules pour masquer le trait gris par défaut */
-    .table-class-groupes tr.ligne-bleue-separation td {
-        border-bottom: 4px solid #1E3A8A !important;
-    }
     </style>
 """, unsafe_allow_html=True)
 @st.cache_data(ttl=30)
@@ -234,7 +229,7 @@ def recuperer_donnees_course():
                 if len(asaf4) > 0:
                     asaf4["Pos"] = range(1, len(asaf4) + 1)
                     asaf4["Chrono"] = asaf4["Calc_Sec"].apply(format_final_chrono)
-                    df_asaf4 = asaf4[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]].rename(columns={"Division": "Division", "Classe": "Cl"})
+                    df_asaf4 = a_asaf4 = asaf4[["Pos", "N°", "Nom_Prenom", "Division", "Classe", "Chrono"]].rename(columns={"Division": "Division", "Classe": "Cl"})
 
                 scr_div_filtree = scr[scr["Division_Clean"].isin(["1", "2", "3", "4", "1.0", "2.0", "3.0", "4.0"])].copy()
                 if len(scr_div_filtree) > 0:
@@ -245,7 +240,7 @@ def recuperer_donnees_course():
                     
                     if len(df_grouped) > 0:
                         html_blocs = []
-                        html_blocs.append("<table class='table-compacte table-class-groupes'><thead><tr><th>Pos</th><th>N°</th><th>Nom_Prenom</th><th>Division</th><th>Cl</th><th>Chrono</th></tr></thead><tbody>")
+                        html_blocs.append("<table class='table-compacte'><thead><tr><th>Pos</th><th>N°</th><th>Nom_Prenom</th><th>Division</th><th>Cl</th><th>Chrono</th></tr></thead><tbody>")
                         
                         liste_lignes = []
                         for (div, cl_num), group in df_grouped.groupby(["Division_Clean", "Classe_Num"], sort=False):
@@ -256,18 +251,18 @@ def recuperer_donnees_course():
                             for _, r_data in sub_df.iterrows():
                                 liste_lignes.append((r_data, cl_num))
 
-                        # Parcours des éléments : injection stricte de .ligne-bleue-separation
+                        # 🎯 LA SÉCURITÉ ABSOLUE : Injecter le style CSS inline directement sur chaque cellule de la ligne en cas de rupture de "Cl"
                         for i in range(len(liste_lignes)):
                             r_data, cl_actuelle = liste_lignes[i]
-                            style_tr = ""
+                            style_cellule = ""
                             if i < len(liste_lignes) - 1:
                                 _, cl_suivante = liste_lignes[i + 1]
                                 if cl_actuelle != cl_suivante:
-                                    style_tr = "class='ligne-bleue-separation'"
+                                    style_cellule = "style='border-bottom: 3px solid #1E3A8A !important;'"
                             
-                            html_blocs.append(f"<tr {style_tr}>")
+                            html_blocs.append("<tr>")
                             for cell in r_data:
-                                html_blocs.append(f"<td>{cell}</td>")
+                                html_blocs.append(f"<td {style_cellule}>{cell}</td>")
                             html_blocs.append("</tr>")
                             
                         html_blocs.append("</tbody></table>")
