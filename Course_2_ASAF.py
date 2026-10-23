@@ -275,7 +275,7 @@ def recuperer_donnees_course():
     except Exception: pass
 
     t_live = "🏎️ EN DIRECT / Derniers Concurrents partis"
-    t_his = "🕒 HISTORIQUE DES TEMPS / 1er Course / Concurrents ASAF<span>↕️</span>"
+    t_his = "🕒 HISTORIQUE DES TEMPS / 2ème Course / Concurrents ASAF<span>↕️</span>"
     t_haut = "🏆 CLASSEMENT EVOLUTIF OFFICIEUX Division 123<span>↕️</span>"
     t_milieu = "🏆 CLASSEMENT EVOLUTIF OFFICIEUX Division 4<span>↕️</span>"
     t_bas = "🏆 CLASSEMENT EVOLUTIF OFFICIEUX PAR Div/Cl (Top 3)<span>↕️</span>"
