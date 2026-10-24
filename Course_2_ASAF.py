@@ -211,6 +211,45 @@ def recuperer_donnees_course():
             df_eng_raw = pd.read_excel(file_engages_bytes, header=1, engine='openpyxl')
             df_dep_raw = pd.read_excel(file_depart_bytes, header=None, engine='openpyxl')
             df_arr_raw = pd.read_excel(file_arrivee_bytes, header=None, engine='openpyxl')
+            
+            idx_dep_1, idx_arr_1, idx_dep_2, idx_arr_2 = None, None, None, None
+            
+            # 🔍 RECHERCHE DOUBLE CRITÈRE (ASAF EN PRIORITÉ, RACB EN REPLI)
+            for c_idx in range(len(df_dep_raw.columns)):
+                val = str(df_dep_raw.iloc[1, c_idx]).strip().upper()
+                if "COURSE 1 ASAF" in val: idx_dep_1 = c_idx
+                elif "COURSE 1 RACB" in val and idx_dep_1 is None: idx_dep_1 = c_idx
+                elif "COURSE 2 ASAF" in val: idx_dep_2 = c_idx
+                elif "COURSE 2 RACB" in val and idx_dep_2 is None: idx_dep_2 = c_idx
+
+            for c_idx in range(len(df_arr_raw.columns)):
+                val = str(df_arr_raw.iloc[1, c_idx]).strip().upper()
+                if "COURSE 1 ASAF" in val: idx_arr_1 = c_idx
+                elif "COURSE 1 RACB" in val and idx_arr_1 is None: idx_arr_1 = c_idx
+                elif "COURSE 2 ASAF" in val: idx_arr_2 = c_idx
+                elif "COURSE 2 RACB" in val and idx_arr_2 is None: idx_arr_2 = c_idx
+
+            df_dep2 = pd.DataFrame({"N°": df_dep_raw.iloc[2:, idx_dep_2].apply(nettoyer_numero), "Heure_Depart_2": df_dep_raw.iloc[2:, idx_dep_2 + 1]}) if idx_dep_2 is not None else pd.DataFrame(columns=["N°", "Heure_Depart_2"])
+            df_arr2 = pd.DataFrame({"N°": df_arr_raw.iloc[2:, idx_arr_2].apply(nettoyer_numero), "Heure_Arrivee_2": df_arr_raw.iloc[2:, idx_arr_2 + 2]}) if idx_arr_2 is not None else pd.DataFrame(columns=["N°", "Heure_Arrivee_2"])
+            df_dep1 = pd.DataFrame({"N°": df_dep_raw.iloc[2:, idx_dep_1].apply(nettoyer_numero), "Heure_Depart_1": df_dep_raw.iloc[2:, idx_dep_1 + 1]}) if idx_dep_1 is not None else pd.DataFrame(columns=["N°", "Heure_Depart_1"])
+            df_arr1 = pd.DataFrame({"N°": df_arr_raw.iloc[2:, idx_arr_1].apply(nettoyer_numero), "Heure_Arrivee_1": df_arr_raw.iloc[2:, idx_arr_1 + 2]}) if idx_arr_1 is not None else pd.DataFrame(columns=["N°", "Heure_Arrivee_1"])
+            
+            df_eng_raw.columns = df_eng_raw.columns.astype(str).str.strip().str.upper()
+            df_eng = pd.DataFrame({"N°": df_eng_raw.iloc[:, 0].apply(nettoyer_numero), 
+                                   "Nom_Prenom": df_eng_raw.iloc[:, 1].fillna("Pilote Inconnu").astype(str).str.strip(),
+                                   "Voiture": df_eng_raw.iloc[:, 4].fillna("").astype(str).str.strip(),
+                                   "Groupe": df_eng_raw.iloc[:, 5].apply(lambda x: "-" if pd.isna(x) else str(x).strip()[:-2] if str(x).strip().endswith(".0") else str(x).strip()),
+                                   "Classe": df_eng_raw.iloc[:, 6].fillna("-").astype(str).str.strip().apply(lambda x: x[:-2] if x.endswith(".0") else x)})
+            df_eng = df_eng[df_eng["N°"] != "NAN"].drop_duplicates(subset=["N°"])
+        except:
+            pass
+
+
+    if fichiers_prets:
+        try:
+            df_eng_raw = pd.read_excel(file_engages_bytes, header=1, engine='openpyxl')
+            df_dep_raw = pd.read_excel(file_depart_bytes, header=None, engine='openpyxl')
+            df_arr_raw = pd.read_excel(file_arrivee_bytes, header=None, engine='openpyxl')
             idx_dep_1, idx_arr_1, idx_dep_2, idx_arr_2 = None, None, None, None
             for c_idx in range(len(df_dep_raw.columns)):
                 val = str(df_dep_raw.iloc[1, c_idx]).strip().upper()
