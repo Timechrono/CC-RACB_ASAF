@@ -240,6 +240,7 @@ def recuperer_donnees_course():
             df_arr1 = pd.concat(arr1_list, ignore_index=True) if arr1_list else pd.DataFrame(columns=["N°", "Heure_Arrivee_1"])
             df_dep2 = pd.concat(dep2_list, ignore_index=True) if dep2_list else pd.DataFrame(columns=["N°", "Heure_Depart_2"])
             df_arr2 = pd.concat(arr2_list, ignore_index=True) if arr2_list else pd.DataFrame(columns=["N°", "Heure_Arrivee_2"])
+            
             # --- NETTOYAGE ET SÉCURISATION DES DONNÉES ---
             df_dep1 = df_dep1[(df_dep1["N°"] != "NAN") & (df_dep1["N°"] != "")].drop_duplicates(subset=["N°"], keep="last")
             df_arr1 = df_arr1[(df_arr1["N°"] != "NAN") & (df_arr1["N°"] != "")].drop_duplicates(subset=["N°"], keep="last")
@@ -264,19 +265,23 @@ def recuperer_donnees_course():
                 df_hist_base = pd.DataFrame(columns=base.columns)
                 df_live = pd.DataFrame(columns=["N°", "Nom_Prenom", "Voiture", "Départ", "Arrivée", "Chrono réalisé"])
 
-                base["Tri_Chronologique"] = base["Heure_Depart_2"].fillna(base["Heure_Depart_1"])
-                tous_chronos_recents = base[base["Tri_Chronologique"].notna()].sort_values(by="Tri_Chronologique", ascending=False).copy()
+                # On mémorise l'ordre d'arrivée brut des fichiers Excel (les derniers arrivés sont en bas)
+                # En triant par cet index en mode décroissant, le tout dernier arrivé monte automatiquement au-dessus
+                base["Ordre_Arrivee_Brut"] = range(len(base))
+                tous_chronos_recents = base[(base["Heure_Depart_2"].notna()) | (base["Heure_Depart_1"].notna())].sort_values(by="Ordre_Arrivee_Brut", ascending=False).copy()
 
                 if "Heure_Depart_2" in base.columns and base["Heure_Depart_2"].notna().any():
+                    # En direct : prend les 5 premiers de la pile (les 5 plus récents ajoutés)
                     df_live_base = tous_chronos_recents.head(5).copy()
                     df_live_base["Chrono réalisé"] = df_live_base.apply(lambda r: calculer_statut_chrono(r, est_dans_le_live=True), axis=1)
                     df_live_base["Départ_Visuel"] = df_live_base["Heure_Depart_2"].fillna(df_live_base["Heure_Depart_1"]).apply(formater_heure_ecran)
                     df_live_base["Arrivée_Visuel"] = df_live_base["Heure_Arrivee_2"].fillna(df_live_base["Heure_Arrivee_1"]).apply(formater_heure_ecran)
                     df_live = df_live_base[["N°", "Nom_Prenom", "Voiture", "Départ_Visuel", "Arrivée_Visuel", "Chrono réalisé"]].rename(columns={"Départ_Visuel": "Départ", "Arrivée_Visuel": "Arrivée"})
 
+                    # Historique : prend le reste de la pile, conservant l'effet de recul des anciens concurrents
                     df_hist_base = tous_chronos_recents.iloc[5:].copy() if len(tous_chronos_recents) > 5 else tous_chronos_recents.copy()
                 else:
-                    df_hist_base = base.assign(Ordre_Saisie=range(len(base))).sort_values(by="Ordre_Saisie", ascending=False).copy()
+                    df_hist_base = tous_chronos_recents.copy()
                 
                 html_hist = "<div class='zone-defilement-tactile'>"
                 html_hist += "<table class='table-compacte table-hist'><thead><tr><th>N°</th><th>Nom_Prenom</th><th>Voiture</th><th>Groupe</th><th>Cl</th><th>Course 1</th><th>Chrono</th></tr></thead><tbody>"
