@@ -356,10 +356,15 @@ def recuperer_donnees_course():
                     valides["Meilleur_Sec"] = valides[cols_calcul].min(axis=1, skipna=True)
                     scr = valides.sort_values(by="Meilleur_Sec").drop_duplicates(subset=["N°"], keep="first").copy()
                     
+                    # Modification ciblée sur le Premier Tableau de droite (df_racb) :
                     racb = scr.copy()
                     if len(racb) > 0:
                         racb["Pos"] = range(1, len(racb) + 1); racb["Chrono"] = racb["Meilleur_Sec"].apply(format_final_chrono)
-                        df_racb_brut = racb[["Pos", "N°", "Nom_Prenom", "Groupe", "Classe", "Chrono"]].rename(columns={"Classe": "Cl"})
+                        # 1. Renommer 'Groupe' en 'Division'
+                        df_racb_brut = racb[["Pos", "N°", "Nom_Prenom", "Groupe", "Classe", "Chrono"]].rename(columns={"Classe": "Cl", "Groupe": "Division"})
+                        # 2. Exclusion stricte de la Division 4
+                        df_racb_brut = df_racb_brut[df_racb_brut["Division"].astype(str).str.strip() != "4"]
+                        
                         df_racb = f"<div class='zone-defilement-tactile'>{df_racb_brut.to_html(index=False, classes='table-compacte table-class-robuste', escape=False, border=0)}</div>"
                     
                     scr["Cl_Tri_Num"] = scr["Classe"].apply(decomposer_classe_pour_tri)
@@ -368,12 +373,7 @@ def recuperer_donnees_course():
                     df_grouped = df_grouped.sort_values(by=["Cl_Tri_Num", "Cl_Tri_Suff", "Groupe", "Meilleur_Sec"])
                     if len(df_grouped) > 0:
                         df_grouped["Pos"] = df_grouped.groupby("Classe", sort=False).cumcount() + 1; df_grouped["Chrono"] = df_grouped["Meilleur_Sec"].apply(format_final_chrono)
-                        
-                        # Changements exclusifs pour le TABLEAU 1 :
-                        # 1. Renommer 'Groupe' en 'Division'
-                        df_divisions = df_grouped[["Pos", "N°", "Nom_Prenom", "Groupe", "Classe", "Chrono"]].rename(columns={"Classe": "Cl", "Groupe": "Division"})
-                        # 2. Exclure la Division 4 de ce tableau 1
-                        df_divisions = df_divisions[df_divisions["Division"].astype(str).str.strip() != "4"]
+                        df_divisions = df_grouped[["Pos", "N°", "Nom_Prenom", "Groupe", "Classe", "Chrono"]].rename(columns={"Classe": "Cl"})
         except Exception as e:
             pass
 
@@ -381,14 +381,13 @@ def recuperer_donnees_course():
         html_hist = f"{CSS_RIGIDE_ORIGINE}<table class='table-compacte table-hist'><tr><td style='text-align: center; padding: 10px;'>Aucune donnée disponible pour le plateau ASAF</td></tr></table>"
 
     if not df_divisions.empty:
-        # Entête HTML mise à jour pour le TABLEAU 1 avec 'Division'
-        html_class_div = f"<table class='table-compacte table-class-groupes'><thead><tr><th>Pos</th><th>N°</th><th>Nom_Prenom</th><th>Division</th><th>Cl</th><th>Chrono</th></tr></thead><tbody>"
+        html_class_div = f"<table class='table-compacte table-class-groupes'><thead><tr><th>Pos</th><th>N°</th><th>Nom_Prenom</th><th>Groupe</th><th>Cl</th><th>Chrono</th></tr></thead><tbody>"
         for idx in range(len(df_divisions)):
             classe_row = ""
             if idx < len(df_divisions) - 1:
                 if str(df_divisions.iloc[idx]["Cl"]) != str(df_divisions.iloc[idx + 1]["Cl"]):
                     classe_row = "class='ligne-separation-classe'"
-            html_class_div += f"<tr {classe_row}><td>{df_divisions.iloc[idx]['Pos']}</td><td>{df_divisions.iloc[idx]['N°']}</td><td>{df_divisions.iloc[idx]['Nom_Prenom']}</td><td>{df_divisions.iloc[idx]['Division']}</td><td>{df_divisions.iloc[idx]['Cl']}</td><td>{df_divisions.iloc[idx]['Chrono']}</td></tr>"
+            html_class_div += f"<tr {classe_row}><td>{df_divisions.iloc[idx]['Pos']}</td><td>{df_divisions.iloc[idx]['N°']}</td><td>{df_divisions.iloc[idx]['Nom_Prenom']}</td><td>{df_divisions.iloc[idx]['Groupe']}</td><td>{df_divisions.iloc[idx]['Cl']}</td><td>{df_divisions.iloc[idx]['Chrono']}</td></tr>"
         html_class_div += "</tbody></table>"
     else:
         html_class_div = f"<table class='table-compacte table-class-groupes'><tr><td style='text-align: center; padding: 10px;'>Aucune donnée disponible</td></tr></table>"
