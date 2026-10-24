@@ -11,7 +11,7 @@ HAUTEURS_TABLEAUX_PC = {
     "HISTORIQUE": "485px",       # ⬅️ Colonne de gauche (Historique des temps)
     "RACB": "213px",             # ➡️ Haut de la colonne droite (Classement Général RACB)
     "ASAF_123": "147px",         # ➡️ Milieu de la colonne droite (Classement par Groupe / Classe)
-    "ASAF_4": "215px"              # ➡️ Bas de la colonne droite (0px car inutilisé sur cette feuille)
+    "ASAF_4": "215px"            # ➡️ Bas de la colonne droite (0px car inutilisé sur cette feuille)
 }
 
 
@@ -90,7 +90,6 @@ CSS_RIGIDE_ORIGINE = """
 }
 </style>
 """
-
 # SÉCURISATION BRIDAGE : 10 secondes maximum pour protéger Dropbox contre les blocages de 11h
 @st.cache_data(ttl=30)
 def telecharger_excel(url):
@@ -109,8 +108,8 @@ def convertir_en_secondes(valeur):
     if ":" in s:
         try:
             parts = s.split(":")
-            m = int(parts)
-            sec = float(parts.replace(",", "."))
+            m = int(parts[0])
+            sec = float(parts[1].replace(",", "."))
             return (m * 60) + sec
         except Exception: pass
     if s.endswith(".0"): s = s[:-2]
@@ -143,6 +142,7 @@ def formater_heure_ecran(val):
     if s.endswith(".0"): s = s[:-2]
     s = s.zfill(6)
     return f"{s[0:2]}:{s[2:4]}.{s[4:6]}" if len(s) == 6 else str(val)
+
 def calculer_statut_chrono(row, est_dans_le_live=True):
     if "Calc_Sec_2" in row and pd.notna(row["Calc_Sec_2"]) and row["Calc_Sec_2"] > 0:
         chrono_txt = format_final_chrono(row["Calc_Sec_2"])
@@ -183,7 +183,7 @@ def recuperer_donnees_course():
 
     FILE_ARRIVEE = f"https://{HOTE_PROT}/scl/fi/7uu9cmlpzglx0ngvbklpt/LIVE_Temps_ARRIVEE.xlsm?rlkey=g9urz4v3jr36h0apzt45ognm6&dl=1"
     FILE_DEPART  = f"https://{HOTE_PROT}/scl/fi/gbkaq01qzjujc8nq3zj28/LIVE_Temps_DEPART.xlsm?rlkey=4x4rvvlfyzz8v59gqbxn80a4d&dl=1"
-    FILE_ENGAGES_ASAF = f"ht" + f"tps://{HOTE_PROT}/scl/fi/wyof20d4bg4lbmnv0c7m5/LIVE_Liste_ENGAGES_ASAF.xlsm?rlkey=8q59lu88046nxu8mr8gs5ufvc&st=vny281ln&dl=1"
+    FILE_ENGAGES_ASAF = f"https://{HOTE_PROT}/scl/fi/wyof20d4bg4lbmnv0c7m5/LIVE_Liste_ENGAGES_ASAF.xlsm?rlkey=8q59lu88046nxu8mr8gs5ufvc&st=vny281ln&dl=1"
 
     cols_live = ["N°", "Nom_Prenom", "Voiture", "Départ", "Arrivée", "Chrono réalisé"]
     cols_hist = ["N°", "Nom_Prenom", "Voiture", "Groupe", "Classe", "Course 1", "Chrono réalisé"]
@@ -212,10 +212,16 @@ def recuperer_donnees_course():
             df_dep_raw = pd.read_excel(file_depart_bytes, header=None, engine='openpyxl')
             df_arr_raw = pd.read_excel(file_arrivee_bytes, header=None, engine='openpyxl')
             
-            # Listes pour accumuler toutes les colonnes de données détectées (ASAF et RACB)
+            df_eng_raw.columns = df_eng_raw.columns.astype(str).str.strip().str.upper()
+            df_eng = pd.DataFrame({"N°": df_eng_raw.iloc[:, 0].apply(nettoyer_numero), 
+                                   "Nom_Prenom": df_eng_raw.iloc[:, 1].fillna("Pilote Inconnu").astype(str).str.strip(),
+                                   "Voiture": df_eng_raw.iloc[:, 4].fillna("").astype(str).str.strip(),
+                                   "Groupe": df_eng_raw.iloc[:, 5].apply(lambda x: "-" if pd.isna(x) else str(x).strip()[:-2] if str(x).strip().endswith(".0") else str(x).strip()),
+                                   "Classe": df_eng_raw.iloc[:, 6].fillna("-").astype(str).str.strip().apply(lambda x: x[:-2] if x.endswith(".0") else x)})
+            df_eng = df_eng[df_eng["N°"] != "NAN"].drop_duplicates(subset=["N°"])
+
             dep1_list, arr1_list, dep2_list, arr2_list = [], [], [], []
 
-            # 🔍 SCAN PARALLÈLE : Détecte et stocke toutes les colonnes sans s'écraser
             for c_idx in range(len(df_dep_raw.columns)):
                 val = str(df_dep_raw.iloc[1, c_idx]).strip().upper()
                 if "COURSE 1 ASAF" in val or "COURSE 1 RACB" in val:
@@ -230,44 +236,10 @@ def recuperer_donnees_course():
                 elif "COURSE 2 ASAF" in val or "COURSE 2 RACB" in val:
                     arr2_list.append(pd.DataFrame({"N°": df_arr_raw.iloc[2:, c_idx].apply(nettoyer_numero), "Heure_Arrivee_2": df_arr_raw.iloc[2:, c_idx + 2]}))
 
-            # Concaténation globale pour fusionner les concurrents des deux colonnes
             df_dep1 = pd.concat(dep1_list, ignore_index=True) if dep1_list else pd.DataFrame(columns=["N°", "Heure_Depart_1"])
             df_arr1 = pd.concat(arr1_list, ignore_index=True) if arr1_list else pd.DataFrame(columns=["N°", "Heure_Arrivee_1"])
             df_dep2 = pd.concat(dep2_list, ignore_index=True) if dep2_list else pd.DataFrame(columns=["N°", "Heure_Depart_2"])
             df_arr2 = pd.concat(arr2_list, ignore_index=True) if arr2_list else pd.DataFrame(columns=["N°", "Heure_Arrivee_2"])
-
-        except:
-            pass
-
-
-    if fichiers_prets:
-        try:
-            df_eng_raw = pd.read_excel(file_engages_bytes, header=1, engine='openpyxl')
-            df_dep_raw = pd.read_excel(file_depart_bytes, header=None, engine='openpyxl')
-            df_arr_raw = pd.read_excel(file_arrivee_bytes, header=None, engine='openpyxl')
-            idx_dep_1, idx_arr_1, idx_dep_2, idx_arr_2 = None, None, None, None
-            for c_idx in range(len(df_dep_raw.columns)):
-                val = str(df_dep_raw.iloc[1, c_idx]).strip().upper()
-                if "COURSE 1 RACB" in val: idx_dep_1 = c_idx
-                elif "COURSE 2 RACB" in val: idx_dep_2 = c_idx
-            for c_idx in range(len(df_arr_raw.columns)):
-                val = str(df_arr_raw.iloc[1, c_idx]).strip().upper()
-                if "COURSE 1 RACB" in val: idx_arr_1 = c_idx
-                elif "COURSE 2 RACB" in val: idx_arr_2 = c_idx
-            df_dep2 = pd.DataFrame({"N°": df_dep_raw.iloc[2:, idx_dep_2].apply(nettoyer_numero), "Heure_Depart_2": df_dep_raw.iloc[2:, idx_dep_2 + 1]}) if idx_dep_2 is not None else pd.DataFrame(columns=["N°", "Heure_Depart_2"])
-            df_arr2 = pd.DataFrame({"N°": df_arr_raw.iloc[2:, idx_arr_2].apply(nettoyer_numero), "Heure_Arrivee_2": df_arr_raw.iloc[2:, idx_arr_2 + 2]}) if idx_arr_2 is not None else pd.DataFrame(columns=["N°", "Heure_Arrivee_2"])
-            df_dep1 = pd.DataFrame({"N°": df_dep_raw.iloc[2:, idx_dep_1].apply(nettoyer_numero), "Heure_Depart_1": df_dep_raw.iloc[2:, idx_dep_1 + 1]}) if idx_dep_1 is not None else pd.DataFrame(columns=["N°", "Heure_Depart_1"])
-            df_arr1 = pd.DataFrame({"N°": df_arr_raw.iloc[2:, idx_arr_1].apply(nettoyer_numero), "Heure_Arrivee_1": df_arr_raw.iloc[2:, idx_arr_1 + 2]}) if idx_arr_1 is not None else pd.DataFrame(columns=["N°", "Heure_Arrivee_1"])
-            df_eng_raw.columns = df_eng_raw.columns.astype(str).str.strip().str.upper()
-            df_eng = pd.DataFrame({"N°": df_eng_raw.iloc[:, 0].apply(nettoyer_numero), 
-                                   "Nom_Prenom": df_eng_raw.iloc[:, 1].fillna("Pilote Inconnu").astype(str).str.strip(),
-                                   "Voiture": df_eng_raw.iloc[:, 4].fillna("").astype(str).str.strip(),
-                                   "Groupe": df_eng_raw.iloc[:, 5].apply(lambda x: "-" if pd.isna(x) else str(x).strip()[:-2] if str(x).strip().endswith(".0") else str(x).strip()),
-                                   "Classe": df_eng_raw.iloc[:, 6].fillna("-").astype(str).str.strip().apply(lambda x: x[:-2] if x.endswith(".0") else x)})
-            df_eng = df_eng[df_eng["N°"] != "NAN"].drop_duplicates(subset=["N°"])
-        except:
-            pass
-        try:
             # --- NETTOYAGE ET SÉCURISATION DES DONNÉES ---
             df_dep1 = df_dep1[(df_dep1["N°"] != "NAN") & (df_dep1["N°"] != "")].drop_duplicates(subset=["N°"], keep="last")
             df_arr1 = df_arr1[(df_arr1["N°"] != "NAN") & (df_arr1["N°"] != "")].drop_duplicates(subset=["N°"], keep="last")
@@ -279,7 +251,6 @@ def recuperer_donnees_course():
             if len(df_dep2) > 0: df_dep2["Sec_Dep_2"] = df_dep2["Heure_Depart_2"].apply(convertir_en_secondes)
             if len(df_arr2) > 0: df_arr2["Sec_Arr_2"] = df_arr2["Heure_Arrivee_2"].apply(convertir_en_secondes)
 
-            # Fusion directe et robuste sur le N° de concurrent avec la liste des engagés
             base = df_eng.copy()
             if len(df_dep1) > 0: base = pd.merge(base, df_dep1, on="N°", how="left")
             if len(df_arr1) > 0: base = pd.merge(base, df_arr1, on="N°", how="left")
@@ -293,19 +264,16 @@ def recuperer_donnees_course():
                 df_hist_base = pd.DataFrame(columns=base.columns)
                 df_live = pd.DataFrame(columns=["N°", "Nom_Prenom", "Voiture", "Départ", "Arrivée", "Chrono réalisé"])
 
-                # Tri global par le dernier événement (soit Départ 2, soit Départ 1 à défaut) pour voir qui roule
                 base["Tri_Chronologique"] = base["Heure_Depart_2"].fillna(base["Heure_Depart_1"])
                 tous_chronos_recents = base[base["Tri_Chronologique"].notna()].sort_values(by="Tri_Chronologique", ascending=False).copy()
 
                 if "Heure_Depart_2" in base.columns and base["Heure_Depart_2"].notna().any():
-                    # Le Live prend les 5 derniers de la Course 2 en priorité, ou de la Course 1
                     df_live_base = tous_chronos_recents.head(5).copy()
                     df_live_base["Chrono réalisé"] = df_live_base.apply(lambda r: calculer_statut_chrono(r, est_dans_le_live=True), axis=1)
                     df_live_base["Départ_Visuel"] = df_live_base["Heure_Depart_2"].fillna(df_live_base["Heure_Depart_1"]).apply(formater_heure_ecran)
                     df_live_base["Arrivée_Visuel"] = df_live_base["Heure_Arrivee_2"].fillna(df_live_base["Heure_Arrivee_1"]).apply(formater_heure_ecran)
                     df_live = df_live_base[["N°", "Nom_Prenom", "Voiture", "Départ_Visuel", "Arrivée_Visuel", "Chrono réalisé"]].rename(columns={"Départ_Visuel": "Départ", "Arrivée_Visuel": "Arrivée"})
 
-                    # L'historique garde TOUT LE MONDE (Course 1 et Course 2 confondues)
                     df_hist_base = tous_chronos_recents.iloc[5:].copy() if len(tous_chronos_recents) > 5 else tous_chronos_recents.copy()
                 else:
                     df_hist_base = base.assign(Ordre_Saisie=range(len(base))).sort_values(by="Ordre_Saisie", ascending=False).copy()
