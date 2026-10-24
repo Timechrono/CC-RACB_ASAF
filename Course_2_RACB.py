@@ -300,16 +300,15 @@ def recuperer_donnees_course():
                     else:
                         txt_c1_visuel = txt_c1_brut
 
-                    # Traitement visuel de la colonne Chrono (Course 2)
-                    if pd.notna(row["Heure_Depart_2"]) and pd.isna(row["Heure_Arrivee_2"]):
-                        txt_c2_visuel = "En Piste"
-                    elif not has_t2:
+                    # Traitement visuel de la colonne Chrono (Course 2) dans l'HISTORIQUE
+                    # ➡️ Si le pilote n'a pas fini (pas de has_t2), on force "No Time", même s'il a une heure de départ.
+                    if not has_t2:
                         txt_c2_visuel = "No Time"
                     else:
                         txt_c2_brut = format_final_chrono(t2)
                         
                         if not has_t1:
-                            # ➡️ Le losange gris est maintenant placé à droite du temps
+                            # Le losange gris est placé à droite du temps
                             txt_c2_visuel = f"{txt_c2_brut} &nbsp;<span style='color: #9CA3AF; font-size: 1.05rem; vertical-align: middle; display: inline-block; line-height: 1;'>◆</span>"
                         else:
                             # Le pilote a les 2 temps : pas de point vert, flèches à droite
