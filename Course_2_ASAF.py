@@ -242,86 +242,85 @@ def recuperer_donnees_course():
             df_arr2 = pd.concat(arr2_list, ignore_index=True) if arr2_list else pd.DataFrame(columns=["N°", "Heure_Arrivee_2"])
             
             # --- NETTOYAGE ET SÉCURISATION DES DONNÉES ---
-            df_dep1 = df_dep1[(df_dep1["N°"] != "NAN") & (df_dep1["N°"] != "")].drop_duplicates(subset=["N°"], keep="last")
-            df_arr1 = df_arr1[(df_arr1["N°"] != "NAN") & (df_arr1["N°"] != "")].drop_duplicates(subset=["N°"], keep="last")
-            df_dep2 = df_dep2[(df_dep2["N°"] != "NAN") & (df_dep2["N°"] != "")].drop_duplicates(subset=["N°"], keep="last")
-            df_arr2 = df_arr2[(df_arr2["N°"] != "NAN") & (df_arr2["N°"] != "")].drop_duplicates(subset=["N°"], keep="last")
+            df_dep1 = df_dep1[(df_dep1["N°"] != "NAN") & (df_dep1["N°"] != "")]
+            df_arr1 = df_arr1[(df_arr1["N°"] != "NAN") & (df_arr1["N°"] != "")]
+            df_dep2 = df_dep2[(df_dep2["N°"] != "NAN") & (df_dep2["N°"] != "")]
+            df_arr2 = df_arr2[(df_arr2["N°"] != "NAN") & (df_arr2["N°"] != "")]
 
             if len(df_dep1) > 0: df_dep1["Sec_Dep_1"] = df_dep1["Heure_Depart_1"].apply(convertir_en_secondes)
             if len(df_arr1) > 0: df_arr1["Sec_Arr_1"] = df_arr1["Heure_Arrivee_1"].apply(convertir_en_secondes)
             if len(df_dep2) > 0: df_dep2["Sec_Dep_2"] = df_dep2["Heure_Depart_2"].apply(convertir_en_secondes)
             if len(df_arr2) > 0: df_arr2["Sec_Arr_2"] = df_arr2["Heure_Arrivee_2"].apply(convertir_en_secondes)
 
-            # Fusion stable à partir de la liste globale des engagés
-            base = df_eng.copy()
-            if len(df_dep1) > 0: base = pd.merge(base, df_dep1, on="N°", how="left")
-            if len(df_arr1) > 0: base = pd.merge(base, df_arr1, on="N°", how="left")
-            if len(df_dep2) > 0: base = pd.merge(base, df_dep2, on="N°", how="left")
-            if len(df_arr2) > 0: base = pd.merge(base, df_arr2, on="N°", how="left")
-            
-            if len(base) > 0:
-                base["Calc_Sec_1"] = (base["Sec_Arr_1"] - base["Sec_Dep_1"]).apply(lambda x: x + 3600 if (x is not None and x < 0) else x)
-                base["Calc_Sec_2"] = (base["Sec_Arr_2"] - base["Sec_Dep_2"]).apply(lambda x: x + 3600 if (x is not None and x < 0) else x)
+            est_en_c2 = "Heure_Depart_2" in df_dep2.columns and len(df_dep2) > 0
+            df_actif = df_dep2 if est_en_c2 else df_dep1
+
+            if len(df_actif) > 0:
+                df_actif = df_actif.copy()
+                df_actif["Ordre_Passage"] = range(len(df_actif))
+
+                base = pd.merge(df_actif, df_eng, on="N°", how="inner")
+                if est_en_c2 and len(df_arr2) > 0: base = pd.merge(base, df_arr2, on="N°", how="left")
+                if not est_en_c2 and len(df_arr1) > 0: base = pd.merge(base, df_arr1, on="N°", how="left")
+                
+                if est_en_c2 and len(df_dep1) > 0: base = pd.merge(base, df_dep1.drop_duplicates('N°', keep='last'), on="N°", how="left")
+                if est_en_c2 and len(df_arr1) > 0: base = pd.merge(base, df_arr1.drop_duplicates('N°', keep='last'), on="N°", how="left")
+
+                base["Calc_Sec_1"] = (base.get("Sec_Arr_1", pd.Series(dtype=float)) - base.get("Sec_Dep_1", pd.Series(dtype=float))).apply(lambda x: x + 3600 if (x is not None and x < 0) else x) if "Sec_Arr_1" in base.columns else None
+                base["Calc_Sec_2"] = (base.get("Sec_Arr_2", pd.Series(dtype=float)) - base.get("Sec_Dep_2", pd.Series(dtype=float))).apply(lambda x: x + 3600 if (x is not None and x < 0) else x) if "Sec_Arr_2" in base.columns else None
 
                 df_hist_base = pd.DataFrame(columns=base.columns)
                 df_live = pd.DataFrame(columns=["N°", "Nom_Prenom", "Voiture", "Départ", "Arrivée", "Chrono réalisé"])
 
-                # Filtrage : On ne garde que les voitures qui ont au moins un top de départ encodé
-                base = base[base["Heure_Depart_2"].notna() | base["Heure_Depart_1"].notna()].copy()
+                pile_inversee = base.sort_values(by="Ordre_Passage", ascending=False).copy()
 
-                if len(base) > 0:
-                    # Crée un ordre d'empilement basé sur la valeur brute des heures (plus l'heure avance, plus le chiffre grandit)
-                    # En triant par cette valeur de manière décroissante, le dernier arrivé passe AUTOMATIQUEMENT premier sans tri de classement
-                    base["Chronologie_Brute"] = base["Heure_Depart_2"].fillna(base["Heure_Depart_1"]).astype(float)
-                    tous_chronos_recents = base.sort_values(by="Chronologie_Brute", ascending=False).copy()
-
-                    if "Heure_Depart_2" in tous_chronos_recents.columns and tous_chronos_recents["Heure_Depart_2"].notna().any():
-                        # EN DIRECT : Les 5 lignes du haut (les plus récentes chronologiquement)
-                        df_live_base = tous_chronos_recents.head(5).copy()
-                        df_live_base["Chrono réalisé"] = df_live_base.apply(lambda r: calculer_statut_chrono(r, est_dans_le_live=True), axis=1)
-                        df_live_base["Départ_Visuel"] = df_live_base["Heure_Depart_2"].fillna(df_live_base["Heure_Depart_1"]).apply(formater_heure_ecran)
-                        df_live_base["Arrivée_Visuel"] = df_live_base["Heure_Arrivee_2"].fillna(df_live_base["Heure_Arrivee_1"]).apply(formater_heure_ecran)
-                        df_live = df_live_base[["N°", "Nom_Prenom", "Voiture", "Départ_Visuel", "Arrivée_Visuel", "Chrono réalisé"]].rename(columns={"Départ_Visuel": "Départ", "Arrivée_Visuel": "Arrivée"})
-
-                        # HISTORIQUE : Le reste des voitures, poussées naturellement vers le bas
-                        df_hist_base = tous_chronos_recents.iloc[5:].copy() if len(tous_chronos_recents) > 5 else tous_chronos_recents.copy()
-                    else:
-                        df_hist_base = tous_chronos_recents.copy()
+                df_live_base = pile_inversee.head(5).copy()
+                df_live_base["Chrono réalisé"] = df_live_base.apply(lambda r: calculer_statut_chrono(r, est_dans_le_live=True), axis=1)
                 
+                h_dep_col = "Heure_Depart_2" if est_en_c2 else "Heure_Depart_1"
+                h_arr_col = "Heure_Arrivee_2" if est_en_c2 else "Heure_Arrivee_1"
+                df_live_base["Départ_Visuel"] = df_live_base[h_dep_col].apply(formater_heure_ecran) if h_dep_col in df_live_base.columns else "-"
+                df_live_base["Arrivée_Visuel"] = df_live_base[h_arr_col].apply(formater_heure_ecran) if h_arr_col in df_live_base.columns else "-"
+                df_live = df_live_base[["N°", "Nom_Prenom", "Voiture", "Départ_Visuel", "Arrivée_Visuel", "Chrono réalisé"]].rename(columns={"Départ_Visuel": "Départ", "Arrivée_Visuel": "Arrivée"})
+
+                df_hist_base = pile_inversee.iloc[5:].copy() if len(pile_inversee) > 5 else pd.DataFrame(columns=pile_inversee.columns)
+                # --- ENTRÉE DIRECTE DANS LA GÉNÉRATION DU CODE DE LA SUITE DU SCRIPT ---
                 html_hist = "<div class='zone-defilement-tactile'>"
                 html_hist += "<table class='table-compacte table-hist'><thead><tr><th>N°</th><th>Nom_Prenom</th><th>Voiture</th><th>Groupe</th><th>Cl</th><th>Course 1</th><th>Chrono</th></tr></thead><tbody>"
 
                 for idx, row in df_hist_base.iterrows():
-                    t1, t2 = row["Calc_Sec_1"], row["Calc_Sec_2"]
+                    t1 = row.get("Calc_Sec_1", None)
+                    t2 = row.get("Calc_Sec_2", None)
                     has_t1 = pd.notna(t1) and isinstance(t1, (int, float)) and t1 > 0
                     has_t2 = pd.notna(t2) and isinstance(t2, (int, float)) and t2 > 0
                     
                     txt_c1_visuel = format_final_chrono(t1)
+                    txt_c2_brut = format_final_chrono(t2)
 
-                    if not has_t2:
-                        if has_t1:
+                    if est_en_c2:
+                        if not has_t2:
                             txt_c2_visuel = f"No Time &nbsp;<span style='color: #9CA3AF; font-size: 1.05rem; vertical-align: middle; display: inline-block; line-height: 1;'>◆</span>"
                         else:
-                            txt_c2_visuel = "No Time"
-                    else:
-                        txt_c2_brut = format_final_chrono(t2)
-                        
-                        if not has_t1:
-                            txt_c2_visuel = f"{txt_c2_brut} &nbsp;<span style='color: #9CA3AF; font-size: 1.05rem; vertical-align: middle; display: inline-block; line-height: 1;'>◆</span>"
-                        else:
-                            if t2 < t1:
-                                txt_c2_visuel = f"{txt_c2_brut} &nbsp;<span style='color: #22C55E; font-size: 1.25rem; vertical-align: middle; display: inline-block; line-height: 1;'>▲</span>"
-                            elif t2 > t1:
-                                txt_c2_visuel = f"{txt_c2_brut} &nbsp;<span style='color: #EF4444; font-size: 1.25rem; vertical-align: middle; display: inline-block; line-height: 1;'>▼</span>"
+                            if not has_t1:
+                                txt_c2_visuel = f"{txt_c2_brut} &nbsp;<span style='color: #9CA3AF; font-size: 1.05rem; vertical-align: middle; display: inline-block; line-height: 1;'>◆</span>"
                             else:
-                                txt_c2_visuel = txt_c2_brut
+                                if t2 < t1:
+                                    txt_c2_visuel = f"{txt_c2_brut} &nbsp;<span style='color: #22C55E; font-size: 1.25rem; vertical-align: middle; display: inline-block; line-height: 1;'>▲</span>"
+                                elif t2 > t1:
+                                    txt_c2_visuel = f"{txt_c2_brut} &nbsp;<span style='color: #EF4444; font-size: 1.25rem; vertical-align: middle; display: inline-block; line-height: 1;'>▼</span>"
+                                else:
+                                    txt_c2_visuel = txt_c2_brut
+                        txt_chrono_final = txt_c2_visuel
+                    else:
+                        txt_chrono_final = txt_c1_visuel
 
-                    html_hist += f"<tr><td>{row['N°']}</td><td>{row['Nom_Prenom']}</td><td>{row['Voiture']}</td><td>{row['Groupe']}</td><td>{row['Classe']}</td><td>{txt_c1_visuel}</td><td>{txt_c2_visuel}</td></tr>"
+                    html_hist += f"<tr><td>{row['N°']}</td><td>{row['Nom_Prenom']}</td><td>{row['Voiture']}</td><td>{row['Groupe']}</td><td>{row['Classe']}</td><td>{txt_c1_visuel}</td><td>{txt_chrono_final}</td></tr>"
                 html_hist += "</tbody></table></div>"
 
-                valides = base[((base["Calc_Sec_1"].notna() & (base["Calc_Sec_1"] > 0)) | (base["Calc_Sec_2"].notna() & (base["Calc_Sec_2"] > 0)))].copy()
+                valides = base[((base["Calc_Sec_1"].notna() & (base["Calc_Sec_1"] > 0)) | (base["Calc_Sec_2"].notna() & (base["Calc_Sec_2"] > 0)))].copy() if "Calc_Sec_1" in base.columns or "Calc_Sec_2" in base.columns else pd.DataFrame()
                 if len(valides) > 0:
-                    valides["Meilleur_Sec"] = valides[["Calc_Sec_1", "Calc_Sec_2"]].min(axis=1, skipna=True)
+                    cols_calcul = [c for c in ["Calc_Sec_1", "Calc_Sec_2"] if c in valides.columns]
+                    valides["Meilleur_Sec"] = valides[cols_calcul].min(axis=1, skipna=True)
                     scr = valides.sort_values(by="Meilleur_Sec").drop_duplicates(subset=["N°"], keep="first").copy()
                     
                     racb = scr.copy()
