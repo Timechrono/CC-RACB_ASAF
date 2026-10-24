@@ -290,28 +290,24 @@ def recuperer_donnees_course():
                     has_t1 = pd.notna(t1) and isinstance(t1, (int, float)) and t1 > 0
                     has_t2 = pd.notna(t2) and isinstance(t2, (int, float)) and t2 > 0
                     
-                    # Traitement visuel de la Course 1
-                    txt_c1_brut = format_final_chrono(t1)
-                    if has_t1 and not has_t2:
-                        # Losange gris positionné à droite du temps si uniquement Course 1
-                        txt_c1_visuel = f"{txt_c1_brut} &nbsp;<span style='color: #9CA3AF; font-size: 1.05rem; vertical-align: middle; display: inline-block; line-height: 1;'>◆</span>"
-                    elif has_t1 and has_t2 and t1 < t2:
-                        txt_c1_visuel = f"<span style='color: #22C55E;'>•</span>&nbsp;{txt_c1_brut}"
-                    else:
-                        txt_c1_visuel = txt_c1_brut
+                    # ➡️ TRAITEMENT DE LA COLONNE COURSE 1 : Texte brut uniquement (Plus aucun point vert ni losange)
+                    txt_c1_visuel = format_final_chrono(t1)
 
-                    # Traitement visuel de la colonne Chrono (Course 2) dans l'HISTORIQUE
-                    # ➡️ Si le pilote n'a pas fini (pas de has_t2), on force "No Time", même s'il a une heure de départ.
+                    # ➡️ TRAITEMENT EXCLUSIF DE LA COLONNE CHRONO (COURSE 2)
                     if not has_t2:
-                        txt_c2_visuel = "No Time"
+                        if has_t1:
+                            # Cas où le concurrent a uniquement fait la Course 1 : le losange se place ici, à droite de No Time
+                            txt_c2_visuel = f"No Time &nbsp;<span style='color: #9CA3AF; font-size: 1.05rem; vertical-align: middle; display: inline-block; line-height: 1;'>◆</span>"
+                        else:
+                            txt_c2_visuel = "No Time"
                     else:
                         txt_c2_brut = format_final_chrono(t2)
                         
                         if not has_t1:
-                            # Le losange gris est placé à droite du temps
+                            # Cas où le concurrent a uniquement fait la Course 2 : losange à droite du temps
                             txt_c2_visuel = f"{txt_c2_brut} &nbsp;<span style='color: #9CA3AF; font-size: 1.05rem; vertical-align: middle; display: inline-block; line-height: 1;'>◆</span>"
                         else:
-                            # Le pilote a les 2 temps : pas de point vert, flèches à droite
+                            # Le pilote a les 2 temps : flèches de progression pure à droite
                             if t2 < t1:
                                 txt_c2_visuel = f"{txt_c2_brut} &nbsp;<span style='color: #22C55E; font-size: 1.25rem; vertical-align: middle; display: inline-block; line-height: 1;'>▲</span>"
                             elif t2 > t1:
