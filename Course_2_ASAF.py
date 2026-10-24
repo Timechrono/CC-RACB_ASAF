@@ -252,11 +252,8 @@ def recuperer_donnees_course():
             if len(df_dep2) > 0: df_dep2["Sec_Dep_2"] = df_dep2["Heure_Depart_2"].apply(convertir_en_secondes)
             if len(df_arr2) > 0: df_arr2["Sec_Arr_2"] = df_arr2["Heure_Arrivee_2"].apply(convertir_en_secondes)
 
-            # On mémorise l'ordre d'entrée original des lignes du fichier Excel
-            base_runs["Ordre_Saisie_Excel"] = range(len(base_runs))
-
-            # Fusion robuste en partant de la chronologie de l'Excel (base_runs)
-            base = pd.merge(base_runs, df_eng, on="N°", how="inner")
+            # Fusion stable à partir de la liste globale des engagés
+            base = df_eng.copy()
             if len(df_dep1) > 0: base = pd.merge(base, df_dep1, on="N°", how="left")
             if len(df_arr1) > 0: base = pd.merge(base, df_arr1, on="N°", how="left")
             if len(df_dep2) > 0: base = pd.merge(base, df_dep2, on="N°", how="left")
@@ -269,21 +266,27 @@ def recuperer_donnees_course():
                 df_hist_base = pd.DataFrame(columns=base.columns)
                 df_live = pd.DataFrame(columns=["N°", "Nom_Prenom", "Voiture", "Départ", "Arrivée", "Chrono réalisé"])
 
-                # TRI PAR ORDRE DE SAISIE INVERSÉ : La toute dernière ligne écrite dans l'Excel monte tout en haut
-                tous_chronos_recents = base.sort_values(by="Ordre_Saisie_Excel", ascending=False).copy()
+                # Filtrage : On ne garde que les voitures qui ont au moins un top de départ encodé
+                base = base[base["Heure_Depart_2"].notna() | base["Heure_Depart_1"].notna()].copy()
 
-                if "Heure_Depart_2" in base.columns and base["Heure_Depart_2"].notna().any():
-                    # En direct : Prends les 5 lignes les plus récentes du fichier Excel
-                    df_live_base = tous_chronos_recents.head(5).copy()
-                    df_live_base["Chrono réalisé"] = df_live_base.apply(lambda r: calculer_statut_chrono(r, est_dans_le_live=True), axis=1)
-                    df_live_base["Départ_Visuel"] = df_live_base["Heure_Depart_2"].fillna(df_live_base["Heure_Depart_1"]).apply(formater_heure_ecran)
-                    df_live_base["Arrivée_Visuel"] = df_live_base["Heure_Arrivee_2"].fillna(df_live_base["Heure_Arrivee_1"]).apply(formater_heure_ecran)
-                    df_live = df_live_base[["N°", "Nom_Prenom", "Voiture", "Départ_Visuel", "Arrivée_Visuel", "Chrono réalisé"]].rename(columns={"Départ_Visuel": "Départ", "Arrivée_Visuel": "Arrivée"})
+                if len(base) > 0:
+                    # Crée un ordre d'empilement basé sur la valeur brute des heures (plus l'heure avance, plus le chiffre grandit)
+                    # En triant par cette valeur de manière décroissante, le dernier arrivé passe AUTOMATIQUEMENT premier sans tri de classement
+                    base["Chronologie_Brute"] = base["Heure_Depart_2"].fillna(base["Heure_Depart_1"]).astype(float)
+                    tous_chronos_recents = base.sort_values(by="Chronologie_Brute", ascending=False).copy()
 
-                    # Historique : Reçoit le reste de la pile (les voitures poussées vers le bas)
-                    df_hist_base = tous_chronos_recents.iloc[5:].copy() if len(tous_chronos_recents) > 5 else tous_chronos_recents.copy()
-                else:
-                    df_hist_base = tous_chronos_recents.copy()
+                    if "Heure_Depart_2" in tous_chronos_recents.columns and tous_chronos_recents["Heure_Depart_2"].notna().any():
+                        # EN DIRECT : Les 5 lignes du haut (les plus récentes chronologiquement)
+                        df_live_base = tous_chronos_recents.head(5).copy()
+                        df_live_base["Chrono réalisé"] = df_live_base.apply(lambda r: calculer_statut_chrono(r, est_dans_le_live=True), axis=1)
+                        df_live_base["Départ_Visuel"] = df_live_base["Heure_Depart_2"].fillna(df_live_base["Heure_Depart_1"]).apply(formater_heure_ecran)
+                        df_live_base["Arrivée_Visuel"] = df_live_base["Heure_Arrivee_2"].fillna(df_live_base["Heure_Arrivee_1"]).apply(formater_heure_ecran)
+                        df_live = df_live_base[["N°", "Nom_Prenom", "Voiture", "Départ_Visuel", "Arrivée_Visuel", "Chrono réalisé"]].rename(columns={"Départ_Visuel": "Départ", "Arrivée_Visuel": "Arrivée"})
+
+                        # HISTORIQUE : Le reste des voitures, poussées naturellement vers le bas
+                        df_hist_base = tous_chronos_recents.iloc[5:].copy() if len(tous_chronos_recents) > 5 else tous_chronos_recents.copy()
+                    else:
+                        df_hist_base = tous_chronos_recents.copy()
                 
                 html_hist = "<div class='zone-defilement-tactile'>"
                 html_hist += "<table class='table-compacte table-hist'><thead><tr><th>N°</th><th>Nom_Prenom</th><th>Voiture</th><th>Groupe</th><th>Cl</th><th>Course 1</th><th>Chrono</th></tr></thead><tbody>"
