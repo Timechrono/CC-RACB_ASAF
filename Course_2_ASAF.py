@@ -242,7 +242,6 @@ def recuperer_donnees_course():
             df_arr2 = pd.concat(arr2_list, ignore_index=True) if arr2_list else pd.DataFrame(columns=["N°", "Heure_Arrivee_2"])
             
             # --- NETTOYAGE ET SÉCURISATION DES DONNÉES ---
-            # On garde l'ordre de saisie original de l'Excel en conservant la DERNIÈRE apparition (keep="last")
             df_dep1 = df_dep1[(df_dep1["N°"] != "NAN") & (df_dep1["N°"] != "")].drop_duplicates(subset=["N°"], keep="last")
             df_arr1 = df_arr1[(df_arr1["N°"] != "NAN") & (df_arr1["N°"] != "")].drop_duplicates(subset=["N°"], keep="last")
             df_dep2 = df_dep2[(df_dep2["N°"] != "NAN") & (df_dep2["N°"] != "")].drop_duplicates(subset=["N°"], keep="last")
@@ -253,14 +252,10 @@ def recuperer_donnees_course():
             if len(df_dep2) > 0: df_dep2["Sec_Dep_2"] = df_dep2["Heure_Depart_2"].apply(convertir_en_secondes)
             if len(df_arr2) > 0: df_arr2["Sec_Arr_2"] = df_arr2["Heure_Arrivee_2"].apply(convertir_en_secondes)
 
-            # On crée l'ordre chronologique basé UNIQUEMENT sur l'apparition dans le fichier de départ
-            # Les lignes du bas de l'Excel reçoivent un index plus élevé
-            if "Heure_Depart_2" in base_runs.columns and len(df_dep2) > 0:
-                base_runs["Ordre_Saisie_Excel"] = range(len(base_runs))
-            else:
-                base_runs["Ordre_Saisie_Excel"] = range(len(base_runs))
+            # On mémorise l'ordre d'entrée original des lignes du fichier Excel
+            base_runs["Ordre_Saisie_Excel"] = range(len(base_runs))
 
-            # Fusion en partant de l'ordre des passages de l'Excel pour ne PAS être bloqué par l'ordre des engagés
+            # Fusion robuste en partant de la chronologie de l'Excel (base_runs)
             base = pd.merge(base_runs, df_eng, on="N°", how="inner")
             if len(df_dep1) > 0: base = pd.merge(base, df_dep1, on="N°", how="left")
             if len(df_arr1) > 0: base = pd.merge(base, df_arr1, on="N°", how="left")
@@ -358,4 +353,3 @@ def recuperer_donnees_course():
         html_class_div = f"<table class='table-compacte table-class-groupes'><tr><td style='text-align: center; padding: 10px;'>Aucune donnée disponible</td></tr></table>"
 
     return df_live, html_hist, df_racb, html_class_div, pd.DataFrame(), t_live, t_his, t_haut, t_milieu, t_bas
-
