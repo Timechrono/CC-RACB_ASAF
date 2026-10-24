@@ -263,24 +263,23 @@ def recuperer_donnees_course():
                 df_hist_base = pd.DataFrame(columns=base.columns)
 
                 if "Heure_Depart_2" in base.columns and base["Heure_Depart_2"].notna().any():
-                    # 1. On récupère les concurrents de la Course 2 triés du plus récent au plus ancien départ
+                    # 1. On récupère les concurrents de la Course 2
                     base_c2 = base[base["Heure_Depart_2"].notna()].copy()
-                    base_c2["Ordre_Live"] = range(len(base_c2))
-                    tous_chronos_recents = base_c2.sort_values(by="Ordre_Live", ascending=False).copy()
                     
-                    # 2. EN DIRECT : On extrait strictement le Top 5 des derniers partis
+                    # 2. FORCE L'EMPILEMENT CHRONOLOGIQUE : On trie STRICTEMENT par l'heure de départ (du plus récent au plus ancien)
+                    # Cela garantit que le dernier parti est TOUJOURS en haut, peu importe les fusions de tableaux.
+                    tous_chronos_recents = base_c2.sort_values(by="Heure_Depart_2", ascending=False).copy()
+                    
+                    # 3. EN DIRECT : On prend les 5 derniers partis sur la piste
                     df_live_base = tous_chronos_recents.head(5).copy()
                     df_live_base["Chrono réalisé"] = df_live_base.apply(lambda r: calculer_statut_chrono(r, est_dans_le_live=True), axis=1)
                     df_live_base["Départ_C2"] = df_live_base["Heure_Depart_2"].apply(formater_heure_ecran)
                     df_live_base["Arrivée_C2"] = df_live_base["Heure_Arrivee_2"].apply(formater_heure_ecran)
                     df_live = df_live_base[["N°", "Nom_Prenom", "Voiture", "Départ_C2", "Arrivée_C2", "Chrono réalisé"]].rename(columns={"Départ_C2": "Départ", "Arrivée_C2": "Arrivée"})
 
-                    # 3. HISTORIQUE : On prend uniquement les lignes éjectées du Live (à partir de la 6ème)
+                    # 4. HISTORIQUE : Les éjectés s'empilent naturellement derrière, toujours du plus récent au plus ancien
                     df_hist_base = tous_chronos_recents.iloc[5:].copy()
-                
-                # TABLE HISTORIQUE SÉCURISÉE SANS AUCUNE BALISE DE TEXTE EN GRAS SUR SMARTPHONE
-                html_hist = "<div class='zone-defilement-tactile'>"
-                html_hist += "<table class='table-compacte table-hist'><thead><tr><th>N°</th><th>Nom_Prenom</th><th>Voiture</th><th>Groupe</th><th>Cl</th><th>Course 1</th><th>Chrono</th></tr></thead><tbody>"
+
 
                 for idx, row in df_hist_base.iterrows():
                     t1, t2 = row["Calc_Sec_1"], row["Calc_Sec_2"]
