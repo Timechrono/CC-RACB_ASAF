@@ -311,6 +311,44 @@ def recuperer_donnees_course():
 
                 # HISTORIQUE : Les concurrents ASAF uniques poussés au-delà du Top 5 (sans doublons, sans RACB)
                 df_hist_base = pile_inversee.iloc[5:].copy() if len(pile_inversee) > 5 else pd.DataFrame(columns=pile_inversee.columns)
+                # --- GÉNÉRATION DU FLUX HTML EXCLUSIF ASAF ---
+                html_hist = "<div class='zone-defilement-tactile'>"
+                html_hist += "<table class='table-compacte table-hist'><thead><tr><th>N°</th><th>Nom_Prenom</th><th>Voiture</th><th>Groupe</th><th>Cl</th><th>Course 1</th><th>Chrono</th></tr></thead><tbody>"
+
+                for idx, row in df_hist_base.iterrows():
+                    t1 = row.get("Calc_Sec_1", None)
+                    t2 = row.get("Calc_Sec_2", None)
+                    has_t1 = pd.notna(t1) and isinstance(t1, (int, float)) and t1 > 0
+                    has_t2 = pd.notna(t2) and isinstance(t2, (int, float)) and t2 > 0
+                    
+                    txt_c1_visuel = format_final_chrono(t1)
+                    txt_c2_brut = format_final_chrono(t2)
+
+                    if est_en_c2:
+                        if not has_t2:
+                            if "Heure_Depart_2" in row and pd.notna(row["Heure_Depart_2"]):
+                                txt_c2_visuel = "<span class='vrai-gyrophare'>🟠</span> En Piste"
+                            else:
+                                txt_c2_visuel = f"No Time &nbsp;<span style='color: #9CA3AF; font-size: 1.05rem; vertical-align: middle; display: inline-block; line-height: 1;'>◆</span>"
+                        else:
+                            if not has_t1:
+                                txt_c2_visuel = f"{txt_c2_brut} &nbsp;<span style='color: #9CA3AF; font-size: 1.05rem; vertical-align: middle; display: inline-block; line-height: 1;'>◆</span>"
+                            else:
+                                if t2 < t1:
+                                    txt_c2_visuel = f"{txt_c2_brut} &nbsp;<span style='color: #22C55E; font-size: 1.25rem; vertical-align: middle; display: inline-block; line-height: 1;'>▲</span>"
+                                elif t2 > t1:
+                                    txt_c2_visuel = f"{txt_c2_brut} &nbsp;<span style='color: #EF4444; font-size: 1.25rem; vertical-align: middle; display: inline-block; line-height: 1;'>▼</span>"
+                                else:
+                                    txt_c2_visuel = txt_c2_brut
+                        txt_chrono_final = txt_c2_visuel
+                    else:
+                        if not has_t1 and "Heure_Depart_1" in row and pd.notna(row["Heure_Depart_1"]):
+                            txt_chrono_final = "<span class='vrai-gyrophare'>🟠</span> En Piste"
+                        else:
+                            txt_chrono_final = txt_c1_visuel
+
+                    html_hist += f"<tr><td>{row['N°']}</td><td>{row['Nom_Prenom']}</td><td>{row['Voiture']}</td><td>{row['Groupe']}</td><td>{row['Classe']}</td><td>{txt_c1_visuel}</td><td>{txt_chrono_final}</td></tr>"
+                html_hist += "</tbody></table></div>"
                 # --- CLASSEMENTS COMPLÉMENTAIRES (REGROUPEMENT CLASSEMENTS DROITE : ASAF + RACB) ---
                 valides = base[((base["Calc_Sec_1"].notna() & (base["Calc_Sec_1"] > 0)) | (base["Calc_Sec_2"].notna() & (base["Calc_Sec_2"] > 0)))].copy() if "Calc_Sec_1" in base.columns or "Calc_Sec_2" in base.columns else pd.DataFrame()
                 if len(valides) > 0:
