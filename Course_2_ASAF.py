@@ -252,14 +252,23 @@ def recuperer_donnees_course():
             if len(df_dep2) > 0: df_dep2["Sec_Dep_2"] = df_dep2["Heure_Depart_2"].apply(convertir_en_secondes)
             if len(df_arr2) > 0: df_arr2["Sec_Arr_2"] = df_arr2["Heure_Arrivee_2"].apply(convertir_en_secondes)
 
+            # Identification de la manche active
             est_en_c2 = "Heure_Depart_2" in df_dep2.columns and len(df_dep2) > 0
             df_actif = df_dep2 if est_en_c2 else df_dep1
 
             if len(df_actif) > 0:
                 df_actif = df_actif.copy()
+                # On marque l'ordre physique global de saisie de l'Excel
                 df_actif["Ordre_Passage"] = range(len(df_actif))
 
+                # --- SÉPARATION COMPLÉMENTAIRE POUR LES TABLEAUX ---
+                # 1. Base globale regroupée (ASAF + RACB) pour les classements officieux de droite
                 base = pd.merge(df_actif, df_eng, on="N°", how="inner")
+                
+                # 2. Base restreinte (ASAF uniquement) pour les affichages EN DIRECT / HISTORIQUE à gauche
+                # Un concurrent ASAF se reconnaît car il fait obligatoirement partie de la liste des engagés ASAF
+                base_visuelle_gauche = base.copy()
+
                 if est_en_c2 and len(df_arr2) > 0: base = pd.merge(base, df_arr2, on="N°", how="left")
                 if not est_en_c2 and len(df_arr1) > 0: base = pd.merge(base, df_arr1, on="N°", how="left")
                 
@@ -269,11 +278,16 @@ def recuperer_donnees_course():
                 base["Calc_Sec_1"] = (base.get("Sec_Arr_1", pd.Series(dtype=float)) - base.get("Sec_Dep_1", pd.Series(dtype=float))).apply(lambda x: x + 3600 if (x is not None and x < 0) else x) if "Sec_Arr_1" in base.columns else None
                 base["Calc_Sec_2"] = (base.get("Sec_Arr_2", pd.Series(dtype=float)) - base.get("Sec_Dep_2", pd.Series(dtype=float))).apply(lambda x: x + 3600 if (x is not None and x < 0) else x) if "Sec_Arr_2" in base.columns else None
 
-                df_hist_base = pd.DataFrame(columns=base.columns)
+                # Traitement des calculs de chronos spécifiques pour le flux visuel ASAF de gauche
+                base_visuelle_gauche = pd.merge(base_visuelle_gauche, base[["N°", "Calc_Sec_1", "Calc_Sec_2"]], on="N°", how="left")
+
+                df_hist_base = pd.DataFrame(columns=base_visuelle_gauche.columns)
                 df_live = pd.DataFrame(columns=["N°", "Nom_Prenom", "Voiture", "Départ", "Arrivée", "Chrono réalisé"])
 
-                pile_inversee = base.sort_values(by="Ordre_Passage", ascending=False).copy()
+                # Inversion de la pile ASAF pour l'affichage en direct
+                pile_inversee = base_visuelle_gauche.sort_values(by="Ordre_Passage", ascending=False).copy()
 
+                # EN DIRECT : Reçoit les 5 derniers concurrents ASAF partis
                 df_live_base = pile_inversee.head(5).copy()
                 df_live_base["Chrono réalisé"] = df_live_base.apply(lambda r: calculer_statut_chrono(r, est_dans_le_live=True), axis=1)
                 
@@ -283,8 +297,9 @@ def recuperer_donnees_course():
                 df_live_base["Arrivée_Visuel"] = df_live_base[h_arr_col].apply(formater_heure_ecran) if h_arr_col in df_live_base.columns else "-"
                 df_live = df_live_base[["N°", "Nom_Prenom", "Voiture", "Départ_Visuel", "Arrivée_Visuel", "Chrono réalisé"]].rename(columns={"Départ_Visuel": "Départ", "Arrivée_Visuel": "Arrivée"})
 
+                # HISTORIQUE : Les concurrents ASAF poussés au-delà du Top 5 (sans tri)
                 df_hist_base = pile_inversee.iloc[5:].copy() if len(pile_inversee) > 5 else pd.DataFrame(columns=pile_inversee.columns)
-                # --- ENTRÉE DIRECTE DANS LA GÉNÉRATION DU CODE DE LA SUITE DU SCRIPT ---
+                # --- GÉNÉRATION DU FLUX HTML EXCLUSIF ASAF ---
                 html_hist = "<div class='zone-defilement-tactile'>"
                 html_hist += "<table class='table-compacte table-hist'><thead><tr><th>N°</th><th>Nom_Prenom</th><th>Voiture</th><th>Groupe</th><th>Cl</th><th>Course 1</th><th>Chrono</th></tr></thead><tbody>"
 
@@ -317,6 +332,7 @@ def recuperer_donnees_course():
                     html_hist += f"<tr><td>{row['N°']}</td><td>{row['Nom_Prenom']}</td><td>{row['Voiture']}</td><td>{row['Groupe']}</td><td>{row['Classe']}</td><td>{txt_c1_visuel}</td><td>{txt_chrono_final}</td></tr>"
                 html_hist += "</tbody></table></div>"
 
+                # --- CLASSEMENTS COMPLÉMENTAIRES (REGROUPEMENT CLASSEMENTS DROITE) ---
                 valides = base[((base["Calc_Sec_1"].notna() & (base["Calc_Sec_1"] > 0)) | (base["Calc_Sec_2"].notna() & (base["Calc_Sec_2"] > 0)))].copy() if "Calc_Sec_1" in base.columns or "Calc_Sec_2" in base.columns else pd.DataFrame()
                 if len(valides) > 0:
                     cols_calcul = [c for c in ["Calc_Sec_1", "Calc_Sec_2"] if c in valides.columns]
