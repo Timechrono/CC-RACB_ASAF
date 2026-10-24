@@ -368,9 +368,11 @@ def recuperer_donnees_course():
                     df_grouped = df_grouped.sort_values(by=["Cl_Tri_Num", "Cl_Tri_Suff", "Groupe", "Meilleur_Sec"])
                     if len(df_grouped) > 0:
                         df_grouped["Pos"] = df_grouped.groupby("Classe", sort=False).cumcount() + 1; df_grouped["Chrono"] = df_grouped["Meilleur_Sec"].apply(format_final_chrono)
-                        # Remplacement du nom 'Groupe' par 'Division'
+                        
+                        # Changements exclusifs pour le TABLEAU 1 :
+                        # 1. Renommer 'Groupe' en 'Division'
                         df_divisions = df_grouped[["Pos", "N°", "Nom_Prenom", "Groupe", "Classe", "Chrono"]].rename(columns={"Classe": "Cl", "Groupe": "Division"})
-                        # Exclusion stricte des concurrents appartenant à la Division 4
+                        # 2. Exclure la Division 4 de ce tableau 1
                         df_divisions = df_divisions[df_divisions["Division"].astype(str).str.strip() != "4"]
         except Exception as e:
             pass
@@ -379,7 +381,7 @@ def recuperer_donnees_course():
         html_hist = f"{CSS_RIGIDE_ORIGINE}<table class='table-compacte table-hist'><tr><td style='text-align: center; padding: 10px;'>Aucune donnée disponible pour le plateau ASAF</td></tr></table>"
 
     if not df_divisions.empty:
-        # Modification de l'entête HTML pour afficher 'Division' au lieu de 'Groupe'
+        # Entête HTML mise à jour pour le TABLEAU 1 avec 'Division'
         html_class_div = f"<table class='table-compacte table-class-groupes'><thead><tr><th>Pos</th><th>N°</th><th>Nom_Prenom</th><th>Division</th><th>Cl</th><th>Chrono</th></tr></thead><tbody>"
         for idx in range(len(df_divisions)):
             classe_row = ""
