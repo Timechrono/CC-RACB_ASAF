@@ -290,13 +290,12 @@ def recuperer_donnees_course():
                     has_t1 = pd.notna(t1) and isinstance(t1, (int, float)) and t1 > 0
                     has_t2 = pd.notna(t2) and isinstance(t2, (int, float)) and t2 > 0
                     
-                    # ➡️ TRAITEMENT DE LA COLONNE COURSE 1 : Texte brut uniquement (Plus aucun point vert ni losange)
+                    # TRAITEMENT DE LA COLONNE COURSE 1 : Texte brut uniquement (Plus aucun point vert ni losange)
                     txt_c1_visuel = format_final_chrono(t1)
 
-                    # ➡️ TRAITEMENT EXCLUSIF DE LA COLONNE CHRONO (COURSE 2)
+                    # TRAITEMENT EXCLUSIF DE LA COLONNE CHRONO (COURSE 2)
                     if not has_t2:
                         if has_t1:
-                            # Cas où le concurrent a uniquement fait la Course 1 : le losange se place ici, à droite de No Time
                             txt_c2_visuel = f"No Time &nbsp;<span style='color: #9CA3AF; font-size: 1.05rem; vertical-align: middle; display: inline-block; line-height: 1;'>◆</span>"
                         else:
                             txt_c2_visuel = "No Time"
@@ -304,10 +303,8 @@ def recuperer_donnees_course():
                         txt_c2_brut = format_final_chrono(t2)
                         
                         if not has_t1:
-                            # Cas où le concurrent a uniquement fait la Course 2 : losange à droite du temps
                             txt_c2_visuel = f"{txt_c2_brut} &nbsp;<span style='color: #9CA3AF; font-size: 1.05rem; vertical-align: middle; display: inline-block; line-height: 1;'>◆</span>"
                         else:
-                            # Le pilote a les 2 temps : flèches de progression pure à droite
                             if t2 < t1:
                                 txt_c2_visuel = f"{txt_c2_brut} &nbsp;<span style='color: #22C55E; font-size: 1.25rem; vertical-align: middle; display: inline-block; line-height: 1;'>▲</span>"
                             elif t2 > t1:
@@ -324,10 +321,13 @@ def recuperer_donnees_course():
                     valides["Meilleur_Sec"] = valides[["Calc_Sec_1", "Calc_Sec_2"]].min(axis=1, skipna=True)
                     scr = valides.sort_values(by="Meilleur_Sec").drop_duplicates(subset=["N°"], keep="first").copy()
                     
-                    racb = scr.head(20).copy()
+                    # ➡️ MODIFICATION DU CLASSEMENT GENERAL RACB : Suppression du .head(20) pour afficher TOUT LE MONDE
+                    racb = scr.copy()
                     if len(racb) > 0:
                         racb["Pos"] = range(1, len(racb) + 1); racb["Chrono"] = racb["Meilleur_Sec"].apply(format_final_chrono)
-                        df_racb = racb[["Pos", "N°", "Nom_Prenom", "Groupe", "Classe", "Chrono"]].rename(columns={"Classe": "Cl"})
+                        df_racb_brut = racb[["Pos", "N°", "Nom_Prenom", "Groupe", "Classe", "Chrono"]].rename(columns={"Classe": "Cl"})
+                        # Enveloppement HTML dans la zone de défilement rigide
+                        df_racb = f"<div class='zone-defilement-tactile'>{df_racb_brut.to_html(index=False, classes='table-compacte table-class-robuste', escape=False, border=0)}</div>"
                     
                     scr["Cl_Tri_Num"] = scr["Classe"].apply(decomposer_classe_pour_tri)
                     scr["Cl_Tri_Suff"] = scr["Classe"].apply(extraire_suffixe_pour_tri)
