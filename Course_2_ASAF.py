@@ -242,6 +242,7 @@ def recuperer_donnees_course():
             df_arr2 = pd.concat(arr2_list, ignore_index=True) if arr2_list else pd.DataFrame(columns=["N°", "Heure_Arrivee_2"])
             
             # --- NETTOYAGE ET SÉCURISATION DES DONNÉES ---
+            # On garde l'ordre de saisie original de l'Excel en conservant la DERNIÈRE apparition (keep="last")
             df_dep1 = df_dep1[(df_dep1["N°"] != "NAN") & (df_dep1["N°"] != "")].drop_duplicates(subset=["N°"], keep="last")
             df_arr1 = df_arr1[(df_arr1["N°"] != "NAN") & (df_arr1["N°"] != "")].drop_duplicates(subset=["N°"], keep="last")
             df_dep2 = df_dep2[(df_dep2["N°"] != "NAN") & (df_dep2["N°"] != "")].drop_duplicates(subset=["N°"], keep="last")
@@ -252,7 +253,15 @@ def recuperer_donnees_course():
             if len(df_dep2) > 0: df_dep2["Sec_Dep_2"] = df_dep2["Heure_Depart_2"].apply(convertir_en_secondes)
             if len(df_arr2) > 0: df_arr2["Sec_Arr_2"] = df_arr2["Heure_Arrivee_2"].apply(convertir_en_secondes)
 
-            base = df_eng.copy()
+            # On crée l'ordre chronologique basé UNIQUEMENT sur l'apparition dans le fichier de départ
+            # Les lignes du bas de l'Excel reçoivent un index plus élevé
+            if "Heure_Depart_2" in base_runs.columns and len(df_dep2) > 0:
+                base_runs["Ordre_Saisie_Excel"] = range(len(base_runs))
+            else:
+                base_runs["Ordre_Saisie_Excel"] = range(len(base_runs))
+
+            # Fusion en partant de l'ordre des passages de l'Excel pour ne PAS être bloqué par l'ordre des engagés
+            base = pd.merge(base_runs, df_eng, on="N°", how="inner")
             if len(df_dep1) > 0: base = pd.merge(base, df_dep1, on="N°", how="left")
             if len(df_arr1) > 0: base = pd.merge(base, df_arr1, on="N°", how="left")
             if len(df_dep2) > 0: base = pd.merge(base, df_dep2, on="N°", how="left")
@@ -265,20 +274,18 @@ def recuperer_donnees_course():
                 df_hist_base = pd.DataFrame(columns=base.columns)
                 df_live = pd.DataFrame(columns=["N°", "Nom_Prenom", "Voiture", "Départ", "Arrivée", "Chrono réalisé"])
 
-                # On mémorise l'ordre d'arrivée brut des fichiers Excel (les derniers arrivés sont en bas)
-                # En triant par cet index en mode décroissant, le tout dernier arrivé monte automatiquement au-dessus
-                base["Ordre_Arrivee_Brut"] = range(len(base))
-                tous_chronos_recents = base[(base["Heure_Depart_2"].notna()) | (base["Heure_Depart_1"].notna())].sort_values(by="Ordre_Arrivee_Brut", ascending=False).copy()
+                # TRI PAR ORDRE DE SAISIE INVERSÉ : La toute dernière ligne écrite dans l'Excel monte tout en haut
+                tous_chronos_recents = base.sort_values(by="Ordre_Saisie_Excel", ascending=False).copy()
 
                 if "Heure_Depart_2" in base.columns and base["Heure_Depart_2"].notna().any():
-                    # En direct : prend les 5 premiers de la pile (les 5 plus récents ajoutés)
+                    # En direct : Prends les 5 lignes les plus récentes du fichier Excel
                     df_live_base = tous_chronos_recents.head(5).copy()
                     df_live_base["Chrono réalisé"] = df_live_base.apply(lambda r: calculer_statut_chrono(r, est_dans_le_live=True), axis=1)
                     df_live_base["Départ_Visuel"] = df_live_base["Heure_Depart_2"].fillna(df_live_base["Heure_Depart_1"]).apply(formater_heure_ecran)
                     df_live_base["Arrivée_Visuel"] = df_live_base["Heure_Arrivee_2"].fillna(df_live_base["Heure_Arrivee_1"]).apply(formater_heure_ecran)
                     df_live = df_live_base[["N°", "Nom_Prenom", "Voiture", "Départ_Visuel", "Arrivée_Visuel", "Chrono réalisé"]].rename(columns={"Départ_Visuel": "Départ", "Arrivée_Visuel": "Arrivée"})
 
-                    # Historique : prend le reste de la pile, conservant l'effet de recul des anciens concurrents
+                    # Historique : Reçoit le reste de la pile (les voitures poussées vers le bas)
                     df_hist_base = tous_chronos_recents.iloc[5:].copy() if len(tous_chronos_recents) > 5 else tous_chronos_recents.copy()
                 else:
                     df_hist_base = tous_chronos_recents.copy()
@@ -351,3 +358,4 @@ def recuperer_donnees_course():
         html_class_div = f"<table class='table-compacte table-class-groupes'><tr><td style='text-align: center; padding: 10px;'>Aucune donnée disponible</td></tr></table>"
 
     return df_live, html_hist, df_racb, html_class_div, pd.DataFrame(), t_live, t_his, t_haut, t_milieu, t_bas
+
