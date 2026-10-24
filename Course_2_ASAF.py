@@ -266,7 +266,6 @@ def recuperer_donnees_course():
                 base = pd.merge(df_actif, df_eng, on="N°", how="inner")
                 
                 # 2. Base restreinte (ASAF uniquement) pour les affichages EN DIRECT / HISTORIQUE à gauche
-                # Un concurrent ASAF se reconnaît car il fait obligatoirement partie de la liste des engagés ASAF
                 base_visuelle_gauche = base.copy()
 
                 if est_en_c2 and len(df_arr2) > 0: base = pd.merge(base, df_arr2, on="N°", how="left")
@@ -314,7 +313,11 @@ def recuperer_donnees_course():
 
                     if est_en_c2:
                         if not has_t2:
-                            txt_c2_visuel = f"No Time &nbsp;<span style='color: #9CA3AF; font-size: 1.05rem; vertical-align: middle; display: inline-block; line-height: 1;'>◆</span>"
+                            # Correction d'affichage : Si présent au départ mais pas d'arrivée, on affiche En Piste
+                            if "Heure_Depart_2" in row and pd.notna(row["Heure_Depart_2"]):
+                                txt_c2_visuel = "En Piste"
+                            else:
+                                txt_c2_visuel = f"No Time &nbsp;<span style='color: #9CA3AF; font-size: 1.05rem; vertical-align: middle; display: inline-block; line-height: 1;'>◆</span>"
                         else:
                             if not has_t1:
                                 txt_c2_visuel = f"{txt_c2_brut} &nbsp;<span style='color: #9CA3AF; font-size: 1.05rem; vertical-align: middle; display: inline-block; line-height: 1;'>◆</span>"
@@ -327,7 +330,10 @@ def recuperer_donnees_course():
                                     txt_c2_visuel = txt_c2_brut
                         txt_chrono_final = txt_c2_visuel
                     else:
-                        txt_chrono_final = txt_c1_visuel
+                        if not has_t1 and "Heure_Depart_1" in row and pd.notna(row["Heure_Depart_1"]):
+                            txt_chrono_final = "En Piste"
+                        else:
+                            txt_chrono_final = txt_c1_visuel
 
                     html_hist += f"<tr><td>{row['N°']}</td><td>{row['Nom_Prenom']}</td><td>{row['Voiture']}</td><td>{row['Groupe']}</td><td>{row['Classe']}</td><td>{txt_c1_visuel}</td><td>{txt_chrono_final}</td></tr>"
                 html_hist += "</tbody></table></div>"
