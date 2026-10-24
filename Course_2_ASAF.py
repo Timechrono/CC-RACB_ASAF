@@ -252,7 +252,6 @@ def recuperer_donnees_course():
             if len(df_dep2) > 0: df_dep2["Sec_Dep_2"] = df_dep2["Heure_Depart_2"].apply(convertir_en_secondes)
             if len(df_arr2) > 0: df_arr2["Sec_Arr_2"] = df_arr2["Heure_Arrivee_2"].apply(convertir_en_secondes)
 
-            # Manche active uniquement pour le Direct/Historique à gauche
             est_en_c2 = "Heure_Depart_2" in df_dep2.columns and len(df_dep2) > 0
             df_actif = df_dep2 if est_en_c2 else df_dep1
 
@@ -260,10 +259,8 @@ def recuperer_donnees_course():
                 df_actif = df_actif.copy()
                 df_actif["Ordre_Passage"] = range(len(df_actif))
 
-                # --- SÉCURISATION DROITE : Union complète des partants (Manche 1 + Manche 2) ---
                 tous_les_partants = pd.DataFrame({"N°": list(set(df_dep1["N°"].tolist() + df_dep2["N°"].tolist()))})
                 
-                # Reconstruction de la base des classements (Droite) sans aucune perte de concurrents
                 base = pd.merge(tous_les_partants, df_eng, on="N°", how="inner")
                 if len(df_dep1) > 0: base = pd.merge(base, df_dep1, on="N°", how="left")
                 if len(df_arr1) > 0: base = pd.merge(base, df_arr1, on="N°", how="left")
@@ -272,7 +269,6 @@ def recuperer_donnees_course():
 
                 base["Calc_Sec_1"] = (base.get("Sec_Arr_1", pd.Series(dtype=float)) - base.get("Sec_Dep_1", pd.Series(dtype=float))).apply(lambda x: x + 3600 if (x is not None and x < 0) else x) if "Sec_Arr_1" in base.columns else None
                 base["Calc_Sec_2"] = (base.get("Sec_Arr_2", pd.Series(dtype=float)) - base.get("Sec_Dep_2", pd.Series(dtype=float))).apply(lambda x: x + 3600 if (x is not None and x < 0) else x) if "Sec_Arr_2" in base.columns else None
-                # --- PROTECTION GAUCHE : Flux visuel strict ASAF basé sur la manche en cours ---
                 mot_cle_tri = "COURSE 2 ASAF" if est_en_c2 else "COURSE 1 ASAF"
                 liste_asaf_numeros = []
                 for c_idx in range(len(df_dep_raw.columns)):
