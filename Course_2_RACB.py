@@ -259,15 +259,24 @@ def recuperer_donnees_course():
                 base["Calc_Sec_1"] = (base["Sec_Arr_1"] - base["Sec_Dep_1"]).apply(lambda x: x + 3600 if (x is not None and x < 0) else x)
                 base["Calc_Sec_2"] = (base["Sec_Arr_2"] - base["Sec_Dep_2"]).apply(lambda x: x + 3600 if (x is not None and x < 0) else x)
 
+                # Base par défaut pour l'historique au cas où la course 2 n'a pas commencé
+                df_hist_base = pd.DataFrame(columns=base.columns)
+
                 if "Heure_Depart_2" in base.columns and base["Heure_Depart_2"].notna().any():
-                    base_c2 = base[base["Heure_Depart_2"].notna()].copy(); base_c2["Ordre_Live"] = range(len(base_c2))
-                    df_live_base = base_c2.sort_values(by="Ordre_Live", ascending=False).head(5).copy()
+                    # 1. On récupère les concurrents de la Course 2 triés du plus récent au plus ancien départ
+                    base_c2 = base[base["Heure_Depart_2"].notna()].copy()
+                    base_c2["Ordre_Live"] = range(len(base_c2))
+                    tous_chronos_recents = base_c2.sort_values(by="Ordre_Live", ascending=False).copy()
+                    
+                    # 2. EN DIRECT : On extrait strictement le Top 5 des derniers partis
+                    df_live_base = tous_chronos_recents.head(5).copy()
                     df_live_base["Chrono réalisé"] = df_live_base.apply(lambda r: calculer_statut_chrono(r, est_dans_le_live=True), axis=1)
                     df_live_base["Départ_C2"] = df_live_base["Heure_Depart_2"].apply(formater_heure_ecran)
                     df_live_base["Arrivée_C2"] = df_live_base["Heure_Arrivee_2"].apply(formater_heure_ecran)
                     df_live = df_live_base[["N°", "Nom_Prenom", "Voiture", "Départ_C2", "Arrivée_C2", "Chrono réalisé"]].rename(columns={"Départ_C2": "Départ", "Arrivée_C2": "Arrivée"})
 
-                df_hist_base = base.assign(Ordre_Saisie=range(len(base))).sort_values(by="Ordre_Saisie", ascending=False).copy()
+                    # 3. HISTORIQUE : On prend uniquement les lignes éjectées du Live (à partir de la 6ème)
+                    df_hist_base = tous_chronos_recents.iloc[5:].copy()
                 
                 # TABLE HISTORIQUE SÉCURISÉE SANS AUCUNE BALISE DE TEXTE EN GRAS SUR SMARTPHONE
                 html_hist = "<div class='zone-defilement-tactile'>"
@@ -296,6 +305,8 @@ def recuperer_donnees_course():
                     html_hist += f"<tr><td>{row['N°']}</td><td>{row['Nom_Prenom']}</td><td>{row['Voiture']}</td><td>{row['Groupe']}</td><td>{row['Classe']}</td><td>{txt_c1_visuel}</td><td>{txt_c2_visuel}</td></tr>"
                 html_hist += "</tbody></table></div>"
 
+                # 4. CALCUL DES CLASSEMENTS GENERAUX ET CLASSES
+                # On utilise 'base' (qui contient TOUS les concurrents, Live inclus) pour ne léser personne
                 valides = base[((base["Calc_Sec_1"].notna() & (base["Calc_Sec_1"] > 0)) | (base["Calc_Sec_2"].notna() & (base["Calc_Sec_2"] > 0)))].copy()
                 if len(valides) > 0:
                     valides["Meilleur_Sec"] = valides[["Calc_Sec_1", "Calc_Sec_2"]].min(axis=1, skipna=True)
