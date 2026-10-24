@@ -268,26 +268,23 @@ def recuperer_donnees_course():
         except:
             pass
         try:
-            df_dep1 = df_dep1[(df_dep1["N°"] != "NAN") & (df_dep1["N°"] != "")]
-            df_dep2 = df_dep2[(df_dep2["N°"] != "NAN") & (df_dep2["N°"] != "")]
-            for d in [df_dep1, df_arr1, df_dep2, df_arr2]:
-                if len(d) > 0:
-                    d["N°"] = d["N°"].astype(str)
-                    d["Run_Index"] = d.groupby("N°").cumcount() + 1
+            # --- NETTOYAGE ET SÉCURISATION DES DONNÉES ---
+            df_dep1 = df_dep1[(df_dep1["N°"] != "NAN") & (df_dep1["N°"] != "")].drop_duplicates(subset=["N°"], keep="last")
+            df_arr1 = df_arr1[(df_arr1["N°"] != "NAN") & (df_arr1["N°"] != "")].drop_duplicates(subset=["N°"], keep="last")
+            df_dep2 = df_dep2[(df_dep2["N°"] != "NAN") & (df_dep2["N°"] != "")].drop_duplicates(subset=["N°"], keep="last")
+            df_arr2 = df_arr2[(df_arr2["N°"] != "NAN") & (df_arr2["N°"] != "")].drop_duplicates(subset=["N°"], keep="last")
+
             if len(df_dep1) > 0: df_dep1["Sec_Dep_1"] = df_dep1["Heure_Depart_1"].apply(convertir_en_secondes)
             if len(df_arr1) > 0: df_arr1["Sec_Arr_1"] = df_arr1["Heure_Arrivee_1"].apply(convertir_en_secondes)
             if len(df_dep2) > 0: df_dep2["Sec_Dep_2"] = df_dep2["Heure_Depart_2"].apply(convertir_en_secondes)
             if len(df_arr2) > 0: df_arr2["Sec_Arr_2"] = df_arr2["Heure_Arrivee_2"].apply(convertir_en_secondes)
 
-            base_runs = pd.DataFrame(columns=["N°", "Run_Index"])
-            for d in [df_dep1, df_dep2]:
-                if len(d) > 0: base_runs = pd.concat([base_runs, d[["N°", "Run_Index"]]], ignore_index=True)
-            base_runs = base_runs.drop_duplicates(subset=["N°", "Run_Index"]) if len(base_runs) > 0 else df_eng[["N°"]].assign(Run_Index=1)
-            base = pd.merge(base_runs, df_eng, on="N°", how="inner")
-            if len(df_dep1) > 0: base = pd.merge(base, df_dep1, on=["N°", "Run_Index"], how="left")
-            if len(df_arr1) > 0: base = pd.merge(base, df_arr1, on=["N°", "Run_Index"], how="left")
-            if len(df_dep2) > 0: base = pd.merge(base, df_dep2, on=["N°", "Run_Index"], how="left")
-            if len(df_arr2) > 0: base = pd.merge(base, df_arr2, on=["N°", "Run_Index"], how="left")
+            # Fusion directe et robuste sur le N° de concurrent avec la liste des engagés
+            base = df_eng.copy()
+            if len(df_dep1) > 0: base = pd.merge(base, df_dep1, on="N°", how="left")
+            if len(df_arr1) > 0: base = pd.merge(base, df_arr1, on="N°", how="left")
+            if len(df_dep2) > 0: base = pd.merge(base, df_dep2, on="N°", how="left")
+            if len(df_arr2) > 0: base = pd.merge(base, df_arr2, on="N°", how="left")
             
             if len(base) > 0:
                 base["Calc_Sec_1"] = (base["Sec_Arr_1"] - base["Sec_Dep_1"]).apply(lambda x: x + 3600 if (x is not None and x < 0) else x)
@@ -296,17 +293,20 @@ def recuperer_donnees_course():
                 df_hist_base = pd.DataFrame(columns=base.columns)
                 df_live = pd.DataFrame(columns=["N°", "Nom_Prenom", "Voiture", "Départ", "Arrivée", "Chrono réalisé"])
 
+                # Tri global par le dernier événement (soit Départ 2, soit Départ 1 à défaut) pour voir qui roule
+                base["Tri_Chronologique"] = base["Heure_Depart_2"].fillna(base["Heure_Depart_1"])
+                tous_chronos_recents = base[base["Tri_Chronologique"].notna()].sort_values(by="Tri_Chronologique", ascending=False).copy()
+
                 if "Heure_Depart_2" in base.columns and base["Heure_Depart_2"].notna().any():
-                    base_c2 = base[base["Heure_Depart_2"].notna()].copy()
-                    tous_chronos_recents = base_c2.sort_values(by="Heure_Depart_2", ascending=False).copy()
-                    
+                    # Le Live prend les 5 derniers de la Course 2 en priorité, ou de la Course 1
                     df_live_base = tous_chronos_recents.head(5).copy()
                     df_live_base["Chrono réalisé"] = df_live_base.apply(lambda r: calculer_statut_chrono(r, est_dans_le_live=True), axis=1)
-                    df_live_base["Départ_C2"] = df_live_base["Heure_Depart_2"].apply(formater_heure_ecran)
-                    df_live_base["Arrivée_C2"] = df_live_base["Heure_Arrivee_2"].apply(formater_heure_ecran)
-                    df_live = df_live_base[["N°", "Nom_Prenom", "Voiture", "Départ_C2", "Arrivée_C2", "Chrono réalisé"]].rename(columns={"Départ_C2": "Départ", "Arrivée_C2": "Arrivée"})
+                    df_live_base["Départ_Visuel"] = df_live_base["Heure_Depart_2"].fillna(df_live_base["Heure_Depart_1"]).apply(formater_heure_ecran)
+                    df_live_base["Arrivée_Visuel"] = df_live_base["Heure_Arrivee_2"].fillna(df_live_base["Heure_Arrivee_1"]).apply(formater_heure_ecran)
+                    df_live = df_live_base[["N°", "Nom_Prenom", "Voiture", "Départ_Visuel", "Arrivée_Visuel", "Chrono réalisé"]].rename(columns={"Départ_Visuel": "Départ", "Arrivée_Visuel": "Arrivée"})
 
-                    df_hist_base = tous_chronos_recents.iloc[5:].copy()
+                    # L'historique garde TOUT LE MONDE (Course 1 et Course 2 confondues)
+                    df_hist_base = tous_chronos_recents.iloc[5:].copy() if len(tous_chronos_recents) > 5 else tous_chronos_recents.copy()
                 else:
                     df_hist_base = base.assign(Ordre_Saisie=range(len(base))).sort_values(by="Ordre_Saisie", ascending=False).copy()
                 
