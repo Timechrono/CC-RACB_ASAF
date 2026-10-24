@@ -242,10 +242,11 @@ def recuperer_donnees_course():
             df_arr2 = pd.concat(arr2_list, ignore_index=True) if arr2_list else pd.DataFrame(columns=["N°", "Heure_Arrivee_2"])
             
             # --- NETTOYAGE ET SÉCURISATION DES DONNÉES ---
-            df_dep1 = df_dep1[(df_dep1["N°"] != "NAN") & (df_dep1["N°"] != "")]
-            df_arr1 = df_arr1[(df_arr1["N°"] != "NAN") & (df_arr1["N°"] != "")]
-            df_dep2 = df_dep2[(df_dep2["N°"] != "NAN") & (df_dep2["N°"] != "")]
-            df_arr2 = df_arr2[(df_arr2["N°"] != "NAN") & (df_arr2["N°"] != "")]
+            # Correction : On nettoie d'abord les fichiers pour ne garder QUE la dernière action valide de chaque voiture
+            df_dep1 = df_dep1[(df_dep1["N°"] != "NAN") & (df_dep1["N°"] != "")].drop_duplicates(subset=["N°"], keep="last")
+            df_arr1 = df_arr1[(df_arr1["N°"] != "NAN") & (df_arr1["N°"] != "")].drop_duplicates(subset=["N°"], keep="last")
+            df_dep2 = df_dep2[(df_dep2["N°"] != "NAN") & (df_dep2["N°"] != "")].drop_duplicates(subset=["N°"], keep="last")
+            df_arr2 = df_arr2[(df_arr2["N°"] != "NAN") & (df_arr2["N°"] != "")].drop_duplicates(subset=["N°"], keep="last")
 
             if len(df_dep1) > 0: df_dep1["Sec_Dep_1"] = df_dep1["Heure_Depart_1"].apply(convertir_en_secondes)
             if len(df_arr1) > 0: df_arr1["Sec_Arr_1"] = df_arr1["Heure_Arrivee_1"].apply(convertir_en_secondes)
@@ -258,14 +259,13 @@ def recuperer_donnees_course():
 
             if len(df_actif) > 0:
                 df_actif = df_actif.copy()
-                # On marque l'ordre physique global de saisie de l'Excel
+                # On marque l'ordre physique global de saisie de l'Excel nettoyé
                 df_actif["Ordre_Passage"] = range(len(df_actif))
 
                 # 1. Base globale regroupée (ASAF + RACB) pour les classements officieux de droite
                 base = pd.merge(df_actif, df_eng, on="N°", how="inner")
                 
                 # 2. Base restreinte : Exclure strictement les lignes RACB de l'affichage visuel de gauche
-                # On filtre df_actif pour ne garder QUE les numéros existant dans le fichier d'origine ASAF
                 mot_cle_tri = "COURSE 2 ASAF" if est_en_c2 else "COURSE 1 ASAF"
                 liste_asaf_numeros = []
                 for c_idx in range(len(df_dep_raw.columns)):
@@ -285,7 +285,7 @@ def recuperer_donnees_course():
                 base["Calc_Sec_1"] = (base.get("Sec_Arr_1", pd.Series(dtype=float)) - base.get("Sec_Dep_1", pd.Series(dtype=float))).apply(lambda x: x + 3600 if (x is not None and x < 0) else x) if "Sec_Arr_1" in base.columns else None
                 base["Calc_Sec_2"] = (base.get("Sec_Arr_2", pd.Series(dtype=float)) - base.get("Sec_Dep_2", pd.Series(dtype=float))).apply(lambda x: x + 3600 if (x is not None and x < 0) else x) if "Sec_Arr_2" in base.columns else None
 
-                # Injection indispensable des données d'Arrivée de la manche active pour le tableau visuel de gauche
+                # Injection des données d'Arrivée nettoyées pour le tableau visuel de gauche
                 if est_en_c2 and len(df_arr2) > 0:
                     base_visuelle_gauche = pd.merge(base_visuelle_gauche, df_arr2, on="N°", how="left")
                 elif not est_en_c2 and len(df_arr1) > 0:
@@ -296,10 +296,10 @@ def recuperer_donnees_course():
                 df_hist_base = pd.DataFrame(columns=base_visuelle_gauche.columns)
                 df_live = pd.DataFrame(columns=["N°", "Nom_Prenom", "Voiture", "Départ", "Arrivée", "Chrono réalisé"])
 
-                # Inversion de la pile EXCLUSIVE ASAF pour l'affichage en direct
+                # Inversion de la pile EXCLUSIVE ASAF unique pour l'affichage en direct
                 pile_inversee = base_visuelle_gauche.sort_values(by="Ordre_Passage", ascending=False).copy()
 
-                # EN DIRECT : Reçoit les 5 derniers concurrents ASAF partis
+                # EN DIRECT : Reçoit les 5 derniers concurrents ASAF uniques partis
                 df_live_base = pile_inversee.head(5).copy()
                 df_live_base["Chrono réalisé"] = df_live_base.apply(lambda r: calculer_statut_chrono(r, est_dans_le_live=True), axis=1)
                 
@@ -309,46 +309,8 @@ def recuperer_donnees_course():
                 df_live_base["Arrivée_Visuel"] = df_live_base[h_arr_col].apply(formater_heure_ecran) if h_arr_col in df_live_base.columns else "-"
                 df_live = df_live_base[["N°", "Nom_Prenom", "Voiture", "Départ_Visuel", "Arrivée_Visuel", "Chrono réalisé"]].rename(columns={"Départ_Visuel": "Départ", "Arrivée_Visuel": "Arrivée"})
 
-                # HISTORIQUE : Les concurrents ASAF poussés au-delà du Top 5 (sans tri, sans aucune ligne RACB)
+                # HISTORIQUE : Les concurrents ASAF uniques poussés au-delà du Top 5 (sans doublons, sans RACB)
                 df_hist_base = pile_inversee.iloc[5:].copy() if len(pile_inversee) > 5 else pd.DataFrame(columns=pile_inversee.columns)
-                # --- GÉNÉRATION DU FLUX HTML EXCLUSIF ASAF ---
-                html_hist = "<div class='zone-defilement-tactile'>"
-                html_hist += "<table class='table-compacte table-hist'><thead><tr><th>N°</th><th>Nom_Prenom</th><th>Voiture</th><th>Groupe</th><th>Cl</th><th>Course 1</th><th>Chrono</th></tr></thead><tbody>"
-
-                for idx, row in df_hist_base.iterrows():
-                    t1 = row.get("Calc_Sec_1", None)
-                    t2 = row.get("Calc_Sec_2", None)
-                    has_t1 = pd.notna(t1) and isinstance(t1, (int, float)) and t1 > 0
-                    has_t2 = pd.notna(t2) and isinstance(t2, (int, float)) and t2 > 0
-                    
-                    txt_c1_visuel = format_final_chrono(t1)
-                    txt_c2_brut = format_final_chrono(t2)
-
-                    if est_en_c2:
-                        if not has_t2:
-                            if "Heure_Depart_2" in row and pd.notna(row["Heure_Depart_2"]):
-                                txt_c2_visuel = "<span class='vrai-gyrophare'>🟠</span> En Piste"
-                            else:
-                                txt_c2_visuel = f"No Time &nbsp;<span style='color: #9CA3AF; font-size: 1.05rem; vertical-align: middle; display: inline-block; line-height: 1;'>◆</span>"
-                        else:
-                            if not has_t1:
-                                txt_c2_visuel = f"{txt_c2_brut} &nbsp;<span style='color: #9CA3AF; font-size: 1.05rem; vertical-align: middle; display: inline-block; line-height: 1;'>◆</span>"
-                            else:
-                                if t2 < t1:
-                                    txt_c2_visuel = f"{txt_c2_brut} &nbsp;<span style='color: #22C55E; font-size: 1.25rem; vertical-align: middle; display: inline-block; line-height: 1;'>▲</span>"
-                                elif t2 > t1:
-                                    txt_c2_visuel = f"{txt_c2_brut} &nbsp;<span style='color: #EF4444; font-size: 1.25rem; vertical-align: middle; display: inline-block; line-height: 1;'>▼</span>"
-                                else:
-                                    txt_c2_visuel = txt_c2_brut
-                        txt_chrono_final = txt_c2_visuel
-                    else:
-                        if not has_t1 and "Heure_Depart_1" in row and pd.notna(row["Heure_Depart_1"]):
-                            txt_chrono_final = "<span class='vrai-gyrophare'>🟠</span> En Piste"
-                        else:
-                            txt_chrono_final = txt_c1_visuel
-
-                    html_hist += f"<tr><td>{row['N°']}</td><td>{row['Nom_Prenom']}</td><td>{row['Voiture']}</td><td>{row['Groupe']}</td><td>{row['Classe']}</td><td>{txt_c1_visuel}</td><td>{txt_chrono_final}</td></tr>"
-                html_hist += "</tbody></table></div>"
                 # --- CLASSEMENTS COMPLÉMENTAIRES (REGROUPEMENT CLASSEMENTS DROITE : ASAF + RACB) ---
                 valides = base[((base["Calc_Sec_1"].notna() & (base["Calc_Sec_1"] > 0)) | (base["Calc_Sec_2"].notna() & (base["Calc_Sec_2"] > 0)))].copy() if "Calc_Sec_1" in base.columns or "Calc_Sec_2" in base.columns else pd.DataFrame()
                 if len(valides) > 0:
