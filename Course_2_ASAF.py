@@ -242,7 +242,6 @@ def recuperer_donnees_course():
             df_arr2 = pd.concat(arr2_list, ignore_index=True) if arr2_list else pd.DataFrame(columns=["N°", "Heure_Arrivee_2"])
             
             # --- NETTOYAGE ET SÉCURISATION DES DONNÉES ---
-            # Correction : On nettoie d'abord les fichiers pour ne garder QUE la dernière action valide de chaque voiture
             df_dep1 = df_dep1[(df_dep1["N°"] != "NAN") & (df_dep1["N°"] != "")].drop_duplicates(subset=["N°"], keep="last")
             df_arr1 = df_arr1[(df_arr1["N°"] != "NAN") & (df_arr1["N°"] != "")].drop_duplicates(subset=["N°"], keep="last")
             df_dep2 = df_dep2[(df_dep2["N°"] != "NAN") & (df_dep2["N°"] != "")].drop_duplicates(subset=["N°"], keep="last")
@@ -253,19 +252,27 @@ def recuperer_donnees_course():
             if len(df_dep2) > 0: df_dep2["Sec_Dep_2"] = df_dep2["Heure_Depart_2"].apply(convertir_en_secondes)
             if len(df_arr2) > 0: df_arr2["Sec_Arr_2"] = df_arr2["Heure_Arrivee_2"].apply(convertir_en_secondes)
 
-            # Identification de la manche active
+            # Manche active uniquement pour le Direct/Historique à gauche
             est_en_c2 = "Heure_Depart_2" in df_dep2.columns and len(df_dep2) > 0
             df_actif = df_dep2 if est_en_c2 else df_dep1
 
             if len(df_actif) > 0:
                 df_actif = df_actif.copy()
-                # On marque l'ordre physique global de saisie de l'Excel nettoyé
                 df_actif["Ordre_Passage"] = range(len(df_actif))
 
-                # 1. Base globale regroupée (ASAF + RACB) pour les classements officieux de droite
-                base = pd.merge(df_actif, df_eng, on="N°", how="inner")
+                # --- SÉCURISATION DROITE : Union complète des partants (Manche 1 + Manche 2) ---
+                tous_les_partants = pd.DataFrame({"N°": list(set(df_dep1["N°"].tolist() + df_dep2["N°"].tolist()))})
                 
-                # 2. Base restreinte : Exclure strictement les lignes RACB de l'affichage visuel de gauche
+                # Reconstruction de la base des classements (Droite) sans aucune perte de concurrents
+                base = pd.merge(tous_les_partants, df_eng, on="N°", how="inner")
+                if len(df_dep1) > 0: base = pd.merge(base, df_dep1, on="N°", how="left")
+                if len(df_arr1) > 0: base = pd.merge(base, df_arr1, on="N°", how="left")
+                if len(df_dep2) > 0: base = pd.merge(base, df_dep2, on="N°", how="left")
+                if len(df_arr2) > 0: base = pd.merge(base, df_arr2, on="N°", how="left")
+
+                base["Calc_Sec_1"] = (base.get("Sec_Arr_1", pd.Series(dtype=float)) - base.get("Sec_Dep_1", pd.Series(dtype=float))).apply(lambda x: x + 3600 if (x is not None and x < 0) else x) if "Sec_Arr_1" in base.columns else None
+                base["Calc_Sec_2"] = (base.get("Sec_Arr_2", pd.Series(dtype=float)) - base.get("Sec_Dep_2", pd.Series(dtype=float))).apply(lambda x: x + 3600 if (x is not None and x < 0) else x) if "Sec_Arr_2" in base.columns else None
+                # --- PROTECTION GAUCHE : Flux visuel strict ASAF basé sur la manche en cours ---
                 mot_cle_tri = "COURSE 2 ASAF" if est_en_c2 else "COURSE 1 ASAF"
                 liste_asaf_numeros = []
                 for c_idx in range(len(df_dep_raw.columns)):
@@ -276,16 +283,6 @@ def recuperer_donnees_course():
                 df_actif_asaf = df_actif[df_actif["N°"].isin(liste_asaf_numeros)].copy()
                 base_visuelle_gauche = pd.merge(df_actif_asaf, df_eng, on="N°", how="inner")
 
-                if est_en_c2 and len(df_arr2) > 0: base = pd.merge(base, df_arr2, on="N°", how="left")
-                if not est_en_c2 and len(df_arr1) > 0: base = pd.merge(base, df_arr1, on="N°", how="left")
-                
-                if est_en_c2 and len(df_dep1) > 0: base = pd.merge(base, df_dep1.drop_duplicates('N°', keep='last'), on="N°", how="left")
-                if est_en_c2 and len(df_arr1) > 0: base = pd.merge(base, df_arr1.drop_duplicates('N°', keep='last'), on="N°", how="left")
-
-                base["Calc_Sec_1"] = (base.get("Sec_Arr_1", pd.Series(dtype=float)) - base.get("Sec_Dep_1", pd.Series(dtype=float))).apply(lambda x: x + 3600 if (x is not None and x < 0) else x) if "Sec_Arr_1" in base.columns else None
-                base["Calc_Sec_2"] = (base.get("Sec_Arr_2", pd.Series(dtype=float)) - base.get("Sec_Dep_2", pd.Series(dtype=float))).apply(lambda x: x + 3600 if (x is not None and x < 0) else x) if "Sec_Arr_2" in base.columns else None
-
-                # Injection des données d'Arrivée nettoyées pour le tableau visuel de gauche
                 if est_en_c2 and len(df_arr2) > 0:
                     base_visuelle_gauche = pd.merge(base_visuelle_gauche, df_arr2, on="N°", how="left")
                 elif not est_en_c2 and len(df_arr1) > 0:
@@ -296,10 +293,8 @@ def recuperer_donnees_course():
                 df_hist_base = pd.DataFrame(columns=base_visuelle_gauche.columns)
                 df_live = pd.DataFrame(columns=["N°", "Nom_Prenom", "Voiture", "Départ", "Arrivée", "Chrono réalisé"])
 
-                # Inversion de la pile EXCLUSIVE ASAF unique pour l'affichage en direct
                 pile_inversee = base_visuelle_gauche.sort_values(by="Ordre_Passage", ascending=False).copy()
 
-                # EN DIRECT : Reçoit les 5 derniers concurrents ASAF uniques partis
                 df_live_base = pile_inversee.head(5).copy()
                 df_live_base["Chrono réalisé"] = df_live_base.apply(lambda r: calculer_statut_chrono(r, est_dans_le_live=True), axis=1)
                 
@@ -309,106 +304,4 @@ def recuperer_donnees_course():
                 df_live_base["Arrivée_Visuel"] = df_live_base[h_arr_col].apply(formater_heure_ecran) if h_arr_col in df_live_base.columns else "-"
                 df_live = df_live_base[["N°", "Nom_Prenom", "Voiture", "Départ_Visuel", "Arrivée_Visuel", "Chrono réalisé"]].rename(columns={"Départ_Visuel": "Départ", "Arrivée_Visuel": "Arrivée"})
 
-                # HISTORIQUE : Les concurrents ASAF uniques poussés au-delà du Top 5 (sans doublons, sans RACB)
                 df_hist_base = pile_inversee.iloc[5:].copy() if len(pile_inversee) > 5 else pd.DataFrame(columns=pile_inversee.columns)
-                # --- GÉNÉRATION DU FLUX HTML EXCLUSIF ASAF ---
-                html_hist = "<div class='zone-defilement-tactile'>"
-                html_hist += "<table class='table-compacte table-hist'><thead><tr><th>N°</th><th>Nom_Prenom</th><th>Voiture</th><th>Groupe</th><th>Cl</th><th>Course 1</th><th>Chrono</th></tr></thead><tbody>"
-
-                for idx, row in df_hist_base.iterrows():
-                    t1 = row.get("Calc_Sec_1", None)
-                    t2 = row.get("Calc_Sec_2", None)
-                    has_t1 = pd.notna(t1) and isinstance(t1, (int, float)) and t1 > 0
-                    has_t2 = pd.notna(t2) and isinstance(t2, (int, float)) and t2 > 0
-                    
-                    txt_c1_visuel = format_final_chrono(t1)
-                    txt_c2_brut = format_final_chrono(t2)
-
-                    if est_en_c2:
-                        if not has_t2:
-                            # Correction d'affichage pour l'Historique : Si pas d'arrivée, on force "No Time"
-                            txt_c2_visuel = f"No Time &nbsp;<span style='color: #9CA3AF; font-size: 1.05rem; vertical-align: middle; display: inline-block; line-height: 1;'>◆</span>"
-                        else:
-                            if not has_t1:
-                                txt_c2_visuel = f"{txt_c2_brut} &nbsp;<span style='color: #9CA3AF; font-size: 1.05rem; vertical-align: middle; display: inline-block; line-height: 1;'>◆</span>"
-                            else:
-                                if t2 < t1:
-                                    txt_c2_visuel = f"{txt_c2_brut} &nbsp;<span style='color: #22C55E; font-size: 1.25rem; vertical-align: middle; display: inline-block; line-height: 1;'>▲</span>"
-                                elif t2 > t1:
-                                    txt_c2_visuel = f"{txt_c2_brut} &nbsp;<span style='color: #EF4444; font-size: 1.25rem; vertical-align: middle; display: inline-block; line-height: 1;'>▼</span>"
-                                else:
-                                    txt_c2_visuel = txt_c2_brut
-                        txt_chrono_final = txt_c2_visuel
-                    else:
-                        # Idem pour la course 1 si elle est active
-                        if not has_t1:
-                            txt_chrono_final = "No Time"
-                        else:
-                            txt_chrono_final = txt_c1_visuel
-
-                    html_hist += f"<tr><td>{row['N°']}</td><td>{row['Nom_Prenom']}</td><td>{row['Voiture']}</td><td>{row['Groupe']}</td><td>{row['Classe']}</td><td>{txt_c1_visuel}</td><td>{txt_chrono_final}</td></tr>"
-                html_hist += "</tbody></table></div>"
-                
-                  # --- CLASSEMENTS COMPLÉMENTAIRES (REGROUPEMENT CLASSEMENTS DROITE : ASAF + RACB) ---
-                valides = base[((base["Calc_Sec_1"].notna() & (base["Calc_Sec_1"] > 0)) | (base["Calc_Sec_2"].notna() & (base["Calc_Sec_2"] > 0)))].copy() if "Calc_Sec_1" in base.columns or "Calc_Sec_2" in base.columns else pd.DataFrame()
-                df_div4_html = "" 
-
-                if len(valides) > 0:
-                    cols_calcul = [c for c in ["Calc_Sec_1", "Calc_Sec_2"] if c in valides.columns]
-                    valides["Meilleur_Sec"] = valides[cols_calcul].min(axis=1, skipna=True)
-                    scr = valides.sort_values(by="Meilleur_Sec").drop_duplicates(subset=["N°"], keep="first").copy()
-                    
-                    # --- TABLEAU 1 DE DROITE (Division 123 ASAF) ---
-                    racb = scr.copy()
-                    if len(racb) > 0:
-                        df_racb_brut = racb[["N°", "Nom_Prenom", "Groupe", "Classe", "Meilleur_Sec"]].rename(columns={"Classe": "Cl", "Groupe": "Division"})
-                        # 1. Exclusion stricte de la Division 4 AVANT de calculer les positions
-                        df_racb_brut = df_racb_brut[df_racb_brut["Division"].astype(str).str.strip() != "4"].copy()
-                        
-                        # 2. Attribution des positions continues sans trous
-                        df_racb_brut.insert(0, "Pos", range(1, len(df_racb_brut) + 1))
-                        df_racb_brut["Chrono"] = df_racb_brut["Meilleur_Sec"].apply(format_final_chrono)
-                        df_racb_brut = df_racb_brut.drop(columns=["Meilleur_Sec"])
-                        
-                        df_racb = f"<div class='zone-defilement-tactile'>{df_racb_brut.to_html(index=False, classes='table-compacte table-class-robuste', escape=False, border=0)}</div>"
-                    
-                    # --- TABLEAU 2 DE DROITE (Division 4 ASAF) ---
-                    div4_data = scr[scr["Groupe"].astype(str).str.strip() == "4"].copy()
-                    if len(div4_data) > 0:
-                        df_div4_brut = div4_data[["N°", "Nom_Prenom", "Groupe", "Classe", "Meilleur_Sec"]].rename(columns={"Classe": "Cl", "Groupe": "Division"})
-                        df_div4_brut.insert(0, "Pos", range(1, len(df_div4_brut) + 1))
-                        df_div4_brut["Chrono"] = df_div4_brut["Meilleur_Sec"].apply(format_final_chrono)
-                        df_div4_brut = df_div4_brut.drop(columns=["Meilleur_Sec"])
-                        
-                        df_div4_html = f"<div class='zone-defilement-tactile'>{df_div4_brut.to_html(index=False, classes='table-compacte table-class-robuste', escape=False, border=0)}</div>"
-                    else:
-                        df_div4_html = f"<table class='table-compacte table-class-groupes'><tr><td style='text-align: center; padding: 10px;'>Aucune donnée disponible pour la Division 4</td></tr></table>"
-
-                    # --- TABLEAU 3 DE DROITE (Top 3 par Classe) ---
-                    scr["Cl_Tri_Num"] = scr["Classe"].apply(decomposer_classe_pour_tri)
-                    scr["Cl_Tri_Suff"] = scr["Classe"].apply(extraire_suffixe_pour_tri)
-                    df_grouped = scr.sort_values(by=["Cl_Tri_Num", "Cl_Tri_Suff", "Groupe", "Meilleur_Sec"]).groupby("Classe", sort=False).head(3).copy()
-                    df_grouped = df_grouped.sort_values(by=["Cl_Tri_Num", "Cl_Tri_Suff", "Groupe", "Meilleur_Sec"])
-                    if len(df_grouped) > 0:
-                        df_grouped["Pos"] = df_grouped.groupby("Classe", sort=False).cumcount() + 1; df_grouped["Chrono"] = df_grouped["Meilleur_Sec"].apply(format_final_chrono)
-                        df_divisions = df_grouped[["Pos", "N°", "Nom_Prenom", "Groupe", "Classe", "Chrono"]].rename(columns={"Classe": "Cl"})
-        except Exception as e:
-            pass
-
-    if not fichiers_prets:
-        html_hist = f"{CSS_RIGIDE_ORIGINE}<table class='table-compacte table-hist'><tr><td style='text-align: center; padding: 10px;'>Aucune donnée disponible pour le plateau ASAF</td></tr></table>"
-        df_div4_html = f"<table class='table-compacte table-class-groupes'><tr><td style='text-align: center; padding: 10px;'>Aucune donnée disponible</td></tr></table>"
-
-    if not df_divisions.empty:
-        html_class_div = f"<table class='table-compacte table-class-groupes'><thead><tr><th>Pos</th><th>N°</th><th>Nom_Prenom</th><th>Groupe</th><th>Cl</th><th>Chrono</th></tr></thead><tbody>"
-        for idx in range(len(df_divisions)):
-            classe_row = ""
-            if idx < len(df_divisions) - 1:
-                if str(df_divisions.iloc[idx]["Cl"]) != str(df_divisions.iloc[idx + 1]["Cl"]):
-                    classe_row = "class='ligne-separation-classe'"
-            html_class_div += f"<tr {classe_row}><td>{df_divisions.iloc[idx]['Pos']}</td><td>{df_divisions.iloc[idx]['N°']}</td><td>{df_divisions.iloc[idx]['Nom_Prenom']}</td><td>{df_divisions.iloc[idx]['Groupe']}</td><td>{df_divisions.iloc[idx]['Cl']}</td><td>{df_divisions.iloc[idx]['Chrono']}</td></tr>"
-        html_class_div += "</tbody></table>"
-    else:
-        html_class_div = f"<table class='table-compacte table-class-groupes'><tr><td style='text-align: center; padding: 10px;'>Aucune donnée disponible</td></tr></table>"
-
-    return df_live, html_hist, df_racb, df_div4_html, html_class_div, t_live, t_his, t_haut, t_milieu, t_bas
