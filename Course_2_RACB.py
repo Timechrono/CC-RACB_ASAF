@@ -293,10 +293,9 @@ def recuperer_donnees_course():
                     # Traitement visuel de la Course 1
                     txt_c1_brut = format_final_chrono(t1)
                     if has_t1 and not has_t2:
-                        # Si le pilote a la C1 mais pas encore de temps en C2, on met le losange gris devant la C1
-                        txt_c1_visuel = f"<span style='color: #9CA3AF;'>◆</span>&nbsp;{txt_c1_brut}"
+                        # Losange gris positionné à droite du temps si uniquement Course 1
+                        txt_c1_visuel = f"{txt_c1_brut} &nbsp;<span style='color: #9CA3AF; font-size: 1.05rem; vertical-align: middle; display: inline-block; line-height: 1;'>◆</span>"
                     elif has_t1 and has_t2 and t1 < t2:
-                        # Si le chrono C1 est meilleur que C2, on garde la puce verte d'origine pour la C1
                         txt_c1_visuel = f"<span style='color: #22C55E;'>•</span>&nbsp;{txt_c1_brut}"
                     else:
                         txt_c1_visuel = txt_c1_brut
@@ -310,10 +309,10 @@ def recuperer_donnees_course():
                         txt_c2_brut = format_final_chrono(t2)
                         
                         if not has_t1:
-                            # ➡️ Cas demandé : Le pilote a un temps en C2 mais n'avait PAS de temps valide en C1 (Losange Gris)
-                            txt_c2_visuel = f"<span style='color: #9CA3AF;'>◆</span>&nbsp;{txt_c2_brut}"
+                            # ➡️ Le losange gris est maintenant placé à droite du temps
+                            txt_c2_visuel = f"{txt_c2_brut} &nbsp;<span style='color: #9CA3AF; font-size: 1.05rem; vertical-align: middle; display: inline-block; line-height: 1;'>◆</span>"
                         else:
-                            # Le pilote a les 2 temps : Pas de point vert, juste les flèches de progression pure
+                            # Le pilote a les 2 temps : pas de point vert, flèches à droite
                             if t2 < t1:
                                 txt_c2_visuel = f"{txt_c2_brut} &nbsp;<span style='color: #22C55E; font-size: 1.25rem; vertical-align: middle; display: inline-block; line-height: 1;'>▲</span>"
                             elif t2 > t1:
