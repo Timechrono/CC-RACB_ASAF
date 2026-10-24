@@ -326,10 +326,8 @@ def recuperer_donnees_course():
 
                     if est_en_c2:
                         if not has_t2:
-                            if "Heure_Depart_2" in row and pd.notna(row["Heure_Depart_2"]):
-                                txt_c2_visuel = "<span class='vrai-gyrophare'>🟠</span> En Piste"
-                            else:
-                                txt_c2_visuel = f"No Time &nbsp;<span style='color: #9CA3AF; font-size: 1.05rem; vertical-align: middle; display: inline-block; line-height: 1;'>◆</span>"
+                            # Correction d'affichage pour l'Historique : Si pas d'arrivée, on force "No Time"
+                            txt_c2_visuel = f"No Time &nbsp;<span style='color: #9CA3AF; font-size: 1.05rem; vertical-align: middle; display: inline-block; line-height: 1;'>◆</span>"
                         else:
                             if not has_t1:
                                 txt_c2_visuel = f"{txt_c2_brut} &nbsp;<span style='color: #9CA3AF; font-size: 1.05rem; vertical-align: middle; display: inline-block; line-height: 1;'>◆</span>"
@@ -342,8 +340,9 @@ def recuperer_donnees_course():
                                     txt_c2_visuel = txt_c2_brut
                         txt_chrono_final = txt_c2_visuel
                     else:
-                        if not has_t1 and "Heure_Depart_1" in row and pd.notna(row["Heure_Depart_1"]):
-                            txt_chrono_final = "<span class='vrai-gyrophare'>🟠</span> En Piste"
+                        # Idem pour la course 1 si elle est active
+                        if not has_t1:
+                            txt_chrono_final = "No Time"
                         else:
                             txt_chrono_final = txt_c1_visuel
 
