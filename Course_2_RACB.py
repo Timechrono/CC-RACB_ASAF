@@ -259,27 +259,31 @@ def recuperer_donnees_course():
                 base["Calc_Sec_1"] = (base["Sec_Arr_1"] - base["Sec_Dep_1"]).apply(lambda x: x + 3600 if (x is not None and x < 0) else x)
                 base["Calc_Sec_2"] = (base["Sec_Arr_2"] - base["Sec_Dep_2"]).apply(lambda x: x + 3600 if (x is not None and x < 0) else x)
 
-                # Base par défaut pour l'historique au cas où la course 2 n'a pas commencé
+                # Sécurité : Initialisation par défaut pour éviter les crashs si Course 2 vide
                 df_hist_base = pd.DataFrame(columns=base.columns)
+                df_live = pd.DataFrame(columns=["N°", "Nom_Prenom", "Voiture", "Départ", "Arrivée", "Chrono réalisé"])
 
                 if "Heure_Depart_2" in base.columns and base["Heure_Depart_2"].notna().any():
-                    # 1. On récupère les concurrents de la Course 2
+                    # 1. On isole la course 2 et on trie STRICTEMENT par l'heure de départ (du plus récent au plus ancien)
                     base_c2 = base[base["Heure_Depart_2"].notna()].copy()
-                    
-                    # 2. FORCE L'EMPILEMENT CHRONOLOGIQUE : On trie STRICTEMENT par l'heure de départ (du plus récent au plus ancien)
-                    # Cela garantit que le dernier parti est TOUJOURS en haut, peu importe les fusions de tableaux.
                     tous_chronos_recents = base_c2.sort_values(by="Heure_Depart_2", ascending=False).copy()
                     
-                    # 3. EN DIRECT : On prend les 5 derniers partis sur la piste
+                    # 2. EN DIRECT : On prend les 5 derniers partis sur la piste
                     df_live_base = tous_chronos_recents.head(5).copy()
                     df_live_base["Chrono réalisé"] = df_live_base.apply(lambda r: calculer_statut_chrono(r, est_dans_le_live=True), axis=1)
                     df_live_base["Départ_C2"] = df_live_base["Heure_Depart_2"].apply(formater_heure_ecran)
                     df_live_base["Arrivée_C2"] = df_live_base["Heure_Arrivee_2"].apply(formater_heure_ecran)
                     df_live = df_live_base[["N°", "Nom_Prenom", "Voiture", "Départ_C2", "Arrivée_C2", "Chrono réalisé"]].rename(columns={"Départ_C2": "Départ", "Arrivée_C2": "Arrivée"})
 
-                    # 4. HISTORIQUE : Les éjectés s'empilent naturellement derrière, toujours du plus récent au plus ancien
+                    # 3. HISTORIQUE : On prend uniquement à partir du 6ème (les éjectés)
                     df_hist_base = tous_chronos_recents.iloc[5:].copy()
-
+                else:
+                    # Si pas de Course 2 commencée, l'historique affiche temporairement tout le monde basé sur la Course 1
+                    df_hist_base = base.assign(Ordre_Saisie=range(len(base))).sort_values(by="Ordre_Saisie", ascending=False).copy()
+                
+                # TABLE HISTORIQUE SÉCURISÉE SANS AUCUNE BALISE DE TEXTE EN GRAS SUR SMARTPHONE
+                html_hist = "<div class='zone-defilement-tactile'>"
+                html_hist += "<table class='table-compacte table-hist'><thead><tr><th>N°</th><th>Nom_Prenom</th><th>Voiture</th><th>Groupe</th><th>Cl</th><th>Course 1</th><th>Chrono</th></tr></thead><tbody>"
 
                 for idx, row in df_hist_base.iterrows():
                     t1, t2 = row["Calc_Sec_1"], row["Calc_Sec_2"]
@@ -304,8 +308,7 @@ def recuperer_donnees_course():
                     html_hist += f"<tr><td>{row['N°']}</td><td>{row['Nom_Prenom']}</td><td>{row['Voiture']}</td><td>{row['Groupe']}</td><td>{row['Classe']}</td><td>{txt_c1_visuel}</td><td>{txt_c2_visuel}</td></tr>"
                 html_hist += "</tbody></table></div>"
 
-                # 4. CALCUL DES CLASSEMENTS GENERAUX ET CLASSES
-                # On utilise 'base' (qui contient TOUS les concurrents, Live inclus) pour ne léser personne
+                # 4. CALCUL DES CLASSEMENTS GENERAUX ET CLASSES (Sur l'ensemble des données 'base')
                 valides = base[((base["Calc_Sec_1"].notna() & (base["Calc_Sec_1"] > 0)) | (base["Calc_Sec_2"].notna() & (base["Calc_Sec_2"] > 0)))].copy()
                 if len(valides) > 0:
                     valides["Meilleur_Sec"] = valides[["Calc_Sec_1", "Calc_Sec_2"]].min(axis=1, skipna=True)
@@ -323,7 +326,7 @@ def recuperer_donnees_course():
                     if len(df_grouped) > 0:
                         df_grouped["Pos"] = df_grouped.groupby("Classe", sort=False).cumcount() + 1; df_grouped["Chrono"] = df_grouped["Meilleur_Sec"].apply(format_final_chrono)
                         df_divisions = df_grouped[["Pos", "N°", "Nom_Prenom", "Groupe", "Classe", "Chrono"]].rename(columns={"Classe": "Cl"})
-        except:
+        except Exception as e:
             pass
 
     if not fichiers_prets:
