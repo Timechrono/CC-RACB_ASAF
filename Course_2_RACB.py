@@ -288,22 +288,38 @@ def recuperer_donnees_course():
                 for idx, row in df_hist_base.iterrows():
                     t1, t2 = row["Calc_Sec_1"], row["Calc_Sec_2"]
                     has_t1 = pd.notna(t1) and isinstance(t1, (int, float)) and t1 > 0
+                    has_t2 = pd.notna(t2) and isinstance(t2, (int, float)) and t2 > 0
                     
+                    # Traitement visuel de la Course 1
                     txt_c1_brut = format_final_chrono(t1)
-                    txt_c1_visuel = f"<span style='color: #22C55E;'>•</span>&nbsp;{txt_c1_brut}" if (has_t1 and (pd.isna(t2) or t2 <= 0 or t1 < t2)) else txt_c1_brut
+                    if has_t1 and not has_t2:
+                        # Si le pilote a la C1 mais pas encore de temps en C2, on met le losange gris devant la C1
+                        txt_c1_visuel = f"<span style='color: #9CA3AF;'>◆</span>&nbsp;{txt_c1_brut}"
+                    elif has_t1 and has_t2 and t1 < t2:
+                        # Si le chrono C1 est meilleur que C2, on garde la puce verte d'origine pour la C1
+                        txt_c1_visuel = f"<span style='color: #22C55E;'>•</span>&nbsp;{txt_c1_brut}"
+                    else:
+                        txt_c1_visuel = txt_c1_brut
 
+                    # Traitement visuel de la colonne Chrono (Course 2)
                     if pd.notna(row["Heure_Depart_2"]) and pd.isna(row["Heure_Arrivee_2"]):
                         txt_c2_visuel = "En Piste"
-                    elif pd.isna(t2) or t2 <= 0:
+                    elif not has_t2:
                         txt_c2_visuel = "No Time"
                     else:
                         txt_c2_brut = format_final_chrono(t2)
-                        base_txt = f"<span style='color: #22C55E;'>•</span>&nbsp;{txt_c2_brut}" if (not has_t1 or t2 < t1) else txt_c2_brut
                         
-                        if has_t1:
-                            txt_c2_visuel = f"{base_txt} &nbsp;<span style='color: #22C55E; font-size: 1.25rem; vertical-align: middle; display: inline-block; line-height: 1;'>▲</span>" if t2 < t1 else f"{base_txt} &nbsp;<span style='color: #EF4444; font-size: 1.25rem; vertical-align: middle; display: inline-block; line-height: 1;'>▼</span>" if t2 > t1 else base_txt
+                        if not has_t1:
+                            # ➡️ Cas demandé : Le pilote a un temps en C2 mais n'avait PAS de temps valide en C1 (Losange Gris)
+                            txt_c2_visuel = f"<span style='color: #9CA3AF;'>◆</span>&nbsp;{txt_c2_brut}"
                         else:
-                            txt_c2_visuel = base_txt
+                            # Le pilote a les 2 temps : Pas de point vert, juste les flèches de progression pure
+                            if t2 < t1:
+                                txt_c2_visuel = f"{txt_c2_brut} &nbsp;<span style='color: #22C55E; font-size: 1.25rem; vertical-align: middle; display: inline-block; line-height: 1;'>▲</span>"
+                            elif t2 > t1:
+                                txt_c2_visuel = f"{txt_c2_brut} &nbsp;<span style='color: #EF4444; font-size: 1.25rem; vertical-align: middle; display: inline-block; line-height: 1;'>▼</span>"
+                            else:
+                                txt_c2_visuel = txt_c2_brut
 
                     html_hist += f"<tr><td>{row['N°']}</td><td>{row['Nom_Prenom']}</td><td>{row['Voiture']}</td><td>{row['Groupe']}</td><td>{row['Classe']}</td><td>{txt_c1_visuel}</td><td>{txt_c2_visuel}</td></tr>"
                 html_hist += "</tbody></table></div>"
