@@ -349,9 +349,9 @@ def recuperer_donnees_course():
                     html_hist += f"<tr><td>{row['N°']}</td><td>{row['Nom_Prenom']}</td><td>{row['Voiture']}</td><td>{row['Groupe']}</td><td>{row['Classe']}</td><td>{txt_c1_visuel}</td><td>{txt_chrono_final}</td></tr>"
                 html_hist += "</tbody></table></div>"
                 
-                # --- CLASSEMENTS COMPLÉMENTAIRES (REGROUPEMENT CLASSEMENTS DROITE : ASAF + RACB) ---
+                  # --- CLASSEMENTS COMPLÉMENTAIRES (REGROUPEMENT CLASSEMENTS DROITE : ASAF + RACB) ---
                 valides = base[((base["Calc_Sec_1"].notna() & (base["Calc_Sec_1"] > 0)) | (base["Calc_Sec_2"].notna() & (base["Calc_Sec_2"] > 0)))].copy() if "Calc_Sec_1" in base.columns or "Calc_Sec_2" in base.columns else pd.DataFrame()
-                df_div4_html = "" # Initialisation du conteneur pour la Division 4
+                df_div4_html = "" 
 
                 if len(valides) > 0:
                     cols_calcul = [c for c in ["Calc_Sec_1", "Calc_Sec_2"] if c in valides.columns]
@@ -361,16 +361,25 @@ def recuperer_donnees_course():
                     # --- TABLEAU 1 DE DROITE (Division 123 ASAF) ---
                     racb = scr.copy()
                     if len(racb) > 0:
-                        racb["Pos"] = range(1, len(racb) + 1); racb["Chrono"] = racb["Meilleur_Sec"].apply(format_final_chrono)
-                        df_racb_brut = racb[["Pos", "N°", "Nom_Prenom", "Groupe", "Classe", "Chrono"]].rename(columns={"Classe": "Cl", "Groupe": "Division"})
-                        df_racb_brut = df_racb_brut[df_racb_brut["Division"].astype(str).str.strip() != "4"]
+                        df_racb_brut = racb[["N°", "Nom_Prenom", "Groupe", "Classe", "Meilleur_Sec"]].rename(columns={"Classe": "Cl", "Groupe": "Division"})
+                        # 1. Exclusion stricte de la Division 4 AVANT de calculer les positions
+                        df_racb_brut = df_racb_brut[df_racb_brut["Division"].astype(str).str.strip() != "4"].copy()
+                        
+                        # 2. Attribution des positions continues sans trous
+                        df_racb_brut.insert(0, "Pos", range(1, len(df_racb_brut) + 1))
+                        df_racb_brut["Chrono"] = df_racb_brut["Meilleur_Sec"].apply(format_final_chrono)
+                        df_racb_brut = df_racb_brut.drop(columns=["Meilleur_Sec"])
+                        
                         df_racb = f"<div class='zone-defilement-tactile'>{df_racb_brut.to_html(index=False, classes='table-compacte table-class-robuste', escape=False, border=0)}</div>"
                     
                     # --- TABLEAU 2 DE DROITE (Division 4 ASAF) ---
                     div4_data = scr[scr["Groupe"].astype(str).str.strip() == "4"].copy()
                     if len(div4_data) > 0:
-                        div4_data["Pos"] = range(1, len(div4_data) + 1); div4_data["Chrono"] = div4_data["Meilleur_Sec"].apply(format_final_chrono)
-                        df_div4_brut = div4_data[["Pos", "N°", "Nom_Prenom", "Groupe", "Classe", "Chrono"]].rename(columns={"Classe": "Cl", "Groupe": "Division"})
+                        df_div4_brut = div4_data[["N°", "Nom_Prenom", "Groupe", "Classe", "Meilleur_Sec"]].rename(columns={"Classe": "Cl", "Groupe": "Division"})
+                        df_div4_brut.insert(0, "Pos", range(1, len(df_div4_brut) + 1))
+                        df_div4_brut["Chrono"] = df_div4_brut["Meilleur_Sec"].apply(format_final_chrono)
+                        df_div4_brut = df_div4_brut.drop(columns=["Meilleur_Sec"])
+                        
                         df_div4_html = f"<div class='zone-defilement-tactile'>{df_div4_brut.to_html(index=False, classes='table-compacte table-class-robuste', escape=False, border=0)}</div>"
                     else:
                         df_div4_html = f"<table class='table-compacte table-class-groupes'><tr><td style='text-align: center; padding: 10px;'>Aucune donnée disponible pour la Division 4</td></tr></table>"
@@ -402,5 +411,4 @@ def recuperer_donnees_course():
     else:
         html_class_div = f"<table class='table-compacte table-class-groupes'><tr><td style='text-align: center; padding: 10px;'>Aucune donnée disponible</td></tr></table>"
 
-    # L'ordre du return a été modifié pour aligner df_div4_html (2e tableau de droite) et html_class_div (3e tableau de droite)
     return df_live, html_hist, df_racb, df_div4_html, html_class_div, t_live, t_his, t_haut, t_milieu, t_bas
